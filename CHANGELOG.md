@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.3 (2026-09-30): recover from a full Docker disk
+
+- The configurator recreates `common_site_config.json` when it is empty or damaged (a full
+  Docker disk can truncate it, after which every bench command fails)
+- Meilisearch upgrades its index files in place (`MEILI_UPGRADE_DB`) when a newer patch
+  release of the image is pulled, instead of refusing to start
+- `./upgrade.sh` checks Docker's free disk space before building and stops with instructions
+  when less than about 6 GB is left
+
 ## 0.5.2 (2026-09-30): upgrade fixes
 
 - `./upgrade.sh` no longer waits forever at "Restart and migrate" when the configurator

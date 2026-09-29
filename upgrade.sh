@@ -165,6 +165,14 @@ if [ "$MODE" = native ]; then
 else
   [ "${DEV_MODE:-0}" = 1 ] && [ -z "${COMPOSE_FILE:-}" ] && export COMPOSE_FILE=compose.yaml:compose.dev.yaml
   bold "3/5  Container image"
+  # A build needs several GB; a full Docker disk corrupts config files and stops containers.
+  FREE_KB=$(docker run --rm --entrypoint df "${RESDESK_IMAGE:-sok-resdesk}:${RESDESK_TAG:-local}" -Pk / 2>/dev/null | awk 'NR==2{print $4}' || true)
+  if [ -n "$FREE_KB" ] && [ "$FREE_KB" -lt 6000000 ]; then
+    warn "Docker has only $((FREE_KB / 1024 / 1024)) GB free; an upgrade needs about 6 GB."
+    echo "      Free space (your data is not touched):  docker builder prune -af ; docker image prune -f"
+    echo "      Docker Desktop: Settings → Resources → Disk usage limit can also be raised."
+    false
+  fi
   if [ -n "${RESDESK_IMAGE:-}" ]; then
     docker compose pull
   else

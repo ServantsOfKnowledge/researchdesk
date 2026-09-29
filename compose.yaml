@@ -68,6 +68,8 @@ services:
       MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:?run ./install.sh first}
       MEILI_ENV: production
       MEILI_NO_ANALYTICS: "true"
+      # upgrade the index files in place when a newer Meilisearch patch release is pulled
+      MEILI_UPGRADE_DB: "true"
     volumes:
       - meili-data:/meili_data
 
@@ -78,6 +80,8 @@ services:
     entrypoint: ["bash", "-c"]
     command:
       - >
+        python3 -c "import json; json.load(open('sites/common_site_config.json'))" 2>/dev/null
+        || { echo "common_site_config.json was empty or damaged (disk full?): recreating it"; echo "{}" > sites/common_site_config.json; };
         ls -1 apps > sites/apps.txt;
         bench set-config -g db_host db;
         bench set-config -gp db_port 3306;
