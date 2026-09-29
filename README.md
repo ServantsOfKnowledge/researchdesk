@@ -17,9 +17,10 @@ Choose a collection, a search or a list of items on archive.org, and Research De
 - let readers keep a **reading list**, export it as a bibliography, and share it as a link
 
 It's built to install with one command, for librarians, educators, archivists and
-anyone else who can open a terminal.
+anyone else who can open a terminal. It scales to tens of thousands of books on one server
+([measured](docs/scaling.md)).
 
-> Status: **proof of concept (v0.1)**. It works end to end and is tested against live
+> Status: **proof of concept (v0.2)**. It works end to end and is tested against live
 > Servants of Knowledge data, but expect changes before 1.0. See [the roadmap](docs/roadmap.md).
 
 ---
@@ -30,8 +31,8 @@ You need [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Mac 
 or Docker Engine (Linux), 4 GB of free memory and 10 GB of disk.
 
 ```bash
-git clone https://github.com/omshivaprakash/sok-resdesk.git
-cd sok-resdesk
+git clone https://github.com/ServantsOfKnowledge/researchdesk.git
+cd researchdesk
 ./install.sh
 ```
 
@@ -74,7 +75,7 @@ Click **Check Count** to see how many items match, set **Maximum Items**, then *
 | Librarians & educators | [Getting started](docs/getting-started.md) · [Choosing & ingesting books](docs/ingesting.md) |
 | Researchers | [Searching](docs/searching.md) · [Citations & reading lists](docs/citations.md) |
 | Library systems staff | [Koha & interoperability](docs/koha.md) · [API](docs/api.md) |
-| System administrators | [Installation](docs/installation.md) · [Operations](docs/operations.md) |
+| System administrators | [Installation](docs/installation.md) · [Operations](docs/operations.md) · [Scaling to 50k books](docs/scaling.md) |
 | Developers | [Architecture](docs/architecture.md) · [Development](docs/development.md) · [Roadmap](docs/roadmap.md) |
 
 ## How it fits together

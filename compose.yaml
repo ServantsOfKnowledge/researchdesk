@@ -7,6 +7,8 @@
 #   docker compose down           stop (data is kept in volumes)
 #   ./resdesk.sh help             everyday commands
 
+name: sok-resdesk
+
 x-image: &image
   image: ${RESDESK_IMAGE:-sok-resdesk}:${RESDESK_TAG:-local}
   build:
@@ -119,9 +121,13 @@ services:
     <<: *backend
     command: ["node", "/home/frappe/frappe-bench/apps/frappe/socketio.js"]
 
+  # Background workers. Each one processes one ingest batch at a time, so
+  # QUEUE_WORKERS=4 ingests about four books at once. 2 to 4 is polite to archive.org.
   queue:
     <<: *backend
     command: ["bench", "worker", "--queue", "long,default,short"]
+    deploy:
+      replicas: ${QUEUE_WORKERS:-2}
 
   scheduler:
     <<: *backend

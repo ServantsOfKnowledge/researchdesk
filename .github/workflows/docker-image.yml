@@ -2,7 +2,7 @@ name: Publish Docker image
 
 # Builds a multi-arch image (Intel + Apple Silicon/ARM) and publishes it to
 # GitHub Container Registry, so installs can skip the local build:
-#   RESDESK_IMAGE=ghcr.io/<owner>/sok-resdesk RESDESK_TAG=latest ./install.sh
+#   RESDESK_IMAGE=ghcr.io/servantsofknowledge/researchdesk RESDESK_TAG=latest ./install.sh
 
 on:
   push:
@@ -29,7 +29,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/sok-resdesk
+          images: ghcr.io/servantsofknowledge/researchdesk
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=semver,pattern={{version}}

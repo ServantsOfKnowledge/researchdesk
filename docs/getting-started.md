@@ -15,8 +15,8 @@ Check it works: `docker compose version`
 ## 2. Download and install Research Desk
 
 ```bash
-git clone https://github.com/omshivaprakash/sok-resdesk.git
-cd sok-resdesk
+git clone https://github.com/ServantsOfKnowledge/researchdesk.git
+cd researchdesk
 ./install.sh
 ```
 

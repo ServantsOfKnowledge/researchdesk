@@ -17,7 +17,7 @@ There are three ways to run Research Desk:
 | `frontend` | nginx, the only service with a port open (`HTTP_PORT`, default 8080) |
 | `backend` | Frappe web application (gunicorn) |
 | `websocket` | real-time updates in the Desk |
-| `queue` | background worker: runs ingests and re-indexing |
+| `queue` | background workers (`QUEUE_WORKERS`, default 2): run ingest batches and re-indexing in parallel |
 | `scheduler` | runs scheduled (Daily/Weekly) ingest profiles |
 | `db` | MariaDB 11.8: the catalogue |
 | `redis-cache`, `redis-queue` | cache and job queue |
@@ -60,6 +60,8 @@ Settings you can change in `.env` before (re)running the installer:
 | `CONTACT_EMAIL` | (empty) | sent to archive.org in the User-Agent; also the OAI-PMH admin email |
 | `TIMEZONE` / `COUNTRY` / `CURRENCY` | Asia/Kolkata / India / INR | Frappe system defaults |
 | `GUNICORN_WORKERS` | 2 | web workers; raise on bigger servers |
+| `QUEUE_WORKERS` | 2 | parallel ingest workers; 4 to 6 for large collections (see [Scaling](scaling.md)) |
+| `DEV_MODE` | 0 | `1` runs the code from this folder live (see below) |
 | `RESDESK_IMAGE`, `RESDESK_TAG` | (build locally) | use a prebuilt image instead of building |
 
 ### Using a prebuilt image (skip the 15-minute build)
@@ -68,7 +70,7 @@ The GitHub Actions workflow `docker-image.yml` publishes multi-arch images to Gi
 Container Registry. Add to `.env`:
 
 ```
-RESDESK_IMAGE=ghcr.io/omshivaprakash/sok-resdesk
+RESDESK_IMAGE=ghcr.io/servantsofknowledge/researchdesk
 RESDESK_TAG=latest
 ```
 
@@ -107,6 +109,24 @@ Research Desk is a standard Docker Compose app:
 3. Assign your domain to the **frontend** service on port 8080, and set `BASE_URL` to it.
 4. Deploy. The `create-site` container creates the site on the first deploy and migrates on
    later ones.
+
+## Developer mode (Docker, code from this folder)
+
+The easiest way to keep developing: no Python, MariaDB or Node needed on your computer.
+
+```bash
+./resdesk.sh dev on     # once; remembered in .env as DEV_MODE=1
+```
+
+- Python files, templates, JS and CSS are read **live from this folder**. The web server
+  reloads by itself when you save a `.py` file.
+- Background workers need `./resdesk.sh restart` to pick up Python changes.
+- `developer_mode` is on, so DocTypes you edit in the Desk are written back into
+  `sok_resdesk/resdesk/doctype/` for you to commit.
+- After changing a DocType's JSON by hand, run `./resdesk.sh migrate`.
+
+`./resdesk.sh dev off` rebuilds the image with the current code and goes back to normal mode.
+Dev mode uses a development web server with a debugger, so **don't use it on a public server**.
 
 ## Developer setup (bench)
 

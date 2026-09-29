@@ -83,7 +83,7 @@ ADMIN_PASSWORD=${ADMIN_PASSWORD}
 DB_ROOT_PASSWORD=$(secret)
 MEILI_MASTER_KEY=$(secret)$(secret)
 # Use a prebuilt image instead of building locally, e.g.
-# RESDESK_IMAGE=ghcr.io/omshivaprakash/sok-resdesk
+# RESDESK_IMAGE=ghcr.io/servantsofknowledge/researchdesk
 # RESDESK_TAG=latest
 EOF
   chmod 600 .env
@@ -91,6 +91,10 @@ EOF
   set -a; . ./.env; set +a
 fi
 HTTP_PORT=${HTTP_PORT:-8080}
+if [ "${DEV_MODE:-0}" = 1 ] && [ -z "${COMPOSE_FILE:-}" ]; then
+  export COMPOSE_FILE=compose.yaml:compose.dev.yaml
+  ok "Developer mode is on (code runs live from this folder)"
+fi
 
 # 3. Build / pull ------------------------------------------------------------------
 echo

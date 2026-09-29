@@ -24,8 +24,9 @@ safe (Nextcloud, Synology, an external disk). The **search index is not backed u
 it can always be rebuilt from the catalogue:
 
 ```bash
-./resdesk.sh reindex             # books + page text (re-downloads page text from IA)
-./resdesk.sh reindex --no-pages  # books only, fast
+./resdesk.sh reindex --background   # all workers; page text comes from the local cache
+./resdesk.sh reindex --no-pages     # books only, fast
+./resdesk.sh reindex --reset --background   # drop and rebuild the page index (some upgrades need this)
 ```
 
 To restore (onto the same or a fresh install):
@@ -35,6 +36,17 @@ To restore (onto the same or a fresh install):
 ```
 
 It asks for confirmation, restores the database, migrates, and rebuilds the search index.
+
+## Ingest workers
+
+```bash
+./resdesk.sh workers 4      # run four ingest workers (saved in .env as QUEUE_WORKERS)
+./resdesk.sh progress       # watch the latest ingest run
+```
+
+Restarting workers (`./resdesk.sh restart`, `update`, a reboot) stops batches that were in
+progress. The run is marked *Interrupted* within a couple of hours. Run the profile again and
+already-ingested books are skipped.
 
 ## Updating
 
@@ -76,6 +88,8 @@ workspace after login.
 | Port 8080 already in use | set `HTTP_PORT=8090` in `.env`, re-run `./install.sh` |
 | Portal shows "Search is temporarily unavailable" | `./resdesk.sh logs meilisearch`; then Desk → Settings → **Test Search Engine** |
 | An ingest run stays *Queued* | the worker isn't running: `./resdesk.sh restart`, check `./resdesk.sh logs queue` |
+| A run is *Interrupted* | workers restarted mid-run: run the profile again (existing books are skipped) |
+| Page search slow or disk full on a big collection | see [Scaling](scaling.md) for sizing |
 | Some items *FAIL* in a run log | usually a temporary IA error: re-run the profile (existing items are skipped) |
 | Book has no "search inside" | IA has no page-level OCR for it yet, or it's access-restricted |
 | Citations show `localhost` links on a server | set `BASE_URL` (see [Installation](installation.md#docker-on-a-server-with-a-domain-name-and-https)) |

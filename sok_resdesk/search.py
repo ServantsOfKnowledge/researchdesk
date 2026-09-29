@@ -28,7 +28,7 @@ BOOK_SETTINGS = {
 		"description", "item_id", "text_excerpt",
 	],
 	"filterableAttributes": [
-		"language", "language_label", "year", "decade", "creators", "subjects", "collections",
+		"item_id", "language", "language_label", "year", "decade", "creators", "subjects", "collections",
 		"access_status", "has_fulltext", "source",
 	],
 	"sortableAttributes": ["year", "title_sort", "indexed_at"],
@@ -36,10 +36,21 @@ BOOK_SETTINGS = {
 	"faceting": {"maxValuesPerFacet": 200, "sortFacetValuesBy": {"*": "count"}},
 	"pagination": {"maxTotalHits": 10000},
 }
+# Tuned for millions of page documents:
+#  - proximityPrecision byAttribute: much smaller index and faster indexing; word
+#    proximity is still used, just not at word-by-word precision
+#  - searchCutoffMs: a very broad query returns its best hits in bounded time
+#  - prefix search off: full words only inside page text (smaller, faster indexing)
+#  - page documents carry only text + the fields needed for filtering; titles and
+#    authors are looked up from the books index for the 20 hits on screen
 PAGE_SETTINGS = {
-	"searchableAttributes": ["text", "title", "alt_title"],
+	"searchableAttributes": ["text"],
+	"proximityPrecision": "byAttribute",
+	"prefixSearch": "disabled",
+	"facetSearch": False,
+	"searchCutoffMs": 1500,
 	"filterableAttributes": ["item_id", "language_label", "year", "decade", "collections", "creators"],
-	"sortableAttributes": ["year", "leaf"],
+	"sortableAttributes": ["leaf"],
 	"displayedAttributes": ["*"],
 	"pagination": {"maxTotalHits": 10000},
 }
@@ -182,8 +193,6 @@ def page_documents(record: dict, pages: list[dict], max_chars: int = 6000) -> li
 			"leaf": page["leaf"],
 			"label": page.get("label") or "",
 			"text": page["text"][:max_chars],
-			"title": record.get("title"),
-			"alt_title": record.get("alt_title"),
 			"creators": record.get("creators") or [],
 			"year": record.get("year"),
 			"decade": record.get("decade") or decade_of(record.get("year")),
@@ -195,7 +204,8 @@ def page_documents(record: dict, pages: list[dict], max_chars: int = 6000) -> li
 
 # -- indexing -------------------------------------------------------------------
 
-def index_record(record: dict, pages: list[dict] | None = None, client: MeiliClient | None = None) -> int:
+def index_record(record: dict, pages: list[dict] | None = None, client: MeiliClient | None = None,
+				 replace_pages: bool = True) -> int:
 	"""Index one book and (optionally) its pages. Returns number of pages indexed."""
 	client = client or MeiliClient.from_settings()
 	s = settings()
@@ -204,7 +214,8 @@ def index_record(record: dict, pages: list[dict] | None = None, client: MeiliCli
 	client.add(client.books, [book_document(record, excerpt)])
 	count = 0
 	if pages and cint(s.index_pages):
-		client.delete_by_filter(client.pages, f"item_id = {_quote(record['item_id'])}")
+		if replace_pages:  # new books have no old pages to remove
+			client.delete_by_filter(client.pages, f"item_id = {_quote(record['item_id'])}")
 		docs = page_documents(record, pages, cint(s.max_page_chars) or 6000)
 		for i in range(0, len(docs), 500):
 			client.add(client.pages, docs[i:i + 500])
@@ -280,36 +291,77 @@ def reindex_item(item_id: str, with_pages: int = 1) -> int:
 @frappe.whitelist()
 def enqueue_rebuild(with_pages: int = 1):
 	frappe.only_for(("System Manager", "ResDesk Manager"))
-	frappe.enqueue(
-		"sok_resdesk.search.rebuild_all", queue="long", timeout=6 * 3600, with_pages=cint(with_pages),
-		job_id="resdesk-rebuild", deduplicate=True,
-	)
+	return queue_rebuild(cint(with_pages))
 
 
-def rebuild_all(with_pages: int = 1, verbose: bool = False) -> int:
+def queue_rebuild(with_pages: int = 1, batch_size: int = 50) -> int:
+	"""Split a full re-index into batches that the queue workers run in parallel."""
+	MeiliClient.from_settings().setup()
+	names = frappe.get_all("RD Item", filters={"published": 1}, pluck="name", order_by="creation asc")
+	for n, i in enumerate(range(0, len(names), batch_size), 1):
+		frappe.enqueue(
+			"sok_resdesk.search.rebuild_batch", queue="long", timeout=6 * 3600,
+			names=names[i:i + batch_size], with_pages=with_pages, job_id=f"resdesk-reindex-{n}",
+		)
+	return len(names)
+
+
+def rebuild_batch(names: list[str], with_pages: int = 1, verbose: bool = False) -> int:
 	from sok_resdesk.ingest import fetch_pages
 
 	client = MeiliClient.from_settings()
-	client.setup()
-	names = frappe.get_all("RD Item", filters={"published": 1}, pluck="name", order_by="creation asc")
 	for n, name in enumerate(names, 1):
+		frappe.db.commit()
 		doc = frappe.get_doc("RD Item", name)
 		pages = []
 		if with_pages and doc.has_page_text:
 			try:
-				pages = fetch_pages(doc.item_id)
+				pages = fetch_pages(doc.item_id)  # local cache first, archive.org only if missing
 			except Exception as e:  # keep going; one bad item should not stop a rebuild
 				frappe.log_error("Research Desk: page fetch failed", f"{name}: {e}")
 		index_record(item_to_record(doc), pages, client)
-		if n % 20 == 0:
-			frappe.db.commit()
+		frappe.db.commit()
 		if verbose:
 			print(f"[{n}/{len(names)}] {name} ({len(pages)} pages)")
-	frappe.db.commit()
 	return len(names)
 
 
+def rebuild_all(with_pages: int = 1, verbose: bool = False) -> int:
+	"""Re-index everything in this process (used by `resdesk reindex`)."""
+	client = MeiliClient.from_settings()
+	client.setup()
+	names = frappe.get_all("RD Item", filters={"published": 1}, pluck="name", order_by="creation asc")
+	return rebuild_batch(names, with_pages, verbose)
+
+
+def reset_pages_index() -> None:
+	"""Drop and recreate the pages index (after changing what page documents contain)."""
+	client = MeiliClient.from_settings()
+	try:
+		client.wait(client._req("DELETE", f"/indexes/{client.pages}"), timeout=300)
+	except SearchError:
+		pass
+	client.setup()
+
+
 # -- public search ----------------------------------------------------------------
+
+def _attach_book_fields(client: MeiliClient, hits: list[dict]) -> None:
+	"""Add title/authors to page hits from the (small) books index: one extra query per page of results."""
+	ids = list(dict.fromkeys(h["item_id"] for h in hits))
+	if not ids:
+		return
+	books = client.search(client.books, {
+		"q": "", "limit": len(ids), "filter": f"item_id IN [{', '.join(_quote(i) for i in ids)}]",
+		"attributesToRetrieve": ["item_id", "title", "alt_title", "creators"],
+	}).get("hits", [])
+	by_id = {b["item_id"]: b for b in books}
+	for h in hits:
+		b = by_id.get(h["item_id"], {})
+		h.setdefault("title", b.get("title") or h["item_id"])
+		h.setdefault("alt_title", b.get("alt_title"))
+		h.setdefault("creators", b.get("creators") or [])
+
 
 def build_filter(filters: dict | None) -> list:
 	parts: list = []
@@ -339,9 +391,10 @@ def search(q: str = "", mode: str = "books", filters: dict | None = None, page: 
 		body.update({
 			"attributesToCrop": ["text"], "cropLength": 40,
 			"attributesToHighlight": ["text"], "highlightPreTag": "<mark>", "highlightPostTag": "</mark>",
-			"attributesToRetrieve": ["item_id", "leaf", "label", "title", "alt_title", "creators", "year", "language_label"],
+			"attributesToRetrieve": ["item_id", "leaf", "label", "year", "language_label"],
 		})
 		result = client.search(client.pages, body)
+		_attach_book_fields(client, result.get("hits", []))
 		# facet counts always come from the books index so the sidebar stays useful
 		facets = client.search(client.books, {"q": "", "limit": 0, "facets": FACETS, "filter": body["filter"]})
 		result["facetDistribution"] = facets.get("facetDistribution", {})

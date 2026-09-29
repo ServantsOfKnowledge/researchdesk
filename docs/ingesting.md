@@ -84,7 +84,9 @@ Combine with `AND` / `OR` and brackets. Try the same query on
 --limit 0       everything that matches
 ```
 
-Terminal ingests run in the foreground and print one line per book. On a developer
+Terminal ingests run in the foreground and print one line per book. Add `--background` to
+split a large run across the queue workers instead, and follow it with
+`./resdesk.sh progress`. Ingests started from the Desk always run in the background. On a developer
 (bench) setup, the same commands are `bench --site <site> resdesk ingest ...`.
 
 > For `--ids-file` with Docker, copy the file in first:
@@ -106,13 +108,30 @@ Terminal ingests run in the foreground and print one line per book. On a develop
 
 Access-restricted (lending-library) items are catalogued, but their text is not fetched.
 
+## Large ingests run in parallel
+
+Every ingest is planned first: the list of identifiers is fetched, books already in the
+catalogue are skipped, and the rest are split into batches (**RD Settings → Books per
+Background Batch**, default 50). Each batch is a background job. With `QUEUE_WORKERS=4`, four
+batches run at once. The RD Ingest Run page shows batches remaining and has a **Cancel Run**
+button. A run whose workers disappear (reboot, restart) is marked **Interrupted** after two
+hours without progress; run the profile again and it picks up where it stopped.
+
+For tens of thousands of books, read [Scaling to 50,000 books](scaling.md).
+
+## Page-text cache
+
+Each book's page text is also saved, compressed (about 75 KB per book), under
+`sites/<site>/private/resdesk-pages/`. Re-indexing reads it instead of downloading from
+archive.org again. Turn it off in RD Settings if disk is tight.
+
 ## Being polite to the Internet Archive
 
 Requests go one at a time with a delay (**RD Settings → Delay Between Requests**, default
 0.5 s), carry a User-Agent with your contact address, and back off automatically when IA is
-busy. A book with page text takes 3 to 10 seconds, so budget roughly **500 to 1,000 books
-per hour** per worker. For the full 88k collection, run it in batches over several days, or
-ask the Internet Archive about bulk access.
+busy. A book with page text takes 3 to 10 seconds per worker. We measured about **900 books/hour
+with one worker and 3,000 books/hour with four**. Keep it to 4 to 6 workers. For the full 88k
+collection, plan on a day or two, or ask the Internet Archive about bulk access.
 
 ## Scheduling
 

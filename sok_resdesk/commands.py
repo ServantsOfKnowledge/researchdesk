@@ -81,9 +81,15 @@ def count(context, collection, filter_, query, ids, ids_file):
 @click.option("--no-fulltext", is_flag=True, help="Metadata only; skip OCR text")
 @click.option("--update", is_flag=True, help="Refresh items already in the catalogue")
 @click.option("--name", help="Save the scope as a profile with this name")
+@click.option("--background", is_flag=True,
+			  help="Hand the work to the queue workers (parallel; best for large runs) and watch progress")
 @pass_context
-def ingest(context, profile, collection, filter_, query, ids, ids_file, limit, no_fulltext, update, name):
-	"""Ingest items from the Internet Archive (runs in the foreground, prints progress)."""
+def ingest(context, profile, collection, filter_, query, ids, ids_file, limit, no_fulltext, update, name, background):
+	"""Ingest items from the Internet Archive.
+
+	By default runs here in the foreground, one book at a time. With --background the
+	books are split into batches processed in parallel by the queue workers.
+	"""
 	frappe = _connect(context)
 	try:
 		from sok_resdesk.ingest import create_run, ensure_profile, run_ingest
@@ -95,24 +101,82 @@ def ingest(context, profile, collection, filter_, query, ids, ids_file, limit, n
 			profile = ensure_profile(name or "Command line ingest", **values)
 		run = create_run(frappe.get_doc("RD Ingest Profile", profile), "Command Line")
 		click.echo(f"Run {run.name} for profile '{profile}'")
-		run_ingest(run.name, verbose=True, limit_override=limit if profile_given else None)
+		limit_override = limit if profile_given else None
+		if background:
+			run_ingest(run.name, verbose=True, limit_override=limit_override, foreground=False)
+			if frappe.db.get_value("RD Ingest Run", run.name, "status") in ("Queued", "Running"):
+				click.echo("Batches queued for the workers. Following progress (Ctrl+C stops watching, not the run):")
+				_watch(frappe, run.name)
+		else:
+			run_ingest(run.name, verbose=True, limit_override=limit_override)
 		run.reload()
 		click.echo(f"Status: {run.status}")
 	finally:
 		frappe.destroy()
 
 
-@resdesk.command("reindex")
-@click.option("--no-pages", is_flag=True, help="Only book-level records (fast)")
+def _watch(frappe, run_name: str, interval: int = 10):
+	import time
+
+	start, first = time.monotonic(), None
+	while True:
+		frappe.db.commit()  # end the read snapshot so we see the workers' updates
+		r = frappe.db.get_value(
+			"RD Ingest Run", run_name,
+			["status", "total_found", "processed", "created_count", "failed_count", "pending_chunks"], as_dict=True,
+		)
+		elapsed = time.monotonic() - start
+		if first is None:
+			first = r.processed or 0
+		rate = ((r.processed or 0) - first) / elapsed * 3600 if elapsed > 30 else 0
+		click.echo(
+			f"  {r.status:<22} {r.processed or 0:>7,}/{r.total_found or 0:,}  new {r.created_count or 0:,}  "
+			f"failed {r.failed_count or 0:,}  batches left {r.pending_chunks or 0}"
+			+ (f"  ~{rate:,.0f} books/h" if rate else "")
+		)
+		if r.status not in ("Queued", "Running"):
+			return
+		time.sleep(interval)
+
+
+@resdesk.command("progress")
+@click.argument("run", required=False)
 @pass_context
-def reindex(context, no_pages):
-	"""Rebuild the search index from the catalogue."""
+def progress(context, run):
+	"""Watch an ingest run (default: the latest)."""
 	frappe = _connect(context)
 	try:
-		from sok_resdesk.search import rebuild_all
+		run = run or frappe.db.get_value("RD Ingest Run", {}, "name", order_by="creation desc")
+		if not run:
+			click.echo("No ingest runs yet.")
+			return
+		click.echo(f"Run {run}")
+		_watch(frappe, run)
+	finally:
+		frappe.destroy()
 
-		n = rebuild_all(with_pages=0 if no_pages else 1, verbose=True)
-		click.echo(f"Re-indexed {n} items")
+
+@resdesk.command("reindex")
+@click.option("--no-pages", is_flag=True, help="Only book-level records (fast)")
+@click.option("--background", is_flag=True, help="Split across the queue workers (parallel)")
+@click.option("--reset", is_flag=True, help="Drop and recreate the page index first")
+@pass_context
+def reindex(context, no_pages, background, reset):
+	"""Rebuild the search index from the catalogue (page text comes from the local cache when present)."""
+	frappe = _connect(context)
+	try:
+		from sok_resdesk.search import queue_rebuild, rebuild_all, reset_pages_index
+
+		if reset:
+			reset_pages_index()
+			click.echo("Page index recreated")
+		if background:
+			n = queue_rebuild(with_pages=0 if no_pages else 1)
+			frappe.db.commit()
+			click.echo(f"Queued re-indexing of {n} items for the workers")
+		else:
+			n = rebuild_all(with_pages=0 if no_pages else 1, verbose=True)
+			click.echo(f"Re-indexed {n} items")
 	finally:
 		frappe.destroy()
 

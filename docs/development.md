@@ -3,10 +3,11 @@
 ## Repository layout
 
 ```
-sok-resdesk/
+researchdesk/
 ├── install.sh              one-command Docker installer
 ├── resdesk.sh              everyday commands (wraps docker compose + bench)
 ├── compose.yaml            full stack
+├── compose.dev.yaml        developer mode: mounts this folder into the containers
 ├── docker/                 Dockerfile, entrypoint, gunicorn start, create-site
 ├── scripts/dev-setup.sh    native bench setup for developers
 ├── docs/                   this documentation
@@ -21,6 +22,7 @@ sok-resdesk/
     ├── oai.py              OAI-PMH endpoint (Frappe store for core/oai.py)
     ├── commands.py         `bench … resdesk` CLI
     ├── setup.py            roles, defaults, sample profiles, workspace, setup wizard
+    ├── patches/            data migrations between versions
     ├── resdesk/doctype/    DocTypes (JSON + controllers + form scripts)
     ├── www/library/        portal pages (index = search, item = book page)
     ├── public/             css/resdesk.css, js/library.js, js/item.js, js/basket.js
@@ -29,7 +31,12 @@ sok-resdesk/
 
 ## Workflow
 
-With a bench setup (see [Installation → Developer setup](installation.md#developer-setup-bench)):
+**Easiest: Docker developer mode.** `./resdesk.sh dev on` runs the code from your checkout
+live inside the containers (see [Installation → Developer mode](installation.md#developer-mode-docker-code-from-this-folder)).
+Edit, save, reload the page; `./resdesk.sh restart` for worker code; `./resdesk.sh migrate`
+after DocType changes; run tests with the commands below.
+
+**Or native bench** (see [Installation → Developer setup](installation.md#developer-setup-bench)):
 
 ```bash
 bench start                                        # web + workers + watcher
@@ -42,7 +49,7 @@ Edit DocTypes in the Desk with `developer_mode` on: Frappe writes the JSON back 
 
 Portal JS/CSS are plain files served from `/assets/sok_resdesk/…`, with no build step.
 
-With the Docker setup, rebuild after code changes: `docker compose build && docker compose up -d`.
+Without dev mode, the Docker setup needs a rebuild after code changes: `docker compose build && docker compose up -d`.
 
 ## Tests
 
@@ -88,4 +95,4 @@ OAI-PMH, reusing `core/oai.py` concepts), and local uploads (PDF + OCR).
 
 1. Update `CHANGELOG.md` and `__version__` in `sok_resdesk/__init__.py`.
 2. Tag `vX.Y.Z` and push. The `docker-image.yml` workflow publishes
-   `ghcr.io/<owner>/sok-resdesk:X.Y.Z` and `:latest` for amd64 and arm64.
+   `ghcr.io/servantsofknowledge/researchdesk:X.Y.Z` and `:latest` for amd64 and arm64.

@@ -8,6 +8,7 @@
 6. [Koha & interoperability](koha.md): OAI-PMH harvesting, MARCXML import, standalone mode
 7. [API](api.md): public HTTP endpoints
 8. [Operations](operations.md): backups, updates, re-indexing, troubleshooting
-9. [Architecture](architecture.md): components, data model, scaling from a laptop to a national library
-10. [Development](development.md): code layout, tests, adding a new source
-11. [Roadmap](roadmap.md)
+9. [Scaling to 50,000 books](scaling.md): measured numbers, server sizing, running a large ingest
+10. [Architecture](architecture.md): components, data model, scaling from a laptop to a national library
+11. [Development](development.md): code layout, tests, adding a new source
+12. [Roadmap](roadmap.md)

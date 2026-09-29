@@ -1,0 +1,24 @@
+# Developer mode: run the code from THIS folder inside the containers.
+#
+# Turn on with   ./resdesk.sh dev on     (adds DEV_MODE=1 to .env)
+# Turn off with  ./resdesk.sh dev off
+#
+# - Python, templates, JS and CSS are read live from this folder.
+# - The web server auto-reloads when a .py file changes (bench serve).
+# - Background workers pick up Python changes after: ./resdesk.sh restart
+# - developer_mode is on, so DocTypes edited in the Desk are saved back
+#   into sok_resdesk/resdesk/doctype/ here, ready to commit.
+
+x-live-code: &live-code
+  volumes:
+    - ./:/home/frappe/frappe-bench/apps/sok_resdesk
+
+services:
+  backend:
+    <<: *live-code
+    command: ["bench", "serve", "--port", "8000"]
+  queue: *live-code
+  scheduler: *live-code
+  websocket: *live-code
+  frontend: *live-code
+  create-site: *live-code

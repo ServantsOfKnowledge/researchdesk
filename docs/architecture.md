@@ -66,8 +66,12 @@ without touching the portal or API.
 
 `profile → IA query → scrape (cursor) → per item: metadata → normalise → upsert → page text → index`
 
-- Runs on the `long` queue, one item at a time, committing after each item, so a failure only
-  loses that item.
+- **Plan** job lists identifiers and skips what's already catalogued; **batch** jobs (default 50
+  books) run in parallel, one per queue worker. Counters use atomic SQL increments; the last
+  batch closes the run; an hourly check marks runs with dead workers *Interrupted*.
+- Each book commits on its own and is retried on lock/duplicate conflicts between workers, so a
+  failure only loses that book.
+- Page text is cached compressed on disk, so re-indexing never needs archive.org.
 - Politeness: fixed delay, back-off on 429/5xx, identifying User-Agent.
 - Idempotent: re-running a profile skips items already present (unless *Refresh* is set).
 
@@ -75,7 +79,7 @@ without touching the portal or API.
 
 | Stage | Size | Setup |
 |---|---|---|
-| **POC** (this release) | up to ~50k books / ~10M pages | one machine, Docker Compose, Meilisearch |
+| **Single server** (this release) | up to ~50k books / ~9M pages | one server (8 vCPU, 32 GB, 500 GB NVMe), Docker Compose, Meilisearch, 4 to 6 workers. Measured numbers: [Scaling](scaling.md) |
 | Institutional | 100k to 500k books | 16 to 32 GB RAM; several `queue` workers (`docker compose up --scale queue=4`); Meilisearch on its own host with SSD; MariaDB tuned |
 | National / consortium | millions of books, 100M+ pages | swap the page index to **OpenSearch** (ICU analysers for Indic scripts, sharding) behind the same `search.py` interface; Frappe web tier behind a load balancer; read replicas; IIIF image server for locally held scans |
 

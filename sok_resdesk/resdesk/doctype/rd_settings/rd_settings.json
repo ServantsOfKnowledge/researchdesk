@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-09-29 12:00:00.000000",
+ "modified": "2026-09-29 14:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -27,7 +27,10 @@
   "search_status",
   "ia_section",
   "ia_contact",
-  "ia_delay"
+  "ia_delay",
+  "column_break_ia",
+  "batch_size",
+  "cache_page_text"
  ],
  "fields": [
   {
@@ -134,6 +137,24 @@
    "fieldtype": "Float",
    "label": "Delay Between Requests (seconds)",
    "default": "0.5"
+  },
+  {
+   "fieldname": "column_break_ia",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "batch_size",
+   "fieldtype": "Int",
+   "label": "Books per Background Batch",
+   "default": "50",
+   "description": "Large ingests are split into batches that run in parallel, one per queue worker. Add workers with QUEUE_WORKERS in .env."
+  },
+  {
+   "fieldname": "cache_page_text",
+   "fieldtype": "Check",
+   "label": "Keep a Local Copy of Page Text",
+   "default": "1",
+   "description": "Stores compressed OCR text on disk (about 20–60 KB per book) so re-indexing never needs to download from archive.org again."
   }
  ],
  "links": [],
