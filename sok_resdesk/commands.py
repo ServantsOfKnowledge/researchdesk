@@ -7,6 +7,9 @@
   resdesk reindex  [--no-pages]
   resdesk configure --meili-url http://meilisearch:7700 --meili-key KEY --title "My Library"
   resdesk status
+  resdesk access   login-to-read --collection ServantsOfKnowledge     (or --profile, --language, --ids, --all)
+  resdesk access   --apply-rules  |  --guests "Records only"  |  --signup "Sign up, admin approves"
+  resdesk add-reader reader@example.org --name "A Reader"
 """
 
 import click
@@ -93,11 +96,12 @@ def count(context, collection, filter_, query, ids, ids_file, folder, server, ma
 @click.option("--no-fulltext", is_flag=True, help="Metadata only; skip OCR text")
 @click.option("--update", is_flag=True, help="Refresh items already in the catalogue")
 @click.option("--name", help="Save the scope as a profile with this name")
+@click.option("--visibility", help="Who can see the new books: public, login-to-read or members (default: rules in Settings)")
 @click.option("--background", is_flag=True,
 			  help="Hand the work to the queue workers (parallel; best for large runs) and watch progress")
 @pass_context
 def ingest(context, profile, collection, filter_, query, ids, ids_file, folder, server, manifest, limit, no_fulltext,
-		   update, name, background):
+		   update, name, visibility, background):
 	"""Ingest items from the Internet Archive.
 
 	By default runs here in the foreground, one book at a time. With --background the
@@ -110,7 +114,8 @@ def ingest(context, profile, collection, filter_, query, ids, ids_file, folder, 
 		profile_given = bool(profile)
 		if not profile:
 			values = _scope(collection, filter_, query, ids, ids_file, folder, server, manifest)
-			values.update({"max_items": 50 if limit is None else limit, "fetch_fulltext": 0 if no_fulltext else 1, "update_existing": 1 if update else 0})
+			values.update({"max_items": 50 if limit is None else limit, "fetch_fulltext": 0 if no_fulltext else 1, "update_existing": 1 if update else 0,
+						   "visibility": _VIS_ALIASES.get((visibility or "").strip().lower(), visibility or "")})
 			default_name = "Command line folder ingest" if values.get("source") else "Command line ingest"
 			profile = ensure_profile(name or default_name, **values)
 		run = create_run(frappe.get_doc("RD Ingest Profile", profile), "Command Line")
@@ -231,8 +236,106 @@ def status(context):
 	try:
 		from sok_resdesk.api import stats
 
+		frappe.set_user("Administrator")  # count every published book, not only what guests see
 		for k, v in stats().items():
 			click.echo(f"{k:15} {v}")
+	finally:
+		frappe.destroy()
+
+
+_VIS_ALIASES = {
+	"public": "Public", "open": "Public",
+	"login-to-read": "Login to read", "login to read": "Login to read", "read": "Login to read",
+	"login-to-find": "Login to find", "login to find": "Login to find", "find": "Login to find",
+	"members": "Login to find", "members-only": "Login to find", "hidden": "Login to find",
+}
+
+
+@resdesk.command("access")
+@click.argument("visibility", required=False)
+@click.option("--collection", help="Books in this collection, e.g. ServantsOfKnowledge")
+@click.option("--profile", help="Books ingested by this RD Ingest Profile")
+@click.option("--language", help='Books in this language, e.g. Kannada or kan')
+@click.option("--ids", help="Comma-separated item identifiers")
+@click.option("--ids-file", type=click.Path(exists=True), help="File with one identifier per line")
+@click.option("--all", "everything", is_flag=True, help="Every book in the catalogue")
+@click.option("--apply-rules", is_flag=True, help="Re-apply profiles, rules and the default (Settings → Access)")
+@click.option("--include-manual", is_flag=True, help="With --apply-rules: also change books set by hand or in bulk")
+@click.option("--guests", type=click.Choice(["Each item's setting", "Records only", "Login required"]),
+			  help="What visitors who are not logged in may do")
+@click.option("--signup", type=click.Choice(["Admins add readers", "Anyone can sign up", "Sign up, admin approves"]),
+			  help="How people get reader accounts")
+@click.option("--default", "default_vis", help="Visibility for new books when no profile or rule decides")
+@pass_context
+def access_cmd(context, visibility, collection, profile, language, ids, ids_file, everything, apply_rules,
+			   include_manual, guests, signup, default_vis):
+	"""Who can see what: public, login-to-read or login-to-find (members only).
+
+	\b
+	Examples:
+	  resdesk access login-to-read --collection ServantsOfKnowledge
+	  resdesk access members --profile "Internal scans"
+	  resdesk access public --ids "id1,id2"
+	  resdesk access --guests "Login required" --signup "Sign up, admin approves"
+	  resdesk access --apply-rules
+	With no arguments: show the current settings and how many books have each visibility.
+	"""
+	frappe = _connect(context)
+	try:
+		frappe.set_user("Administrator")
+		from sok_resdesk import access
+
+		if guests or signup or default_vis:
+			s = frappe.get_single("RD Settings")
+			if guests:
+				s.guest_access = guests
+			if signup:
+				s.reader_signup = signup
+			if default_vis:
+				s.default_visibility = _VIS_ALIASES.get(default_vis.lower(), default_vis)
+			s.save(ignore_permissions=True)
+			frappe.db.commit()
+		if apply_rules:
+			click.echo(f"Changed {access.recompute(include_manual)['changed']} books.")
+		if visibility:
+			vis = _VIS_ALIASES.get(visibility.strip().lower(), visibility)
+			if ids_file:
+				with open(ids_file) as f:
+					ids = ",".join(line.strip() for line in f if line.strip())
+			names = access.select_items(names=ids or None, collection=collection, profile=profile,
+										language=language, everything=everything)
+			if not names:
+				click.echo("No books matched.")
+			else:
+				click.echo(f"Setting {len(names)} books to '{vis}'…")
+				access.apply_visibility(names, vis, "Bulk")
+				click.echo("Done.")
+		s = frappe.get_single("RD Settings")
+		click.echo(f"Visitors not logged in:  {s.guest_access}")
+		click.echo(f"Reader accounts:         {s.reader_signup}")
+		click.echo(f"Default for new books:   {s.default_visibility}")
+		click.echo(f"OAI-PMH shares:          {s.oai_scope}")
+		for vis, n in frappe.db.sql("select ifnull(visibility,'Public'), count(*) from `tabRD Item` group by 1 order by 1"):
+			click.echo(f"  {vis:15} {n:>8} books")
+	finally:
+		frappe.destroy()
+
+
+@resdesk.command("add-reader")
+@click.argument("email")
+@click.option("--name", "full_name", default="", help="Full name")
+@click.option("--no-email", is_flag=True, help="Don't send the welcome email (set a password in the Desk instead)")
+@pass_context
+def add_reader_cmd(context, email, full_name, no_email):
+	"""Create a reader account (or give an existing account the Reader role)."""
+	frappe = _connect(context)
+	try:
+		frappe.set_user("Administrator")
+		from sok_resdesk.access import add_reader
+
+		user = add_reader(email, full_name, send_welcome=not no_email)
+		frappe.db.commit()
+		click.echo(f"{user} can now log in and read members-only books.")
 	finally:
 		frappe.destroy()
 

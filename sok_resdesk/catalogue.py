@@ -54,6 +54,7 @@ def item_to_record(doc) -> dict:
 		"licence_url": doc.licence_url or "",
 		"rights": doc.rights or "",
 		"access_status": doc.access_status or "Unknown",
+		"visibility": doc.visibility or "Public",
 		"source_url": doc.source_url or "",
 		"thumbnail_url": _absolute(doc.thumbnail_url or ""),
 		"ark": doc.ark or "",
@@ -82,12 +83,18 @@ def _pdf_url(doc) -> str:
 	return ""
 
 
-def get_record(item_id: str, published_only: bool = True) -> dict | None:
-	if not frappe.db.exists("RD Item", item_id):
+def get_record(item_id: str, published_only: bool = True, check_access: bool = True) -> dict | None:
+	"""A published record, or None if it doesn't exist or the current visitor may not find it."""
+	if not item_id or not frappe.db.exists("RD Item", item_id):
 		return None
 	doc = frappe.get_doc("RD Item", item_id)
 	if published_only and not doc.published:
 		return None
+	if check_access:
+		from sok_resdesk.access import can_find
+
+		if not can_find(doc.visibility):
+			return None
 	return item_to_record(doc)
 
 
@@ -157,6 +164,10 @@ def upsert_item(record: dict, raw: dict | None = None, profile: str | None = Non
 		doc.raw_metadata = json.dumps(raw, ensure_ascii=False)[:500000]
 	if profile:
 		doc.ingest_profile = profile
+	if not exists:
+		from sok_resdesk.access import initial_visibility
+
+		doc.visibility, doc.visibility_set_by = initial_visibility(record, profile)
 	doc.last_ingested = now_datetime()
 	doc.flags.skip_search_index = True  # the ingest job indexes with page text itself
 	if exists:

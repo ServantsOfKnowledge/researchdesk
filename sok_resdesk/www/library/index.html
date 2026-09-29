@@ -3,7 +3,7 @@
 {% block title %}{{ portal_title }}{% endblock %}
 
 {% block page_content %}
-<div class="rd" id="rd-library">
+<div class="rd" id="rd-library" data-staff="{{ 1 if viewer.staff else 0 }}" data-login="{{ login_url }}" data-signup="{{ 1 if viewer.signup else 0 }}">
 	<header class="rd-hero{% if home_banner %} rd-hero--banner{% endif %}"{% if home_banner %} style="--rd-banner: url('{{ home_banner }}')"{% endif %}>
 		{% if logo %}<img class="rd-hero__logo" src="{{ logo }}" alt="{{ portal_title }}">{% endif %}
 		<h1 class="rd-hero__title">{{ portal_title }}</h1>
@@ -21,6 +21,12 @@
 			<label><input type="radio" name="rd-mode" value="pages"> {{ _("Inside the text") }}</label>
 			<span class="rd-muted rd-count">{{ frappe.format(item_count, {"fieldtype": "Int"}) }} {{ _("books in the catalogue") }}</span>
 		</div>
+		{% if viewer.pending %}
+		<p class="rd-access-note">{{ _("Your account is waiting for approval. Until then you see what visitors see.") }}</p>
+		{% elif not viewer.logged_in and viewer.guest_mode == "Records only" %}
+		<p class="rd-access-note"><a href="{{ login_url }}">{{ _("Log in") }}</a> {{ _("to read books and search inside their text.") }}
+			{% if viewer.signup %}<a href="/login#signup">{{ _("Create an account") }}</a>{% endif %}</p>
+		{% endif %}
 	</header>
 
 	<div class="rd-layout">
@@ -63,6 +69,16 @@
 				</div>
 			</div>
 			<div id="rd-active-filters" class="rd-chips"></div>
+			{% if viewer.staff %}
+			<form class="rd-staffbar" id="rd-staffbar" hidden>
+				<span>{{ _("Staff:") }} {{ _("set who can see") }} <b id="rd-staff-count">0</b> {{ _("matching books") }}</span>
+				<select id="rd-staff-vis" aria-label="{{ _('Visibility') }}">
+					{% for v in visibilities %}<option value="{{ v }}">{{ _(v) }}</option>{% endfor %}
+				</select>
+				<button class="rd-btn" type="submit">{{ _("Apply") }}</button>
+				<span class="rd-muted" id="rd-staff-msg"></span>
+			</form>
+			{% endif %}
 			<ol id="rd-hits" class="rd-hits" aria-live="polite"></ol>
 			<nav id="rd-pager" class="rd-pager" aria-label="{{ _('Pages') }}"></nav>
 		</main>

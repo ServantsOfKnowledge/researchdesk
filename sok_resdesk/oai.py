@@ -2,6 +2,9 @@
 
 Point Koha (or any harvester) at that URL. Sets are the source collections
 (e.g. ServantsOfKnowledge, JaiGyan).
+
+Which records it offers is set in RD Settings → OAI-PMH shares: what guests can find
+(default), every published record (for a library system on an internal network), or off.
 """
 
 from __future__ import annotations
@@ -35,6 +38,23 @@ def to_system(value: datetime | None) -> datetime | None:
 	return value.replace(tzinfo=UTC).astimezone(_tz()).replace(tzinfo=None)
 
 
+OAI_GUEST = "Records guests can find"
+OAI_ALL = "All published records"
+OAI_OFF = "Off"
+
+
+def _where() -> str:
+	"""SQL condition for the records this repository exposes (harvesters never log in)."""
+	from sok_resdesk.core.access import sql_condition
+
+	scope = settings().oai_scope or OAI_GUEST
+	if scope == OAI_OFF:
+		return "1=0"
+	if scope == OAI_ALL:
+		return "published = 1"
+	return f"published = 1 and {sql_condition(settings().guest_access, member=False)}"
+
+
 def _record(name: str) -> dict:
 	record = item_to_record(frappe.get_doc("RD Item", name))
 	record["modified"] = to_utc(record["modified"])
@@ -43,11 +63,11 @@ def _record(name: str) -> dict:
 
 class FrappeStore:
 	def earliest(self) -> datetime | None:
-		rows = frappe.db.sql("select min(modified) from `tabRD Item` where published = 1")
+		rows = frappe.db.sql(f"select min(modified) from `tabRD Item` where {_where()}")
 		return to_utc(rows[0][0]) if rows else None
 
 	def sets(self) -> list[tuple[str, str]]:
-		values = frappe.db.sql_list("select collections from `tabRD Item` where published=1 and ifnull(collections,'')!=''")
+		values = frappe.db.sql_list(f"select collections from `tabRD Item` where {_where()} and ifnull(collections,'')!=''")
 		seen: dict[str, int] = {}
 		for block in values:
 			for c in block.splitlines():
@@ -57,12 +77,12 @@ class FrappeStore:
 		return [(c, c) for c, n in sorted(seen.items(), key=lambda x: -x[1]) if n > 0][:500]
 
 	def get(self, item_id: str) -> dict | None:
-		if not frappe.db.exists("RD Item", {"name": item_id, "published": 1}):
+		if not frappe.db.sql(f"select 1 from `tabRD Item` where name=%s and {_where()}", item_id):
 			return None
 		return _record(item_id)
 
 	def list(self, start, limit, from_, until, set_spec):
-		conditions, values = ["published = 1"], {}
+		conditions, values = [_where()], {}
 		if from_:
 			conditions.append("modified >= %(from)s")
 			values["from"] = to_system(from_)
@@ -84,6 +104,8 @@ class FrappeStore:
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
 def endpoint(**kwargs):
 	s = settings()
+	if (s.oai_scope or OAI_GUEST) == OAI_OFF:
+		raise frappe.PageDoesNotExistError
 	repo = Repository(
 		FrappeStore(),
 		repo_id=s.repository_id or frappe.local.site,

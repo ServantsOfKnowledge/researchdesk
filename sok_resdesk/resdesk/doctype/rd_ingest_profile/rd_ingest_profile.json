@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-09-29 16:00:00.000000",
+ "modified": "2026-09-30 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Ingest Profile",
@@ -28,6 +28,7 @@
   "max_items",
   "fetch_fulltext",
   "update_existing",
+  "visibility",
   "matching_count",
   "status_section",
   "last_run",
@@ -164,6 +165,13 @@
    "fieldtype": "Check",
    "label": "Refresh Items Already in Catalogue",
    "default": "0"
+  },
+  {
+   "fieldname": "visibility",
+   "fieldtype": "Select",
+   "label": "Access for Its Books",
+   "options": "\nPublic\nLogin to read\nLogin to find",
+   "description": "Who can see books ingested by this profile. Leave empty to use the rules and default in Settings. Use “Apply Access to Its Books” to change books already ingested."
   },
   {
    "fieldname": "matching_count",

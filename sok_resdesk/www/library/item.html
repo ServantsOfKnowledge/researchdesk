@@ -38,20 +38,46 @@
 				{% if item.page_count %} · {{ item.page_count }} {{ _("pages") }}{% endif %}
 			</p>
 			<div class="rd-actions">
+				{% if can_read %}
 				<a class="rd-btn rd-btn--primary" href="#rd-reader">{{ _("Read") }}</a>
-				{% if item.access_status == "Open" and pdf_url %}
+				{% elif not viewer.logged_in %}
+				<a class="rd-btn rd-btn--primary" href="{{ login_url }}">{{ _("Log in to read") }}</a>
+				{% endif %}
+				{% if can_read and item.access_status == "Open" and pdf_url %}
 				<a class="rd-btn" href="{{ pdf_url }}">{{ _("Download PDF") }}</a>
 				{% endif %}
 				<button class="rd-btn" type="button" id="rd-add-list">{{ _("Add to my list") }}</button>
-				{% if item.on_archive_org %}
+				{% if item.on_archive_org and can_read %}
 				<a class="rd-btn" href="https://archive.org/details/{{ item.item_id }}" target="_blank" rel="noopener">{{ _("Internet Archive") }} ↗</a>
 				{% endif %}
+				{% if viewer.staff %}
+				<a class="rd-btn" href="/app/rd-item/{{ item.item_id | urlencode }}">{{ _("Edit") }}</a>
+				{% endif %}
 			</div>
+			{% if item.visibility != "Public" and viewer.member %}
+			<p class="rd-access-note"><span class="rd-badge rd-badge--members">{{ _("Members") }}</span>
+				{% if item.visibility == "Login to find" %}{{ _("Only logged-in readers can find this book.") }}{% else %}{{ _("Anyone can find and cite this book; reading it needs a login.") }}{% endif %}</p>
+			{% endif %}
 		</div>
 	</header>
 
 	<div class="rd-item__grid">
 		<section class="rd-reader" id="rd-reader">
+			{% if not can_read %}
+			<div class="rd-card rd-locked">
+				{% if viewer.pending %}
+				<h2>{{ _("Your account is waiting for approval") }}</h2>
+				<p>{{ _("The library will let you know when you can read members-only books. You can already find and cite this one.") }}</p>
+				{% else %}
+				<h2>{{ _("Log in to read this book") }}</h2>
+				<p>{{ _("Reading, searching inside the text and downloading are for the library's readers. The details and citations on this page are open to everyone.") }}</p>
+				<div class="rd-actions">
+					<a class="rd-btn rd-btn--primary" href="{{ login_url }}">{{ _("Log in") }}</a>
+					{% if viewer.signup %}<a class="rd-btn" href="/login#signup">{{ _("Create an account") }}</a>{% endif %}
+				</div>
+				{% endif %}
+			</div>
+			{% else %}
 			<div class="rd-inside">
 				<form id="rd-inside-form" autocomplete="off">
 					<input type="search" id="rd-inside-q" value="{{ q }}" placeholder="{{ _('Search inside this book') }}"
@@ -69,6 +95,7 @@
 				src="{{ pdf_url }}#page={{ start_leaf + 1 }}" loading="lazy"></iframe>
 			{% else %}
 			<div class="rd-card rd-muted">{{ _("No readable copy is available online for this book.") }}</div>
+			{% endif %}
 			{% endif %}
 		</section>
 
@@ -102,7 +129,7 @@
 						{% for s in item.subjects %}<a class="rd-chip" href="/library?subjects={{ s | urlencode }}">{{ s }}</a>{% endfor %}
 					</dd>{% endif %}
 					{% if item.collections %}<dt>{{ _("Collections") }}</dt><dd>{{ item.collections | join(", ") }}</dd>{% endif %}
-					<dt>{{ _("Access") }}</dt><dd>{{ item.access_status }}</dd>
+					<dt>{{ _("Access") }}</dt><dd>{{ item.access_status }}{% if item.visibility != "Public" %} · {{ _("members only") if item.visibility == "Login to find" else _("login to read") }}{% endif %}</dd>
 					{% if item.licence_url %}<dt>{{ _("Licence") }}</dt><dd><a href="{{ item.licence_url }}" rel="license">{{ item.licence_url }}</a></dd>{% endif %}
 					{% if item.rights %}<dt>{{ _("Rights") }}</dt><dd>{{ item.rights }}</dd>{% endif %}
 				</dl>

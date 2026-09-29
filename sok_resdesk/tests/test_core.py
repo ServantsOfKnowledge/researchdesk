@@ -198,3 +198,61 @@ def test_oai_get_record_formats():
 	assert doc.getElementsByTagName("datafield")
 	doc = parse(r.handle({"verb": "GetRecord", "identifier": "oai:resdesk.example.org:nope", "metadataPrefix": "oai_dc"}))
 	assert doc.getElementsByTagName("error")[0].getAttribute("code") == "idDoesNotExist"
+
+
+# -- access control -------------------------------------------------------------------
+
+def test_access_matrix():
+	from sok_resdesk.core import access as a
+
+	P, R, F = a.PUBLIC, a.LOGIN_TO_READ, a.LOGIN_TO_FIND
+	# members see and read everything, whatever the guest mode
+	for mode in a.GUEST_MODES:
+		for vis in a.VISIBILITIES:
+			assert a.can_find(vis, mode, True) and a.can_read(vis, mode, True)
+	# guests, item mode
+	assert a.can_find(P, a.GUEST_ITEM, False) and a.can_read(P, a.GUEST_ITEM, False)
+	assert a.can_find(R, a.GUEST_ITEM, False) and not a.can_read(R, a.GUEST_ITEM, False)
+	assert not a.can_find(F, a.GUEST_ITEM, False) and not a.can_read(F, a.GUEST_ITEM, False)
+	# records only: find public + login-to-read, read nothing
+	assert a.can_find(P, a.GUEST_RECORDS, False) and not a.can_read(P, a.GUEST_RECORDS, False)
+	assert not a.can_find(F, a.GUEST_RECORDS, False)
+	# login required: nothing
+	assert not a.can_find(P, a.GUEST_NONE, False)
+	# empty / unknown visibility counts as Public
+	assert a.can_read(None, a.GUEST_ITEM, False) and a.can_read("", None, False)
+
+
+def test_access_search_filters():
+	from sok_resdesk.core import access as a
+
+	assert a.search_filter("books", a.GUEST_ITEM, True) is None
+	assert a.search_filter("books", a.GUEST_ITEM, False) == 'NOT visibility = "Login to find"'
+	assert a.search_filter("pages", a.GUEST_ITEM, False) == 'NOT visibility IN ["Login to read", "Login to find"]'
+	assert a.search_filter("pages", a.GUEST_RECORDS, False) == ""
+	assert a.search_filter("books", a.GUEST_RECORDS, False) == 'NOT visibility = "Login to find"'
+	assert a.search_filter("books", a.GUEST_NONE, False) == ""
+	assert a.sql_condition(a.GUEST_NONE, False) == "1=0"
+	assert a.sql_condition(a.GUEST_ITEM, True) == "1=1"
+
+
+def test_access_initial_visibility():
+	from sok_resdesk.core import access as a
+
+	record = sample_item()
+	rules = [
+		{"match_on": "Subject", "value": "nothing here", "visibility": a.LOGIN_TO_FIND},
+		{"match_on": "Collection", "value": "jaigyan", "visibility": a.LOGIN_TO_READ},
+		{"match_on": "Language", "value": "Kannada", "visibility": a.LOGIN_TO_FIND},
+	]
+	# first matching rule wins, case-insensitively
+	assert a.initial_visibility(record, None, rules, a.PUBLIC) == (a.LOGIN_TO_READ, "Rule: Collection = jaigyan")
+	# the profile's own setting beats rules
+	assert a.initial_visibility(record, a.PUBLIC, rules, a.LOGIN_TO_FIND) == (a.PUBLIC, "Profile")
+	# no rule matches: site default; a bad default falls back to Public
+	assert a.initial_visibility(record, "", [], a.LOGIN_TO_READ) == (a.LOGIN_TO_READ, "Default")
+	assert a.initial_visibility(record, "", [], "nonsense") == (a.PUBLIC, "Default")
+	lang = [{"match_on": "Language", "value": "kan", "visibility": a.LOGIN_TO_FIND}]
+	assert a.initial_visibility(record, None, lang, a.PUBLIC)[0] == a.LOGIN_TO_FIND
+	prof = [{"match_on": "Ingest Profile", "value": "Staff scans", "visibility": a.LOGIN_TO_FIND}]
+	assert a.initial_visibility({**record, "ingest_profile": "Staff scans"}, None, prof, a.PUBLIC)[0] == a.LOGIN_TO_FIND

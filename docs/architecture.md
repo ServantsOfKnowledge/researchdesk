@@ -46,14 +46,16 @@ symlinked into the bench, so `./upgrade.sh` updates code in one place for both m
 
 | DocType | Purpose | Key fields |
 |---|---|---|
-| **RD Item** | one book/document | `item_id` (= IA identifier, the document name), title, alt_title, creators (table), year, language (ISO 639-3), publisher, subjects (multi-select), collections, licence, access, page_count, has_page_text, ark, raw_metadata (JSON) |
+| **RD Item** | one book/document | `item_id` (= IA identifier, the document name), title, alt_title, creators (table), year, language (ISO 639-3), publisher, subjects (multi-select), collections, licence, access, visibility (Public / Login to read / Login to find) and visibility_set_by, page_count, has_page_text, ark, raw_metadata (JSON) |
 | RD Item Creator | child table | creator → RD Creator, role, name_as_given |
 | RD Item Subject | child table | subject → RD Subject |
 | **RD Creator** | authority-lite person record | full_name, alt_name (romanised), VIAF, Wikidata |
 | **RD Subject** | keyword / heading | subject_name, scheme |
 | **RD Ingest Profile** | *what* to ingest | scope (collection / query / identifiers), filter, max items, full text, schedule |
 | **RD Ingest Run** | one execution | status, counts, log |
-| **RD Settings** | single | portal, OAI, Meilisearch, IA politeness |
+| **RD Settings** | single | portal, branding, OAI, Meilisearch, IA politeness, guest access, reader sign-up, access rules |
+| RD Access Rule | child table of settings | match_on (collection, subject, language, creator, source, profile), value, visibility |
+| **RD Reader Request** | a sign-up waiting for approval | user, status (Pending / Approved / Rejected); approving adds the ResDesk Reader role |
 
 `raw_metadata` keeps the untouched source record, so re-normalising later never needs a
 re-download.
@@ -111,3 +113,15 @@ OAI-PMH and MARC (see [Koha](koha.md)).
 Sources are pluggable at two points: a client that lists and fetches items (like
 `core/ia.py`) and a normaliser that returns the RD Item record shape (like
 `core/normalize.normalize_ia_item`). See [Development → Adding a source](development.md#adding-a-new-source).
+
+## Access control
+
+`core/access.py` holds the rules (who may find or read a book, given its visibility, the
+site's guest mode and whether the visitor is a reader) as pure functions with unit tests.
+`access.py` applies them: portal pages and API endpoints check `can_find` / `can_read`;
+searches add a Meilisearch filter for guests (`NOT visibility = "Login to find"` for books,
+`NOT visibility IN [...]` for pages, so documents indexed before v0.5 count as Public); SQL
+counts and OAI-PMH add the matching `WHERE` condition. Book and page documents carry
+`visibility`, and bulk changes rewrite just that attribute with partial document updates,
+so switching thousands of books never re-indexes their text.
+

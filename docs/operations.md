@@ -100,11 +100,13 @@ Search Index** queues a full rebuild.
 | Role | Can |
 |---|---|
 | ResDesk Manager | everything in Research Desk: settings, profiles, ingests, catalogue |
-| ResDesk Cataloguer | edit catalogue records, re-index items, read runs |
-| (public) | search, read, cite; no login |
+| ResDesk Cataloguer | edit catalogue records, re-index items, read runs, change who can see books |
+| ResDesk Reader | log in on the portal and read members-only books; no Desk access |
+| (visitors) | search, read and cite what the site allows without a login |
 
 Add staff in Desk → *User* → give them one of these roles. They land on the Research Desk
-workspace after login.
+workspace after login. Readers can also sign up themselves, or be added with
+`./resdesk.sh add-reader EMAIL`: see [Who can see what](access.md#reader-accounts).
 
 ## Troubleshooting
 

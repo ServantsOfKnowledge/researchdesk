@@ -15,6 +15,9 @@ class RDSettings(Document):
 
 	def on_update(self):
 		apply_branding(self)
+		from sok_resdesk.access import apply_signup_setting
+
+		apply_signup_setting(self)
 
 
 def apply_branding(settings=None):

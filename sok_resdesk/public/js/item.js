@@ -83,6 +83,7 @@
 
 	function initInside() {
 		const form = $("#rd-inside-form");
+		if (!form) return; // members-only book, visitor not logged in
 		form.addEventListener("submit", (e) => {
 			e.preventDefault();
 			searchInside($("#rd-inside-q").value.trim());

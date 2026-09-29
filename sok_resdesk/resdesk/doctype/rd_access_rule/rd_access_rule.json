@@ -1,0 +1,56 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-09-30 10:00:00.000000",
+ "modified": "2026-09-30 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Access Rule",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "field_order": [
+  "match_on",
+  "value",
+  "visibility"
+ ],
+ "fields": [
+  {
+   "fieldname": "match_on",
+   "fieldtype": "Select",
+   "label": "When",
+   "options": "Collection\nSubject\nLanguage\nCreator\nSource\nIngest Profile",
+   "default": "Collection",
+   "in_list_view": 1,
+   "reqd": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "value",
+   "fieldtype": "Data",
+   "label": "Is",
+   "in_list_view": 1,
+   "reqd": 1,
+   "columns": 4,
+   "description": "e.g. ServantsOfKnowledge, Kannada, Local. Not case-sensitive."
+  },
+  {
+   "fieldname": "visibility",
+   "fieldtype": "Select",
+   "label": "Who Can See It",
+   "options": "Public\nLogin to read\nLogin to find",
+   "default": "Login to read",
+   "in_list_view": 1,
+   "reqd": 1,
+   "columns": 3
+  }
+ ],
+ "links": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "istable": 1,
+ "editable_grid": 1,
+ "permissions": []
+}

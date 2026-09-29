@@ -15,6 +15,10 @@ class RDItem(Document):
 		self.creator_display = "; ".join(names)
 		if self.year and not (500 <= int(self.year) <= 2100):
 			frappe.throw(frappe._("Year {0} looks wrong").format(self.year))
+		self.visibility = self.visibility or "Public"
+		# a change made in this form is a deliberate choice: "Apply Access Rules" leaves it alone
+		if (self.is_new() and not self.visibility_set_by) or (not self.is_new() and self.has_value_changed("visibility")):
+			self.visibility_set_by = "Manual"
 
 	def as_record(self) -> dict:
 		"""Plain dict used by citations, MARC, OAI and the search index."""

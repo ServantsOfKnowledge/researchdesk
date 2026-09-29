@@ -1,7 +1,9 @@
 """Public API for the Research Desk portal and third-party tools.
 
 All endpoints live under /api/method/sok_resdesk.api.<name> and are readable by
-guests (published records only). See docs/api.md for examples.
+guests (published records only). What a guest sees also depends on each book's
+visibility and the site's guest access setting (see access.py); logged-in readers
+see everything published. See docs/api.md for examples.
 """
 
 from __future__ import annotations
@@ -14,6 +16,7 @@ from frappe.rate_limiter import rate_limit
 from frappe.utils import cint
 from werkzeug.wrappers import Response
 
+from sok_resdesk import access
 from sok_resdesk.catalogue import base_url, get_record
 from sok_resdesk.core import citations, marc
 from sok_resdesk.search import MeiliClient, SearchError, _quote
@@ -49,7 +52,8 @@ def search(q: str = "", mode: str = "books", filters=None, page: int = 1, per_pa
 	filters: JSON object, e.g. {"language_label": ["Kannada"], "decade": ["1950s"], "year_from": 1900}
 	"""
 	try:
-		result = _search(q, "pages" if mode == "pages" else "books", _loads(filters, {}), page, per_page, sort)
+		result = _search(q, "pages" if mode == "pages" else "books", _loads(filters, {}), page, per_page, sort,
+						 access={"books": access.search_filter("books"), "pages": access.search_filter("pages")})
 	except SearchError as e:
 		frappe.log_error("Research Desk: search failed", str(e))
 		frappe.throw(_("Search is temporarily unavailable."), title=_("Search"))
@@ -62,6 +66,8 @@ def search(q: str = "", mode: str = "books", filters=None, page: int = 1, per_pa
 		"took_ms": result.get("processingTimeMs"),
 		"facets": result.get("facetDistribution", {}),
 		"hits": [_hit(h, mode) for h in result.get("hits", [])],
+		# true when this visitor must log in to search this way (e.g. inside the text)
+		"login_needed": bool(result.get("restricted")),
 	}
 
 
@@ -75,6 +81,7 @@ def _hit(hit: dict, mode: str) -> dict:
 		"creators": hit.get("creators") or [],
 		"year": hit.get("year"),
 		"language": hit.get("language_label"),
+		"visibility": hit.get("visibility") or access.PUBLIC,
 		"url": f"/library/item/{hit['item_id']}",
 	}
 	if mode == "pages":
@@ -103,6 +110,11 @@ def search_inside(item_id: str, q: str, limit: int = 50):
 	"""Pages of one book that match `q`, with highlighted snippets."""
 	if not q.strip():
 		return {"hits": []}
+	row = frappe.db.get_value("RD Item", item_id, ["published", "visibility"], as_dict=True)
+	if not row or not row.published or not access.can_find(row.visibility):
+		frappe.throw(_("Item not found"), frappe.DoesNotExistError)
+	if not access.can_read(row.visibility):
+		return {"total": 0, "hits": [], "login_needed": True}
 	client = MeiliClient.from_settings()
 	result = client.search(client.pages, {
 		"q": q, "filter": f"item_id = {_quote(item_id)}", "limit": min(cint(limit) or 50, 200),
@@ -126,6 +138,9 @@ def item(item_id: str):
 		frappe.throw(_("Item not found"), frappe.DoesNotExistError)
 	record.pop("modified", None)
 	record.pop("set_specs", None)
+	record["can_read"] = access.can_read(record.get("visibility"))
+	if not record["can_read"]:
+		record["pdf_url"] = ""
 	record["portal_url"] = f"{base_url()}/library/item/{item_id}"
 	record["citation_formats"] = {k: v[0] for k, v in citations.FORMATS.items()}
 	return record
@@ -186,7 +201,7 @@ def marcxml_all(profile: str | None = None):
 	if profile:
 		filters["ingest_profile"] = profile
 	names = frappe.get_all("RD Item", filters=filters, pluck="name")
-	records = [get_record(n) for n in names]
+	records = [get_record(n, check_access=False) for n in names]
 	return _text_response(marc.to_marcxml_collection([r for r in records if r], base_url()),
 						  "application/marcxml+xml", f"resdesk-{profile or 'all'}.xml")
 
@@ -205,11 +220,14 @@ def file(item_id: str, name: str):
 	from sok_resdesk.local_source import store_for_item
 
 	doc = frappe.db.get_value(
-		"RD Item", item_id, ["name", "published", "source", "access_status", "local_pdf", "local_thumb"], as_dict=True
+		"RD Item", item_id, ["name", "published", "source", "access_status", "local_pdf", "local_thumb", "visibility"],
+		as_dict=True,
 	)
 	if not doc or not doc.published or doc.source != "Local" or name not in {doc.local_pdf, doc.local_thumb} - {"", None}:
 		raise frappe.PageDoesNotExistError
-	if name == doc.local_pdf and doc.access_status != "Open":
+	if not access.can_find(doc.visibility):
+		raise frappe.PageDoesNotExistError
+	if name == doc.local_pdf and (doc.access_status != "Open" or not access.can_read(doc.visibility)):
 		raise frappe.PermissionError
 	store = store_for_item(frappe.get_doc("RD Item", item_id))
 	if store is None:
@@ -235,12 +253,13 @@ def file(item_id: str, name: str):
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 def stats():
+	seen = f"published=1 and {access.sql_condition()}"  # what this visitor can find
 	counts = {
-		"items": frappe.db.count("RD Item", {"published": 1}),
+		"items": frappe.db.sql(f"select count(*) from `tabRD Item` where {seen}")[0][0],
 		"creators": frappe.db.count("RD Creator"),
-		"with_fulltext": frappe.db.count("RD Item", {"published": 1, "has_fulltext": 1}),
+		"with_fulltext": frappe.db.sql(f"select count(*) from `tabRD Item` where {seen} and has_fulltext=1")[0][0],
 		"languages": frappe.db.sql(
-			"select language_label, count(*) from `tabRD Item` where published=1 group by language_label order by 2 desc"
+			f"select language_label, count(*) from `tabRD Item` where {seen} group by language_label order by 2 desc"
 		),
 	}
 	try:

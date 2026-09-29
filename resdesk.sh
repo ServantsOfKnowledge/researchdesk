@@ -75,6 +75,8 @@ case "$cmd" in
   progress) bench resdesk progress "$@" ;;
   reindex)  bench resdesk reindex "$@" ;;
   configure) bench resdesk configure "$@" ;;
+  access)   bench resdesk access "$@" ;;
+  add-reader) bench resdesk add-reader "$@" ;;
 
   workers)
     N="${1:-}"; [[ "$N" =~ ^[0-9]+$ ]] && [ "$N" -ge 1 ] || { echo "Usage: ./resdesk.sh workers <number>   (now: ${QUEUE_WORKERS:-2})"; exit 1; }
@@ -182,7 +184,15 @@ Choosing and ingesting books
   ./resdesk.sh ingest --folder /library-source            (IA-style item folders in LIBRARY_DIR)
   ./resdesk.sh ingest --server https://books.example.org/items/
   ./resdesk.sh ingest --profile "SoK Kannada sample"
+  ./resdesk.sh ingest --folder /library-source/staff --visibility members   (who can see the new books)
       options: --no-fulltext  --update  --limit 0 (= everything)  --background
+
+Who can see what (details: docs/access.md)
+  ./resdesk.sh access                   who can see what (settings + counts)
+  ./resdesk.sh access login-to-read --collection X
+        (visibility: public | login-to-read | members; --profile, --language, --ids, --all)
+  ./resdesk.sh access --guests "Login required"      (or "Records only", "Each item's setting")
+  ./resdesk.sh add-reader EMAIL [--name "Full Name"]  create a reader account
 
 Maintenance
   ./resdesk.sh progress [RUN]           watch an ingest run

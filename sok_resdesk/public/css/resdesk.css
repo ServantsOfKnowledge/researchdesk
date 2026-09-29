@@ -144,3 +144,18 @@
 .rd-brand { display: inline-flex; align-items: center; gap: 10px; }
 .rd-brand__logo { max-height: 32px; width: auto; }
 .rd-brand__name { font-weight: 600; }
+
+/* access control */
+.rd-badge--members { background: #fff4e0; border-color: #f0c987; color: #7a4b00; }
+.rd-access-note { margin: 10px 0 0; font-size: .9rem; color: var(--rd-muted); }
+.rd-locked { padding: 28px; text-align: center; }
+.rd-locked h2 { margin-top: 0; }
+.rd-locked .rd-actions { justify-content: center; }
+.rd-staffbar {
+	display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0 10px; padding: 8px 12px;
+	border: 1px dashed var(--rd-border); border-radius: 8px; background: var(--rd-soft); font-size: .9rem;
+}
+.rd-staffbar select { padding: 5px 8px; border: 1px solid var(--rd-border); border-radius: 6px; background: var(--rd-bg); color: inherit; }
+@media (prefers-color-scheme: dark) {
+	.rd-badge--members { background: #3a2c12; border-color: #7a5a20; color: #f3d59a; }
+}

@@ -79,7 +79,14 @@ on the book page and it picks up the record automatically.
 To build a bibliography, click **＋** next to search results to add books to **My list**,
 then export the whole list, or copy a share link and send it to your students.
 
-## 7. Everyday commands
+## 7. Keep some books for members (optional)
+
+Everything is public to start with. To keep some books for logged-in readers, open
+Desk → *Items*, tick them → **Actions → Set Who Can See Them**, or make the whole portal an
+internal library in **Settings → Access & Sign-up**. Readers can sign up themselves or be added
+by you. See [Who can see what](access.md).
+
+## 8. Everyday commands
 
 ```bash
 ./resdesk.sh stop        # stop (your data is kept)
@@ -89,7 +96,7 @@ then export the whole list, or copy a share link and send it to your students.
 ./resdesk.sh help        # everything else
 ```
 
-## 8. Keep it up to date
+## 9. Keep it up to date
 
 ```bash
 ./upgrade.sh --check     # is there a new release?

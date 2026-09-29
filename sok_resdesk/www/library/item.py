@@ -3,6 +3,7 @@ import json
 import frappe
 from frappe.utils import cint
 
+from sok_resdesk import access
 from sok_resdesk.catalogue import base_url, get_record, settings
 from sok_resdesk.core import citations
 
@@ -10,9 +11,14 @@ no_cache = 1
 
 
 def get_context(context):
+	access.require_login_for_portal()
 	item_id = frappe.form_dict.get("item_id")
 	record = get_record(item_id) if item_id else None
 	if not record:
+		# a members-only book: guests are asked to log in rather than told it doesn't exist
+		if frappe.session.user == "Guest" and item_id and frappe.db.exists("RD Item", {"name": item_id, "published": 1}):
+			frappe.local.flags.redirect_location = access.login_url(f"/library/item/{item_id}")
+			raise frappe.Redirect
 		raise frappe.PageDoesNotExistError
 
 	root = base_url()
@@ -21,7 +27,12 @@ def get_context(context):
 	context.full_width = 1
 	context.show_sidebar = 0
 	context.portal_title = s.portal_title or "SoK Research Desk"
+	context.can_read = access.can_read(record.get("visibility"))
+	if not context.can_read:
+		record["pdf_url"] = ""  # keep it out of the page and its citation meta tags
 	context.item = record
+	context.viewer = access.viewer()
+	context.login_url = access.login_url(f"/library/item/{item_id}")
 	context.title = citations.display_title(record)
 	context.start_leaf = max(0, cint(frappe.form_dict.get("page")))
 	# Reader: the Internet Archive's BookReader when the book is there, otherwise the PDF from our own files.

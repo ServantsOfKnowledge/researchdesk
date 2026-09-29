@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-09-29 17:00:00.000000",
+ "modified": "2026-09-30 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -37,7 +37,15 @@
   "ia_delay",
   "column_break_ia",
   "batch_size",
-  "cache_page_text"
+  "cache_page_text",
+  "access_section",
+  "guest_access",
+  "default_visibility",
+  "column_break_access",
+  "reader_signup",
+  "oai_scope",
+  "access_rules_section",
+  "access_rules"
  ],
  "fields": [
   {
@@ -204,6 +212,61 @@
    "label": "Keep a Local Copy of Page Text",
    "default": "1",
    "description": "Stores compressed OCR text on disk (about 20–60 KB per book) so re-indexing never needs to download from archive.org again."
+  },
+  {
+   "fieldname": "access_section",
+   "fieldtype": "Section Break",
+   "label": "Access & Sign-up",
+   "collapsible": 0,
+   "description": "Choose what visitors who are not logged in can do, and how people become readers. Logged-in readers and staff can always find and read every published book."
+  },
+  {
+   "fieldname": "guest_access",
+   "fieldtype": "Select",
+   "label": "Visitors Who Are Not Logged In",
+   "options": "Each item's setting\nRecords only\nLogin required",
+   "default": "Each item's setting",
+   "description": "Each item's setting: follow each book's “Who can see it”. Records only: visitors can search the catalogue and cite, but reading and search inside the text need a login. Login required: the whole portal is for logged-in readers (an internal library)."
+  },
+  {
+   "fieldname": "default_visibility",
+   "fieldtype": "Select",
+   "label": "Default for New Books",
+   "options": "Public\nLogin to read\nLogin to find",
+   "default": "Public",
+   "description": "Used when neither the ingest profile nor a rule below decides."
+  },
+  {
+   "fieldname": "column_break_access",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reader_signup",
+   "fieldtype": "Select",
+   "label": "Reader Accounts",
+   "options": "Admins add readers\nAnyone can sign up\nSign up, admin approves",
+   "default": "Admins add readers",
+   "description": "Admins add readers: no sign-up page; add people in User with the ResDesk Reader role, or ./resdesk.sh add-reader. Anyone can sign up: every account can read. Sign up, admin approves: new accounts wait in Reader Requests."
+  },
+  {
+   "fieldname": "oai_scope",
+   "fieldtype": "Select",
+   "label": "OAI-PMH Shares",
+   "options": "Records guests can find\nAll published records\nOff",
+   "default": "Records guests can find",
+   "description": "What harvesters such as Koha receive. “All published records” suits a library system on an internal network."
+  },
+  {
+   "fieldname": "access_rules_section",
+   "fieldtype": "Section Break",
+   "label": "Access Rules",
+   "description": "Set visibility of new books by collection, subject, language, author, source or ingest profile. The first matching rule wins; an ingest profile's own “Access for Its Books” comes first. Use “Apply Access Rules” to update books already in the catalogue."
+  },
+  {
+   "fieldname": "access_rules",
+   "fieldtype": "Table",
+   "label": "Rules",
+   "options": "RD Access Rule"
   }
  ],
  "links": [],

@@ -46,6 +46,11 @@ MARCXML files for Koha's import tools.
 Any other harvester works the same way: VuFind, DSpace, BASE, CORE, OCLC WorldCat Digital
 Collection Gateway, or your own scripts.
 
+Harvesters don't log in, so by default they get the records a visitor can find: members-only
+(*Login to find*) books are left out. For a Koha on your internal network that should list
+every book, set Settings → **OAI-PMH Shares** to *All published records*. See
+[Who can see what](access.md#koha-oai-pmh-and-exports).
+
 ## Option B: import MARCXML files
 
 For a one-off load, or when harvesting isn't set up:

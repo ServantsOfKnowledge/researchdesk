@@ -29,7 +29,7 @@ BOOK_SETTINGS = {
 	],
 	"filterableAttributes": [
 		"item_id", "language", "language_label", "year", "decade", "creators", "subjects", "collections",
-		"access_status", "has_fulltext", "source",
+		"access_status", "has_fulltext", "source", "visibility",
 	],
 	"sortableAttributes": ["year", "title_sort", "indexed_at"],
 	"displayedAttributes": ["*"],
@@ -50,7 +50,7 @@ PAGE_SETTINGS = {
 	"prefixSearch": "indexingTime",
 	"facetSearch": False,
 	"searchCutoffMs": 1500,
-	"filterableAttributes": ["item_id", "language_label", "year", "decade", "collections", "creators"],
+	"filterableAttributes": ["item_id", "language_label", "year", "decade", "collections", "creators", "visibility"],
 	"sortableAttributes": ["leaf"],
 	"displayedAttributes": ["*"],
 	"pagination": {"maxTotalHits": 10000},
@@ -179,6 +179,7 @@ def book_document(record: dict, excerpt: str = "") -> dict:
 		"access_status": record.get("access_status"),
 		"has_fulltext": bool(record.get("has_fulltext")),
 		"source": record.get("source"),
+		"visibility": record.get("visibility") or "Public",
 		"thumbnail_url": record.get("thumbnail_url"),
 		"text_excerpt": excerpt[:5000],
 		"indexed_at": int(now_datetime().timestamp()),
@@ -199,6 +200,7 @@ def page_documents(record: dict, pages: list[dict], max_chars: int = 6000) -> li
 			"decade": record.get("decade") or decade_of(record.get("year")),
 			"language_label": record.get("language_label") or "Unknown",
 			"collections": record.get("collections") or [],
+			"visibility": record.get("visibility") or "Public",
 		})
 	return docs
 
@@ -247,6 +249,11 @@ def on_item_update(doc, method=None):
 			remove_record(doc.item_id, client)
 		else:
 			client.add(client.books, [book_document(item_to_record(doc))])
+			before = doc.get_doc_before_save()
+			if before and (before.visibility or "Public") != (doc.visibility or "Public"):
+				from sok_resdesk.access import update_index_visibility
+
+				update_index_visibility([doc.name], doc.visibility or "Public")
 	except SearchError as e:
 		frappe.log_error("Research Desk: search index update failed", str(e))
 
@@ -384,20 +391,27 @@ def build_filter(filters: dict | None) -> list:
 
 
 def search(q: str = "", mode: str = "books", filters: dict | None = None, page: int = 1,
-		   per_page: int = 20, sort: str = "") -> dict:
+		   per_page: int = 20, sort: str = "", access: dict | None = None) -> dict:
+	"""access: {"books": filter, "pages": filter} from access.search_filter; None = no limit, "" = nothing."""
+	access = access or {}
+	if access.get(mode) == "":
+		return {"hits": [], "totalHits": 0, "totalPages": 0, "page": 1, "facetDistribution": {}, "restricted": True}
 	client = MeiliClient.from_settings()
 	page, per_page = max(1, cint(page)), min(max(1, cint(per_page)), 100)
 	body: dict = {"q": q or "", "page": page, "hitsPerPage": per_page, "filter": build_filter(filters)}
+	if access.get(mode):
+		body["filter"].append(access[mode])
 	if mode == "pages":
 		body.update({
 			"attributesToCrop": ["text"], "cropLength": 40,
 			"attributesToHighlight": ["text"], "highlightPreTag": "<mark>", "highlightPostTag": "</mark>",
-			"attributesToRetrieve": ["item_id", "leaf", "label", "year", "language_label"],
+			"attributesToRetrieve": ["item_id", "leaf", "label", "year", "language_label", "visibility"],
 		})
 		result = client.search(client.pages, body)
 		_attach_book_fields(client, result.get("hits", []))
 		# facet counts always come from the books index so the sidebar stays useful
-		facets = client.search(client.books, {"q": "", "limit": 0, "facets": FACETS, "filter": body["filter"]})
+		book_filter = build_filter(filters) + ([access["books"]] if access.get("books") else [])
+		facets = client.search(client.books, {"q": "", "limit": 0, "facets": FACETS, "filter": book_filter})
 		result["facetDistribution"] = facets.get("facetDistribution", {})
 	else:
 		body.update({

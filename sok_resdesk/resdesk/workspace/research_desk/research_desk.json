@@ -1,7 +1,7 @@
 {
  "app": "sok_resdesk",
  "charts": [],
- "content": "[\n {\n  \"data\": {\n   \"col\": 12,\n   \"text\": \"<span class=\\\"h4\\\"><b>Research Desk</b></span>\"\n  },\n  \"id\": \"rd-h\",\n  \"type\": \"header\"\n },\n {\n  \"data\": {\n   \"col\": 3,\n   \"shortcut_name\": \"Ingest Profiles\"\n  },\n  \"id\": \"rd-s1\",\n  \"type\": \"shortcut\"\n },\n {\n  \"data\": {\n   \"col\": 3,\n   \"shortcut_name\": \"Items\"\n  },\n  \"id\": \"rd-s2\",\n  \"type\": \"shortcut\"\n },\n {\n  \"data\": {\n   \"col\": 3,\n   \"shortcut_name\": \"Open Portal\"\n  },\n  \"id\": \"rd-s3\",\n  \"type\": \"shortcut\"\n },\n {\n  \"data\": {\n   \"col\": 3,\n   \"shortcut_name\": \"Settings\"\n  },\n  \"id\": \"rd-s4\",\n  \"type\": \"shortcut\"\n },\n {\n  \"data\": {\n   \"card_name\": \"Catalogue\",\n   \"col\": 4\n  },\n  \"id\": \"rd-c1\",\n  \"type\": \"card\"\n },\n {\n  \"data\": {\n   \"card_name\": \"Ingest\",\n   \"col\": 4\n  },\n  \"id\": \"rd-c2\",\n  \"type\": \"card\"\n },\n {\n  \"data\": {\n   \"card_name\": \"Setup\",\n   \"col\": 4\n  },\n  \"id\": \"rd-c3\",\n  \"type\": \"card\"\n }\n]",
+ "content": "[{\"data\": {\"col\": 12, \"text\": \"<span class=\\\"h4\\\"><b>Research Desk</b></span>\"}, \"id\": \"rd-h\", \"type\": \"header\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Ingest Profiles\"}, \"id\": \"rd-s1\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Items\"}, \"id\": \"rd-s2\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Open Portal\"}, \"id\": \"rd-s3\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Settings\"}, \"id\": \"rd-s4\", \"type\": \"shortcut\"}, {\"data\": {\"card_name\": \"Catalogue\", \"col\": 3}, \"id\": \"rd-c1\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Ingest\", \"col\": 3}, \"id\": \"rd-c2\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Setup\", \"col\": 3}, \"id\": \"rd-c3\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Readers\", \"col\": 3}, \"id\": \"rd-c4\", \"type\": \"card\"}]",
  "creation": "2026-09-29 15:43:25.717447",
  "custom_blocks": [],
  "docstatus": 0,
@@ -100,9 +100,38 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "link_count": 0,
+   "onboard": 0,
+   "label": "Readers",
+   "link_type": "DocType",
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "link_count": 0,
+   "onboard": 0,
+   "label": "Reader Requests",
+   "link_to": "RD Reader Request",
+   "link_type": "DocType",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "link_count": 0,
+   "onboard": 0,
+   "label": "Users",
+   "link_to": "User",
+   "link_type": "DocType",
+   "type": "Link"
   }
  ],
- "modified": "2026-09-29 15:43:25.717447",
+ "modified": "2026-09-30 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "ResDesk",
  "name": "Research Desk",

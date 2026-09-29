@@ -76,6 +76,17 @@
 
 	// ---- rendering ------------------------------------------------------------------
 	function render(data) {
+		lastTotal = data.total || 0;
+		paintStaffBar();
+		if (data.login_needed) {
+			const root = $("#rd-library").dataset;
+			$("#rd-summary").textContent = "";
+			$("#rd-facet-lists").innerHTML = "";
+			$("#rd-pager").innerHTML = "";
+			$("#rd-hits").innerHTML = `<li class="rd-empty"><a href="${esc(root.login)}">Log in</a> to search inside the text of the books.${
+				root.signup === "1" ? ' No account? <a href="/login#signup">Create one</a>.' : ""}</li>`;
+			return;
+		}
 		const noun = state.mode === "pages" ? "matching pages" : "books";
 		$("#rd-summary").textContent = `${(data.total || 0).toLocaleString()} ${noun}${data.took_ms != null ? ` · ${data.took_ms} ms` : ""}`;
 		renderChips();
@@ -98,7 +109,7 @@
 				<h3><a href="${h.url}">${safeMarked(h.title_html)}</a></h3>
 				${h.alt_title && h.alt_title !== h.title ? `<div class="rd-muted">${esc(h.alt_title)}</div>` : ""}
 				<div class="rd-hit__creators">${(h.creators || []).map(esc).join("; ")}</div>
-				<div class="rd-muted">${esc(meta)}${h.has_fulltext ? ' · <span class="rd-badge">full text</span>' : ""}</div>
+				<div class="rd-muted">${esc(meta)}${h.has_fulltext ? ' · <span class="rd-badge">full text</span>' : ""}${lockBadge(h)}</div>
 				${h.snippet ? `<p class="rd-snippet">${safeMarked(h.snippet)}</p>` : ""}
 			</div>
 			<button class="rd-save" data-id="${esc(h.item_id)}" type="button" title="Add to my list" aria-label="Add to my list">＋</button>
@@ -112,12 +123,51 @@
 		const url = `${h.url}&q=${encodeURIComponent(state.q)}#rd-reader`;
 		return `<li class="rd-hit rd-hit--page">
 			<div class="rd-hit__body">
-				<h3><a href="${url}">${esc(h.title)}</a> <span class="rd-muted">· ${label}</span></h3>
+				<h3><a href="${url}">${esc(h.title)}</a> <span class="rd-muted">· ${label}</span>${lockBadge(h)}</h3>
 				<div class="rd-muted">${(h.creators || []).map(esc).join("; ")}${h.year ? " · " + h.year : ""}</div>
 				<p class="rd-snippet">${safeMarked(h.snippet)}</p>
 			</div>
 			<button class="rd-save" data-id="${esc(h.item_id)}" type="button" title="Add book to my list" aria-label="Add book to my list">＋</button>
 		</li>`;
+	}
+
+	function lockBadge(h) {
+		if (!h.visibility || h.visibility === "Public") return "";
+		const text = h.visibility === "Login to find" ? "members only" : "login to read";
+		return ` · <span class="rd-badge rd-badge--members" title="${esc(h.visibility)}">🔒 ${text}</span>`;
+	}
+
+	// ---- staff: change visibility of everything matching the current search --------------
+	let lastTotal = 0;
+	function paintStaffBar() {
+		const bar = $("#rd-staffbar");
+		if (!bar) return;
+		bar.hidden = !lastTotal;
+		$("#rd-staff-count").textContent = lastTotal.toLocaleString();
+		$("#rd-staff-msg").textContent = state.mode === "pages" ? "(books with a matching page)" : "";
+	}
+	async function applyStaffBar(e) {
+		e.preventDefault();
+		const vis = $("#rd-staff-vis").value;
+		if (!confirm(`Set ${lastTotal.toLocaleString()} ${state.mode === "pages" ? "matching pages' books" : "books"} to “${vis}”?`)) return;
+		$("#rd-staff-msg").textContent = "Working…";
+		const body = new URLSearchParams({
+			visibility: vis,
+			search: JSON.stringify({ q: state.q, mode: state.mode, filters: state.filters }),
+		});
+		try {
+			const res = await fetch("/api/method/sok_resdesk.access.bulk_set_visibility", {
+				method: "POST",
+				headers: { Accept: "application/json", "X-Frappe-CSRF-Token": (window.frappe && frappe.csrf_token) || "" },
+				body,
+			});
+			const out = await res.json();
+			if (!res.ok) throw new Error(out.exception || res.statusText);
+			$("#rd-staff-msg").textContent = out.message.message;
+			if (!out.message.queued) setTimeout(run, 800);
+		} catch (err) {
+			$("#rd-staff-msg").textContent = `Could not change: ${String(err.message).slice(0, 160)}`;
+		}
 	}
 
 	function renderFacets(facets) {
@@ -225,6 +275,7 @@
 			RDBasket.toggle(b.dataset.id);
 		});
 		document.addEventListener("rd-basket-change", markBasket);
+		if ($("#rd-staffbar")) $("#rd-staffbar").addEventListener("submit", applyStaffBar);
 
 		// basket menu
 		$("#rd-basket-btn").addEventListener("click", () => ($("#rd-basket-menu").hidden = !$("#rd-basket-menu").hidden));

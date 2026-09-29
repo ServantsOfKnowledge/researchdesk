@@ -4,6 +4,11 @@ All public endpoints are `GET` requests (some also accept `POST`), need no login
 return published records. Responses are JSON inside a `message` key unless noted. Guest
 endpoints are rate-limited per IP.
 
+What an anonymous caller gets also depends on [who can see what](access.md): books set to
+*Login to find* are left out, *Login to read* books appear but without page text or PDF, and
+with *Login required* guests get nothing. Send a logged-in reader's session cookie or an API
+token (`Authorization: token <key>:<secret>`) to see everything that reader can.
+
 Base: `<BASE_URL>/api/method/`
 
 ## Search
@@ -34,17 +39,23 @@ curl -G "$BASE/api/method/sok_resdesk.api.search" \
 
 Snippets contain `<mark>` tags only; escape everything else before inserting into HTML.
 
+Each hit has `visibility` (`Public`, `Login to read` or `Login to find`). When the caller
+may not search this way (inside the text, for a guest on a *Records only* site) the response
+has `"login_needed": true` and no hits.
+
 ## Search inside one book
 
 `sok_resdesk.api.search_inside?item_id=<id>&q=<text>[&limit=50]` returns
 `{"total", "hits": [{"leaf", "page_label", "snippet"}]}`, sorted by page.
 `leaf` is the 0-based page index used by the Internet Archive reader (`…/page/n<leaf>`).
+For a book the caller may find but not read, it returns `{"login_needed": true, "hits": []}`.
 
 ## Records
 
 `sok_resdesk.api.item?item_id=<id>` returns the full catalogue record (title, alt_title,
 creators, alt_creators, year, language, publisher, subjects, collections, licence,
-page_count, ark, source_url, portal_url, …).
+page_count, ark, source_url, portal_url, visibility, …). `can_read` says whether the caller
+may read it; when false, `pdf_url` is empty.
 
 `sok_resdesk.api.stats` returns counts of items, creators, full-text items, languages,
 indexed pages and search-engine health.
@@ -76,6 +87,10 @@ indexed pages and search-engine health.
 | `sok_resdesk.search.reindex_item` (`item_id`) | re-index one item |
 | `sok_resdesk.search.enqueue_rebuild` | rebuild the whole index in the background |
 | `sok_resdesk.search.setup_indexes` | test the search engine and apply index settings |
+| `sok_resdesk.access.bulk_set_visibility` (`visibility` and one of `names`, `filters`, `collection`, `profile`, `language`, `search`, `everything=1`) | set who can see many books; over 200 run in the background |
+| `sok_resdesk.access.apply_rules` (`include_manual`) | re-apply profiles, access rules and the default |
+| `sok_resdesk.access.apply_profile` (`profile`) | give a profile's books its visibility |
+| `sok_resdesk.access.decide_requests` (`names`, `status`) | approve or reject reader requests |
 
 Frappe's standard REST API also works for staff: `/api/resource/RD Item`,
 `/api/resource/RD Ingest Profile`, … with token or session authentication.

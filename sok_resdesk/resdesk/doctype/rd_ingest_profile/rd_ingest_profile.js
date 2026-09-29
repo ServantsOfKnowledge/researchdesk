@@ -44,6 +44,20 @@ frappe.ui.form.on("RD Ingest Profile", {
 			});
 		}).addClass("btn-primary");
 
+		if (frm.doc.visibility) {
+			frm.add_custom_button(__("Apply Access to Its Books"), () =>
+				frappe.confirm(
+					__("Set every book ingested by this profile to “{0}”? Changes made by hand to those books are replaced.", [__(frm.doc.visibility)]),
+					() =>
+						frappe.call({
+							method: "sok_resdesk.access.apply_profile",
+							args: { profile: frm.doc.name },
+							freeze: true,
+							callback: (r) => frappe.show_alert({ message: r.message.message, indicator: "green" }),
+						})
+				)
+			);
+		}
 		frm.add_custom_button(__("Items from this Profile"), () =>
 			frappe.set_route("List", "RD Item", { ingest_profile: frm.doc.name })
 		);

@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.5.0 (2026-09-30): members-only books and reader accounts
+
+- Each book has **Who can see it**: *Public*, *Login to read* (find and cite openly; reading,
+  search inside and the PDF need a login) or *Login to find* (only logged-in readers know it
+  exists). Enforced in portal search, book pages, page search, search inside, local PDFs,
+  citations, MARCXML, stats and OAI-PMH
+- Site setting for visitors who are not logged in: *Each item's setting*, *Records only*
+  (a public catalogue) or *Login required* (an internal library)
+- Reader accounts: *Admins add readers*, *Anyone can sign up* or *Sign up, admin approves*
+  with a **Reader Requests** queue, bulk approve/reject, manager notifications and emails.
+  New role **ResDesk Reader** (portal only); `./resdesk.sh add-reader EMAIL`
+- Bulk changes: ticked rows or everything matching a filter in the Desk Items list, every
+  result of a portal search (staff bar), a whole ingest profile, or
+  `./resdesk.sh access <visibility> --collection/--profile/--language/--ids/--all`.
+  Updates the search index in place, no re-index; big batches run in the background
+- **Access rules** by collection, subject, language, author, source or profile set the
+  visibility of new books; an ingest profile's own setting comes first; **Apply Access Rules**
+  updates existing books without touching manual choices. `ingest --visibility` on the CLI
+- OAI-PMH shares what guests can find by default, or all published records, or is off
+- Upgrade note: existing books become *Public*; nothing needs re-indexing
+
 ## 0.4.0 (2026-09-29): native install and upgrades
 
 - `./install.sh --native` (or choose at the prompt): installs MariaDB, Redis, Meilisearch,

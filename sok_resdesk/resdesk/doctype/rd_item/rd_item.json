@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-09-29 16:00:00.000000",
+ "modified": "2026-09-30 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Item",
@@ -16,6 +16,8 @@
   "column_break_a",
   "source",
   "published",
+  "visibility",
+  "visibility_set_by",
   "access_status",
   "thumbnail_url",
   "section_people",
@@ -108,6 +110,24 @@
    "fieldtype": "Check",
    "label": "Published on Portal",
    "default": "1"
+  },
+  {
+   "fieldname": "visibility",
+   "fieldtype": "Select",
+   "label": "Who can see it",
+   "options": "Public\nLogin to read\nLogin to find",
+   "default": "Public",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "description": "Public: anyone can find and read it. Login to read: anyone can find and cite it; reading, search inside and the PDF need a login. Login to find: only logged-in readers can find it."
+  },
+  {
+   "fieldname": "visibility_set_by",
+   "fieldtype": "Data",
+   "label": "Visibility Set By",
+   "read_only": 1,
+   "description": "Default, Profile, Rule, Bulk or Manual. “Apply rules” in Settings leaves Manual and Bulk choices alone unless asked."
   },
   {
    "fieldname": "access_status",

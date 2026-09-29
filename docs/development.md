@@ -18,11 +18,12 @@ researchdesk/
 ├── .github/workflows/      CI (lint, unit, Docker install + integration) and image publishing
 └── sok_resdesk/            the Frappe app
     ├── hooks.py            routes, doc events, scheduler, install hooks
-    ├── core/               pure Python, no Frappe:  ia.py  folder.py  normalize.py  citations.py  marc.py  oai.py
+    ├── core/               pure Python, no Frappe:  ia.py  folder.py  normalize.py  citations.py  marc.py  oai.py  access.py
     ├── catalogue.py        settings, upsert RD Item, record <-> dict
     ├── ingest.py           ingest jobs, scheduler, whitelisted actions
     ├── local_source.py     IA-style item folders on disk / NAS / web server
     ├── search.py           Meilisearch adapter, indexing, search
+    ├── access.py           who can see what: members, bulk visibility, reader sign-up
     ├── api.py              public API
     ├── oai.py              OAI-PMH endpoint (Frappe store for core/oai.py)
     ├── commands.py         `bench … resdesk` CLI

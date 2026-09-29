@@ -21,16 +21,22 @@
 - [x] Native install (macOS/Homebrew, Ubuntu/Debian) without Docker
 - [x] `upgrade.sh`: backup, upgrade to a release or main, migrate, health check, rollback hints
 
-## v0.5: better for researchers
+## v0.5: access control (done)
+
+- [x] Public / Login to read / Login to find per book; public catalogue or internal-library modes
+- [x] Reader accounts: staff-added, open sign-up or sign-up with approval
+- [x] Bulk visibility by selection, filter, portal search, profile, rules and CLI
+
+## v0.6: better for researchers
 
 - [ ] Romanised ↔ Kannada query transliteration (type `vachana`, match ವಚನ) for all Indic scripts
 - [ ] Phrase search, boolean operators and "near" in the portal
-- [ ] Accounts with saved, shared, collaborative reading lists and notes
+- [ ] Saved, shared, collaborative reading lists and notes for logged-in readers
 - [ ] Page-level citations (cite p. 42 with a stable link)
 - [ ] Persistent identifiers (ARK/Handle/DOI) for portal records
 - [ ] Portal UI in Kannada and other languages (Frappe translations)
 
-## v0.6: better data
+## v0.7: better data
 
 - [ ] Re-OCR pipeline for poor scans (Tesseract/other engines with trained Kannada models), replacing IA text in the index
 - [ ] Authority control: reconcile creators with VIAF/Wikidata; subjects with LCSH/Sears

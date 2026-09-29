@@ -26,7 +26,9 @@ doc_events = {
 	"RD Item": {
 		"on_update": "sok_resdesk.search.on_item_update",
 		"on_trash": "sok_resdesk.search.on_item_trash",
-	}
+	},
+	# portal sign-ups become readers, or wait for approval (RD Settings → Reader Accounts)
+	"User": {"after_insert": "sok_resdesk.access.on_user_insert"},
 }
 
 # Scheduled ingest (profiles set to Daily / Weekly) ---------------------------

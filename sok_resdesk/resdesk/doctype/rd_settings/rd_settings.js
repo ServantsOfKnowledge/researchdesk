@@ -25,6 +25,33 @@ frappe.ui.form.on("RD Settings", {
 					})
 			)
 		);
+		frm.add_custom_button(__("Apply Access Rules"), () => {
+			const d = new frappe.ui.Dialog({
+				title: __("Apply access rules to books already in the catalogue"),
+				fields: [
+					{
+						fieldtype: "HTML",
+						options: `<p>${__("Each book gets the visibility its ingest profile, the first matching rule or the default gives it. New books get this automatically; this updates the ones already here.")}</p>`,
+					},
+					{
+						fieldname: "include_manual",
+						fieldtype: "Check",
+						label: __("Also change books whose visibility was set by hand or in bulk"),
+					},
+				],
+				primary_action_label: __("Apply"),
+				primary_action(values) {
+					d.hide();
+					frappe.call({
+						method: "sok_resdesk.access.apply_rules",
+						args: { include_manual: values.include_manual ? 1 : 0 },
+						callback: (r) => frappe.show_alert({ message: r.message.message, indicator: "green" }),
+					});
+				},
+			});
+			frm.is_dirty() ? frappe.msgprint(__("Save the settings first.")) : d.show();
+		});
+		frm.add_custom_button(__("Reader Requests"), () => frappe.set_route("List", "RD Reader Request", { status: "Pending" }));
 		frm.add_web_link("/library", __("Open Portal"));
 	},
 });

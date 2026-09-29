@@ -17,6 +17,9 @@ Choose a collection, a search or a list of items on archive.org, and Research De
 - work **alongside Koha** and other library systems (OAI-PMH harvesting and MARCXML import),
   or on its own
 - let readers keep a **reading list**, export it as a bibliography, and share it as a link
+- keep some books (or everything) **for logged-in readers**: members-only books, a public
+  catalogue with reading for members, or an internal library; readers sign up, are approved,
+  or are added by staff, and books can be switched in bulk by collection, filter or search
 - carry **your library's logo and name** on the portal, the admin bar and the browser tab
 - run **in Docker or directly on the computer** (macOS or Ubuntu/Debian), and **upgrade with one
   command** that backs up first and tells you how to roll back
@@ -25,7 +28,7 @@ It's built to install with one command, for librarians, educators, archivists an
 anyone else who can open a terminal. It scales to tens of thousands of books on one server
 ([measured](docs/scaling.md)).
 
-> Status: **proof of concept (v0.4)**. It works end to end and is tested against live
+> Status: **proof of concept (v0.5)**. It works end to end and is tested against live
 > Servants of Knowledge data, but expect changes before 1.0. See [the roadmap](docs/roadmap.md).
 
 ---
@@ -87,6 +90,7 @@ Click **Check Count** to see how many items match, set **Maximum Items**, then *
 |---|---|
 | Librarians & educators | [Getting started](docs/getting-started.md) · [Choosing & ingesting books](docs/ingesting.md) · [Your own folders & servers](docs/local-folders.md) |
 | Researchers | [Searching](docs/searching.md) · [Citations & reading lists](docs/citations.md) |
+| Library managers | [Who can see what: members-only books & reader accounts](docs/access.md) |
 | Library systems staff | [Koha & interoperability](docs/koha.md) · [API](docs/api.md) |
 | System administrators | [Installation](docs/installation.md) · [Operations](docs/operations.md) · [Scaling to 50k books](docs/scaling.md) |
 | Developers | [Architecture](docs/architecture.md) · [Development](docs/development.md) · [Roadmap](docs/roadmap.md) |

@@ -5,7 +5,10 @@ import frappe
 ROLES = {
 	"ResDesk Manager": "Configures the portal, runs ingests, manages the catalogue.",
 	"ResDesk Cataloguer": "Edits catalogue records.",
+	"ResDesk Reader": "Logged-in reader: can find and read members-only books on the portal.",
 }
+# roles that work in the Desk; readers only use the portal
+DESK_ROLES = ("ResDesk Manager", "ResDesk Cataloguer")
 
 SAMPLE_PROFILES = [
 	{
@@ -81,20 +84,23 @@ def create_roles():
 	# DocType sync may already have created these roles (they appear in DocPerms),
 	# so fill in missing properties rather than only creating.
 	for role, desc in ROLES.items():
+		desk = 1 if role in DESK_ROLES else 0
 		if not frappe.db.exists("Role", role):
-			frappe.get_doc({"doctype": "Role", "role_name": role, "desk_access": 1}).insert(ignore_permissions=True)
+			frappe.get_doc({"doctype": "Role", "role_name": role, "desk_access": desk}).insert(ignore_permissions=True)
 		doc = frappe.get_doc("Role", role)
 		changed = False
-		# staff land in the Desk after login; the public site home stays /library
-		for field, value in (("home_page", "/app/research-desk"), ("description", desc), ("desk_access", 1)):
-			if doc.meta.has_field(field) and not doc.get(field):
+		# staff land in the Desk after login, readers in the library
+		home = "/app/research-desk" if desk else "/library"
+		for field, value in (("home_page", home), ("description", desc), ("desk_access", desk)):
+			current = doc.get(field)
+			if doc.meta.has_field(field) and (int(current or 0) != value if field == "desk_access" else not current):
 				doc.set(field, value)
 				changed = True
 		if changed:
 			doc.save(ignore_permissions=True)
 	# Administrator should be able to run everything from day one
 	admin = frappe.get_doc("User", "Administrator")
-	missing = [r for r in ROLES if r not in {x.role for x in admin.roles}]
+	missing = [r for r in DESK_ROLES if r not in {x.role for x in admin.roles}]
 	if missing:
 		admin.add_roles(*missing)
 
