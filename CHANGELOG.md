@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.2 (2026-09-30): upgrade fixes
+
+- `./upgrade.sh` no longer waits forever at "Restart and migrate" when the configurator
+  container keeps failing (usually Docker out of disk space): it stops after three restarts, or
+  after 10 minutes, and shows each container's state, its last log lines and how to free space
+- Old image layers from previous builds are removed after each upgrade build, so repeated
+  upgrades don't fill Docker's disk. Data volumes are never touched
+
 ## 0.5.1 (2026-09-30): upgrade fixes
 
 - `./upgrade.sh` no longer hangs silently at the backup step: the backup needs only the

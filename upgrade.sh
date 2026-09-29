@@ -171,6 +171,7 @@ else
     docker compose build     # also picks up Frappe patch releases from the version-16 base images
   fi
   docker compose pull db redis-cache redis-queue meilisearch --quiet 2>/dev/null || true
+  docker image prune -f >/dev/null 2>&1 || true   # drop the previous build's layers (never touches your data)
   ok "Images ready"
   bold "4/5  Restart and migrate"
   show_containers() {
@@ -179,7 +180,33 @@ else
       echo "  --- last lines from $s:"; docker compose logs --no-color --tail 25 "$s" 2>&1 | sed 's/^/    /' || true
     done
   }
-  docker compose up -d --remove-orphans || { warn "Docker could not start the containers (the error is above)."; show_containers; false; }
+  # `docker compose up` waits for the one-shot configurator to succeed; if it keeps failing
+  # (restart: on-failure) compose would wait forever, so watch it and give up with details.
+  docker compose up -d --remove-orphans &
+  UP_PID=$!
+  UP_OK=0
+  for i in $(seq 1 120); do
+    if ! kill -0 "$UP_PID" 2>/dev/null; then
+      if wait "$UP_PID"; then UP_OK=1; fi
+      break
+    fi
+    CFG=$(docker compose ps -a -q configurator 2>/dev/null || true)
+    RESTARTS=$( [ -n "$CFG" ] && docker inspect -f '{{.RestartCount}}' "$CFG" 2>/dev/null || echo 0)
+    if [ "${RESTARTS:-0}" -ge 3 ]; then
+      kill "$UP_PID" 2>/dev/null || true
+      echo; warn "The configurator container keeps failing (it has restarted $RESTARTS times)."
+      break
+    fi
+    sleep 5
+  done
+  if [ "$UP_OK" != 1 ]; then
+    kill "$UP_PID" 2>/dev/null || true
+    [ "$i" -ge 120 ] && { echo; warn "Docker has not finished starting the containers after 10 minutes."; }
+    warn "Docker could not start the containers."
+    show_containers
+    echo "  Free Docker disk space if it is full: docker system df ; docker image prune -f ; docker builder prune -f"
+    false
+  fi
   printf "  waiting for migrations"
   MIGRATED=0
   for i in $(seq 1 180); do
