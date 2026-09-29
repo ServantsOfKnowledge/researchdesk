@@ -1,5 +1,8 @@
 # Choosing & ingesting books
 
+> Books in IA-style folders on your own disk, NAS or web server? See
+> [Books from your own folders or servers](local-folders.md). This page covers archive.org.
+
 Research Desk never tries to copy "everything". You decide what comes in, using an
 **Ingest Profile**: a saved description of a set of items on archive.org. That keeps a
 proof of concept small and lets a large library grow its collection step by step.

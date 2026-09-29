@@ -40,6 +40,10 @@ LANGUAGES: dict[str, str] = {
 	"ger": "German",
 	"por": "Portuguese",
 	"lat": "Latin",
+	"rus": "Russian",
+	"spa": "Spanish",
+	"jpn": "Japanese",
+	"chi": "Chinese",
 	"mul": "Multiple languages",
 }
 
@@ -70,6 +74,10 @@ _LANGUAGE_ALIASES: dict[str, str] = {
 	"de": "ger", "deu": "ger", "german": "ger",
 	"pt": "por", "portuguese": "por",
 	"la": "lat", "latin": "lat",
+	"ru": "rus", "russian": "rus",
+	"es": "spa", "spanish": "spa",
+	"ja": "jpn", "japanese": "jpn",
+	"zh": "chi", "zho": "chi", "chinese": "chi",
 }
 
 YEAR_RE = re.compile(r"(1[0-9]{3}|20[0-9]{2})")

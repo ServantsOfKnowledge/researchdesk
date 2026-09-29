@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-09-29 14:00:00.000000",
+ "modified": "2026-09-29 17:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -17,6 +17,13 @@
   "column_break_p",
   "repository_id",
   "admin_email",
+  "branding_section",
+  "portal_logo",
+  "logo_on_home",
+  "show_title_in_navbar",
+  "column_break_brand",
+  "favicon",
+  "home_banner",
   "search_section",
   "meili_url",
   "meili_api_key",
@@ -74,6 +81,48 @@
    "label": "Admin Email",
    "options": "Email",
    "description": "Shown to OAI-PMH harvesters."
+  },
+  {
+   "fieldname": "branding_section",
+   "fieldtype": "Section Break",
+   "label": "Logo & Branding"
+  },
+  {
+   "fieldname": "portal_logo",
+   "fieldtype": "Attach Image",
+   "label": "Logo",
+   "make_attachment_public": 1,
+   "description": "PNG, SVG or JPG. Shown on the portal home page, in the top bar of every portal page and in the Desk. A wide logo about 400×120 px works well."
+  },
+  {
+   "fieldname": "logo_on_home",
+   "fieldtype": "Check",
+   "label": "Show Logo on the Home Page",
+   "default": "1"
+  },
+  {
+   "fieldname": "show_title_in_navbar",
+   "fieldtype": "Check",
+   "label": "Show Portal Name Next to the Logo in the Top Bar",
+   "default": "1"
+  },
+  {
+   "fieldname": "column_break_brand",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "favicon",
+   "fieldtype": "Attach Image",
+   "label": "Browser Tab Icon (optional)",
+   "make_attachment_public": 1,
+   "description": "Square image (PNG/ICO, 64×64 or larger). Leave empty to use the logo."
+  },
+  {
+   "fieldname": "home_banner",
+   "fieldtype": "Attach Image",
+   "label": "Home Page Background Image (optional)",
+   "make_attachment_public": 1,
+   "description": "A wide photo behind the search box on the home page, e.g. a manuscript or library shelf."
   },
   {
    "fieldname": "search_section",

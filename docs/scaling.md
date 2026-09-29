@@ -24,8 +24,9 @@ ingested with full page text on a small 2-vCPU / 8 GB machine, Research Desk v0.
 
 Page text is OCR, so it contains a lot of noise words (about 19% of tokens were unique in the
 sample). That's why the page index is several times larger than the raw text. Tuning
-(`proximityPrecision: byAttribute`, prefix search off, slim page documents) is already
-applied. Further tricks, such as grouping pages or dropping filters, saved under 10% in tests,
+(`proximityPrecision: byAttribute`, slim page documents, no facet search on pages) is already
+applied. Prefix search is deliberately kept on: Kannada words carry suffixes, so `ಕನಕ` must
+find `ಕನಕದಾಸರ`. Turning it off saved only about 7%. Further tricks, such as grouping pages or dropping filters, saved under 10% in tests,
 so they aren't worth losing features for.
 
 ## Projection for 50,000 books

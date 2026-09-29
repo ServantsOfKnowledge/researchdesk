@@ -27,7 +27,10 @@ def resdesk():
 	"""Research Desk: ingest, index and manage the catalogue."""
 
 
-def _scope(collection, filter_, query, ids, ids_file):
+def _scope(collection, filter_, query, ids, ids_file, folder=None, server=None, manifest=None):
+	if folder or server:
+		return {"source": "Folder or Server", "location": folder or server, "manifest_url": manifest or "",
+				"check_archive_org": 1}
 	if ids_file:
 		with open(ids_file) as f:
 			ids = ",".join(line.strip() for line in f if line.strip())
@@ -44,6 +47,9 @@ _scope_options = [
 	click.option("--query", help="A full IA advanced-search query instead of a collection"),
 	click.option("--ids", help="Comma-separated IA identifiers"),
 	click.option("--ids-file", type=click.Path(exists=True), help="File with one IA identifier per line"),
+	click.option("--folder", help="Folder of IA-style item folders, e.g. /library-source or /library-source/2026"),
+	click.option("--server", help="Web server with IA-style item folders, e.g. https://books.example.org/items/"),
+	click.option("--manifest", help="With --server: URL of a list of item folders (one per line)"),
 ]
 
 
@@ -56,14 +62,20 @@ def scope_options(f):
 @resdesk.command("count")
 @scope_options
 @pass_context
-def count(context, collection, filter_, query, ids, ids_file):
+def count(context, collection, filter_, query, ids, ids_file, folder, server, manifest):
 	"""How many IA items match (before you ingest)."""
 	frappe = _connect(context)
 	try:
 		from sok_resdesk.core.ia import IAClient
 		from sok_resdesk.ingest import client
 
-		s = _scope(collection, filter_, query, ids, ids_file)
+		s = _scope(collection, filter_, query, ids, ids_file, folder, server, manifest)
+		if s.get("source") == "Folder or Server":
+			from sok_resdesk.local_source import open_profile_store
+
+			n = sum(1 for _ in open_profile_store(frappe._dict(s)).iter_items())
+			click.echo(f"Item folders under {s['location']}: {n:,}")
+			return
 		q = IAClient.build_query(
 			s["scope_type"], s.get("ia_collection", ""), s.get("extra_filter", ""), s.get("ia_query", ""),
 			(s.get("identifiers") or "").splitlines(),
@@ -84,7 +96,8 @@ def count(context, collection, filter_, query, ids, ids_file):
 @click.option("--background", is_flag=True,
 			  help="Hand the work to the queue workers (parallel; best for large runs) and watch progress")
 @pass_context
-def ingest(context, profile, collection, filter_, query, ids, ids_file, limit, no_fulltext, update, name, background):
+def ingest(context, profile, collection, filter_, query, ids, ids_file, folder, server, manifest, limit, no_fulltext,
+		   update, name, background):
 	"""Ingest items from the Internet Archive.
 
 	By default runs here in the foreground, one book at a time. With --background the
@@ -96,9 +109,10 @@ def ingest(context, profile, collection, filter_, query, ids, ids_file, limit, n
 
 		profile_given = bool(profile)
 		if not profile:
-			values = _scope(collection, filter_, query, ids, ids_file)
+			values = _scope(collection, filter_, query, ids, ids_file, folder, server, manifest)
 			values.update({"max_items": 50 if limit is None else limit, "fetch_fulltext": 0 if no_fulltext else 1, "update_existing": 1 if update else 0})
-			profile = ensure_profile(name or "Command line ingest", **values)
+			default_name = "Command line folder ingest" if values.get("source") else "Command line ingest"
+			profile = ensure_profile(name or default_name, **values)
 		run = create_run(frappe.get_doc("RD Ingest Profile", profile), "Command Line")
 		click.echo(f"Run {run.name} for profile '{profile}'")
 		limit_override = limit if profile_given else None

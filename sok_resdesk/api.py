@@ -191,6 +191,48 @@ def marcxml_all(profile: str | None = None):
 						  "application/marcxml+xml", f"resdesk-{profile or 'all'}.xml")
 
 
+@frappe.whitelist(allow_guest=True, methods=["GET", "HEAD"])
+@rate_limit(limit=600, seconds=60)
+def file(item_id: str, name: str):
+	"""A local-only book's PDF or cover image, streamed from its folder or its book server.
+
+	Only the two files recorded on the item are ever served; PDFs only for Open items.
+	Supports HTTP range requests, so PDF viewers can open large books page by page.
+	"""
+	from werkzeug.utils import send_file
+
+	from sok_resdesk.core.folder import HttpStore
+	from sok_resdesk.local_source import store_for_item
+
+	doc = frappe.db.get_value(
+		"RD Item", item_id, ["name", "published", "source", "access_status", "local_pdf", "local_thumb"], as_dict=True
+	)
+	if not doc or not doc.published or doc.source != "Local" or name not in {doc.local_pdf, doc.local_thumb} - {"", None}:
+		raise frappe.PageDoesNotExistError
+	if name == doc.local_pdf and doc.access_status != "Open":
+		raise frappe.PermissionError
+	store = store_for_item(frappe.get_doc("RD Item", item_id))
+	if store is None:
+		raise frappe.PageDoesNotExistError
+	loc = frappe.db.get_value("RD Item", item_id, "local_path")
+	if isinstance(store, HttpStore):
+		# Stream through Research Desk so the book server can stay on a private network.
+		headers = {}
+		if frappe.local.request.headers.get("Range"):
+			headers["Range"] = frappe.local.request.headers["Range"]
+		upstream = store.session.get(store.public_url(loc, name), headers=headers, stream=True, timeout=60)
+		if upstream.status_code not in (200, 206):
+			raise frappe.PageDoesNotExistError
+		passthrough = {k: v for k, v in upstream.headers.items()
+					   if k.lower() in ("content-type", "content-length", "content-range", "accept-ranges", "last-modified", "etag")}
+		passthrough["Cache-Control"] = "public, max-age=86400"
+		return Response(upstream.iter_content(64 * 1024), status=upstream.status_code, headers=passthrough)
+	path = store.file_path(loc, name)
+	if not path:
+		raise frappe.PageDoesNotExistError
+	return send_file(path, frappe.local.request.environ, conditional=True, max_age=86400, download_name=name)
+
+
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 def stats():
 	counts = {

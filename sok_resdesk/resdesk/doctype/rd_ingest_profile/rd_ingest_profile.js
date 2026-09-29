@@ -5,7 +5,7 @@ frappe.ui.form.on("RD Ingest Profile", {
 	refresh(frm) {
 		frm.set_intro(
 			__(
-				"Choose a collection, a search, or a list of identifiers from archive.org. Use <b>Check Count</b> to see how many items match, then <b>Run Ingest</b>. Start with a small Maximum Items value for a test."
+				"Choose books from archive.org (a collection, a search or a list of identifiers), or from IA-style item folders on this computer, a NAS or a web server. Use <b>Check Count</b> to see how many items match, then <b>Run Ingest</b>. Start with a small Maximum Items value for a test."
 			),
 			"blue"
 		);
@@ -20,7 +20,7 @@ frappe.ui.form.on("RD Ingest Profile", {
 				callback: (r) => {
 					frappe.msgprint({
 						title: __("Matching items"),
-						message: __("{0} items match this profile on the Internet Archive.", [
+						message: __("{0} items match this profile.", [
 							(r.message.count || 0).toLocaleString(),
 						]) + `<br><br><code>${frappe.utils.escape_html(r.message.query)}</code>`,
 						indicator: "blue",

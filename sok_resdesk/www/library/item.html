@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block page_content %}
-<div class="rd rd-item" id="rd-item" data-item="{{ item.item_id }}" data-leaf="{{ start_leaf }}">
+<div class="rd rd-item" id="rd-item" data-item="{{ item.item_id }}" data-leaf="{{ start_leaf }}" data-reader="{{ reader }}" data-pdf="{{ pdf_url }}">
 	<span class="Z3988" title="{{ coins }}"></span>
 	<nav class="rd-crumbs"><a href="/library">← {{ portal_title }}</a></nav>
 
@@ -39,11 +39,13 @@
 			</p>
 			<div class="rd-actions">
 				<a class="rd-btn rd-btn--primary" href="#rd-reader">{{ _("Read") }}</a>
-				{% if item.access_status == "Open" %}
-				<a class="rd-btn" href="https://archive.org/download/{{ item.item_id }}/{{ item.item_id }}.pdf">{{ _("Download PDF") }}</a>
+				{% if item.access_status == "Open" and pdf_url %}
+				<a class="rd-btn" href="{{ pdf_url }}">{{ _("Download PDF") }}</a>
 				{% endif %}
 				<button class="rd-btn" type="button" id="rd-add-list">{{ _("Add to my list") }}</button>
-				<a class="rd-btn" href="{{ item.source_url }}" target="_blank" rel="noopener">{{ _("Internet Archive") }} ↗</a>
+				{% if item.on_archive_org %}
+				<a class="rd-btn" href="https://archive.org/details/{{ item.item_id }}" target="_blank" rel="noopener">{{ _("Internet Archive") }} ↗</a>
+				{% endif %}
 			</div>
 		</div>
 	</header>
@@ -58,9 +60,16 @@
 				</form>
 				<ol id="rd-inside-hits" class="rd-inside__hits"></ol>
 			</div>
+			{% if reader == "ia" %}
 			<iframe id="rd-reader-frame" title="{{ _('Book reader') }}"
 				src="https://archive.org/embed/{{ item.item_id }}{% if start_leaf %}#page/n{{ start_leaf }}/mode/1up{% endif %}"
 				allowfullscreen loading="lazy"></iframe>
+			{% elif reader == "pdf" and item.access_status == "Open" %}
+			<iframe id="rd-reader-frame" title="{{ _('Book reader') }}"
+				src="{{ pdf_url }}#page={{ start_leaf + 1 }}" loading="lazy"></iframe>
+			{% else %}
+			<div class="rd-card rd-muted">{{ _("No readable copy is available online for this book.") }}</div>
+			{% endif %}
 		</section>
 
 		<aside class="rd-side">

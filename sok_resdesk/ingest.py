@@ -79,6 +79,20 @@ def fetch_pages(item_id: str, ia: IAClient | None = None, page_numbers: dict | N
 		cached = read_cached_pages(item_id)
 		if cached is not None:
 			return cached
+	local = frappe.db.get_value("RD Item", item_id, ["source", "local_store", "local_path"], as_dict=True)
+	if local and local.source == "Local":
+		from sok_resdesk.local_source import sections_from_text, store_for_item
+
+		store = store_for_item(frappe.get_doc("RD Item", item_id))
+		if not store:
+			return []
+		data = store.load_item(item_id, local.local_path)
+		pages, _src = store.page_texts(item_id, local.local_path, data.get("page_numbers"))
+		if not pages:
+			pages = sections_from_text(store.book_text(item_id, local.local_path))
+		if use_cache and pages:
+			write_cached_pages(item_id, pages)
+		return pages
 	ia = ia or client()
 	if page_numbers is None:
 		try:
@@ -98,7 +112,12 @@ def count_profile(profile: str) -> dict:
 	doc = frappe.get_doc("RD Ingest Profile", profile)
 	doc.check_permission("read")
 	query = doc.build_query()
-	count = client().count(query)
+	if doc.is_folder:
+		from sok_resdesk.local_source import open_profile_store
+
+		count = sum(1 for _ in open_profile_store(doc).iter_items())
+	else:
+		count = client().count(query)
 	frappe.db.set_value("RD Ingest Profile", profile, "matching_count", count)
 	return {"count": count, "query": query}
 
@@ -125,8 +144,18 @@ def cancel_run(run: str) -> None:
 @frappe.whitelist()
 def refresh_item(item_id: str) -> str:
 	frappe.only_for(("System Manager", "ResDesk Manager", "ResDesk Cataloguer"))
-	profile = frappe.db.get_value("RD Item", item_id, "ingest_profile")
-	_ingest_one(client(), item_id, profile, fetch_text=True, refresh=True)
+	doc = frappe.get_doc("RD Item", item_id)
+	if doc.source == "Local":
+		from sok_resdesk.local_source import ingest_local_one, store_for_item
+
+		store = store_for_item(doc)
+		if not store:
+			frappe.throw(frappe._("The folder or server for this item is not reachable."))
+		profile = frappe.get_doc("RD Ingest Profile", doc.ingest_profile) if doc.ingest_profile else frappe._dict(
+			name=None, check_archive_org=1)
+		ingest_local_one(store, item_id, doc.local_path, profile, fetch_text=True, force=True)
+	else:
+		_ingest_one(client(), item_id, doc.ingest_profile, fetch_text=True, refresh=True)
 	frappe.db.commit()
 	return item_id
 
@@ -224,13 +253,31 @@ def plan_run(run_name: str, limit_override: int | None = None, foreground: bool 
 
 		query = profile.build_query()
 		limit = cint(profile.max_items) if limit_override is None else cint(limit_override)
-		matching = ia.count(query)
-		_log(run_name, f"Query: {query}", verbose)
-		_log(run_name, f"{matching:,} items match on IA; taking {'all' if not limit else f'up to {limit:,}'}", verbose)
-
-		ids = list(dict.fromkeys(ia.iter_identifiers(query, limit=limit)))
 		only_new = run.triggered_by == "Scheduler" or not cint(profile.update_existing)
 		skipped = 0
+		if profile.is_folder:
+			# Every item goes to a batch: unchanged ones are skipped there by comparing
+			# file signatures, so new *and* changed books are picked up.
+			from sok_resdesk.local_source import open_profile_store
+
+			store = open_profile_store(profile)
+			_log(run_name, f"Scanning {profile.location} for item folders (…/<id>/<id>_meta.xml)", verbose)
+			pairs = list(store.iter_items(limit=limit))
+			seen: set[str] = set()
+			ids = []
+			for item_id, loc in pairs:
+				if item_id in seen:
+					_log(run_name, f"DUPLICATE identifier {item_id} at {loc}; keeping the first", verbose)
+					continue
+				seen.add(item_id)
+				ids.append([item_id, loc])
+			_log(run_name, f"{len(ids):,} item folders found", verbose)
+			only_new = False
+		else:
+			matching = ia.count(query)
+			_log(run_name, f"Query: {query}", verbose)
+			_log(run_name, f"{matching:,} items match on IA; taking {'all' if not limit else f'up to {limit:,}'}", verbose)
+			ids = list(dict.fromkeys(ia.iter_identifiers(query, limit=limit)))
 		if only_new and ids:
 			existing: set[str] = set()
 			for i in range(0, len(ids), 1000):
@@ -245,7 +292,7 @@ def plan_run(run_name: str, limit_override: int | None = None, foreground: bool 
 			"where name=%s",
 			(len(ids) + skipped, skipped, skipped, len(batches), len(batches), run_name),
 		)
-		_log(run_name, f"{len(ids):,} to ingest, {skipped:,} already in the catalogue; {len(batches)} batch(es) of up to {size}", verbose)
+		_log(run_name, f"{len(ids):,} to process, {skipped:,} already in the catalogue; {len(batches)} batch(es) of up to {size}", verbose)
 		frappe.db.commit()
 
 		if not batches:
@@ -267,14 +314,21 @@ def plan_run(run_name: str, limit_override: int | None = None, foreground: bool 
 		return []
 
 
-def run_batch(run_name: str, item_ids: list[str], batch_no: int = 0, verbose: bool = False) -> None:
-	"""Ingest one batch of identifiers. Safe to run many at once."""
+def run_batch(run_name: str, item_ids: list, batch_no: int = 0, verbose: bool = False) -> None:
+	"""Ingest one batch. Items are IA identifiers, or [identifier, folder] pairs for folder
+	sources. Safe to run many at once."""
 	profile_name = frappe.db.get_value("RD Ingest Run", run_name, "profile")
 	profile = frappe.get_doc("RD Ingest Profile", profile_name)
 	fetch_text = bool(cint(profile.fetch_fulltext))
 	refresh = bool(cint(profile.update_existing))
 	ia = client()
-	for item_id in item_ids:
+	store = None
+	if profile.is_folder:
+		from sok_resdesk.local_source import ingest_local_one, open_profile_store
+
+		store = open_profile_store(profile)
+	for entry in item_ids:
+		item_id, loc = (entry[0], entry[1]) if isinstance(entry, (list, tuple)) else (entry, None)
 		frappe.db.commit()  # start each item with a fresh snapshot
 		if _is_cancelled(run_name):
 			_log(run_name, f"batch {batch_no}: cancelled", verbose)
@@ -282,7 +336,11 @@ def run_batch(run_name: str, item_ids: list[str], batch_no: int = 0, verbose: bo
 		error = None
 		for attempt in range(3):
 			try:
-				created, pages = _ingest_one(ia, item_id, profile_name, fetch_text, refresh=refresh)
+				if store is not None:
+					outcome, pages = ingest_local_one(store, item_id, loc, profile, fetch_text, force=refresh)
+				else:
+					created, pages = _ingest_one(ia, item_id, profile_name, fetch_text, refresh=refresh)
+					outcome = "created" if created else "updated"
 				frappe.db.commit()
 				error = None
 				break
@@ -294,9 +352,10 @@ def run_batch(run_name: str, item_ids: list[str], batch_no: int = 0, verbose: bo
 				time.sleep(1 + attempt * 2)  # another worker touched the same creator/subject; retry
 		# Counters/log go in their own short transaction so parallel batches never conflict.
 		if error is None:
-			_bump(run_name, processed=1, created_count=int(created), updated_count=int(not created))
-			if verbose:
-				print(f"{'NEW' if created else 'UPD'} {item_id} ({pages} pages)")
+			_bump(run_name, processed=1, created_count=int(outcome == "created"),
+				  updated_count=int(outcome == "updated"), skipped_count=int(outcome == "unchanged"))
+			if verbose and outcome != "unchanged":
+				print(f"{'NEW' if outcome == 'created' else 'UPD'} {item_id} ({pages} pages)")
 		else:
 			_bump(run_name, processed=1, failed_count=1)
 			_log(run_name, f"FAIL {item_id}: {str(error)[:300]}", verbose)
@@ -371,6 +430,10 @@ def mark_interrupted_runs(idle_hours: int = 2) -> None:
 		frappe.db.sql(f"update `{RUN}` set finished_on=%s where name=%s", (now_datetime(), name))
 		_set_status(name, "Interrupted")
 	frappe.db.commit()
+
+
+def run_scheduled_hourly():
+	_run_scheduled("Hourly")
 
 
 def run_scheduled_daily():

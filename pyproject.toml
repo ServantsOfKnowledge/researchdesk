@@ -32,3 +32,4 @@ indent-style = "tab"
 
 [tool.pytest.ini_options]
 testpaths = ["sok_resdesk/tests"]
+python_files = ["test_core.py", "unit_*.py"]

@@ -106,7 +106,9 @@
 	}
 
 	function pageHit(h) {
-		const label = h.page_label ? `p. ${esc(h.page_label)}` : `leaf ${h.leaf}`;
+		const label = String(h.page_label || "").startsWith("§")
+			? esc(h.page_label)
+			: h.page_label ? `p. ${esc(h.page_label)}` : `leaf ${h.leaf}`;
 		const url = `${h.url}&q=${encodeURIComponent(state.q)}#rd-reader`;
 		return `<li class="rd-hit rd-hit--page">
 			<div class="rd-hit__body">

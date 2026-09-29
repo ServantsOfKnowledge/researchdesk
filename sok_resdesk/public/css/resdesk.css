@@ -22,6 +22,12 @@
 /* hero + search */
 .rd-hero { padding: 32px 0 16px; }
 .rd-hero__title { font-size: 2rem; margin: 0 0 4px; }
+.rd-hero__logo { display: block; max-height: 96px; max-width: min(360px, 80%); width: auto; margin: 0 0 14px; }
+.rd-hero--banner {
+	position: relative; padding: 40px 24px 24px; margin: 16px 0 0; border-radius: 14px; overflow: hidden; color: #fff;
+	background: linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)), var(--rd-banner) center/cover no-repeat;
+}
+.rd-hero--banner .rd-hero__tagline, .rd-hero--banner .rd-muted, .rd-hero--banner .rd-modes label { color: rgba(255,255,255,.88); }
 .rd-hero__tagline { color: var(--rd-muted); margin: 0 0 20px; max-width: 60ch; }
 .rd-search { display: flex; gap: 8px; }
 .rd-search__input {
@@ -133,3 +139,8 @@
 .rd-hit__thumb img { width: 56px; height: 76px; }
 	.rd-search { flex-direction: column; }
 }
+
+/* navbar brand (set from RD Settings → Logo) */
+.rd-brand { display: inline-flex; align-items: center; gap: 10px; }
+.rd-brand__logo { max-height: 32px; width: auto; }
+.rd-brand__name { font-weight: 600; }

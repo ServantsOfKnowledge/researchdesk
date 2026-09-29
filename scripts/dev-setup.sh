@@ -68,5 +68,5 @@ Try an ingest:
   bench --site $SITE resdesk ingest --collection ServantsOfKnowledge --filter "language:kan" --limit 20
 Run tests:
   bench --site $SITE run-tests --app sok_resdesk
-  pytest $APP_DIR/sok_resdesk/tests/test_core.py
+  (cd $APP_DIR && pytest)
 EOF

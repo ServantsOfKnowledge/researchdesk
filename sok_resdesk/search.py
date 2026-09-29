@@ -40,13 +40,14 @@ BOOK_SETTINGS = {
 #  - proximityPrecision byAttribute: much smaller index and faster indexing; word
 #    proximity is still used, just not at word-by-word precision
 #  - searchCutoffMs: a very broad query returns its best hits in bounded time
-#  - prefix search off: full words only inside page text (smaller, faster indexing)
+#  - prefix search stays ON: Kannada words carry suffixes (ಕನಕ → ಕನಕದಾಸರ), so
+#    matching word beginnings matters more than the ~7% of disk it would save
 #  - page documents carry only text + the fields needed for filtering; titles and
 #    authors are looked up from the books index for the 20 hits on screen
 PAGE_SETTINGS = {
 	"searchableAttributes": ["text"],
 	"proximityPrecision": "byAttribute",
-	"prefixSearch": "disabled",
+	"prefixSearch": "indexingTime",
 	"facetSearch": False,
 	"searchCutoffMs": 1500,
 	"filterableAttributes": ["item_id", "language_label", "year", "decade", "collections", "creators"],

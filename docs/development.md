@@ -14,9 +14,10 @@ researchdesk/
 ├── .github/workflows/      CI (lint, unit, Docker install + integration) and image publishing
 └── sok_resdesk/            the Frappe app
     ├── hooks.py            routes, doc events, scheduler, install hooks
-    ├── core/               pure Python, no Frappe:  ia.py  normalize.py  citations.py  marc.py  oai.py
+    ├── core/               pure Python, no Frappe:  ia.py  folder.py  normalize.py  citations.py  marc.py  oai.py
     ├── catalogue.py        settings, upsert RD Item, record <-> dict
     ├── ingest.py           ingest jobs, scheduler, whitelisted actions
+    ├── local_source.py     IA-style item folders on disk / NAS / web server
     ├── search.py           Meilisearch adapter, indexing, search
     ├── api.py              public API
     ├── oai.py              OAI-PMH endpoint (Frappe store for core/oai.py)
@@ -26,7 +27,7 @@ researchdesk/
     ├── resdesk/doctype/    DocTypes (JSON + controllers + form scripts)
     ├── www/library/        portal pages (index = search, item = book page)
     ├── public/             css/resdesk.css, js/library.js, js/item.js, js/basket.js
-    └── tests/              test_core.py (pytest), test_integration.py (Frappe)
+    └── tests/              test_core.py + unit_folder.py (pytest), test_integration.py (Frappe)
 ```
 
 ## Workflow
@@ -55,7 +56,7 @@ Without dev mode, the Docker setup needs a rebuild after code changes: `docker c
 
 ```bash
 # fast, no Frappe needed (normalisation, citations, MARC, OAI-PMH protocol)
-pip install pytest requests && pytest sok_resdesk/tests/test_core.py
+pip install pytest requests && pytest      # test_core.py + unit_folder.py
 
 # integration, inside a site
 bench --site resdesk.localhost set-config allow_tests true
@@ -86,7 +87,7 @@ installer breaks for librarians, CI breaks too.
 3. Add the source to the `source` options of RD Item and RD Ingest Profile, plus any
    source-specific profile fields.
 4. Branch on `profile.source` in `ingest.run_ingest`/`_ingest_one`.
-5. Unit tests with recorded fixtures (no network in `test_core.py`).
+5. Unit tests with recorded fixtures (no network in `test_core.py` / `unit_*.py`).
 
 Good next candidates: Wikisource, Digital Library of India mirrors, DSpace repositories (via
 OAI-PMH, reusing `core/oai.py` concepts), and local uploads (PDF + OCR).

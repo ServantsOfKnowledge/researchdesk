@@ -14,8 +14,11 @@ def get_context(context):
 	context.portal_title = context.title
 	context.tagline = s.portal_tagline or ""
 	context.item_count = frappe.db.count("RD Item", {"published": 1})
+	context.logo = s.portal_logo if s.portal_logo and s.logo_on_home else ""
+	context.home_banner = s.home_banner or ""
 	context.metatags = {
 		"title": context.title,
 		"description": context.tagline,
+		"image": s.portal_logo or "",
 	}
 	return context

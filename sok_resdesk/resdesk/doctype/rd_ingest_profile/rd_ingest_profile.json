@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-09-29 12:00:00.000000",
+ "modified": "2026-09-29 16:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Ingest Profile",
@@ -21,6 +21,9 @@
   "extra_filter",
   "ia_query",
   "identifiers",
+  "location",
+  "manifest_url",
+  "check_archive_org",
   "column_break_1",
   "max_items",
   "fetch_fulltext",
@@ -55,16 +58,18 @@
    "fieldname": "schedule",
    "fieldtype": "Select",
    "label": "Schedule",
-   "options": "Manual\nDaily\nWeekly",
+   "options": "Manual\nHourly\nDaily\nWeekly",
    "default": "Manual",
-   "description": "Scheduled runs only fetch items not yet in the catalogue."
+   "description": "Scheduled runs pick up new items (and, for folders, changed ones). Hourly suits a drop folder."
   },
   {
    "fieldname": "source",
    "fieldtype": "Select",
    "label": "Source",
-   "options": "Internet Archive",
-   "default": "Internet Archive"
+   "options": "Internet Archive\nFolder or Server",
+   "default": "Internet Archive",
+   "reqd": 1,
+   "description": "Internet Archive: pick items on archive.org. Folder or Server: IA-style item folders on this computer, a NAS, or a web server."
   },
   {
    "fieldname": "scope_section",
@@ -77,21 +82,22 @@
    "label": "Choose By",
    "options": "Collection\nSearch Query\nIdentifier List",
    "default": "Collection",
-   "reqd": 1
+   "depends_on": "eval:doc.source=='Internet Archive'",
+   "mandatory_depends_on": "eval:doc.source=='Internet Archive'"
   },
   {
    "fieldname": "ia_collection",
    "fieldtype": "Data",
    "label": "IA Collection",
    "default": "ServantsOfKnowledge",
-   "depends_on": "eval:doc.scope_type=='Collection'",
+   "depends_on": "eval:doc.source=='Internet Archive' && doc.scope_type=='Collection'",
    "description": "The part after archive.org/details/ for a collection, e.g. ServantsOfKnowledge"
   },
   {
    "fieldname": "extra_filter",
    "fieldtype": "Data",
    "label": "Narrow With (optional)",
-   "depends_on": "eval:doc.scope_type=='Collection'",
+   "depends_on": "eval:doc.source=='Internet Archive' && doc.scope_type=='Collection'",
    "length": 500,
    "description": "IA search syntax, e.g. <code>language:(kan OR Kannada)</code> or <code>date:[1900-01-01 TO 1950-12-31]</code> or <code>subject:vachana</code>"
   },
@@ -99,15 +105,41 @@
    "fieldname": "ia_query",
    "fieldtype": "Small Text",
    "label": "IA Search Query",
-   "depends_on": "eval:doc.scope_type=='Search Query'",
+   "depends_on": "eval:doc.source=='Internet Archive' && doc.scope_type=='Search Query'",
    "description": "Any archive.org advanced search query, e.g. <code>creator:(Kuvempu) AND language:kan</code>"
   },
   {
    "fieldname": "identifiers",
    "fieldtype": "Long Text",
    "label": "Identifiers",
-   "depends_on": "eval:doc.scope_type=='Identifier List'",
+   "depends_on": "eval:doc.source=='Internet Archive' && doc.scope_type=='Identifier List'",
    "description": "One IA identifier per line."
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "Folder Path or Server URL",
+   "length": 1000,
+   "default": "/library-source",
+   "depends_on": "eval:doc.source=='Folder or Server'",
+   "mandatory_depends_on": "eval:doc.source=='Folder or Server'",
+   "description": "<b>Folder:</b> <code>/library-source</code> is the folder set as LIBRARY_DIR in .env (any sub-path works, e.g. <code>/library-source/2026</code>). <b>Server:</b> a URL like <code>https://books.example.org/items/</code> whose sub-folders are IA-style items."
+  },
+  {
+   "fieldname": "manifest_url",
+   "fieldtype": "Data",
+   "label": "Item List URL (optional)",
+   "length": 1000,
+   "depends_on": "eval:doc.source=='Folder or Server' && (doc.location||'').startsWith('http')",
+   "description": "A text file listing item folders (one relative path per line). Use it when the server has no directory listing."
+  },
+  {
+   "fieldname": "check_archive_org",
+   "fieldtype": "Check",
+   "label": "Link to archive.org When the Item Is There",
+   "default": "1",
+   "depends_on": "eval:doc.source=='Folder or Server'",
+   "description": "Items already on archive.org use the Internet Archive reader and links; the rest are served from your files."
   },
   {
    "fieldname": "column_break_1",

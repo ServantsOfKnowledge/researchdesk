@@ -42,7 +42,14 @@ take seconds. At the end, answer **Y** to load 20 sample Kannada books.
 - **Admin (the Desk):** <http://localhost:8080/app/research-desk>. Log in as `Administrator`
   with the password the installer printed (it's also in the `.env` file).
 
-## 4. Add your own selection of books
+## 4. Add your logo
+
+Desk → Research Desk → **Settings** → *Logo & Branding* → **Logo** → upload a PNG or SVG
+(a wide logo about 400×120 px works well) → **Save**. It appears on the home page, in the top
+bar and as the browser-tab icon. You can also set the portal name, tagline and a background photo
+for the home page there.
+
+## 5. Add your own selection of books
 
 1. Desk → **Ingest Profiles** → **+ Add**.
 2. Give it a name, for example *Kannada University books*.
@@ -54,7 +61,10 @@ take seconds. At the end, answer **Y** to load 20 sample Kannada books.
 The run page shows progress. Each book takes a few seconds: metadata, then the OCR text of
 every page. See [Choosing & ingesting books](ingesting.md) for more ideas.
 
-## 5. Cite a book
+Books in your own folders (scans not yet on archive.org, a NAS, another server)? See
+[Books from your own folders or servers](local-folders.md).
+
+## 6. Cite a book
 
 Open any book page. The **Cite this book** box has tabs for BibTeX, RIS, APA, MLA, Chicago
 and more. Copy the text or download the file. Zotero users can click the Zotero browser button
@@ -63,7 +73,7 @@ on the book page and it picks up the record automatically.
 To build a bibliography, click **＋** next to search results to add books to **My list**,
 then export the whole list, or copy a share link and send it to your students.
 
-## 6. Everyday commands
+## 7. Everyday commands
 
 ```bash
 ./resdesk.sh stop        # stop (your data is kept)

@@ -23,7 +23,10 @@ def get_context(context):
 	context.portal_title = s.portal_title or "SoK Research Desk"
 	context.item = record
 	context.title = citations.display_title(record)
-	context.start_leaf = cint(frappe.form_dict.get("page"))
+	context.start_leaf = max(0, cint(frappe.form_dict.get("page")))
+	# Reader: the Internet Archive's BookReader when the book is there, otherwise the PDF from our own files.
+	context.reader = "ia" if record.get("on_archive_org") else ("pdf" if record.get("pdf_url") else "none")
+	context.pdf_url = record.get("pdf_url") or ""
 	context.q = frappe.form_dict.get("q") or ""
 	context.portal_url = f"{root}/library/item/{item_id}"
 	context.formats = [(k, v[0]) for k, v in citations.FORMATS.items()]

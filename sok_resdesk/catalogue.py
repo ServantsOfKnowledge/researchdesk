@@ -55,13 +55,31 @@ def item_to_record(doc) -> dict:
 		"rights": doc.rights or "",
 		"access_status": doc.access_status or "Unknown",
 		"source_url": doc.source_url or "",
-		"thumbnail_url": doc.thumbnail_url or "",
+		"thumbnail_url": _absolute(doc.thumbnail_url or ""),
 		"ark": doc.ark or "",
 		"has_fulltext": bool(doc.has_fulltext),
 		"has_page_text": bool(doc.has_page_text),
+		"on_archive_org": bool(doc.on_archive_org) or doc.source == "Internet Archive",
+		"local_pdf": doc.local_pdf or "",
+		"pdf_url": _pdf_url(doc),
 		"modified": doc.modified,
 		"set_specs": [c for c in (doc.collections or "").splitlines() if c.strip()],
 	}
+
+
+def _absolute(url: str) -> str:
+	return f"{base_url()}{url}" if url.startswith("/") else url
+
+
+def _pdf_url(doc) -> str:
+	"""Where readers can download the PDF: archive.org, or this portal for local-only books."""
+	if doc.source == "Internet Archive" or doc.on_archive_org:
+		return f"https://archive.org/download/{doc.item_id}/{doc.item_id}.pdf"
+	if doc.local_pdf:
+		from urllib.parse import quote
+
+		return f"{base_url()}/api/method/sok_resdesk.api.file?item_id={quote(doc.item_id, safe='')}&name={quote(doc.local_pdf, safe='')}"
+	return ""
 
 
 def get_record(item_id: str, published_only: bool = True) -> dict | None:
@@ -103,6 +121,7 @@ def upsert_item(record: dict, raw: dict | None = None, profile: str | None = Non
 		"publisher", "place", "series", "isbn", "page_count", "description", "licence_url", "rights",
 		"access_status", "source_url", "thumbnail_url", "ark", "ocr_engine", "ocr_language",
 		"scanning_centre", "added_on_source",
+		"local_store", "local_path", "local_pdf", "local_thumb", "text_source", "source_signature",
 	)
 	for field in simple:
 		value = record.get(field)
@@ -113,6 +132,7 @@ def upsert_item(record: dict, raw: dict | None = None, profile: str | None = Non
 		doc.set(field, value)
 	doc.has_fulltext = 1 if record.get("has_fulltext") else 0
 	doc.has_page_text = 1 if record.get("has_page_text") else 0
+	doc.on_archive_org = 1 if record.get("on_archive_org", record.get("source") == "Internet Archive") else 0
 	doc.collections = "\n".join(record.get("collections") or [])
 
 	alts = record.get("alt_creators") or []

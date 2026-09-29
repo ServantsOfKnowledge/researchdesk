@@ -17,7 +17,16 @@ class RDIngestProfile(Document):
 		except IAError as e:
 			frappe.throw(str(e))
 
+	@property
+	def is_folder(self) -> bool:
+		return self.source == "Folder or Server"
+
 	def build_query(self) -> str:
+		"""IA query, or a description of the folder/server for folder sources."""
+		if self.is_folder:
+			if not (self.location or "").strip():
+				raise IAError("Folder path or server URL is empty")
+			return f"items under {self.location.strip()}"
 		return IAClient.build_query(
 			self.scope_type,
 			collection=self.ia_collection or "",

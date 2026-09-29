@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.3.0 (2026-09-29): your own folders and servers, logo
+
+- New ingest source **Folder or Server**: IA-style item folders on a local disk, USB/NAS mount
+  (`LIBRARY_DIR` → `/library-source`, read-only) or a web server (directory listing or an
+  item-list file)
+- Page text from `_hocr_searchtext` + page index, `_hocr.html`, `_chocr.html.gz`, `_djvu.xml`,
+  or `_djvu.txt` (as numbered sections)
+- Each book checked against archive.org: IA reader when it's there, otherwise the book's own PDF
+  (streamed with range requests; only PDF and cover are ever served)
+- Drop-folder mode: Hourly schedule; new and changed items (by file signature) are ingested,
+  unchanged ones skipped
+- CLI: `count/ingest --folder`, `--server`, `--manifest`
+- **Logo & Branding** in RD Settings: logo on the home page, the portal top bar and the Desk;
+  favicon; home-page background image
+- Prefix search kept on for page text (Kannada suffixes), more language codes
+
 ## 0.2.0 (2026-09-29): scaling and developer mode
 
 - Parallel ingest: runs are planned, split into batches and processed by several queue workers

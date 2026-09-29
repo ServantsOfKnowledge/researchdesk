@@ -44,11 +44,21 @@
 		paint();
 	}
 
-	function jumpTo(leaf, q) {
-		const id = root().dataset.item;
+	function jumpTo(leaf) {
+		const el = root();
 		const frame = $("#rd-reader-frame");
-		frame.src = `https://archive.org/embed/${encodeURIComponent(id)}#page/n${leaf}/mode/1up`;
+		if (!frame || Number(leaf) < 0) return; // text sections without a page number
+		if (el.dataset.reader === "pdf") {
+			frame.src = `${el.dataset.pdf}#page=${Number(leaf) + 1}`;
+		} else {
+			frame.src = `https://archive.org/embed/${encodeURIComponent(el.dataset.item)}#page/n${leaf}/mode/1up`;
+		}
 		frame.scrollIntoView({ behavior: "smooth", block: "start" });
+	}
+
+	function pageLabel(h) {
+		if (h.page_label && String(h.page_label).startsWith("§")) return esc(h.page_label);
+		return h.page_label ? "p. " + esc(h.page_label) : "leaf " + h.leaf;
 	}
 
 	async function searchInside(q) {
@@ -63,7 +73,7 @@
 			list.innerHTML = data.hits
 				.map(
 					(h) => `<li><button type="button" class="rd-linkish" data-leaf="${h.leaf}">
-						<b>${h.page_label ? "p. " + esc(h.page_label) : "leaf " + h.leaf}</b> ${safeMarked(h.snippet)}</button></li>`
+						<b>${pageLabel(h)}</b> ${safeMarked(h.snippet)}</button></li>`
 				)
 				.join("");
 		} catch (e) {

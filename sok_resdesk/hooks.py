@@ -32,7 +32,7 @@ doc_events = {
 # Scheduled ingest (profiles set to Daily / Weekly) ---------------------------
 
 scheduler_events = {
-	"hourly": ["sok_resdesk.ingest.mark_interrupted_runs"],
+	"hourly": ["sok_resdesk.ingest.mark_interrupted_runs", "sok_resdesk.ingest.run_scheduled_hourly"],
 	"daily": ["sok_resdesk.ingest.run_scheduled_daily"],
 	"weekly": ["sok_resdesk.ingest.run_scheduled_weekly"],
 }

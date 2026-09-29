@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-09-29 12:00:00.000000",
+ "modified": "2026-09-29 16:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Item",
@@ -49,6 +49,15 @@
   "ocr_language",
   "scanning_centre",
   "added_on_source",
+  "section_local",
+  "on_archive_org",
+  "local_store",
+  "local_path",
+  "column_break_l",
+  "local_pdf",
+  "local_thumb",
+  "text_source",
+  "source_signature",
   "section_system",
   "ingest_profile",
   "last_ingested",
@@ -291,6 +300,64 @@
    "fieldtype": "Data",
    "label": "Added to Source",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_local",
+   "fieldtype": "Section Break",
+   "label": "Local Copy",
+   "collapsible": 1,
+   "depends_on": "eval:doc.source=='Local'"
+  },
+  {
+   "fieldname": "on_archive_org",
+   "fieldtype": "Check",
+   "label": "Also on archive.org",
+   "read_only": 1
+  },
+  {
+   "fieldname": "local_store",
+   "fieldtype": "Data",
+   "label": "Folder or Server",
+   "read_only": 1,
+   "length": 1000
+  },
+  {
+   "fieldname": "local_path",
+   "fieldtype": "Data",
+   "label": "Item Folder",
+   "read_only": 1,
+   "length": 1000
+  },
+  {
+   "fieldname": "column_break_l",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "local_pdf",
+   "fieldtype": "Data",
+   "label": "PDF File",
+   "read_only": 1,
+   "length": 500
+  },
+  {
+   "fieldname": "local_thumb",
+   "fieldtype": "Data",
+   "label": "Cover Image File",
+   "read_only": 1,
+   "length": 500
+  },
+  {
+   "fieldname": "text_source",
+   "fieldtype": "Data",
+   "label": "Text Taken From",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_signature",
+   "fieldtype": "Data",
+   "label": "Source Signature",
+   "read_only": 1,
+   "hidden": 1
   },
   {
    "fieldname": "section_system",

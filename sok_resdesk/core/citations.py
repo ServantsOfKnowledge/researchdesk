@@ -144,7 +144,10 @@ def to_bibtex(item: dict, base_url: str = "", biblatex: bool = False) -> str:
 		fields.append(("pagetotal", str(item["page_count"])))
 	fields.append(("url", url_for(item, base_url)))
 	fields.append(("urldate", date.today().isoformat()))
-	note = f"Digitised by Servants of Knowledge; Internet Archive identifier {item['item_id']}"
+	if item.get("on_archive_org", True):
+		note = f"Digitised by Servants of Knowledge; Internet Archive identifier {item['item_id']}"
+	else:
+		note = f"Digitised by Servants of Knowledge; identifier {item['item_id']}"
 	if item.get("ark"):
 		note += f"; {item['ark']}"
 	fields.append(("note", _bib_escape(note)))
@@ -317,7 +320,9 @@ def highwire_tags(item: dict, base_url: str = "") -> list[tuple[str, str]]:
 		tags.append(("citation_isbn", item["isbn"]))
 	tags.append(("citation_public_url", url_for(item, base_url)))
 	if item.get("access_status") == "Open":
-		tags.append(("citation_pdf_url", f"https://archive.org/download/{item['item_id']}/{item['item_id']}.pdf"))
+		pdf = item.get("pdf_url", f"https://archive.org/download/{item['item_id']}/{item['item_id']}.pdf")
+		if pdf:
+			tags.append(("citation_pdf_url", pdf))
 	tags.append(("DC.identifier", item["item_id"]))
 	return tags
 

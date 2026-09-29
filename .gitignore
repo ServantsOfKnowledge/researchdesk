@@ -9,3 +9,7 @@ node_modules/
 .DS_Store
 site/
 *.whl
+
+# local book folders (keep the README)
+library/*
+!library/README.md

@@ -62,6 +62,9 @@ automatically through the `create-site` container.
 Desk → Research Desk → **Settings**:
 
 - Portal title and tagline, **Public Base URL**, OAI repository identifier, admin email
+- **Logo & Branding**: upload a **Logo** (shown on the home page, in the top bar of every
+  portal page and in the Desk), an optional browser-tab icon and an optional home-page
+  background image. Changes apply as soon as you save.
 - Meilisearch URL and key, index prefix, page-level indexing on/off, max characters per page
 - Internet Archive contact and request delay
 

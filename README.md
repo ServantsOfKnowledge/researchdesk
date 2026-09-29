@@ -6,6 +6,8 @@ Internet Archive collection. It is built on the [Frappe](https://frappe.io) fram
 
 Choose a collection, a search or a list of items on archive.org, and Research Desk will:
 
+- ingest from **archive.org** *or* from **IA-style item folders** on your own disk, NAS or web
+  server, with a drop folder that picks up new and changed books automatically
 - **catalogue** the books, cleaning up messy metadata (languages, dates, authors, subjects)
 - **index the full OCR text page by page**, so people can search *inside* 88,000+ books,
   in Kannada, Hindi, Konkani, Tamil, English and more
@@ -20,7 +22,7 @@ It's built to install with one command, for librarians, educators, archivists an
 anyone else who can open a terminal. It scales to tens of thousands of books on one server
 ([measured](docs/scaling.md)).
 
-> Status: **proof of concept (v0.2)**. It works end to end and is tested against live
+> Status: **proof of concept (v0.3)**. It works end to end and is tested against live
 > Servants of Knowledge data, but expect changes before 1.0. See [the roadmap](docs/roadmap.md).
 
 ---
@@ -72,7 +74,7 @@ Click **Check Count** to see how many items match, set **Maximum Items**, then *
 
 | For | Read |
 |---|---|
-| Librarians & educators | [Getting started](docs/getting-started.md) · [Choosing & ingesting books](docs/ingesting.md) |
+| Librarians & educators | [Getting started](docs/getting-started.md) · [Choosing & ingesting books](docs/ingesting.md) · [Your own folders & servers](docs/local-folders.md) |
 | Researchers | [Searching](docs/searching.md) · [Citations & reading lists](docs/citations.md) |
 | Library systems staff | [Koha & interoperability](docs/koha.md) · [API](docs/api.md) |
 | System administrators | [Installation](docs/installation.md) · [Operations](docs/operations.md) · [Scaling to 50k books](docs/scaling.md) |

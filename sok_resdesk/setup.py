@@ -26,6 +26,16 @@ SAMPLE_PROFILES = [
 		"fetch_fulltext": 1,
 		"notes": "50 English-language books from Servants of Knowledge.",
 	},
+	{
+		"profile_name": "Library folder",
+		"source": "Folder or Server",
+		"location": "/library-source",
+		"check_archive_org": 1,
+		"max_items": 0,
+		"fetch_fulltext": 1,
+		"notes": "Every IA-style item folder under LIBRARY_DIR (set in .env). Set Schedule to Hourly to pick up "
+		"books copied in later; changed items are re-ingested automatically.",
+	},
 ]
 
 
@@ -51,6 +61,12 @@ def set_website_home():
 
 def after_migrate():
 	create_roles()
+	try:
+		from sok_resdesk.resdesk.doctype.rd_settings.rd_settings import apply_branding
+
+		apply_branding()
+	except Exception:
+		frappe.log_error("Research Desk: could not apply branding")
 	create_workspace()
 	try:
 		from sok_resdesk.search import MeiliClient

@@ -80,3 +80,59 @@ class TestResearchDesk(IntegrationTestCase):
 		self.assertTrue(doc_id("a.b").startswith("a_b-"))
 		f = build_filter({"language_label": ["Kannada"], "year_from": 1900, "bogus": ["x"]})
 		self.assertEqual(f, [['language_label = "Kannada"'], "year >= 1900"])
+
+
+class TestLocalFolderSource(IntegrationTestCase):
+	"""Folder source end to end, without network (archive.org check off)."""
+
+	def setUp(self):
+		import gzip
+		import json
+		import os
+		import tempfile
+
+		self.root = tempfile.mkdtemp(prefix="rd-lib-")
+		frappe.local.conf["resdesk_library_roots"] = [self.root]
+		d = os.path.join(self.root, "shelf", "rdtest.local0001")
+		os.makedirs(d)
+		with open(os.path.join(d, "rdtest.local0001_meta.xml"), "w", encoding="utf-8") as f:
+			f.write("<metadata><identifier>rdtest.local0001</identifier><title>ಸ್ಥಳೀಯ ಪುಸ್ತಕ</title>"
+					"<creator>ಲೇಖಕ</creator><language>kan</language><date>1950</date></metadata>")
+		with open(os.path.join(d, "rdtest.local0001.pdf"), "wb") as f:
+			f.write(b"%PDF-1.4\n%test")
+		text = "ಮೊದಲ ಪುಟ\nಎರಡನೇ ಪುಟ"
+		with open(os.path.join(d, "rdtest.local0001_hocr_searchtext.txt.gz"), "wb") as f:
+			f.write(gzip.compress(text.encode()))
+		with open(os.path.join(d, "rdtest.local0001_hocr_pageindex.json.gz"), "wb") as f:
+			f.write(gzip.compress(json.dumps([[0, 8, 0, 0], [9, 19, 0, 0]]).encode()))
+		self.profile = frappe._dict(name=None, location=self.root, manifest_url="", check_archive_org=0)
+
+	def tearDown(self):
+		import shutil
+
+		frappe.db.rollback()
+		frappe.local.conf.pop("resdesk_library_roots", None)
+		shutil.rmtree(self.root, ignore_errors=True)
+
+	def test_ingest_local_item_and_skip_unchanged(self):
+		from sok_resdesk import search
+		from sok_resdesk.local_source import ingest_local_one, open_profile_store
+
+		search.index_record = lambda *a, **k: 2  # keep the search engine out of this test
+		store = open_profile_store(self.profile)
+		items = list(store.iter_items())
+		self.assertEqual(items, [("rdtest.local0001", "shelf/rdtest.local0001")])
+		outcome, _ = ingest_local_one(store, *items[0], self.profile, fetch_text=True)
+		self.assertEqual(outcome, "created")
+		doc = frappe.get_doc("RD Item", "rdtest.local0001")
+		self.assertEqual((doc.source, doc.on_archive_org, doc.local_pdf, doc.text_source),
+						 ("Local", 0, "rdtest.local0001.pdf", "hocr_searchtext"))
+		record = get_record("rdtest.local0001")
+		self.assertIn("sok_resdesk.api.file", record["pdf_url"])
+		self.assertEqual(ingest_local_one(store, *items[0], self.profile, fetch_text=True)[0], "unchanged")
+
+	def test_folder_outside_library_roots_is_refused(self):
+		from sok_resdesk.local_source import open_profile_store
+
+		with self.assertRaises(frappe.ValidationError):
+			open_profile_store(frappe._dict(location="/etc", manifest_url=""))
