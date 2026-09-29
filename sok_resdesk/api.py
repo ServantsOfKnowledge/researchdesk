@@ -1,0 +1,211 @@
+"""Public API for the Research Desk portal and third-party tools.
+
+All endpoints live under /api/method/sok_resdesk.api.<name> and are readable by
+guests (published records only). See docs/api.md for examples.
+"""
+
+from __future__ import annotations
+
+import json
+
+import frappe
+from frappe import _
+from frappe.rate_limiter import rate_limit
+from frappe.utils import cint
+from werkzeug.wrappers import Response
+
+from sok_resdesk.catalogue import base_url, get_record
+from sok_resdesk.core import citations, marc
+from sok_resdesk.search import MeiliClient, SearchError, _quote
+from sok_resdesk.search import search as _search
+
+MAX_BATCH = 500
+
+
+def _loads(value, default):
+	if value in (None, ""):
+		return default
+	if isinstance(value, (dict, list)):
+		return value
+	try:
+		return json.loads(value)
+	except ValueError:
+		frappe.throw(_("Invalid JSON parameter"))
+
+
+def _text_response(body: str, content_type: str, filename: str | None = None) -> Response:
+	resp = Response(body, content_type=f"{content_type}; charset=utf-8")
+	if filename:
+		resp.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+	resp.headers["Access-Control-Allow-Origin"] = "*"
+	return resp
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
+@rate_limit(limit=120, seconds=60)
+def search(q: str = "", mode: str = "books", filters=None, page: int = 1, per_page: int = 20, sort: str = ""):
+	"""Search books (metadata + excerpt) or pages (full text inside books).
+
+	filters: JSON object, e.g. {"language_label": ["Kannada"], "decade": ["1950s"], "year_from": 1900}
+	"""
+	try:
+		result = _search(q, "pages" if mode == "pages" else "books", _loads(filters, {}), page, per_page, sort)
+	except SearchError as e:
+		frappe.log_error("Research Desk: search failed", str(e))
+		frappe.throw(_("Search is temporarily unavailable."), title=_("Search"))
+	return {
+		"query": q,
+		"mode": mode,
+		"page": result.get("page", 1),
+		"total_pages": result.get("totalPages", 0),
+		"total": result.get("totalHits", result.get("estimatedTotalHits", 0)),
+		"took_ms": result.get("processingTimeMs"),
+		"facets": result.get("facetDistribution", {}),
+		"hits": [_hit(h, mode) for h in result.get("hits", [])],
+	}
+
+
+def _hit(hit: dict, mode: str) -> dict:
+	f = hit.get("_formatted", {})
+	out = {
+		"item_id": hit["item_id"],
+		"title": hit.get("title"),
+		"alt_title": hit.get("alt_title"),
+		"title_html": f.get("title") or frappe.utils.escape_html(hit.get("title") or ""),
+		"creators": hit.get("creators") or [],
+		"year": hit.get("year"),
+		"language": hit.get("language_label"),
+		"url": f"/library/item/{hit['item_id']}",
+	}
+	if mode == "pages":
+		leaf = hit.get("leaf", 0)
+		out.update({
+			"leaf": leaf,
+			"page_label": hit.get("label") or "",
+			"snippet": f.get("text", ""),
+			"url": f"/library/item/{hit['item_id']}?page={leaf}",
+		})
+	else:
+		out.update({
+			"thumbnail": hit.get("thumbnail_url"),
+			"page_count": hit.get("page_count"),
+			"subjects": (hit.get("subjects") or [])[:5],
+			"access": hit.get("access_status"),
+			"has_fulltext": hit.get("has_fulltext"),
+			"snippet": f.get("text_excerpt") if "<mark>" in (f.get("text_excerpt") or "") else f.get("description", ""),
+		})
+	return out
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=120, seconds=60)
+def search_inside(item_id: str, q: str, limit: int = 50):
+	"""Pages of one book that match `q`, with highlighted snippets."""
+	if not q.strip():
+		return {"hits": []}
+	client = MeiliClient.from_settings()
+	result = client.search(client.pages, {
+		"q": q, "filter": f"item_id = {_quote(item_id)}", "limit": min(cint(limit) or 50, 200),
+		"sort": ["leaf:asc"], "attributesToCrop": ["text"], "cropLength": 30,
+		"attributesToHighlight": ["text"], "highlightPreTag": "<mark>", "highlightPostTag": "</mark>",
+		"attributesToRetrieve": ["leaf", "label"],
+	})
+	return {
+		"total": result.get("estimatedTotalHits", 0),
+		"hits": [
+			{"leaf": h["leaf"], "page_label": h.get("label"), "snippet": h.get("_formatted", {}).get("text", "")}
+			for h in result.get("hits", [])
+		],
+	}
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+def item(item_id: str):
+	record = get_record(item_id)
+	if not record:
+		frappe.throw(_("Item not found"), frappe.DoesNotExistError)
+	record.pop("modified", None)
+	record.pop("set_specs", None)
+	record["portal_url"] = f"{base_url()}/library/item/{item_id}"
+	record["citation_formats"] = {k: v[0] for k, v in citations.FORMATS.items()}
+	return record
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=300, seconds=60)
+def cite(item_id: str, format: str = "bibtex", download: int = 0):
+	"""One record as BibTeX, BibLaTeX, RIS, CSL-JSON, APA, MLA or Chicago."""
+	record = get_record(item_id)
+	if not record:
+		frappe.throw(_("Item not found"), frappe.DoesNotExistError)
+	fmt = format.lower()
+	if fmt not in citations.FORMATS:
+		frappe.throw(_("Unknown format. Use one of: {0}").format(", ".join(citations.FORMATS)))
+	body = citations.render(record, fmt, base_url())
+	_label, mime, ext = citations.FORMATS[fmt]
+	return _text_response(body, mime, f"{item_id}.{ext}" if cint(download) else None)
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
+@rate_limit(limit=60, seconds=60)
+def cite_many(item_ids, format: str = "bibtex"):
+	"""Several records in one file: a reading list or a shared bibliography."""
+	ids = _loads(item_ids, [])
+	if isinstance(ids, str):
+		ids = [ids]
+	ids = list(dict.fromkeys(ids))[:MAX_BATCH]
+	records = [r for r in (get_record(i) for i in ids) if r]
+	fmt = format.lower()
+	if fmt not in citations.FORMATS:
+		frappe.throw(_("Unknown format"))
+	if fmt in ("csl-json", "csl", "csljson"):
+		body = json.dumps([citations.to_csl(r, base_url()) for r in records], ensure_ascii=False, indent=2)
+	else:
+		sep = "\n" if fmt in ("bibtex", "biblatex", "ris") else "\n\n"
+		body = sep.join(citations.render(r, fmt, base_url()) for r in records)
+	_label, mime, ext = citations.FORMATS[fmt]
+	return _text_response(body, mime, f"reading-list.{ext}")
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
+@rate_limit(limit=30, seconds=60)
+def marcxml(item_ids):
+	"""MARCXML for one or more records, ready for Koha's "Stage MARC records for import"."""
+	ids = _loads(item_ids, [])
+	if isinstance(ids, str):
+		ids = [ids]
+	records = [r for r in (get_record(i) for i in list(dict.fromkeys(ids))[:MAX_BATCH]) if r]
+	return _text_response(marc.to_marcxml_collection(records, base_url()), "application/marcxml+xml", "records.xml")
+
+
+@frappe.whitelist()
+def marcxml_all(profile: str | None = None):
+	"""Whole catalogue (or one ingest profile) as MARCXML. Staff only."""
+	frappe.only_for(("System Manager", "ResDesk Manager", "ResDesk Cataloguer"))
+	filters = {"published": 1}
+	if profile:
+		filters["ingest_profile"] = profile
+	names = frappe.get_all("RD Item", filters=filters, pluck="name")
+	records = [get_record(n) for n in names]
+	return _text_response(marc.to_marcxml_collection([r for r in records if r], base_url()),
+						  "application/marcxml+xml", f"resdesk-{profile or 'all'}.xml")
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+def stats():
+	counts = {
+		"items": frappe.db.count("RD Item", {"published": 1}),
+		"creators": frappe.db.count("RD Creator"),
+		"with_fulltext": frappe.db.count("RD Item", {"published": 1, "has_fulltext": 1}),
+		"languages": frappe.db.sql(
+			"select language_label, count(*) from `tabRD Item` where published=1 group by language_label order by 2 desc"
+		),
+	}
+	try:
+		client = MeiliClient.from_settings()
+		idx = client.stats().get("indexes", {})
+		counts["indexed_pages"] = idx.get(client.pages, {}).get("numberOfDocuments", 0)
+		counts["search"] = "ok"
+	except SearchError:
+		counts["search"] = "unavailable"
+	return counts

@@ -1,0 +1,11 @@
+.env
+site-backups/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+node_modules/
+.DS_Store
+site/
+*.whl

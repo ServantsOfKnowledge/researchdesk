@@ -1,0 +1,110 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }} · {{ portal_title }}{% endblock %}
+
+{% block head_include %}
+{# Zotero, Google Scholar and other tools read these tags #}
+{% for name, value in highwire %}<meta name="{{ name }}" content="{{ value }}">
+{% endfor %}
+<link rel="canonical" href="{{ portal_url }}">
+<link rel="alternate" type="application/x-bibtex" href="/api/method/sok_resdesk.api.cite?item_id={{ item.item_id | urlencode }}&format=bibtex" title="BibTeX">
+<link rel="alternate" type="application/x-research-info-systems" href="/api/method/sok_resdesk.api.cite?item_id={{ item.item_id | urlencode }}&format=ris" title="RIS">
+<script type="application/ld+json">{{ json_ld }}</script>
+{% endblock %}
+
+{% block page_content %}
+<div class="rd rd-item" id="rd-item" data-item="{{ item.item_id }}" data-leaf="{{ start_leaf }}">
+	<span class="Z3988" title="{{ coins }}"></span>
+	<nav class="rd-crumbs"><a href="/library">← {{ portal_title }}</a></nav>
+
+	<header class="rd-item__head">
+		{% if item.thumbnail_url %}
+		<img class="rd-item__thumb" src="{{ item.thumbnail_url }}" alt="" loading="lazy">
+		{% endif %}
+		<div>
+			<h1 class="rd-item__title">{{ item.title }}</h1>
+			{% if item.alt_title and item.alt_title != item.title %}
+			<p class="rd-item__alt">{{ item.alt_title }}</p>
+			{% endif %}
+			<p class="rd-item__creators">
+				{% for c in item.creators %}
+				<a href="/library?creators={{ c | urlencode }}">{{ c }}</a>{% if item.alt_creators[loop.index0] %} <span class="rd-muted">({{ item.alt_creators[loop.index0] }})</span>{% endif %}{% if not loop.last %}; {% endif %}
+				{% endfor %}
+			</p>
+			<p class="rd-muted">
+				{{ item.year or _("Undated") }}
+				{% if item.publisher %} · {{ item.publisher }}{% endif %}
+				{% if item.language_label %} · <a href="/library?language_label={{ item.language_label | urlencode }}">{{ item.language_label }}</a>{% endif %}
+				{% if item.page_count %} · {{ item.page_count }} {{ _("pages") }}{% endif %}
+			</p>
+			<div class="rd-actions">
+				<a class="rd-btn rd-btn--primary" href="#rd-reader">{{ _("Read") }}</a>
+				{% if item.access_status == "Open" %}
+				<a class="rd-btn" href="https://archive.org/download/{{ item.item_id }}/{{ item.item_id }}.pdf">{{ _("Download PDF") }}</a>
+				{% endif %}
+				<button class="rd-btn" type="button" id="rd-add-list">{{ _("Add to my list") }}</button>
+				<a class="rd-btn" href="{{ item.source_url }}" target="_blank" rel="noopener">{{ _("Internet Archive") }} ↗</a>
+			</div>
+		</div>
+	</header>
+
+	<div class="rd-item__grid">
+		<section class="rd-reader" id="rd-reader">
+			<div class="rd-inside">
+				<form id="rd-inside-form" autocomplete="off">
+					<input type="search" id="rd-inside-q" value="{{ q }}" placeholder="{{ _('Search inside this book') }}"
+						{% if not item.has_page_text %}disabled title="{{ _('No searchable text for this book yet') }}"{% endif %}>
+					<button class="rd-btn" type="submit" {% if not item.has_page_text %}disabled{% endif %}>{{ _("Find") }}</button>
+				</form>
+				<ol id="rd-inside-hits" class="rd-inside__hits"></ol>
+			</div>
+			<iframe id="rd-reader-frame" title="{{ _('Book reader') }}"
+				src="https://archive.org/embed/{{ item.item_id }}{% if start_leaf %}#page/n{{ start_leaf }}/mode/1up{% endif %}"
+				allowfullscreen loading="lazy"></iframe>
+		</section>
+
+		<aside class="rd-side">
+			<section class="rd-card">
+				<h2>{{ _("Cite this book") }}</h2>
+				<div class="rd-tabs" role="tablist">
+					{% for key, label in formats %}
+					<button type="button" role="tab" class="rd-tab{% if loop.first %} is-active{% endif %}" data-fmt="{{ key }}">{{ label.split(' ')[0] }}</button>
+					{% endfor %}
+				</div>
+				{% for key, label in formats %}
+				<pre class="rd-cite{% if not loop.first %} is-hidden{% endif %}" data-fmt="{{ key }}">{{ cites[key] }}</pre>
+				{% endfor %}
+				<div class="rd-actions">
+					<button class="rd-btn" type="button" id="rd-copy">{{ _("Copy") }}</button>
+					<a class="rd-btn" id="rd-download" href="/api/method/sok_resdesk.api.cite?item_id={{ item.item_id | urlencode }}&format=bibtex&download=1">{{ _("Download") }}</a>
+					<a class="rd-btn" href="/api/method/sok_resdesk.api.marcxml?item_ids={{ item.item_id | urlencode }}">MARCXML</a>
+				</div>
+			</section>
+
+			<section class="rd-card">
+				<h2>{{ _("Details") }}</h2>
+				<dl class="rd-meta">
+					<dt>{{ _("Identifier") }}</dt><dd><code>{{ item.item_id }}</code></dd>
+					{% if item.ark %}<dt>ARK</dt><dd><code>{{ item.ark }}</code></dd>{% endif %}
+					{% if item.date_raw %}<dt>{{ _("Date") }}</dt><dd>{{ item.date_raw }}</dd>{% endif %}
+					{% if item.series %}<dt>{{ _("Series") }}</dt><dd>{{ item.series }}</dd>{% endif %}
+					{% if item.isbn %}<dt>ISBN</dt><dd>{{ item.isbn }}</dd>{% endif %}
+					{% if item.subjects %}<dt>{{ _("Subjects") }}</dt><dd>
+						{% for s in item.subjects %}<a class="rd-chip" href="/library?subjects={{ s | urlencode }}">{{ s }}</a>{% endfor %}
+					</dd>{% endif %}
+					{% if item.collections %}<dt>{{ _("Collections") }}</dt><dd>{{ item.collections | join(", ") }}</dd>{% endif %}
+					<dt>{{ _("Access") }}</dt><dd>{{ item.access_status }}</dd>
+					{% if item.licence_url %}<dt>{{ _("Licence") }}</dt><dd><a href="{{ item.licence_url }}" rel="license">{{ item.licence_url }}</a></dd>{% endif %}
+					{% if item.rights %}<dt>{{ _("Rights") }}</dt><dd>{{ item.rights }}</dd>{% endif %}
+				</dl>
+				{% if item.description %}<p class="rd-desc">{{ item.description }}</p>{% endif %}
+			</section>
+		</aside>
+	</div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script src="/assets/sok_resdesk/js/basket.js"></script>
+<script src="/assets/sok_resdesk/js/item.js"></script>
+{% endblock %}

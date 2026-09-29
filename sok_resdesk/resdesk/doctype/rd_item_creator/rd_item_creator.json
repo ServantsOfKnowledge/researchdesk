@@ -1,0 +1,53 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-09-29 12:00:00.000000",
+ "modified": "2026-09-29 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Item Creator",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "field_order": [
+  "creator",
+  "role",
+  "name_as_given"
+ ],
+ "fields": [
+  {
+   "fieldname": "creator",
+   "fieldtype": "Link",
+   "label": "Creator",
+   "options": "RD Creator",
+   "in_list_view": 1,
+   "reqd": 1,
+   "columns": 5
+  },
+  {
+   "fieldname": "role",
+   "fieldtype": "Select",
+   "label": "Role",
+   "options": "Author\nEditor\nTranslator\nIllustrator\nContributor",
+   "default": "Author",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "name_as_given",
+   "fieldtype": "Data",
+   "label": "Name as Given",
+   "in_list_view": 1,
+   "length": 255,
+   "columns": 3
+  }
+ ],
+ "links": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "istable": 1,
+ "editable_grid": 1,
+ "permissions": []
+}

@@ -1,0 +1,384 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-09-29 12:00:00.000000",
+ "modified": "2026-09-29 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Item",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "field_order": [
+  "item_id",
+  "title",
+  "alt_title",
+  "column_break_a",
+  "source",
+  "published",
+  "access_status",
+  "thumbnail_url",
+  "section_people",
+  "creators",
+  "creator_display",
+  "section_pub",
+  "year",
+  "date_raw",
+  "publisher",
+  "place",
+  "column_break_p",
+  "language",
+  "language_label",
+  "series",
+  "isbn",
+  "page_count",
+  "section_desc",
+  "description",
+  "subjects",
+  "collections",
+  "section_rights",
+  "licence_url",
+  "rights",
+  "section_digital",
+  "source_url",
+  "ark",
+  "has_fulltext",
+  "has_page_text",
+  "column_break_d",
+  "ocr_engine",
+  "ocr_language",
+  "scanning_centre",
+  "added_on_source",
+  "section_system",
+  "ingest_profile",
+  "last_ingested",
+  "indexed_pages",
+  "column_break_s",
+  "indexed_on",
+  "raw_metadata"
+ ],
+ "fields": [
+  {
+   "fieldname": "item_id",
+   "fieldtype": "Data",
+   "label": "Identifier",
+   "reqd": 1,
+   "unique": 1,
+   "in_standard_filter": 1,
+   "description": "Internet Archive identifier (or other source ID)"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "in_list_view": 1,
+   "length": 1000,
+   "bold": 1
+  },
+  {
+   "fieldname": "alt_title",
+   "fieldtype": "Data",
+   "label": "Romanised / Alternate Title",
+   "length": 1000
+  },
+  {
+   "fieldname": "column_break_a",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "label": "Source",
+   "options": "Internet Archive\nLocal\nOther",
+   "default": "Internet Archive",
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "published",
+   "fieldtype": "Check",
+   "label": "Published on Portal",
+   "default": "1"
+  },
+  {
+   "fieldname": "access_status",
+   "fieldtype": "Select",
+   "label": "Access",
+   "options": "Open\nRestricted\nUnknown",
+   "default": "Open",
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "thumbnail_url",
+   "fieldtype": "Data",
+   "label": "Thumbnail URL",
+   "hidden": 1
+  },
+  {
+   "fieldname": "section_people",
+   "fieldtype": "Section Break",
+   "label": "Authorship"
+  },
+  {
+   "fieldname": "creators",
+   "fieldtype": "Table",
+   "label": "Creators",
+   "options": "RD Item Creator"
+  },
+  {
+   "fieldname": "creator_display",
+   "fieldtype": "Small Text",
+   "label": "Creators (display)",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "section_pub",
+   "fieldtype": "Section Break",
+   "label": "Publication"
+  },
+  {
+   "fieldname": "year",
+   "fieldtype": "Int",
+   "label": "Year",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "date_raw",
+   "fieldtype": "Data",
+   "label": "Date as Recorded"
+  },
+  {
+   "fieldname": "publisher",
+   "fieldtype": "Data",
+   "label": "Publisher",
+   "length": 500
+  },
+  {
+   "fieldname": "place",
+   "fieldtype": "Data",
+   "label": "Place of Publication",
+   "length": 255
+  },
+  {
+   "fieldname": "column_break_p",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "language",
+   "fieldtype": "Data",
+   "label": "Language Code",
+   "in_standard_filter": 1,
+   "description": "ISO 639-3, e.g. kan, eng, hin"
+  },
+  {
+   "fieldname": "language_label",
+   "fieldtype": "Data",
+   "label": "Language",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "series",
+   "fieldtype": "Data",
+   "label": "Series / Volume",
+   "length": 500
+  },
+  {
+   "fieldname": "isbn",
+   "fieldtype": "Data",
+   "label": "ISBN"
+  },
+  {
+   "fieldname": "page_count",
+   "fieldtype": "Int",
+   "label": "Pages"
+  },
+  {
+   "fieldname": "section_desc",
+   "fieldtype": "Section Break",
+   "label": "Description & Subjects"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "subjects",
+   "fieldtype": "Table MultiSelect",
+   "label": "Subjects",
+   "options": "RD Item Subject"
+  },
+  {
+   "fieldname": "collections",
+   "fieldtype": "Small Text",
+   "label": "Source Collections",
+   "description": "One per line"
+  },
+  {
+   "fieldname": "section_rights",
+   "fieldtype": "Section Break",
+   "label": "Rights",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "licence_url",
+   "fieldtype": "Data",
+   "label": "Licence URL",
+   "length": 500
+  },
+  {
+   "fieldname": "rights",
+   "fieldtype": "Small Text",
+   "label": "Rights Statement"
+  },
+  {
+   "fieldname": "section_digital",
+   "fieldtype": "Section Break",
+   "label": "Digital Object",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "source_url",
+   "fieldtype": "Data",
+   "label": "Source URL",
+   "read_only": 1,
+   "length": 500
+  },
+  {
+   "fieldname": "ark",
+   "fieldtype": "Data",
+   "label": "ARK",
+   "read_only": 1
+  },
+  {
+   "fieldname": "has_fulltext",
+   "fieldtype": "Check",
+   "label": "Has Full Text",
+   "read_only": 1
+  },
+  {
+   "fieldname": "has_page_text",
+   "fieldtype": "Check",
+   "label": "Has Page-Level Text",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_d",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ocr_engine",
+   "fieldtype": "Data",
+   "label": "OCR Engine",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ocr_language",
+   "fieldtype": "Data",
+   "label": "OCR Language",
+   "read_only": 1
+  },
+  {
+   "fieldname": "scanning_centre",
+   "fieldtype": "Data",
+   "label": "Scanning Centre",
+   "read_only": 1
+  },
+  {
+   "fieldname": "added_on_source",
+   "fieldtype": "Data",
+   "label": "Added to Source",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_system",
+   "fieldtype": "Section Break",
+   "label": "Ingest & Index",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "ingest_profile",
+   "fieldtype": "Link",
+   "label": "Ingest Profile",
+   "options": "RD Ingest Profile",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_ingested",
+   "fieldtype": "Datetime",
+   "label": "Last Ingested",
+   "read_only": 1
+  },
+  {
+   "fieldname": "indexed_pages",
+   "fieldtype": "Int",
+   "label": "Pages Indexed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_s",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "indexed_on",
+   "fieldtype": "Datetime",
+   "label": "Indexed On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "raw_metadata",
+   "fieldtype": "JSON",
+   "label": "Raw Source Metadata",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "autoname": "field:item_id",
+ "naming_rule": "By fieldname",
+ "title_field": "title",
+ "show_title_field_in_link": 1,
+ "search_fields": "alt_title,creator_display,year",
+ "image_field": "thumbnail_url",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1
+  }
+ ],
+ "track_changes": 1
+}

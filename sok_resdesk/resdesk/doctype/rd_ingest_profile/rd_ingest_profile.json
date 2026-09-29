@@ -1,0 +1,211 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-09-29 12:00:00.000000",
+ "modified": "2026-09-29 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Ingest Profile",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "field_order": [
+  "profile_name",
+  "enabled",
+  "column_break_0",
+  "schedule",
+  "source",
+  "scope_section",
+  "scope_type",
+  "ia_collection",
+  "extra_filter",
+  "ia_query",
+  "identifiers",
+  "column_break_1",
+  "max_items",
+  "fetch_fulltext",
+  "update_existing",
+  "matching_count",
+  "status_section",
+  "last_run",
+  "last_run_on",
+  "column_break_2",
+  "last_status",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "profile_name",
+   "fieldtype": "Data",
+   "label": "Profile Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "default": "1"
+  },
+  {
+   "fieldname": "column_break_0",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "schedule",
+   "fieldtype": "Select",
+   "label": "Schedule",
+   "options": "Manual\nDaily\nWeekly",
+   "default": "Manual",
+   "description": "Scheduled runs only fetch items not yet in the catalogue."
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "label": "Source",
+   "options": "Internet Archive",
+   "default": "Internet Archive"
+  },
+  {
+   "fieldname": "scope_section",
+   "fieldtype": "Section Break",
+   "label": "What to ingest"
+  },
+  {
+   "fieldname": "scope_type",
+   "fieldtype": "Select",
+   "label": "Choose By",
+   "options": "Collection\nSearch Query\nIdentifier List",
+   "default": "Collection",
+   "reqd": 1
+  },
+  {
+   "fieldname": "ia_collection",
+   "fieldtype": "Data",
+   "label": "IA Collection",
+   "default": "ServantsOfKnowledge",
+   "depends_on": "eval:doc.scope_type=='Collection'",
+   "description": "The part after archive.org/details/ for a collection, e.g. ServantsOfKnowledge"
+  },
+  {
+   "fieldname": "extra_filter",
+   "fieldtype": "Data",
+   "label": "Narrow With (optional)",
+   "depends_on": "eval:doc.scope_type=='Collection'",
+   "length": 500,
+   "description": "IA search syntax, e.g. <code>language:(kan OR Kannada)</code> or <code>date:[1900-01-01 TO 1950-12-31]</code> or <code>subject:vachana</code>"
+  },
+  {
+   "fieldname": "ia_query",
+   "fieldtype": "Small Text",
+   "label": "IA Search Query",
+   "depends_on": "eval:doc.scope_type=='Search Query'",
+   "description": "Any archive.org advanced search query, e.g. <code>creator:(Kuvempu) AND language:kan</code>"
+  },
+  {
+   "fieldname": "identifiers",
+   "fieldtype": "Long Text",
+   "label": "Identifiers",
+   "depends_on": "eval:doc.scope_type=='Identifier List'",
+   "description": "One IA identifier per line."
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "max_items",
+   "fieldtype": "Int",
+   "label": "Maximum Items",
+   "default": "100",
+   "description": "0 = no limit. Start small (50-500) for a test."
+  },
+  {
+   "fieldname": "fetch_fulltext",
+   "fieldtype": "Check",
+   "label": "Fetch Full Text",
+   "default": "1",
+   "description": "Download OCR text for full-text and in-book search."
+  },
+  {
+   "fieldname": "update_existing",
+   "fieldtype": "Check",
+   "label": "Refresh Items Already in Catalogue",
+   "default": "0"
+  },
+  {
+   "fieldname": "matching_count",
+   "fieldtype": "Int",
+   "label": "Matching Items on IA",
+   "read_only": 1,
+   "description": "Use the Check Count button."
+  },
+  {
+   "fieldname": "status_section",
+   "fieldtype": "Section Break",
+   "label": "Last Run"
+  },
+  {
+   "fieldname": "last_run",
+   "fieldtype": "Link",
+   "label": "Last Run",
+   "options": "RD Ingest Run",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_run_on",
+   "fieldtype": "Datetime",
+   "label": "Last Run On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_status",
+   "fieldtype": "Data",
+   "label": "Last Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "links": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "autoname": "field:profile_name",
+ "naming_rule": "By fieldname",
+ "title_field": "profile_name",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  }
+ ]
+}

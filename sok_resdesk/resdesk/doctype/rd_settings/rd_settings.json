@@ -1,0 +1,165 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-09-29 12:00:00.000000",
+ "modified": "2026-09-29 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Settings",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "field_order": [
+  "portal_section",
+  "portal_title",
+  "portal_tagline",
+  "base_url",
+  "column_break_p",
+  "repository_id",
+  "admin_email",
+  "search_section",
+  "meili_url",
+  "meili_api_key",
+  "index_prefix",
+  "column_break_s",
+  "index_pages",
+  "max_page_chars",
+  "search_status",
+  "ia_section",
+  "ia_contact",
+  "ia_delay"
+ ],
+ "fields": [
+  {
+   "fieldname": "portal_section",
+   "fieldtype": "Section Break",
+   "label": "Portal"
+  },
+  {
+   "fieldname": "portal_title",
+   "fieldtype": "Data",
+   "label": "Portal Title",
+   "default": "SoK Research Desk",
+   "reqd": 1
+  },
+  {
+   "fieldname": "portal_tagline",
+   "fieldtype": "Small Text",
+   "label": "Tagline",
+   "default": "Find, read and cite digitised books from Servants of Knowledge and the Internet Archive."
+  },
+  {
+   "fieldname": "base_url",
+   "fieldtype": "Data",
+   "label": "Public Base URL",
+   "description": "e.g. https://library.example.org. Used in citations, OAI-PMH and MARC 856 links. Leave empty to use this site's URL."
+  },
+  {
+   "fieldname": "column_break_p",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "repository_id",
+   "fieldtype": "Data",
+   "label": "OAI Repository Identifier",
+   "default": "resdesk.local",
+   "description": "Domain-style identifier used in OAI identifiers, e.g. library.example.org"
+  },
+  {
+   "fieldname": "admin_email",
+   "fieldtype": "Data",
+   "label": "Admin Email",
+   "options": "Email",
+   "description": "Shown to OAI-PMH harvesters."
+  },
+  {
+   "fieldname": "search_section",
+   "fieldtype": "Section Break",
+   "label": "Search Engine (Meilisearch)"
+  },
+  {
+   "fieldname": "meili_url",
+   "fieldtype": "Data",
+   "label": "Meilisearch URL",
+   "default": "http://meilisearch:7700"
+  },
+  {
+   "fieldname": "meili_api_key",
+   "fieldtype": "Password",
+   "label": "Meilisearch API Key"
+  },
+  {
+   "fieldname": "index_prefix",
+   "fieldtype": "Data",
+   "label": "Index Prefix",
+   "default": "rd",
+   "description": "Lets several sites share one Meilisearch."
+  },
+  {
+   "fieldname": "column_break_s",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "index_pages",
+   "fieldtype": "Check",
+   "label": "Index Page-Level Full Text",
+   "default": "1",
+   "description": "Enables deep search inside books. Uses more disk."
+  },
+  {
+   "fieldname": "max_page_chars",
+   "fieldtype": "Int",
+   "label": "Max Characters per Page",
+   "default": "6000"
+  },
+  {
+   "fieldname": "search_status",
+   "fieldtype": "Small Text",
+   "label": "Search Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ia_section",
+   "fieldtype": "Section Break",
+   "label": "Internet Archive"
+  },
+  {
+   "fieldname": "ia_contact",
+   "fieldtype": "Data",
+   "label": "Contact (sent in User-Agent)",
+   "description": "An email or URL so IA can reach you if your harvesting causes problems."
+  },
+  {
+   "fieldname": "ia_delay",
+   "fieldtype": "Float",
+   "label": "Delay Between Requests (seconds)",
+   "default": "0.5"
+  }
+ ],
+ "links": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "issingle": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  }
+ ]
+}

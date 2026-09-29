@@ -1,0 +1,156 @@
+# SoK Research Desk: full stack in Docker.
+#
+# Most people should run ./install.sh instead of using this file directly.
+# It creates .env with random passwords, builds the image and creates the site.
+#
+#   docker compose up -d          start
+#   docker compose down           stop (data is kept in volumes)
+#   ./resdesk.sh help             everyday commands
+
+x-image: &image
+  image: ${RESDESK_IMAGE:-sok-resdesk}:${RESDESK_TAG:-local}
+  build:
+    context: .
+    dockerfile: docker/Dockerfile
+    args:
+      FRAPPE_BRANCH: ${FRAPPE_BRANCH:-version-16}
+      FRAPPE_IMAGE_PREFIX: ${FRAPPE_IMAGE_PREFIX:-frappe}
+  restart: unless-stopped
+
+x-backend: &backend
+  <<: *image
+  volumes:
+    - sites:/home/frappe/frappe-bench/sites
+    - logs:/home/frappe/frappe-bench/logs
+  depends_on:
+    configurator:
+      condition: service_completed_successfully
+
+services:
+  db:
+    image: mariadb:11.8
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
+      - --skip-innodb-read-only-compressed
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?run ./install.sh first}
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-data:/var/lib/mysql
+
+  redis-cache:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  redis-queue:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-queue-data:/data
+
+  meilisearch:
+    image: getmeili/meilisearch:${MEILI_VERSION:-v1.54}
+    restart: unless-stopped
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:?run ./install.sh first}
+      MEILI_ENV: production
+      MEILI_NO_ANALYTICS: "true"
+    volumes:
+      - meili-data:/meili_data
+
+  # One-shot: writes common_site_config.json (DB + Redis hosts)
+  configurator:
+    <<: *image
+    restart: on-failure
+    entrypoint: ["bash", "-c"]
+    command:
+      - >
+        ls -1 apps > sites/apps.txt;
+        bench set-config -g db_host db;
+        bench set-config -gp db_port 3306;
+        bench set-config -g redis_cache "redis://redis-cache:6379";
+        bench set-config -g redis_queue "redis://redis-queue:6379";
+        bench set-config -g redis_socketio "redis://redis-queue:6379";
+        bench set-config -gp socketio_port 9000;
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+    depends_on: {}
+
+  # One-shot: creates the site and installs Research Desk (skipped if it exists)
+  create-site:
+    <<: *backend
+    restart: "no"
+    entrypoint: ["/usr/local/bin/entrypoint.sh"]
+    command: ["create-site.sh"]
+    environment:
+      SITE_NAME: ${SITE_NAME:-resdesk.localhost}
+      DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?run ./install.sh first}
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
+      PORTAL_TITLE: ${PORTAL_TITLE:-SoK Research Desk}
+      CONTACT_EMAIL: ${CONTACT_EMAIL:-}
+      BASE_URL: ${BASE_URL:-}
+      TIMEZONE: ${TIMEZONE:-Asia/Kolkata}
+      COUNTRY: ${COUNTRY:-India}
+      CURRENCY: ${CURRENCY:-INR}
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+      meilisearch:
+        condition: service_started
+
+  backend:
+    <<: *backend
+    environment:
+      GUNICORN_WORKERS: ${GUNICORN_WORKERS:-2}
+
+  websocket:
+    <<: *backend
+    command: ["node", "/home/frappe/frappe-bench/apps/frappe/socketio.js"]
+
+  queue:
+    <<: *backend
+    command: ["bench", "worker", "--queue", "long,default,short"]
+
+  scheduler:
+    <<: *backend
+    command: ["bench", "schedule"]
+
+  frontend:
+    <<: *image
+    command: ["nginx-entrypoint.sh"]
+    environment:
+      BACKEND: backend:8000
+      SOCKETIO: websocket:9000
+      FRAPPE_SITE_NAME_HEADER: ${SITE_NAME:-resdesk.localhost}
+      UPSTREAM_REAL_IP_ADDRESS: 127.0.0.1
+      UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
+      UPSTREAM_REAL_IP_RECURSIVE: "off"
+      PROXY_READ_TIMEOUT: 120
+      CLIENT_MAX_BODY_SIZE: 50m
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+    ports:
+      - "${HTTP_PORT:-8080}:8080"
+    depends_on:
+      - backend
+      - websocket
+
+volumes:
+  db-data:
+  redis-queue-data:
+  meili-data:
+  sites:
+  logs:
