@@ -21,7 +21,7 @@ jobs:
       - run: pip install ruff pytest requests
       - run: ruff check sok_resdesk
       - run: pytest -q sok_resdesk/tests/test_core.py sok_resdesk/tests/unit_folder.py
-      - run: bash -n install.sh resdesk.sh scripts/dev-setup.sh docker/create-site.sh
+      - run: bash -n install.sh resdesk.sh upgrade.sh scripts/*.sh docker/create-site.sh
 
   docker-install:
     name: Docker install + integration tests

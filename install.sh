@@ -1,25 +1,31 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------------------
-#  SoK Research Desk — one-command installer (Docker)
+#  SoK Research Desk — one-command installer
 #
-#  ./install.sh              interactive install
-#  ./install.sh --yes        accept all defaults (unattended)
+#  ./install.sh              interactive install (asks: Docker or native)
+#  ./install.sh --docker     run everything in Docker containers (recommended)
+#  ./install.sh --native     install directly on this computer (macOS / Ubuntu / Debian)
+#  ./install.sh --yes        accept all defaults (unattended; Docker unless --native)
 #  ./install.sh --sample     also ingest a small sample from Servants of Knowledge
 #
-#  Needs: Docker Desktop (Mac/Windows) or Docker Engine + Compose v2 (Linux),
-#         4 GB of free RAM, ~10 GB of disk.
+#  Docker: Docker Desktop (Mac/Windows) or Docker Engine + Compose v2 (Linux).
+#  Native: Homebrew (macOS) or apt + sudo (Ubuntu 22.04+/Debian 12+).
+#  Either way: 4 GB of free RAM, ~10 GB of disk. Re-running is safe.
 # ---------------------------------------------------------------------------
 set -euo pipefail
 cd "$(dirname "$0")"
 
 YES=0
 SAMPLE=""
+MODE=""
 for arg in "$@"; do
   case "$arg" in
     -y|--yes) YES=1 ;;
+    --docker) MODE=docker ;;
+    --native) MODE=native ;;
     --sample) SAMPLE=1 ;;
     --no-sample) SAMPLE=0 ;;
-    -h|--help) sed -n '2,12p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,14p' "$0"; exit 0 ;;
     *) echo "Unknown option: $arg"; exit 1 ;;
   esac
 done
@@ -45,18 +51,41 @@ echo
 bold "SoK Research Desk installer"
 echo
 
+# 0. Docker or native? ------------------------------------------------------------
+if [ -z "$MODE" ] && [ -f .env ] && grep -q '^INSTALL_MODE=native' .env; then MODE=native; fi
+if [ -z "$MODE" ]; then
+  if [ "$YES" = 1 ]; then MODE=docker
+  else
+    echo "  How should Research Desk run?"
+    echo "    1) In Docker containers  (recommended: isolated, easy to update and remove)"
+    echo "    2) Directly on this computer  (native: Homebrew on macOS, apt on Ubuntu/Debian)"
+    read -r -p "  Choose 1 or 2 [1]: " a || true
+    case "${a:-1}" in 2) MODE=native ;; *) MODE=docker ;; esac
+  fi
+fi
+ok "Install mode: $MODE"
+
 # 1. Prerequisites ------------------------------------------------------------
 bold "1/5  Checking your computer"
-command -v docker >/dev/null 2>&1 || die "Docker is not installed. Get Docker Desktop from https://www.docker.com/products/docker-desktop/ and run this again."
-docker info >/dev/null 2>&1 || die "Docker is installed but not running. Start Docker Desktop (or 'sudo systemctl start docker') and run this again."
-docker compose version >/dev/null 2>&1 || die "Docker Compose v2 is missing. Update Docker Desktop, or install the docker-compose-plugin package."
-ok "Docker $(docker version --format '{{.Server.Version}}' 2>/dev/null) with Compose $(docker compose version --short)"
-
-MEM_BYTES=$(docker info --format '{{.MemTotal}}' 2>/dev/null || echo 0)
-if [ "${MEM_BYTES:-0}" -gt 0 ] && [ "$MEM_BYTES" -lt 3500000000 ]; then
-  warn "Docker has less than 4 GB of memory. In Docker Desktop: Settings → Resources → Memory → 4 GB or more."
+if [ "$MODE" = native ]; then
+  case "$(uname -s)" in
+    Darwin) command -v brew >/dev/null 2>&1 || die "Native install on macOS needs Homebrew: https://brew.sh (or use ./install.sh --docker)"
+            ok "macOS with Homebrew" ;;
+    Linux)  [ -f /etc/debian_version ] || die "Native install supports Ubuntu/Debian. Use ./install.sh --docker on other Linux systems."
+            ok "$(. /etc/os-release && echo "$PRETTY_NAME") with apt" ;;
+    *)      die "Native install supports macOS and Ubuntu/Debian. Use Docker here: ./install.sh --docker" ;;
+  esac
 else
-  ok "Memory looks fine"
+  command -v docker >/dev/null 2>&1 || die "Docker is not installed. Get Docker Desktop from https://www.docker.com/products/docker-desktop/ and run this again (or use ./install.sh --native)."
+  docker info >/dev/null 2>&1 || die "Docker is installed but not running. Start Docker Desktop (or 'sudo systemctl start docker') and run this again."
+  docker compose version >/dev/null 2>&1 || die "Docker Compose v2 is missing. Update Docker Desktop, or install the docker-compose-plugin package."
+  ok "Docker $(docker version --format '{{.Server.Version}}' 2>/dev/null) with Compose $(docker compose version --short)"
+  MEM_BYTES=$(docker info --format '{{.MemTotal}}' 2>/dev/null || echo 0)
+  if [ "${MEM_BYTES:-0}" -gt 0 ] && [ "$MEM_BYTES" -lt 3500000000 ]; then
+    warn "Docker has less than 4 GB of memory. In Docker Desktop: Settings → Resources → Memory → 4 GB or more."
+  else
+    ok "Memory looks fine"
+  fi
 fi
 
 # 2. Configuration --------------------------------------------------------------
@@ -67,10 +96,12 @@ if [ -f .env ]; then
   # shellcheck disable=SC1091
   set -a; . ./.env; set +a
 else
-  ask PORTAL_TITLE  "Portal name"                                   "SoK Research Desk"
+  DEFAULT_PORT=8080; [ "$MODE" = native ] && DEFAULT_PORT=8000
+  ask PORTAL_TITLE  "Portal name"                                        "SoK Research Desk"
   ask CONTACT_EMAIL "Your email (sent politely to the Internet Archive)" ""
-  ask HTTP_PORT     "Port to open in your browser"                  "8080"
-  ask SITE_NAME     "Internal site name"                            "resdesk.localhost"
+  ask HTTP_PORT     "Port to open in your browser"                       "$DEFAULT_PORT"
+  ask SITE_NAME     "Internal site name"                                 "resdesk.localhost"
+  ask LIBRARY_DIR   "Folder of IA-style book folders (optional)"         "./library"
   ADMIN_PASSWORD=$(secret | cut -c1-16)
   cat > .env <<EOF
 # Generated by install.sh on $(date). Keep this file private: it holds passwords.
@@ -79,10 +110,11 @@ CONTACT_EMAIL="${CONTACT_EMAIL}"
 HTTP_PORT=${HTTP_PORT}
 SITE_NAME=${SITE_NAME}
 BASE_URL=http://localhost:${HTTP_PORT}
+LIBRARY_DIR=${LIBRARY_DIR}
 ADMIN_PASSWORD=${ADMIN_PASSWORD}
 DB_ROOT_PASSWORD=$(secret)
 MEILI_MASTER_KEY=$(secret)$(secret)
-# Use a prebuilt image instead of building locally, e.g.
+# Use a prebuilt image instead of building locally (Docker mode), e.g.
 # RESDESK_IMAGE=ghcr.io/servantsofknowledge/researchdesk
 # RESDESK_TAG=latest
 EOF
@@ -91,40 +123,49 @@ EOF
   set -a; . ./.env; set +a
 fi
 HTTP_PORT=${HTTP_PORT:-8080}
-if [ "${DEV_MODE:-0}" = 1 ] && [ -z "${COMPOSE_FILE:-}" ]; then
-  export COMPOSE_FILE=compose.yaml:compose.dev.yaml
-  ok "Developer mode is on (code runs live from this folder)"
-fi
 
-# 3. Build / pull ------------------------------------------------------------------
-echo
-bold "3/5  Preparing the software (first time: 10–20 minutes)"
-if [ -n "${RESDESK_IMAGE:-}" ]; then
-  docker compose pull || die "Could not download ${RESDESK_IMAGE}:${RESDESK_TAG:-latest}"
+if [ "$MODE" = native ]; then
+  # 3–4. Native: system packages, bench, site (see scripts/install-native.sh) -------------
+  echo
+  bold "3–4/5  Installing on this computer (first time: 15–30 minutes)"
+  YES=$YES bash scripts/install-native.sh || die "Native install failed (see messages above). Fix the problem and run ./install.sh --native again; it resumes."
+  set -a; . ./.env; set +a
 else
-  docker compose build || die "Build failed. Check your internet connection and run ./install.sh again."
-fi
-docker compose pull db redis-cache redis-queue meilisearch --quiet 2>/dev/null || true
-ok "Images ready"
+  if [ "${DEV_MODE:-0}" = 1 ] && [ -z "${COMPOSE_FILE:-}" ]; then
+    export COMPOSE_FILE=compose.yaml:compose.dev.yaml
+    ok "Developer mode is on (code runs live from this folder)"
+  fi
 
-# 4. Start ---------------------------------------------------------------------------
-echo
-bold "4/5  Starting services and creating the site"
-docker compose up -d
-printf "  waiting for site setup"
-for _ in $(seq 1 180); do
-  CID=$(docker compose ps -a -q create-site 2>/dev/null || true)
-  STATE=$( [ -n "$CID" ] && docker inspect -f '{{.State.Status}} {{.State.ExitCode}}' "$CID" 2>/dev/null || echo "none")
-  case "$STATE" in
-    "exited 0") echo; ok "Site ready"; break ;;
-    exited*)    echo; docker compose logs --tail 40 create-site; die "Site setup failed (see log above)." ;;
-  esac
-  printf "."; sleep 5
-done
+  # 3. Build / pull ------------------------------------------------------------------
+  echo
+  bold "3/5  Preparing the software (first time: 10–20 minutes)"
+  if [ -n "${RESDESK_IMAGE:-}" ]; then
+    docker compose pull || die "Could not download ${RESDESK_IMAGE}:${RESDESK_TAG:-latest}"
+  else
+    docker compose build || die "Build failed. Check your internet connection and run ./install.sh again."
+  fi
+  docker compose pull db redis-cache redis-queue meilisearch --quiet 2>/dev/null || true
+  ok "Images ready"
+
+  # 4. Start ---------------------------------------------------------------------------
+  echo
+  bold "4/5  Starting services and creating the site"
+  docker compose up -d
+  printf "  waiting for site setup"
+  for _ in $(seq 1 180); do
+    CID=$(docker compose ps -a -q create-site 2>/dev/null || true)
+    STATE=$( [ -n "$CID" ] && docker inspect -f '{{.State.Status}} {{.State.ExitCode}}' "$CID" 2>/dev/null || echo "none")
+    case "$STATE" in
+      "exited 0") echo; ok "Site ready"; break ;;
+      exited*)    echo; docker compose logs --tail 40 create-site; die "Site setup failed (see log above)." ;;
+    esac
+    printf "."; sleep 5
+  done
+fi
 
 printf "  waiting for the web server"
 for _ in $(seq 1 60); do
-  if curl -fsS -o /dev/null "http://localhost:${HTTP_PORT}/library"; then echo; ok "Web server is up"; break; fi
+  if curl -fs -o /dev/null "http://localhost:${HTTP_PORT}/library"; then echo; ok "Web server is up"; break; fi
   printf "."; sleep 3
 done
 
@@ -151,8 +192,10 @@ cat <<EOF
   Admin (Desk):      http://localhost:${HTTP_PORT}/app/research-desk
   Login:             Administrator
   Password:          ${ADMIN_PASSWORD}      (also in the .env file)
+  Running as:        ${MODE}$( [ "$MODE" = native ] && echo " (bench at ${BENCH_DIR:-~/researchdesk-bench})" )
 
   Next steps:
+    • Add your logo:          Desk → Research Desk → Settings → Logo & Branding
     • Choose what to ingest:  Desk → Research Desk → Ingest Profiles
     • Or from the terminal:   ./resdesk.sh count  --collection ServantsOfKnowledge --filter "language:kan"
                               ./resdesk.sh ingest --collection ServantsOfKnowledge --filter "language:kan" --limit 100

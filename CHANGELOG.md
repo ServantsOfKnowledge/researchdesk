@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.0 (2026-09-29): native install and upgrades
+
+- `./install.sh --native` (or choose at the prompt): installs MariaDB, Redis, Meilisearch,
+  Python 3.14 (uv), Node 24 (nvm) and a Frappe v16 bench linked to the checkout, on macOS
+  (Homebrew) or Ubuntu/Debian (apt). Idempotent; tested on a clean Ubuntu 24.04
+- Native runtime: gunicorn with static files and default-site routing
+  (`sok_resdesk.native_wsgi`), Meilisearch and extra workers in the bench Procfile;
+  `./resdesk.sh` start/stop/status/logs/workers/backup/restore/dev/uninstall work natively
+- `./upgrade.sh`: check, backup, fetch a release/tag/main, update Frappe patch releases,
+  migrate, re-apply index settings, restart, health check, rollback instructions, logs
+- The installer asks for the book folder (`LIBRARY_DIR`); `/library-source` maps to it natively
+
 ## 0.3.0 (2026-09-29): your own folders and servers, logo
 
 - New ingest source **Folder or Server**: IA-style item folders on a local disk, USB/NAS mount

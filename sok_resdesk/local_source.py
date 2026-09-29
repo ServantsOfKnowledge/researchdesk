@@ -22,15 +22,29 @@ DEFAULT_ROOT = "/library-source"
 SECTION_CHARS = 3000
 
 
+def library_dir() -> str:
+	"""Where /library-source really is: the Docker mount, or LIBRARY_DIR on a native install."""
+	return frappe.conf.get("resdesk_library_dir") or DEFAULT_ROOT
+
+
 def library_roots() -> list[str]:
-	roots = frappe.conf.get("resdesk_library_roots") or [DEFAULT_ROOT]
+	roots = frappe.conf.get("resdesk_library_roots") or []
 	if isinstance(roots, str):
 		roots = [roots]
-	return [os.path.realpath(r) for r in roots]
+	return [os.path.realpath(r) for r in [library_dir(), *roots]]
+
+
+def resolve_location(path: str) -> str:
+	"""Profiles always say /library-source/...; map it to the real folder on native installs."""
+	path = path.strip()
+	real_dir = library_dir()
+	if real_dir != DEFAULT_ROOT and (path == DEFAULT_ROOT or path.startswith(DEFAULT_ROOT + "/")):
+		return real_dir.rstrip("/") + path[len(DEFAULT_ROOT):]
+	return path
 
 
 def check_folder_allowed(path: str) -> str:
-	real = os.path.realpath(path)
+	real = os.path.realpath(resolve_location(path))
 	for root in library_roots():
 		if real == root or real.startswith(root + os.sep):
 			return real

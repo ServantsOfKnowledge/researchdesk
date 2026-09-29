@@ -48,14 +48,38 @@ Restarting workers (`./resdesk.sh restart`, `update`, a reboot) stops batches th
 progress. The run is marked *Interrupted* within a couple of hours. Run the profile again and
 already-ingested books are skipped.
 
-## Updating
+## Upgrading
 
 ```bash
-./resdesk.sh update
+./upgrade.sh --check      # is there a newer release? shows what changed
+./upgrade.sh              # upgrade to the latest release (asks first)
+./upgrade.sh v0.4.0       # a specific release, forwards or backwards
+./upgrade.sh --main       # follow the main branch instead of releases
+./upgrade.sh --yes        # no questions, e.g. from cron
 ```
 
-This pulls the latest code, rebuilds (or pulls) the image, restarts, and runs database migrations
-automatically through the `create-site` container.
+(`./resdesk.sh update` does the same.) Each upgrade:
+
+1. **backs up** the database and files into `site-backups/` (skip with `--no-backup`),
+2. **fetches** the new Research Desk code from GitHub,
+3. **updates Frappe** to the newest patch release of v16. Docker rebuilds the image; native
+   updates the bench (skip with `--no-frappe`),
+4. runs **database migrations** and re-applies the search-index settings,
+5. **restarts** and runs a **health check** (portal and search engine).
+
+The portal is offline for a few minutes. Everything is written to `logs/upgrade-<date>.log`. If
+a step fails, the script stops and prints the two commands that put you back where you were:
+checking out the previous version, and restoring the backup it just made.
+
+Local code changes block an upgrade (so nothing is overwritten). Commit or `git stash` them
+first. Releases that change the search index say so at the end. Then run
+`./resdesk.sh reindex --reset --background`.
+
+**Automatic upgrades:** add a weekly cron job, for example Sunday 3 a.m.:
+
+```
+0 3 * * 0  cd /path/to/researchdesk && ./upgrade.sh --yes >> logs/cron-upgrade.log 2>&1
+```
 
 ## Changing settings
 

@@ -29,16 +29,17 @@ anyone else who can open a terminal. It scales to tens of thousands of books on 
 
 ## Quick start (about 20 minutes, mostly waiting)
 
-You need [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Mac or Windows)
-or Docker Engine (Linux), 4 GB of free memory and 10 GB of disk.
-
 ```bash
 git clone https://github.com/ServantsOfKnowledge/researchdesk.git
 cd researchdesk
-./install.sh
+./install.sh              # asks: Docker (recommended) or directly on this computer
+./install.sh --native     # no Docker: macOS (Homebrew) or Ubuntu/Debian (apt)
 ```
 
-The installer checks your computer and asks four questions (you can press Enter to accept
+Docker needs [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Mac or Windows)
+or Docker Engine (Linux). Native needs Homebrew or apt. Either way: 4 GB of free memory and 10 GB of disk.
+
+The installer checks your computer and asks a few questions (you can press Enter to accept
 each default). It then builds everything, creates the site and offers to load 20 sample
 Kannada books. When it finishes it prints:
 
@@ -47,6 +48,13 @@ Portal (public):   http://localhost:8080/library
 Admin (Desk):      http://localhost:8080/app/research-desk
 Login:             Administrator
 Password:          ••••••••    (also in the .env file)
+```
+
+Keep it up to date with one command. It backs up first and rolls back cleanly:
+
+```bash
+./upgrade.sh --check      # anything new?
+./upgrade.sh              # upgrade to the latest release
 ```
 
 ## Choose what to ingest

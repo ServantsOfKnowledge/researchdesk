@@ -128,6 +128,49 @@ The easiest way to keep developing: no Python, MariaDB or Node needed on your co
 `./resdesk.sh dev off` rebuilds the image with the current code and goes back to normal mode.
 Dev mode uses a development web server with a debugger, so **don't use it on a public server**.
 
+## Native install (no Docker)
+
+```bash
+./install.sh --native
+```
+
+For computers where Docker isn't wanted or available. Supported: **macOS** with
+[Homebrew](https://brew.sh), and **Ubuntu 22.04+ / Debian 12+** (needs `sudo`). The installer:
+
+1. installs MariaDB, Redis and Meilisearch (Homebrew or apt; Meilisearch from its GitHub release on Linux),
+2. installs Python 3.14 with [uv](https://docs.astral.sh/uv/), Node 24 with nvm, and `frappe-bench`,
+3. configures MariaDB for Frappe (utf8mb4) and sets its root password from `.env`,
+4. creates a Frappe v16 bench in `~/researchdesk-bench` (change with `BENCH_DIR` in `.env`),
+   **linked to this folder**, so the code you edit here is the code that runs,
+5. creates the site, installs Research Desk and finishes Frappe's setup wizard,
+6. records `INSTALL_MODE=native` in `.env` and starts everything.
+
+Everything then runs from the bench's `Procfile`: gunicorn (the web server, on `HTTP_PORT`,
+default 8000), background workers, the scheduler, Redis and Meilisearch. The same
+`./resdesk.sh` commands work (`start`, `stop`, `status`, `ingest`, `backup`, `workers`, …) and so
+does `./upgrade.sh`. Your book folder (`LIBRARY_DIR`) is read directly; ingest profiles still call
+it `/library-source`.
+
+| | Docker | Native |
+|---|---|---|
+| Isolation | everything in containers | installs system packages |
+| Remove cleanly | `./resdesk.sh uninstall` | `./resdesk.sh uninstall` (MariaDB/Redis/Meilisearch stay installed) |
+| Start on boot | automatic (Docker restart policy) | run `./resdesk.sh start` at login, or see below |
+| Best for | most people, servers | machines without Docker, developers who prefer bench |
+
+**Starting on boot (native):** on Linux, add `@reboot cd /path/to/researchdesk && ./resdesk.sh start`
+with `crontab -e`. On macOS, add `resdesk.sh start` to *System Settings → General → Login Items*
+through a small Automator app or a LaunchAgent. For a public Linux server, prefer Docker, or Frappe's
+own `sudo bench setup production` (nginx + supervisor).
+
+`./resdesk.sh dev on` switches the native web server to Frappe's auto-reloading development
+server (with `developer_mode`); `dev off` goes back to gunicorn. Never leave dev mode on for a
+machine others can reach: it includes an interactive debugger.
+
+> Tested on a clean Ubuntu 24.04. The macOS path uses the same steps through Homebrew. If a
+> step fails, the installer stops with the reason; fix it and run `./install.sh --native` again.
+> Finished steps are skipped.
+
 ## Developer setup (bench)
 
 For working on the code with live reload. You need Python 3.14, Node 24 with yarn,
@@ -141,6 +184,17 @@ cd ~/frappe-bench && bench start
 
 The script creates a bench (Frappe `version-16`), links this repository into `apps/`,
 creates a site with `developer_mode`, and prints next steps. See [Development](development.md).
+
+## Upgrading
+
+```bash
+./upgrade.sh --check      # is there a newer release? shows what changed
+./upgrade.sh              # latest release
+./upgrade.sh v0.4.0       # a specific release (also how you roll back)
+./upgrade.sh --main       # newest code on the main branch
+```
+
+See [Operations → Upgrading](operations.md#upgrading).
 
 ## Uninstall
 
