@@ -124,6 +124,8 @@ workspace after login. Readers can also sign up themselves, or be added with
 | Citations show `localhost` links on a server | set `BASE_URL` (see [Installation](installation.md#docker-on-a-server-with-a-domain-name-and-https)) |
 | Forgot the admin password | `./resdesk.sh password` |
 | Desk looks broken after an update | `./resdesk.sh bench clear-cache`, then hard-refresh the browser |
+| `upgrade.sh` stops at the backup | it prints why (usually Docker, or the database not starting). With a recent backup already in `site-backups/`, run `./upgrade.sh --no-backup` |
+| Containers won't start after an upgrade | `docker compose ps -a` and `docker compose logs --tail 50 create-site backend`. Common causes: Docker Desktop out of disk (*Settings → Resources*, or `docker system prune`), `LIBRARY_DIR` pointing at a folder Docker Desktop can't share (*Settings → Resources → File sharing*), or another program using `HTTP_PORT` |
 | `upgrade.sh` stopped half way | read the log it names (`logs/upgrade-*.log`); run the rollback commands it printed, or fix the cause and run `./upgrade.sh` again (it is safe to repeat) |
 | `upgrade.sh` says there are local code changes | `git stash`, upgrade, then `git stash pop` (or discard them) |
 | Native: `./resdesk.sh start` returns but the portal doesn't answer | `./resdesk.sh logs` (bench and web logs are in the bench folder, `~/researchdesk-bench/logs`) |

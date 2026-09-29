@@ -123,13 +123,33 @@ case "$cmd" in
   migrate)  bench migrate ;;
 
   backup)
-    bench backup --with-files
     mkdir -p site-backups
     if [ "$MODE" = native ]; then
+      bench backup --with-files
       cp -p "$BENCH_DIR/sites/$SITE/private/backups/"* site-backups/
     else
-      CID=$(docker compose ps -q backend)
-      docker cp "$CID:/home/frappe/frappe-bench/sites/$SITE/private/backups/." site-backups/
+      # Only the database is needed, so this works even when the web containers won't start.
+      docker compose up -d db redis-cache redis-queue
+      printf "Waiting for the database"
+      for _ in $(seq 1 60); do
+        DB_CID=$(docker compose ps -q db 2>/dev/null || true)
+        [ -n "$DB_CID" ] && [ "$(docker inspect -f '{{.State.Health.Status}}' "$DB_CID" 2>/dev/null)" = healthy ] && break
+        printf "."; sleep 3
+      done
+      echo
+      [ "$(docker inspect -f '{{.State.Health.Status}}' "${DB_CID:-none}" 2>/dev/null)" = healthy ] \
+        || { docker compose logs --tail 30 db; echo "The database container is not healthy (see above), so no backup was made."; exit 1; }
+      if [ -n "$(docker compose ps -q --status running backend 2>/dev/null)" ]; then
+        run_in() { docker compose exec -T backend "$@"; }
+      else
+        echo "The backend container isn't running; making the backup with a one-off container."
+        run_in() { docker compose run --rm --no-deps -T backend "$@"; }
+      fi
+      run_in bench --site "$SITE" backup --with-files
+      DIR="sites/$SITE/private/backups"
+      for f in $(run_in bash -c "cd $DIR && ls -t | head -4"); do
+        run_in cat "$DIR/$f" > "site-backups/$f"
+      done
     fi
     echo "Backups copied to ./site-backups (search index is rebuilt with: ./resdesk.sh reindex)" ;;
 

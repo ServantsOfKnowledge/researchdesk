@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.1 (2026-09-30): upgrade fixes
+
+- `./upgrade.sh` no longer hangs silently at the backup step: the backup needs only the
+  database, so it works even when the web containers won't start (it uses a one-off container),
+  shows its progress, and stops with the reason and a `--no-backup` hint if it can't finish
+- When Docker can't start the containers, or the migration container never starts, the upgrade
+  stops within two minutes and prints each container's state and last log lines, instead of
+  waiting 15 minutes
+- `./resdesk.sh backup` uses the same approach
+
 ## 0.5.0 (2026-09-30): members-only books and reader accounts
 
 - Each book has **Who can see it**: *Public*, *Login to read* (find and cite openly; reading,

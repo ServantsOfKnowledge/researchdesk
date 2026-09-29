@@ -99,8 +99,18 @@ trap 'rollback_hint' ERR
 # -- 1. backup -----------------------------------------------------------------------------
 bold "1/5  Backup"
 if [ "$BACKUP" = 1 ]; then
-  ./resdesk.sh start >/dev/null 2>&1 || true
-  ./resdesk.sh backup >/dev/null
+  if [ "$MODE" = native ]; then ./resdesk.sh start || true; fi
+  trap - ERR; set +e
+  ./resdesk.sh backup 2>&1 | sed 's/^/    /'
+  rc=${PIPESTATUS[0]}
+  set -e; trap 'rollback_hint' ERR
+  if [ "$rc" != 0 ]; then
+    trap - ERR
+    warn "The backup failed (details above), so nothing was changed."
+    echo "      Fix the problem shown, or if you already have a recent backup in site-backups/,"
+    echo "      run again without one:  ./upgrade.sh --no-backup"
+    exit 1
+  fi
   BACKUP_FILE="$(ls -t site-backups/*-database.sql.gz 2>/dev/null | head -1)"
   ok "Saved ${BACKUP_FILE:-site-backups/}"
 else
@@ -163,17 +173,26 @@ else
   docker compose pull db redis-cache redis-queue meilisearch --quiet 2>/dev/null || true
   ok "Images ready"
   bold "4/5  Restart and migrate"
-  docker compose up -d --remove-orphans
+  show_containers() {
+    echo; docker compose ps -a --format 'table {{.Service}}\t{{.State}}\t{{.Status}}' || true
+    for s in configurator create-site backend; do
+      echo "  --- last lines from $s:"; docker compose logs --no-color --tail 25 "$s" 2>&1 | sed 's/^/    /' || true
+    done
+  }
+  docker compose up -d --remove-orphans || { warn "Docker could not start the containers (the error is above)."; show_containers; false; }
   printf "  waiting for migrations"
-  for _ in $(seq 1 180); do
+  MIGRATED=0
+  for i in $(seq 1 180); do
     CID=$(docker compose ps -a -q create-site 2>/dev/null || true)
     STATE=$( [ -n "$CID" ] && docker inspect -f '{{.State.Status}} {{.State.ExitCode}}' "$CID" 2>/dev/null || echo none)
     case "$STATE" in
-      "exited 0") echo; ok "Database migrated"; break ;;
+      "exited 0") echo; ok "Database migrated"; MIGRATED=1; break ;;
       exited*) echo; docker compose logs --tail 40 create-site; false ;;
+      created*|none) [ "$i" -gt 24 ] && { echo; warn "The migration container never started."; show_containers; false; } ;;
     esac
     printf "."; sleep 5
   done
+  [ "$MIGRATED" = 1 ] || { echo; warn "Migrations are still running after 15 minutes."; show_containers; false; }
   ./resdesk.sh bench execute sok_resdesk.search.setup_indexes >/dev/null || warn "Search index settings will be applied on the next ingest"
 fi
 
