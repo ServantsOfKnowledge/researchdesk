@@ -33,7 +33,14 @@
 └──────────────────────────────────────────────┼────────────────────────────────────┘
                                                ▼
                          archive.org: scrape API · metadata API · hOCR search text
+                         your folders / web server: meta.xml · OCR text · PDF
 ```
+
+**Native installs** run the same processes without containers: `bench start` (honcho) runs
+gunicorn (`sok_resdesk.native_wsgi`, which also serves `/assets` and picks the default site),
+Socket.IO, the scheduler, the queue workers and Meilisearch from a Procfile in
+`~/researchdesk-bench`; MariaDB and Redis come from Homebrew or apt. The app folder is
+symlinked into the bench, so `./upgrade.sh` updates code in one place for both modes.
 
 ## Data model (DocTypes, module *ResDesk*)
 

@@ -1,6 +1,6 @@
 # Roadmap
 
-## v0.1: proof of concept (this release)
+## v0.1: proof of concept (done)
 
 - [x] Ingest from the Internet Archive by collection, query or identifier list
 - [x] Metadata normalisation (languages, years, creators, subjects, romanised forms)
@@ -11,7 +11,17 @@
 - [x] OAI-PMH 2.0 provider (oai_dc, marc21) and MARCXML export for Koha
 - [x] One-command Docker installer, CLI, scheduled ingests, CI running the installer
 
-## v0.2: better for researchers
+## v0.2 – v0.4: scale, your own books, easier running (done)
+
+- [x] Parallel ingest across workers, page-text cache, measured to 50,000 books on one server
+- [x] Docker developer mode (run code from your checkout)
+- [x] Ingest IA-style item folders from disk, NAS or a web server; drop-folder mode with change detection
+- [x] Stream local PDFs; check whether each local item already exists on archive.org
+- [x] Library logo, favicon and home-page banner from the admin Settings
+- [x] Native install (macOS/Homebrew, Ubuntu/Debian) without Docker
+- [x] `upgrade.sh`: backup, upgrade to a release or main, migrate, health check, rollback hints
+
+## v0.5: better for researchers
 
 - [ ] Romanised ↔ Kannada query transliteration (type `vachana`, match ವಚನ) for all Indic scripts
 - [ ] Phrase search, boolean operators and "near" in the portal
@@ -20,12 +30,12 @@
 - [ ] Persistent identifiers (ARK/Handle/DOI) for portal records
 - [ ] Portal UI in Kannada and other languages (Frappe translations)
 
-## v0.3: better data
+## v0.6: better data
 
 - [ ] Re-OCR pipeline for poor scans (Tesseract/other engines with trained Kannada models), replacing IA text in the index
 - [ ] Authority control: reconcile creators with VIAF/Wikidata; subjects with LCSH/Sears
 - [ ] Cataloguer review queue for flagged records (no year, unknown language, duplicate titles)
-- [ ] More sources: Wikisource, DSpace/OAI-PMH repositories, local PDF uploads with OCR
+- [ ] More sources: Wikisource, DSpace/OAI-PMH repositories, bare PDFs with no OCR (run OCR on ingest)
 
 ## v1.0: library-grade
 

@@ -4,12 +4,16 @@
 
 ```
 researchdesk/
-├── install.sh              one-command Docker installer
-├── resdesk.sh              everyday commands (wraps docker compose + bench)
+├── install.sh              one-command installer (asks: Docker or native)
+├── upgrade.sh              backup → new code → migrate → restart → health check
+├── resdesk.sh              everyday commands (docker compose or the native bench)
 ├── compose.yaml            full stack
 ├── compose.dev.yaml        developer mode: mounts this folder into the containers
 ├── docker/                 Dockerfile, entrypoint, gunicorn start, create-site
-├── scripts/dev-setup.sh    native bench setup for developers
+├── scripts/
+│   ├── install-native.sh   native install: packages, Python 3.14 (uv), Node 24 (nvm), bench, site
+│   ├── native-procfile.sh  Procfile for native runs (gunicorn, Meilisearch, extra workers)
+│   └── dev-setup.sh        bench setup for developers
 ├── docs/                   this documentation
 ├── .github/workflows/      CI (lint, unit, Docker install + integration) and image publishing
 └── sok_resdesk/            the Frappe app
@@ -22,8 +26,10 @@ researchdesk/
     ├── api.py              public API
     ├── oai.py              OAI-PMH endpoint (Frappe store for core/oai.py)
     ├── commands.py         `bench … resdesk` CLI
-    ├── setup.py            roles, defaults, sample profiles, workspace, setup wizard
-    ├── patches/            data migrations between versions
+    ├── setup.py            roles, defaults, sample profiles, setup wizard, branding
+    ├── native_wsgi.py      gunicorn entry point for native installs (static files, default site)
+    ├── patches/            data migrations between versions (listed in patches.txt)
+    ├── resdesk/workspace/  the Research Desk workspace (shipped as a file so migrate keeps it)
     ├── resdesk/doctype/    DocTypes (JSON + controllers + form scripts)
     ├── www/library/        portal pages (index = search, item = book page)
     ├── public/             css/resdesk.css, js/library.js, js/item.js, js/basket.js
@@ -78,6 +84,16 @@ installer breaks for librarians, CI breaks too.
 - Public endpoints: `allow_guest=True`, published records only, rate-limited.
 - No new Python dependencies without a good reason (the app currently needs none beyond Frappe).
 - Every user-visible change: update `docs/` and `CHANGELOG.md`.
+- Data changes between versions go in a patch (`patches/vX_Y/…`, added to `patches.txt`), so
+  `./upgrade.sh` applies them. If a release needs the search index rebuilt, put
+  `NEEDS-REINDEX` in the commit message and `upgrade.sh` tells the admin.
+
+## Releasing
+
+1. Bump `__version__` in `sok_resdesk/__init__.py`; add a `CHANGELOG.md` entry.
+2. Commit, tag and push: `git tag v0.4.1 && git push origin main --tags`.
+3. Installs pick it up with `./upgrade.sh` (latest tag). The Docker image workflow publishes
+   `ghcr.io/servantsofknowledge/researchdesk:<tag>` for prebuilt-image installs.
 
 ## Adding a new source
 

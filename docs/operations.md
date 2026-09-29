@@ -122,5 +122,11 @@ workspace after login.
 | Citations show `localhost` links on a server | set `BASE_URL` (see [Installation](installation.md#docker-on-a-server-with-a-domain-name-and-https)) |
 | Forgot the admin password | `./resdesk.sh password` |
 | Desk looks broken after an update | `./resdesk.sh bench clear-cache`, then hard-refresh the browser |
+| `upgrade.sh` stopped half way | read the log it names (`logs/upgrade-*.log`); run the rollback commands it printed, or fix the cause and run `./upgrade.sh` again (it is safe to repeat) |
+| `upgrade.sh` says there are local code changes | `git stash`, upgrade, then `git stash pop` (or discard them) |
+| Native: `./resdesk.sh start` returns but the portal doesn't answer | `./resdesk.sh logs` (bench and web logs are in the bench folder, `~/researchdesk-bench/logs`) |
+| Native: port 8080, 7700 or a Redis port is taken | another service is using it; stop it, or change `HTTP_PORT`/`MEILI_PORT` in `.env` and run `./install.sh --native` again |
+| Native: MariaDB refuses the root password | re-run `./install.sh --native`; it resets the MariaDB root password to the one in `.env` |
+| Native: "Research Desk" workspace missing from the Desk | `./resdesk.sh migrate` |
 
 Errors from background jobs also appear in Desk → *Error Log*.

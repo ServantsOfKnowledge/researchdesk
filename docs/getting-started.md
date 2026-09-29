@@ -3,7 +3,13 @@
 This guide takes you from nothing to a working research portal with real books. No
 programming is needed; you type a few commands into a terminal.
 
-## 1. Install Docker
+## 1. Install Docker (or skip it)
+
+Research Desk can run in Docker (recommended: everything is kept in one box, easy to remove)
+or **directly on your computer** (macOS with Homebrew, or Ubuntu/Debian). For the native way,
+skip this step and run `./install.sh --native` in step 2; the installer sets up Python,
+Node, MariaDB, Redis and Meilisearch for you. See
+[Installation → Native install](installation.md#native-install-no-docker).
 
 - **Mac / Windows:** install [Docker Desktop](https://www.docker.com/products/docker-desktop/)
   and open it once. In *Settings → Resources*, give it at least **4 GB of memory**.
@@ -82,5 +88,15 @@ then export the whole list, or copy a share link and send it to your students.
 ./resdesk.sh backup      # save a backup into ./site-backups
 ./resdesk.sh help        # everything else
 ```
+
+## 8. Keep it up to date
+
+```bash
+./upgrade.sh --check     # is there a new release?
+./upgrade.sh             # back up, upgrade, migrate, restart and check it all works
+```
+
+If anything goes wrong, the script prints the two commands that take you back to the
+previous version. See [Operations → Upgrading](operations.md#upgrading).
 
 Having trouble? See [Operations → Troubleshooting](operations.md#troubleshooting).

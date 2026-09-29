@@ -17,12 +17,15 @@ Choose a collection, a search or a list of items on archive.org, and Research De
 - work **alongside Koha** and other library systems (OAI-PMH harvesting and MARCXML import),
   or on its own
 - let readers keep a **reading list**, export it as a bibliography, and share it as a link
+- carry **your library's logo and name** on the portal, the admin bar and the browser tab
+- run **in Docker or directly on the computer** (macOS or Ubuntu/Debian), and **upgrade with one
+  command** that backs up first and tells you how to roll back
 
 It's built to install with one command, for librarians, educators, archivists and
 anyone else who can open a terminal. It scales to tens of thousands of books on one server
 ([measured](docs/scaling.md)).
 
-> Status: **proof of concept (v0.3)**. It works end to end and is tested against live
+> Status: **proof of concept (v0.4)**. It works end to end and is tested against live
 > Servants of Knowledge data, but expect changes before 1.0. See [the roadmap](docs/roadmap.md).
 
 ---
@@ -91,7 +94,7 @@ Click **Check Count** to see how many items match, set **Maximum Items**, then *
 ## How it fits together
 
 ```
- archive.org ──(scrape + metadata + OCR text)──▶ Ingest jobs ──▶ Frappe / MariaDB  (catalogue)
+ archive.org / your folders ──(metadata + OCR text)──▶ Ingest jobs ──▶ Frappe / MariaDB  (catalogue)
                                                         │
                                                         └──────▶ Meilisearch       (books + pages)
                                                                         │
@@ -99,6 +102,9 @@ Click **Check Count** to see how many items match, set **Maximum Items**, then *
   Koha, VuFind, aggregators ◀── OAI-PMH / MARCXML
   Zotero, Google Scholar ◀── citation_* meta tags, JSON-LD, COinS
 ```
+
+Books from your own folders or web server (`meta.xml` + OCR text + PDF) go through the same
+pipeline; their PDFs are streamed from your disk.
 
 Scans stay on the Internet Archive and are shown through its reader. Research Desk keeps the
 catalogue and the search index, so a laptop can hold tens of thousands of books.
