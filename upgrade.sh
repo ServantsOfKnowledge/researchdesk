@@ -132,7 +132,7 @@ if [ "$MODE" = native ]; then
       && ok "Frappe $(cd apps/frappe && git describe --tags --abbrev=0 2>/dev/null) ($BR)" \
       || warn "Frappe not updated (local changes or no network); continuing with the current version"
   fi
-  bench setup requirements >/dev/null
+  bench setup requirements frappe >/dev/null   # frappe only: our app has no extra requirements and may have any git remote
   uv pip install --python env/bin/python -e apps/sok_resdesk >/dev/null
   ok "Python and Node packages"
   bold "4/5  Database migrations and assets"
