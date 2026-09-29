@@ -11,6 +11,7 @@
 - `./upgrade.sh`: check, backup, fetch a release/tag/main, update Frappe patch releases,
   migrate, re-apply index settings, restart, health check, rollback instructions, logs
 - The installer asks for the book folder (`LIBRARY_DIR`); `/library-source` maps to it natively
+- The Research Desk workspace ships as an app file, so migrations no longer recreate it
 
 ## 0.3.0 (2026-09-29): your own folders and servers, logo
 
