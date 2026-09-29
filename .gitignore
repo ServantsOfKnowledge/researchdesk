@@ -13,3 +13,4 @@ site/
 # local book folders (keep the README)
 library/*
 !library/README.md
+logs/
