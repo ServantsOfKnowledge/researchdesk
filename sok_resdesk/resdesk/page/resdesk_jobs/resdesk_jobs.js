@@ -2,7 +2,8 @@
 // License: MIT. See LICENSE
 //
 // Background Jobs: everything Research Desk is doing in the background, with controls
-// to stop runs, cancel queued jobs, pause schedules or stop everything at once.
+// to pause and resume runs, hold or cancel queued jobs, pause schedules, pause everything
+// (and carry on later) or stop everything at once.
 
 frappe.pages["resdesk-jobs"].on_page_load = function (wrapper) {
 	const page = frappe.ui.make_app_page({ parent: wrapper, title: __("Background Jobs"), single_column: true });
@@ -27,14 +28,26 @@ class ResDeskJobs {
 
 		page.set_primary_action(__("Stop Everything"), () => this.stop_all(), "stop");
 		page.set_secondary_action(__("Refresh"), () => this.refresh(), "refresh");
+		this.pause_all_btn = page.add_inner_button(__("Pause All"), () => this.toggle_pause_all());
 		this.pause_btn = page.add_inner_button(__("Pause Schedules"), () => this.toggle_pause());
 		page.add_menu_item(__("Rebuild Search Index"), () => frappe.set_route("Form", "RD Settings"));
 		page.add_menu_item(__("All Ingest Runs"), () => frappe.set_route("List", "RD Ingest Run"));
+		page.add_menu_item(__("All Push Runs"), () => frappe.set_route("List", "RD Push Run"));
 		page.add_menu_item(__("Frappe job queue (all apps)"), () => frappe.set_route("List", "RQ Job"));
 
 		this.$body.on("click", "[data-stop-run]", (e) => this.stop_run($(e.currentTarget).data("stop-run"), 0));
 		this.$body.on("click", "[data-kill-run]", (e) => this.stop_run($(e.currentTarget).data("kill-run"), 1));
 		this.$body.on("click", "[data-cancel-job]", (e) => this.cancel_job($(e.currentTarget).data("cancel-job")));
+		this.$body.on("click", "[data-pause-run]", (e) => this.call("pause_run", { run: $(e.currentTarget).data("pause-run") }));
+		this.$body.on("click", "[data-resume-run]", (e) => this.call("resume_run", { run: $(e.currentTarget).data("resume-run") }));
+		this.$body.on("click", "[data-stop-push]", (e) => this.stop_push($(e.currentTarget).data("stop-push")));
+		this.$body.on("click", "[data-hold-job]", (e) => this.call("hold_job", { job_id: $(e.currentTarget).data("hold-job") }));
+		this.$body.on("click", "[data-release]", (e) => this.call("release_held", { keys: JSON.stringify([String($(e.currentTarget).data("release"))]) }));
+		this.$body.on("click", "[data-discard]", (e) =>
+			this.call("release_held", { keys: JSON.stringify([String($(e.currentTarget).data("discard"))]), discard: 1 }, __("Discard this held job? It won't run."))
+		);
+		this.$body.on("click", "[data-release-all]", () => this.call("release_held", {}));
+		this.$body.on("click", "[data-discard-all]", () => this.call("release_held", { discard: 1 }, __("Discard all held jobs? They won't run.")));
 		this.$body.on("click", "[data-cancel-search]", () => this.cancel_search());
 		this.start();
 	}
@@ -102,6 +115,26 @@ class ResDeskJobs {
 		d.show();
 	}
 
+	toggle_pause_all() {
+		if (this.data && this.data.paused_all) {
+			this.call("resume_all", {});
+		} else {
+			this.call(
+				"pause_all",
+				{},
+				__(
+					"Pause everything Research Desk is doing in the background? Runs are paused where they are, waiting jobs are held, schedules are paused and new jobs wait. Nothing is lost: Resume All carries on from the same place."
+				)
+			);
+		}
+	}
+
+	stop_push(run) {
+		frappe.confirm(__("Stop push run {0}? Books already sent stay sent.", [run]), () =>
+			frappe.call({ method: "sok_resdesk.outbound.cancel", args: { run_name: run }, freeze: true, callback: () => this.refresh() })
+		);
+	}
+
 	toggle_pause() {
 		const paused = this.data && this.data.paused;
 		this.call("set_paused", { paused: paused ? 0 : 1 });
@@ -134,6 +167,7 @@ class ResDeskJobs {
 		const d = this.data;
 		const esc = frappe.utils.escape_html;
 		this.pause_btn.text(d.paused ? __("Resume Schedules") : __("Pause Schedules"));
+		this.pause_all_btn.text(d.paused_all ? __("Resume All") : __("Pause All"));
 
 		const pill = (text, color) => `<span class="indicator-pill ${color}">${esc(text)}</span>`;
 		const run_link = (r) => `<a href="/app/rd-ingest-run/${encodeURIComponent(r.name)}">${esc(r.name)}</a>`;
@@ -143,10 +177,12 @@ class ResDeskJobs {
 		const summary = `
 			<div class="rdj-summary">
 				<div><b>${d.active_runs.length}</b><span>${__("ingest runs active")}</span></div>
+				<div><b>${d.push_runs.length}</b><span>${__("push runs active")}</span></div>
 				<div><b>${d.jobs.filter((j) => j.state === "running").length}</b><span>${__("jobs running")}</span></div>
 				<div><b>${d.jobs.filter((j) => j.state === "queued").length}</b><span>${__("jobs waiting")}</span></div>
 				<div><b>${d.workers}</b><span>${__("workers")}</span></div>
 				<div><b>${d.search.pending || 0}</b><span>${__("search-engine tasks")}</span></div>
+				<div><b>${d.held.length}</b><span>${__("jobs held")}</span></div>
 				<div>${d.paused ? pill(__("Schedules paused"), "orange") : pill(__("Schedules on"), "green")}</div>
 			</div>`;
 
@@ -156,9 +192,16 @@ class ResDeskJobs {
 						(r) => `
 				<div class="rdj-run">
 					<div class="rdj-run__head">
-						${run_link(r)} · <b>${esc(r.profile || "")}</b> ${pill(r.status, r.status === "Running" ? "blue" : "orange")}
+						${run_link(r)} · <b>${esc(r.profile || "")}</b> ${pill(r.status, { Running: "blue", Paused: "orange" }[r.status] || "gray")}
 						<span class="text-muted">${esc(r.triggered_by || "")} · ${__("started")} ${ago(r.started_on || r.creation)}</span>
 						<span class="rdj-run__actions">
+							${
+								r.status === "Paused"
+									? d.paused_all
+										? ""
+										: `<button class="btn btn-xs btn-primary" data-resume-run="${esc(r.name)}">${__("Resume")}</button>`
+									: `<button class="btn btn-xs btn-default" data-pause-run="${esc(r.name)}">${__("Pause")}</button>`
+							}
 							<button class="btn btn-xs btn-default" data-stop-run="${esc(r.name)}">${__("Stop")}</button>
 							<button class="btn btn-xs btn-danger" data-kill-run="${esc(r.name)}">${__("Stop now")}</button>
 						</span>
@@ -173,7 +216,7 @@ class ResDeskJobs {
 				</div>`
 					)
 					.join("")
-			: `<p class="text-muted">${__("No ingest is running.")}</p>`;
+			: `<p class="text-muted">${__("No ingest is running or paused.")}</p>`;
 
 		const jobs = d.jobs_error
 			? `<p class="text-danger">${esc(d.jobs_error)}</p>`
@@ -185,15 +228,71 @@ class ResDeskJobs {
 						(j) => `<tr>
 					<td>${esc(j.kind)}<div class="text-muted small">${esc(j.short_id)}</div></td>
 					<td>${j.state === "running" ? pill(__("Running"), "blue") : pill(__("Waiting"), "gray")}</td>
-					<td>${j.run ? `<a href="/app/rd-ingest-run/${encodeURIComponent(j.run)}">${esc(j.run)}</a>` : ""}</td>
+					<td>${j.run ? `<a href="/app/${String(j.run).startsWith("PUSH-") ? "rd-push-run" : "rd-ingest-run"}/${encodeURIComponent(j.run)}">${esc(j.run)}</a>` : ""}</td>
 					<td>${j.items || ""}</td>
 					<td class="text-muted small">${ago(j.started_at || j.enqueued_at)}</td>
-					<td class="text-right"><button class="btn btn-xs btn-default" data-cancel-job="${esc(j.id)}">${
+					<td class="text-right">${
+						j.state === "queued" ? `<button class="btn btn-xs btn-default" data-hold-job="${esc(j.id)}">${__("Hold")}</button> ` : ""
+					}<button class="btn btn-xs btn-default" data-cancel-job="${esc(j.id)}">${
 						j.state === "running" ? __("Stop") : __("Cancel")
 					}</button></td></tr>`
 					)
 					.join("")}</tbody></table>`
 			: `<p class="text-muted">${__("Nothing queued. The workers are idle.")}</p>`;
+
+		const push_link = (r) => `<a href="/app/rd-push-run/${encodeURIComponent(r.name)}">${esc(r.name)}</a>`;
+		const pushes = d.push_runs.length
+			? d.push_runs
+					.map((r) => {
+						const done = (r.sent || 0) + (r.unchanged || 0) + (r.skipped || 0) + (r.failed || 0);
+						const p = r.total ? Math.min(100, Math.round((done / r.total) * 100)) : 0;
+						return `<div class="rdj-run">
+					<div class="rdj-run__head">
+						${push_link(r)} · <b>${esc(r.target)}</b> ${pill(r.status, { Running: "blue", Paused: "orange" }[r.status] || "gray")}
+						${r.dry_run ? pill(__("Dry run"), "gray") : ""}
+						<span class="text-muted">${esc(r.triggered_by || "")} · ${ago(r.creation)}</span>
+						<span class="rdj-run__actions">
+							${
+								r.status === "Paused"
+									? d.paused_all
+										? ""
+										: `<button class="btn btn-xs btn-primary" data-resume-run="${esc(r.name)}">${__("Resume")}</button>`
+									: `<button class="btn btn-xs btn-default" data-pause-run="${esc(r.name)}">${__("Pause")}</button>`
+							}
+							<button class="btn btn-xs btn-default" data-stop-push="${esc(r.name)}">${__("Stop")}</button>
+						</span>
+					</div>
+					<div class="progress" style="height:8px;margin:6px 0"><div class="progress-bar" style="width:${p}%"></div></div>
+					<div class="text-muted small">${done} / ${r.total || "?"} ${__("books")} · ${r.sent || 0} ${r.dry_run ? __("would be sent") : __("sent")},
+						${r.unchanged || 0} ${__("unchanged")}, ${r.skipped || 0} ${__("skipped")}, ${r.failed || 0} ${__("failed")}</div>
+				</div>`;
+					})
+					.join("")
+			: `<p class="text-muted">${__("No metadata push is running or paused.")}</p>`;
+
+		const held = d.held.length
+			? `<table class="table table-sm rdj-table"><tbody>${d.held
+					.map(
+						(h) => `<tr><td>${esc(h.kind)}<div class="text-muted small">${esc(h.job_id || "")}</div></td>
+					<td>${h.run ? esc(h.run) : ""}</td><td class="text-muted small">${__("held")} ${ago(h.held_on)}</td>
+					<td class="text-right">${
+						d.paused_all ? "" : `<button class="btn btn-xs btn-default" data-release="${esc(h.key)}">${__("Release")}</button> `
+					}<button class="btn btn-xs btn-default" data-discard="${esc(h.key)}">${__("Discard")}</button></td></tr>`
+					)
+					.join("")}</tbody></table>
+				${
+					d.paused_all
+						? `<p class="text-muted small">${__("These run again when you press Resume All.")}</p>`
+						: `<button class="btn btn-xs btn-default" data-release-all>${__("Release all")}</button>`
+				}
+				<button class="btn btn-xs btn-default" data-discard-all>${__("Discard all")}</button>`
+			: `<p class="text-muted">${__("No jobs on hold. Use Hold on a waiting job, or Pause All, to keep jobs for later.")}</p>`;
+
+		const banner = d.paused_all
+			? `<div class="alert alert-warning">${__(
+					"Everything is paused: runs keep their place, waiting jobs are held, and new jobs wait. Press <b>Resume All</b> to carry on."
+			  )}</div>`
+			: "";
 
 		const schedules = d.schedules.length
 			? `<table class="table table-sm rdj-table"><tbody>${d.schedules
@@ -250,9 +349,12 @@ class ResDeskJobs {
 				.rdj-run__actions { margin-left:auto; display:flex; gap:6px; }
 				.rdj-table td, .rdj-table th { vertical-align: middle; }
 			</style>
+			${banner}
 			${summary}
 			<div class="rdj-card"><h4>${__("Ingest runs in progress")}</h4>${active}</div>
+			<div class="rdj-card"><h4>${__("Metadata pushes in progress")}</h4>${pushes}</div>
 			<div class="rdj-card"><h4>${__("Background jobs (Research Desk)")}</h4>${jobs}</div>
+			<div class="rdj-card"><h4>${__("Held jobs")}</h4>${held}</div>
 			<div class="rdj-card"><h4>${__("Scheduled ingests")}</h4>${schedules}</div>
 			<div class="rdj-card"><h4>${__("Search engine")}</h4>${search}</div>
 			<div class="rdj-card"><h4>${__("Recent runs")}</h4>${recent}</div>

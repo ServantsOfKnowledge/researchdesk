@@ -12,6 +12,7 @@ from frappe.utils import cint
 from sok_resdesk.catalogue import settings
 from sok_resdesk.core import access as core
 from sok_resdesk.core.access import LOGIN_TO_FIND, LOGIN_TO_READ, PUBLIC, VISIBILITIES  # noqa: F401
+from sok_resdesk.holding import hold_when_paused
 
 READER_ROLE = "ResDesk Reader"
 STAFF_ROLES = ("System Manager", "ResDesk Manager", "ResDesk Cataloguer")
@@ -116,6 +117,7 @@ def _check_visibility(visibility: str) -> str:
 	return visibility
 
 
+@hold_when_paused("long")
 def apply_visibility(names: list[str], visibility: str, set_by: str = "Bulk", wait: bool = False) -> int:
 	"""Set visibility on many items at once, in the database and in both search indexes."""
 	_check_visibility(visibility)
@@ -284,6 +286,7 @@ def _rule_records() -> dict[str, dict]:
 	return records
 
 
+@hold_when_paused("long")
 def recompute(include_manual: bool = False) -> dict:
 	"""Re-apply the profiles, rules and default to books already in the catalogue."""
 	rows = frappe.db.sql(

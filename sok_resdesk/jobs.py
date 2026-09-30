@@ -9,8 +9,10 @@ import frappe
 from frappe import _
 from frappe.utils import cint, now_datetime
 
+from sok_resdesk import holding
+
 MANAGERS = ("System Manager", "ResDesk Manager")
-ACTIVE = ("Queued", "Running")
+ACTIVE = ("Queued", "Running", "Paused")
 
 # what our background jobs are, in plain words
 KINDS = {
@@ -70,6 +72,8 @@ def _rq_jobs() -> list[dict]:
 			out.append({
 				"id": job_id,
 				"short_id": job_id.split("||", 1)[-1],
+				"timeout": job.timeout if isinstance(job.timeout, int) else None,
+				"args": args,
 				"state": state,
 				"queue": queue.name.split(":")[-1],
 				"kind": KINDS.get(method, method.rsplit(".", 1)[-1]),
@@ -124,12 +128,22 @@ def overview() -> dict:
 							   fields=["name", "schedule", "last_run_on", "last_status"], order_by="name")
 	try:
 		jobs = _rq_jobs()
+		for j in jobs:
+			j.pop("args", None)
 		jobs_error = None
 	except Exception as e:
 		jobs, jobs_error = [], str(e)[:200]
+	push_fields = ["name", "target", "status", "dry_run", "triggered_by", "total", "sent", "unchanged", "skipped",
+				   "failed", "creation", "modified"]
 	return {
 		"now": str(now_datetime())[:19],
 		"paused": cint(frappe.db.get_single_value("RD Settings", "pause_scheduled_ingest")),
+		"paused_all": int(holding.is_paused()),
+		"held": [{"key": h.get("key"), "kind": h.get("kind") or KINDS.get(h["method"], h["method"]),
+				  "held_on": h.get("held_on"), "job_id": h.get("job_id"),
+				  "run": (h.get("kwargs") or {}).get("run_name")} for h in holding.held_jobs()],
+		"push_runs": frappe.get_all("RD Push Run", filters={"status": ("in", ACTIVE)}, fields=push_fields,
+									order_by="creation desc"),
 		"workers": _workers(),
 		"active_runs": active,
 		"recent_runs": recent,
@@ -171,7 +185,8 @@ def _stop_rq(job_id: str, force: bool) -> str:
 def _cancel_run_row(run: str, note: str) -> None:
 	frappe.db.sql(
 		"update `tabRD Ingest Run` set status='Cancelled', finished_on=%s, "
-		"log = right(concat(ifnull(log,''), %s), 200000) where name=%s and status in ('Queued','Running')",
+		"held_work=null, log = right(concat(ifnull(log,''), %s), 200000) "
+		"where name=%s and status in ('Queued','Running','Paused')",
 		(now_datetime(), f"{now_datetime().strftime('%H:%M:%S')} {note}\n", run),
 	)
 	profile = frappe.db.get_value("RD Ingest Run", run, "profile")
@@ -244,7 +259,10 @@ def stop_all(force: int = 0, pause: int = 1, search: int = 0) -> dict:
 	runs = frappe.get_all("RD Ingest Run", filters={"status": ("in", ACTIVE)}, pluck="name")
 	for run in runs:
 		_cancel_run_row(run, f"Stopped by {frappe.session.user} (stop everything)")
-	frappe.db.sql("update `tabRD Push Run` set status='Cancelled' where status in ('Queued','Running')")
+	frappe.db.sql("update `tabRD Push Run` set status='Cancelled', held_items=null, finished_on=%s "
+				  "where status in ('Queued','Running','Paused')", now_datetime())
+	dropped = holding.release(discard=True)  # held jobs are dropped too, and Pause All ends
+	frappe.db.set_single_value("RD Settings", "pause_background", 0)
 	if cint(pause):
 		frappe.db.set_single_value("RD Settings", "pause_scheduled_ingest", 1)
 	frappe.db.commit()
@@ -260,9 +278,186 @@ def stop_all(force: int = 0, pause: int = 1, search: int = 0) -> dict:
 			cancel_search_tasks()
 		except Exception:
 			pass
-	parts = [_("{0} runs cancelled").format(len(runs)), _("{0} queued jobs removed").format(counts["cancelled"])]
+	parts = [_("{0} runs cancelled").format(len(runs)), _("{0} queued jobs removed").format(counts["cancelled"] + dropped)]
 	if cint(force):
 		parts.append(_("{0} running jobs stopped").format(counts["stopped"]))
 	if cint(pause):
 		parts.append(_("schedules paused"))
 	return {"runs": len(runs), **counts, "message": ", ".join(parts) + "."}
+
+
+# -- pausing ------------------------------------------------------------------------------------
+#
+# Pause keeps work instead of throwing it away. An ingest run keeps the books it hasn't done on
+# the run (held_work) and Resume queues them again; running batches stop after their current
+# book. Other jobs are held in RD Settings (see holding.py) and put back in the queue on Resume.
+
+def _run_jobs(run: str) -> list[dict]:
+	return [j for j in _rq_jobs() if j["run"] == run or j["short_id"] == f"resdesk-plan-{run}"
+			or j["short_id"].startswith(f"resdesk-{run}-")]
+
+
+def _pause_ingest(run: str, who: str) -> bool:
+	from sok_resdesk.ingest import _log, _status, hold_work
+
+	if _status(run, lock=True) not in ("Queued", "Running"):
+		frappe.db.rollback()
+		return False
+	frappe.db.sql("update `tabRD Ingest Run` set status='Paused' where name=%s", run)
+	frappe.db.commit()
+	items, plan, batches = [], False, 0
+	for j in _run_jobs(run):
+		if j["state"] != "queued" or _stop_rq(j["id"], False) != "cancelled":
+			continue  # running batches notice the pause after their current book
+		if j["method"].endswith("plan_run"):
+			plan = True
+		else:
+			items += j["args"].get("item_ids") or []
+			batches += 1
+	_status(run, lock=True)
+	hold_work(run, items, plan=plan)
+	frappe.db.sql("update `tabRD Ingest Run` set pending_chunks=greatest(ifnull(pending_chunks,0)-%s,0) where name=%s",
+				  (batches, run))
+	frappe.db.commit()
+	_log(run, f"Paused by {who}: {len(items)} queued books kept" + (", listing not started yet" if plan else ""))
+	frappe.db.set_value("RD Ingest Profile", frappe.db.get_value("RD Ingest Run", run, "profile"), "last_status", "Paused",
+						update_modified=False)
+	frappe.db.commit()
+	return True
+
+
+def _resume_ingest(run: str, who: str) -> int:
+	import json
+
+	from sok_resdesk.catalogue import settings
+	from sok_resdesk.ingest import JOB_TIMEOUT, _finish, _log, _status, enqueue_plan
+
+	if _status(run, lock=True) != "Paused":
+		frappe.db.rollback()
+		return -1
+	raw = frappe.db.get_value("RD Ingest Run", run, "held_work")
+	held = json.loads(raw) if raw else {}
+	items = held.get("items") or []
+	size = max(1, cint(settings().get("batch_size")) or 50)
+	batches = [items[i:i + size] for i in range(0, len(items), size)]
+	frappe.db.sql("update `tabRD Ingest Run` set status=%s, held_work=null, pending_chunks=ifnull(pending_chunks,0)+%s, "
+				  "chunks_total=ifnull(chunks_total,0)+%s where name=%s",
+				  ("Queued" if held.get("plan") else "Running", len(batches), len(batches), run))
+	frappe.db.commit()
+	_log(run, f"Resumed by {who}: {len(items)} books queued again" + (", listing restarted" if held.get("plan") else ""))
+	frappe.db.set_value("RD Ingest Profile", frappe.db.get_value("RD Ingest Run", run, "profile"), "last_status",
+						"Running", update_modified=False)
+	frappe.db.commit()
+	if held.get("plan"):
+		enqueue_plan(run)
+	tag = now_datetime().strftime("%H%M%S")
+	for n, batch in enumerate(batches, 1):
+		frappe.enqueue("sok_resdesk.ingest.run_batch", queue="long", timeout=JOB_TIMEOUT, run_name=run,
+					   item_ids=batch, batch_no=n, job_id=f"resdesk-{run}-r{tag}-{n}")
+	if not held.get("plan") and not batches and not cint(frappe.db.get_value("RD Ingest Run", run, "pending_chunks")):
+		_finish(run)
+	frappe.db.commit()
+	return len(items)
+
+
+@frappe.whitelist()
+def pause_run(run: str) -> dict:
+	"""Pause an ingest or push run. Nothing is lost: Resume carries on where it stopped."""
+	frappe.only_for(MANAGERS)
+	who = frappe.session.user
+	if run.startswith("PUSH-") or frappe.db.exists("RD Push Run", run):
+		from sok_resdesk.outbound import pause_push
+
+		ok = pause_push(run, who)
+	else:
+		ok = _pause_ingest(run, who)
+	if not ok:
+		frappe.throw(_("Run {0} is not running or queued, so it can't be paused.").format(run))
+	return {"message": _("Run {0} paused. Running batches stop after the book they are on; press Resume to carry on.").format(run)}
+
+
+@frappe.whitelist()
+def resume_run(run: str) -> dict:
+	frappe.only_for(MANAGERS)
+	if holding.is_paused():
+		frappe.throw(_("Pause All is on. Press Resume All to carry on with everything."))
+	who = frappe.session.user
+	if run.startswith("PUSH-") or frappe.db.exists("RD Push Run", run):
+		from sok_resdesk.outbound import resume_push
+
+		n = resume_push(run, who)
+	else:
+		n = _resume_ingest(run, who)
+	if n < 0:
+		frappe.throw(_("Run {0} is not paused.").format(run))
+	return {"message": _("Run {0} resumed.").format(run)}
+
+
+@frappe.whitelist()
+def hold_job(job_id: str) -> dict:
+	"""Take one queued job out of the queue and keep it (Held jobs) instead of cancelling it."""
+	frappe.only_for(MANAGERS)
+	job = next((j for j in _rq_jobs() if j["id"] == job_id), None)
+	if not job:
+		frappe.throw(_("That job is not a Research Desk job, or it has already finished."))
+	if job["state"] != "queued":
+		frappe.throw(_("Only waiting jobs can be held. Pause its run instead, or stop the job."))
+	if _stop_rq(job_id, False) != "cancelled":
+		frappe.throw(_("The job started just now; it can't be held any more."))
+	holding.hold(job["method"], job["args"], queue=job["queue"], timeout=job["timeout"], job_id=job["short_id"],
+				 kind=job["kind"])
+	return {"message": _("Job held. Release it from Held jobs when you want it to run.")}
+
+
+@frappe.whitelist()
+def release_held(keys=None, discard: int = 0) -> dict:
+	"""Put held jobs back in the queue (all when keys is empty), or discard them."""
+	frappe.only_for(MANAGERS)
+	keys = frappe.parse_json(keys) if isinstance(keys, str) and keys else keys
+	if not cint(discard) and holding.is_paused():
+		frappe.throw(_("Pause All is on. Press Resume All to carry on with everything."))
+	n = holding.release(list(keys) if keys else None, discard=bool(cint(discard)))
+	return {"message": (_("{0} held jobs discarded.") if cint(discard) else _("{0} held jobs queued again.")).format(n)}
+
+
+@frappe.whitelist()
+def pause_all() -> dict:
+	"""Pause everything: runs are paused, waiting jobs held, schedules paused, and new jobs wait."""
+	frappe.only_for(MANAGERS)
+	who = frappe.session.user
+	schedules_were = cint(frappe.db.get_single_value("RD Settings", "pause_scheduled_ingest"))
+	frappe.db.set_single_value("RD Settings", "pause_background", 1)
+	frappe.db.set_single_value("RD Settings", "pause_scheduled_ingest", 1)
+	frappe.cache.set_value("resdesk:schedules-were-paused", schedules_were)
+	frappe.db.commit()
+	runs = sum(_pause_ingest(r, who) for r in frappe.get_all("RD Ingest Run", filters={"status": ("in", ["Queued", "Running"])}, pluck="name"))
+	from sok_resdesk.outbound import pause_push
+
+	runs += sum(pause_push(r, who) for r in frappe.get_all("RD Push Run", filters={"status": ("in", ["Queued", "Running"])}, pluck="name"))
+	held = 0
+	for j in _rq_jobs():
+		if j["state"] == "queued" and _stop_rq(j["id"], False) == "cancelled":
+			holding.hold(j["method"], j["args"], queue=j["queue"], timeout=j["timeout"], job_id=j["short_id"], kind=j["kind"])
+			held += 1
+	return {"message": _("Paused: {0} runs, {1} waiting jobs held, schedules paused. Jobs already running finish "
+						 "their current step (a few seconds). Press Resume All to carry on.").format(runs, held)}
+
+
+@frappe.whitelist()
+def resume_all() -> dict:
+	frappe.only_for(MANAGERS)
+	who = frappe.session.user
+	frappe.db.set_single_value("RD Settings", "pause_background", 0)
+	was = frappe.cache.get_value("resdesk:schedules-were-paused")
+	frappe.db.set_single_value("RD Settings", "pause_scheduled_ingest", cint(was) if was is not None else 0)
+	frappe.cache.delete_value("resdesk:schedules-were-paused")
+	frappe.db.commit()
+	from sok_resdesk.outbound import resume_push
+
+	runs = 0
+	for r in frappe.get_all("RD Ingest Run", filters={"status": "Paused"}, pluck="name"):
+		runs += _resume_ingest(r, who) >= 0
+	for r in frappe.get_all("RD Push Run", filters={"status": "Paused"}, pluck="name"):
+		runs += resume_push(r, who) >= 0
+	n = holding.release()
+	return {"message": _("Resumed: {0} runs and {1} held jobs are running again.").format(runs, n)}

@@ -28,7 +28,8 @@ researchdesk/
     ├── curation.py         curated collections: membership, rules, counts
     ├── transfer.py         metadata exports and spreadsheet imports
     ├── outbound.py         push runs to other systems, automatic pushes
-    ├── jobs.py             Background Jobs page: see and stop runs and queued jobs
+    ├── jobs.py             Background Jobs page: see, pause, resume and stop runs and queued jobs
+    ├── holding.py          held jobs (Pause All / Hold) and the @hold_when_paused job decorator
     ├── portal.py           helpers for portal pages (collection cards, facet labels)
     ├── api.py              public API
     ├── oai.py              OAI-PMH endpoint (Frappe store for core/oai.py)

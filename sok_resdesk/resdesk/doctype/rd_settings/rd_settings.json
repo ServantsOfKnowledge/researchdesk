@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-09-30 12:00:00.000000",
+ "modified": "2026-10-01 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -39,6 +39,8 @@
   "batch_size",
   "cache_page_text",
   "pause_scheduled_ingest",
+  "pause_background",
+  "held_jobs",
   "access_section",
   "guest_access",
   "default_visibility",
@@ -220,6 +222,21 @@
    "label": "Pause Scheduled Ingests",
    "default": "0",
    "description": "Stops Hourly/Daily/Weekly profiles from starting new runs. Manual runs still work. Also on the Background Jobs page."
+  },
+  {
+   "fieldname": "pause_background",
+   "fieldtype": "Check",
+   "label": "Pause All Background Work",
+   "default": "0",
+   "read_only": 1,
+   "description": "Set from the Background Jobs page: runs are paused and queued jobs held until you press Resume All there."
+  },
+  {
+   "fieldname": "held_jobs",
+   "fieldtype": "Long Text",
+   "label": "Held Jobs",
+   "hidden": 1,
+   "read_only": 1
   },
   {
    "fieldname": "access_section",

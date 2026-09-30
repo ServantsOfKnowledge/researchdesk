@@ -2,6 +2,19 @@ frappe.ui.form.on("RD Push Run", {
 	refresh(frm) {
 		clearTimeout(frm._rd_timer);
 		const active = ["Queued", "Running"].includes(frm.doc.status);
+		const act = (method) =>
+			frappe.call({ method: `sok_resdesk.jobs.${method}`, args: { run: frm.doc.name }, freeze: true }).then((r) => {
+				frappe.show_alert({ message: r.message.message, indicator: "green" }, 7);
+				frm.reload_doc();
+			});
+		if (active) frm.add_custom_button(__("Pause"), () => act("pause_run"));
+		if (frm.doc.status === "Paused") {
+			frm.dashboard.set_headline_alert(__("Paused. Books not yet sent are kept; Resume carries on from here."), "orange");
+			frm.add_custom_button(__("Resume"), () => act("resume_run")).addClass("btn-primary");
+			frm.add_custom_button(__("Cancel"), () =>
+				frappe.call({ method: "sok_resdesk.outbound.cancel", args: { run_name: frm.doc.name } }).then(() => frm.reload_doc())
+			);
+		}
 		if (active) {
 			frm.add_custom_button(__("Cancel"), () =>
 				frappe.call({ method: "sok_resdesk.outbound.cancel", args: { run_name: frm.doc.name } }).then(() => frm.reload_doc())

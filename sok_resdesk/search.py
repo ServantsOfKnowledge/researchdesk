@@ -21,6 +21,7 @@ from frappe.utils import cint, now_datetime
 
 from sok_resdesk.catalogue import item_to_record, settings
 from sok_resdesk.core.normalize import decade_of
+from sok_resdesk.holding import hold_when_paused
 
 BOOK_SETTINGS = {
 	"searchableAttributes": [
@@ -365,6 +366,7 @@ def queue_rebuild(with_pages: int = 1, batch_size: int = 50) -> int:
 	return len(names)
 
 
+@hold_when_paused("long")
 def rebuild_batch(names: list[str], with_pages: int = 1, verbose: bool = False) -> int:
 	from sok_resdesk.ingest import fetch_pages
 

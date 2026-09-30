@@ -16,7 +16,23 @@ frappe.ui.form.on("RD Ingest Run", {
 			clearTimeout(frm._rd_timer);
 			frm._rd_timer = setTimeout(() => frm.reload_doc(), 4000);
 		}
-		if (running && frappe.user.has_role(["System Manager", "ResDesk Manager"])) {
+		const manager = frappe.user.has_role(["System Manager", "ResDesk Manager"]);
+		const act = (method, args) =>
+			frappe.call({
+				method: `sok_resdesk.jobs.${method}`,
+				args,
+				freeze: true,
+				callback: (r) => {
+					frappe.show_alert({ message: r.message.message, indicator: "green" }, 7);
+					frm.reload_doc();
+				},
+			});
+		if (manager && running) frm.add_custom_button(__("Pause"), () => act("pause_run", { run: frm.doc.name }));
+		if (manager && frm.doc.status === "Paused") {
+			frm.dashboard.set_headline_alert(__("Paused. Books not yet processed are kept; Resume carries on from here."), "orange");
+			frm.add_custom_button(__("Resume"), () => act("resume_run", { run: frm.doc.name })).addClass("btn-primary");
+		}
+		if ((running || frm.doc.status === "Paused") && manager) {
 			const stop = (force) =>
 				frappe.call({
 					method: "sok_resdesk.jobs.stop_run",

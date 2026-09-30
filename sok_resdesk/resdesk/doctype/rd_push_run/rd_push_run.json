@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-30 18:00:00.000000",
- "modified": "2026-09-30 18:00:00.000000",
+ "modified": "2026-10-01 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Push Run",
@@ -21,6 +21,7 @@
   "skipped",
   "failed",
   "finished_on",
+  "held_items",
   "section_log",
   "log"
  ],
@@ -38,7 +39,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "Queued\nRunning\nCompleted\nCompleted with Errors\nFailed\nCancelled",
+   "options": "Queued\nRunning\nPaused\nCompleted\nCompleted with Errors\nFailed\nCancelled",
    "default": "Queued",
    "in_list_view": 1,
    "read_only": 1
@@ -96,6 +97,13 @@
    "fieldname": "finished_on",
    "fieldtype": "Datetime",
    "label": "Finished On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "held_items",
+   "fieldtype": "Long Text",
+   "label": "Paused Work",
+   "hidden": 1,
    "read_only": 1
   },
   {

@@ -27,8 +27,9 @@ Choose a collection, a search or a list of items on archive.org, and Research De
   Internet Archive upload files, and **edit many books at once** by importing an edited spreadsheet
 - **push metadata** to the Internet Archive, Koha, Wikidata or any web service (webhook), with a
   dry run first and automatic updates when a book is edited
-- **see and stop background work** from the Desk: every ingest run, queued job and schedule on one
-  page, with Stop, Stop now and Stop Everything
+- **see, pause and stop background work** from the Desk: every ingest run, metadata push, queued
+  job and schedule on one page; pause a run or everything and carry on later, hold single jobs,
+  or stop them
 - run **in Docker or directly on the computer** (macOS or Ubuntu/Debian), and **upgrade with one
   command** that backs up first and tells you how to roll back
 

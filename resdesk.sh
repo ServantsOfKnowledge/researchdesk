@@ -218,7 +218,9 @@ Who can see what (details: docs/access.md)
 Maintenance
   ./resdesk.sh jobs                     what is running in the background (Desk: /app/resdesk-jobs)
   ./resdesk.sh jobs --stop-all [--now]  stop all ingests and queued jobs, pause schedules
-  ./resdesk.sh jobs --stop RUN | --pause | --resume
+  ./resdesk.sh jobs --stop RUN | --pause | --resume      (schedules)
+  ./resdesk.sh jobs --pause-run RUN | --resume-run RUN  pause a run where it is, carry on later
+  ./resdesk.sh jobs --pause-all | --resume-all          pause everything, then carry on
   ./resdesk.sh progress [RUN]           watch an ingest run
   ./resdesk.sh workers <n>              number of parallel ingest workers (default 2)
   ./resdesk.sh reindex [--background] [--no-pages] [--reset]

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.8.0 (2026-09-30): pause and resume background work
+
+- **Pause / Resume** for ingest runs and metadata push runs, on Background Jobs and on each run's
+  form. Waiting batches leave the queue, running ones stop after the current book, and the books
+  not yet done are kept on the run; Resume carries on with exactly those (nothing twice, nothing
+  skipped). A paused scheduled profile doesn't start a second run
+- **Pause All / Resume All**: pauses every run, holds every waiting job, pauses schedules and
+  makes new jobs wait; Resume All puts everything back, schedules as they were
+- **Hold** a single waiting job (re-index batch, export, bulk change) and **Release** or
+  **Discard** it later from the new *Held jobs* section
+- Background Jobs also lists **metadata pushes in progress** with progress and controls
+- Stop Everything now also cancels paused runs and discards held jobs
+- `./resdesk.sh jobs --pause-run RUN | --resume-run RUN | --pause-all | --resume-all`
+
 ## 0.7.0 (2026-09-30): collections, metadata exports and pushing to other systems
 
 After upgrading, run `./resdesk.sh reindex --background` once so the new Collection and

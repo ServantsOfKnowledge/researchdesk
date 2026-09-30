@@ -7,6 +7,7 @@ from frappe import _
 from frappe.utils import cint, now_datetime
 
 from sok_resdesk.core import collections as core
+from sok_resdesk.holding import hold_when_paused
 
 STAFF = ("System Manager", "ResDesk Manager", "ResDesk Cataloguer")
 BACKGROUND_OVER = 200
@@ -32,6 +33,7 @@ def refresh_counts(names: list[str] | None = None) -> None:
 
 # -- changing membership --------------------------------------------------------------------------
 
+@hold_when_paused("long")
 def add_items(collection: str, names: list[str], reindex: bool = True) -> int:
 	"""Add books to a collection (skips books already in it). Returns how many were added."""
 	names = list(dict.fromkeys(n for n in names if n))
@@ -65,6 +67,7 @@ def add_items(collection: str, names: list[str], reindex: bool = True) -> int:
 	return len(added)
 
 
+@hold_when_paused("long")
 def remove_items(collection: str, names: list[str], reindex: bool = True) -> int:
 	names = list(dict.fromkeys(n for n in names if n))
 	removed = []
@@ -119,6 +122,7 @@ def rule_members(collection: str) -> list[str]:
 	return [name for name, rec in records.items() if core.matches({**rec, "item_type": types.get(name)}, rules)]
 
 
+@hold_when_paused("long")
 def apply_rules_now(collection: str) -> int:
 	added = add_items(collection, rule_members(collection))
 	frappe.db.set_value("RD Collection", collection, "rules_applied_on", now_datetime(), update_modified=False)

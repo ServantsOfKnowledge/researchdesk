@@ -28,6 +28,7 @@ from frappe.utils import cint, now_datetime
 from sok_resdesk.catalogue import item_to_record, settings, upsert_item
 from sok_resdesk.core.ia import IAClient, IAError
 from sok_resdesk.core.normalize import normalize_ia_item
+from sok_resdesk.holding import hold_when_paused
 
 RUN = "tabRD Ingest Run"
 JOB_TIMEOUT = 6 * 3600
@@ -230,18 +231,52 @@ def _set_status(run_name: str, status: str) -> None:
 
 
 def _is_cancelled(run_name: str) -> bool:
-	return frappe.db.sql(f"select status from `{RUN}` where name=%s", run_name)[0][0] == "Cancelled"
+	return _status(run_name) == "Cancelled"
 
 
+def _status(run_name: str, lock: bool = False) -> str:
+	return frappe.db.sql(f"select status from `{RUN}` where name=%s{' for update' if lock else ''}", run_name)[0][0]
+
+
+def hold_work(run_name: str, items: list | None = None, plan: bool = False) -> None:
+	"""Keep books a paused run hasn't done yet (call with the run row locked)."""
+	row = frappe.db.sql(f"select held_work from `{RUN}` where name=%s for update", run_name)[0][0]
+	try:
+		held = json.loads(row) if row else {}
+	except ValueError:
+		held = {}
+	held["items"] = (held.get("items") or []) + list(items or [])
+	held["plan"] = bool(held.get("plan") or plan)
+	frappe.db.sql(f"update `{RUN}` set held_work=%s where name=%s", (json.dumps(held), run_name))
+
+
+def _paused_here(run_name: str, remaining: list, batch_no: int, verbose: bool = False) -> bool:
+	"""The run was paused: if it still is (checked under the row lock, so a Resume at the same
+	moment can't be missed), keep the remaining books on the run and stop this batch."""
+	frappe.db.commit()
+	if _status(run_name, lock=True) != "Paused":
+		frappe.db.commit()
+		return False
+	hold_work(run_name, remaining)
+	frappe.db.commit()
+	_log(run_name, f"batch {batch_no}: paused, {len(remaining)} books kept for later", verbose)
+	frappe.db.commit()
+	return True
+
+
+@hold_when_paused("long")
 def plan_run(run_name: str, limit_override: int | None = None, foreground: bool = False,
 			 verbose: bool = False) -> list[list[str]]:
 	"""List what to ingest, split it into batches and queue them (or return them)."""
 	from sok_resdesk.search import MeiliClient, SearchError
 
 	run = frappe.get_doc("RD Ingest Run", run_name)
+	if run.status in ("Cancelled", "Paused"):
+		return []  # stopped or paused before this job started (a paused plan is kept on the run)
 	profile = frappe.get_doc("RD Ingest Profile", run.profile)
 	ia = client()
-	frappe.db.sql(f"update `{RUN}` set status='Running', started_on=%s where name=%s", (now_datetime(), run_name))
+	frappe.db.sql(f"update `{RUN}` set status='Running', started_on=ifnull(started_on, %s) where name=%s",
+				  (now_datetime(), run_name))
 	frappe.db.commit()
 	try:
 		try:
@@ -297,6 +332,13 @@ def plan_run(run_name: str, limit_override: int | None = None, foreground: bool 
 			_finish(run_name, verbose)
 			return []
 		if not foreground:
+			if _status(run_name, lock=True) == "Paused":  # paused while listing: keep it all for Resume
+				hold_work(run_name, ids)
+				frappe.db.sql(f"update `{RUN}` set pending_chunks=0 where name=%s", run_name)
+				_log(run_name, f"paused: {len(ids):,} books kept for later", verbose)
+				frappe.db.commit()
+				return []
+			frappe.db.commit()
 			for n, batch in enumerate(batches, 1):
 				frappe.enqueue(
 					"sok_resdesk.ingest.run_batch", queue="long", timeout=JOB_TIMEOUT, run_name=run_name,
@@ -325,11 +367,14 @@ def run_batch(run_name: str, item_ids: list, batch_no: int = 0, verbose: bool = 
 		from sok_resdesk.local_source import ingest_local_one, open_profile_store
 
 		store = open_profile_store(profile)
-	for entry in item_ids:
+	for pos, entry in enumerate(item_ids):
 		item_id, loc = (entry[0], entry[1]) if isinstance(entry, (list, tuple)) else (entry, None)
 		frappe.db.commit()  # start each item with a fresh snapshot
-		if _is_cancelled(run_name):
+		status = _status(run_name)
+		if status == "Cancelled":
 			_log(run_name, f"batch {batch_no}: cancelled", verbose)
+			break
+		if status == "Paused" and _paused_here(run_name, item_ids[pos:], batch_no, verbose):
 			break
 		error = None
 		for attempt in range(3):
@@ -387,6 +432,8 @@ def _finish(run_name: str, verbose: bool = False) -> None:
 		f"select status, created_count, updated_count, skipped_count, failed_count from `{RUN}` where name=%s",
 		run_name, as_dict=True,
 	)[0]
+	if row.status == "Paused":
+		return  # the last running batch has stopped; the rest waits on the run for Resume
 	status = row.status if row.status == "Cancelled" else ("Completed with Errors" if row.failed_count else "Completed")
 	_log(run_name, f"Done: {row.created_count or 0} new, {row.updated_count or 0} updated, "
 		 f"{row.skipped_count or 0} skipped, {row.failed_count or 0} failed", verbose)
@@ -410,7 +457,7 @@ def _run_scheduled(schedule: str):
 	if cint(frappe.db.get_single_value("RD Settings", "pause_scheduled_ingest")):
 		return  # paused from Background Jobs (or Settings)
 	for name in frappe.get_all("RD Ingest Profile", filters={"enabled": 1, "schedule": schedule}, pluck="name"):
-		running = frappe.db.exists("RD Ingest Run", {"profile": name, "status": ("in", ["Queued", "Running"])})
+		running = frappe.db.exists("RD Ingest Run", {"profile": name, "status": ("in", ["Queued", "Running", "Paused"])})
 		if running:
 			continue
 		run = create_run(frappe.get_doc("RD Ingest Profile", name), "Scheduler")

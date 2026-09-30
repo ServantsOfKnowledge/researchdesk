@@ -16,6 +16,7 @@ from frappe.utils import cint, now_datetime
 
 from sok_resdesk.catalogue import base_url, item_to_record
 from sok_resdesk.core import citations, marc, metaio
+from sok_resdesk.holding import hold_when_paused
 
 STAFF = ("System Manager", "ResDesk Manager", "ResDesk Cataloguer")
 BACKGROUND_OVER = 500
@@ -135,6 +136,7 @@ def start_export(name: str) -> None:
 		run_export(name, names)
 
 
+@hold_when_paused("long")
 def run_export(name: str, names: list[str] | None = None) -> None:
 	doc = frappe.get_doc("RD Export", name)
 	_set(name, status="Running")
@@ -266,6 +268,7 @@ def apply_import(name: str) -> dict:
 	return apply_plan(name, p)
 
 
+@hold_when_paused("long")
 def apply_plan(name: str, p: dict | None = None) -> dict:
 	from sok_resdesk.catalogue import _ensure_creator, _ensure_subject
 	from sok_resdesk.search import SearchError, update_item_fields

@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-09-29 14:00:00.000000",
+ "modified": "2026-10-01 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Ingest Run",
@@ -30,6 +30,7 @@
   "chunks_total",
   "column_break_3",
   "pending_chunks",
+  "held_work",
   "log_section",
   "log"
  ],
@@ -47,7 +48,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "Queued\nRunning\nCompleted\nCompleted with Errors\nFailed\nCancelled\nInterrupted",
+   "options": "Queued\nRunning\nPaused\nCompleted\nCompleted with Errors\nFailed\nCancelled\nInterrupted",
    "default": "Queued",
    "in_list_view": 1,
    "in_standard_filter": 1
@@ -154,6 +155,14 @@
    "fieldtype": "Int",
    "label": "Batches Remaining",
    "read_only": 1
+  },
+  {
+   "fieldname": "held_work",
+   "fieldtype": "Long Text",
+   "label": "Paused Work",
+   "hidden": 1,
+   "read_only": 1,
+   "description": "Books not yet processed when the run was paused (JSON)."
   },
   {
    "fieldname": "log_section",

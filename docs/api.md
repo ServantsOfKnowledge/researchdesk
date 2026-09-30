@@ -91,7 +91,10 @@ indexed pages and search-engine health.
 | `sok_resdesk.access.apply_rules` (`include_manual`) | re-apply profiles, access rules and the default |
 | `sok_resdesk.access.apply_profile` (`profile`) | give a profile's books its visibility |
 | `sok_resdesk.access.decide_requests` (`names`, `status`) | approve or reject reader requests |
-| `sok_resdesk.jobs.overview` | active runs, queued/running jobs, schedules, search-engine tasks |
+| `sok_resdesk.jobs.overview` | active and paused runs (ingest and push), queued/running and held jobs, Pause All state, schedules, search-engine tasks |
+| `sok_resdesk.jobs.pause_run` · `resume_run` (`run`: an ingest run or `PUSH-…`) | pause a run keeping its unfinished books; resume carries on with them |
+| `sok_resdesk.jobs.pause_all` · `resume_all` | pause every run, hold waiting and new jobs, pause schedules; and undo it |
+| `sok_resdesk.jobs.hold_job` (`job_id`) · `release_held` (`keys` JSON list or empty for all, `discard`) | keep one waiting job aside; put held jobs back or drop them |
 | `sok_resdesk.jobs.stop_run` (`run`, `force`) | stop one run and drop its queued batches |
 | `sok_resdesk.jobs.stop_all` (`force`, `pause`, `search`) | stop all Research Desk background work |
 | `sok_resdesk.jobs.cancel_job` (`job_id`) · `set_paused` (`paused`) · `cancel_search_tasks` | single job, schedules, search indexing |

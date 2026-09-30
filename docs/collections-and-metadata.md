@@ -124,8 +124,10 @@ resend everything.
 import), it is pushed within a minute. Books updated by ingest are not pushed automatically;
 run the target after a big ingest instead.
 
-A run stops by itself if 10 books in a row fail (the other system is probably down). Cancel a run
-from its form, or with **Stop Everything** on Background Jobs.
+A run stops by itself if 10 books in a row fail (the other system is probably down). **Pause** a
+run from its form or from Background Jobs (for example while the other system is being upgraded)
+and **Resume** it later: it carries on with the books it hadn't sent. **Cancel** gives up on the
+rest; books already sent stay sent.
 
 ### Internet Archive
 

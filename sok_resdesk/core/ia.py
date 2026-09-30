@@ -38,7 +38,7 @@ class IAClient:
 		self.delay = delay
 		self.timeout = timeout
 		self.session = session or requests.Session()
-		agent = "SoK-ResearchDesk/0.7 (+https://github.com/ServantsOfKnowledge/researchdesk)"
+		agent = "SoK-ResearchDesk/0.8(+https://github.com/ServantsOfKnowledge/researchdesk)"
 		if contact:
 			agent += f" contact:{contact}"
 		self.session.headers["User-Agent"] = agent

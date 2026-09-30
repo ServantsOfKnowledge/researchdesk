@@ -48,24 +48,50 @@ Restarting workers (`./resdesk.sh restart`, `update`, a reboot) stops batches th
 progress. The run is marked *Interrupted* within a couple of hours. Run the profile again and
 already-ingested books are skipped.
 
-## Background jobs: see and stop what is running
+## Background jobs: see, pause and stop what is running
 
 Desk → Research Desk → **Background Jobs** (`/app/resdesk-jobs`) shows everything Research Desk
 is doing in the background and refreshes every 5 seconds:
 
 | Section | Shows | Controls |
 |---|---|---|
-| Summary | active runs, running and waiting jobs, workers, search-engine tasks, schedules on/paused | **Stop Everything**, **Pause / Resume Schedules** |
-| Ingest runs in progress | profile, progress bar, new/updated/failed counts, last progress | **Stop** (after the current book) · **Stop now** |
-| Background jobs | every queued or running ingest batch, re-index batch, bulk visibility or collection change, export, spreadsheet import and push run | **Cancel** / **Stop** per job |
+| Summary | active ingest and push runs, running, waiting and held jobs, workers, search-engine tasks, schedules on/paused | **Pause All / Resume All**, **Pause / Resume Schedules**, **Stop Everything** |
+| Ingest runs in progress | profile, progress bar, new/updated/failed counts, last progress | **Pause / Resume** · **Stop** (after the current book) · **Stop now** |
+| Metadata pushes in progress | target, progress, sent/unchanged/failed, dry run or not | **Pause / Resume** · **Stop** |
+| Background jobs | every queued or running ingest batch, re-index batch, bulk visibility or collection change, export, spreadsheet import and push run | **Hold** (waiting jobs) · **Cancel** / **Stop** |
+| Held jobs | jobs kept aside by Hold or Pause All | **Release** · **Discard** (one or all) |
 | Scheduled ingests | profiles set to Hourly, Daily or Weekly, with their last run | pause them all, or set a profile's Schedule to Manual |
 | Search engine | indexing work Meilisearch still has to do (this is what uses CPU after a big ingest or an upgrade) | **Cancel pending indexing** |
 | Recent runs | the last ten runs and how they ended | |
 
-**Stop Everything** cancels every active ingest and push run and removes every queued Research Desk job. By
-default it also pauses schedules. Tick *immediately* to kill running jobs as well. Books already
-ingested stay in the catalogue, and running a profile again skips them. A job stopped
-immediately may leave the book it was on half-indexed; *Rebuild Search Index* (Settings) fixes that.
+### Pause: stop for now, carry on later
+
+Pausing never throws work away.
+
+- **Pause a run** (ingest or push; also on the run's own form): waiting batches are taken out of
+  the queue and running batches stop after the book they are on. The books not yet done are kept
+  on the run, which shows *Paused*. **Resume** queues exactly those books again, so nothing is
+  processed twice and nothing is skipped. A paused ingest counts as running for its schedule, so
+  the scheduler won't start a second one.
+- **Hold a job**: takes one waiting job (a re-index batch, an export, a bulk change) out of the
+  queue and keeps it under *Held jobs* until you **Release** it (or **Discard** it).
+- **Pause All**: pauses every run, holds every waiting job, pauses schedules, and makes any new
+  job wait too (an export or bulk change started while paused is held as soon as it reaches a
+  worker). Jobs already running finish their current step, a few seconds. The page shows a
+  yellow banner until you press **Resume All**, which resumes the runs, releases the held jobs
+  and puts schedules back the way they were. Use it before a backup, an upgrade, or when the
+  computer is needed for something else.
+
+Held jobs and paused runs are stored in the database, so they survive restarts and upgrades.
+The search engine's own indexing (Meilisearch tasks) can't be paused, only cancelled.
+
+### Stop: give up on the work
+
+**Stop Everything** cancels every active or paused ingest and push run, removes every queued
+Research Desk job and discards held ones. By default it also pauses schedules. Tick
+*immediately* to kill running jobs as well. Books already ingested stay in the catalogue, and
+running a profile again skips them. A job stopped immediately may leave the book it was on
+half-indexed; *Rebuild Search Index* (Settings) fixes that.
 
 **Pause Schedules** stops Hourly/Daily/Weekly profiles from starting new runs (also a checkbox in
 Settings, *Pause Scheduled Ingests*). Manual runs still work.
@@ -73,10 +99,13 @@ Settings, *Pause Scheduled Ingests*). Manual runs still work.
 From the terminal:
 
 ```bash
-./resdesk.sh jobs                    # what is running and waiting
-./resdesk.sh jobs --stop RUN-00042   # stop one run (add --now to kill its running batches)
-./resdesk.sh jobs --stop-all --now   # stop everything at once and pause schedules
-./resdesk.sh jobs --pause            # or --resume
+./resdesk.sh jobs                        # what is running, waiting, paused and held
+./resdesk.sh jobs --pause-run RUN-00042  # pause a run where it is (ingest or PUSH-…)
+./resdesk.sh jobs --resume-run RUN-00042 # carry on
+./resdesk.sh jobs --pause-all            # pause everything; --resume-all to carry on
+./resdesk.sh jobs --stop RUN-00042       # stop one run (add --now to kill its running batches)
+./resdesk.sh jobs --stop-all --now       # stop everything at once and pause schedules
+./resdesk.sh jobs --pause                # pause schedules only; --resume to turn them back on
 ```
 
 Emergency brake that works on any version: `docker compose stop queue scheduler` stops all

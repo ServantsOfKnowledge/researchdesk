@@ -29,7 +29,7 @@
 
 ## v0.6 – v0.7: control, collections and metadata (done)
 
-- [x] Background Jobs page: see and stop ingest runs, queued jobs and schedules
+- [x] Background Jobs page: see, pause, resume and stop ingest and push runs, queued jobs and schedules
 - [x] Curated collections (by hand, in bulk, by rules) with portal pages and OAI-PMH sets
 - [x] Document types; staff edits kept on re-ingest ("Keep My Edits")
 - [x] Metadata exports: spreadsheet, JSON, Dublin Core, MODS, MARCXML, JSON-LD, CSL-JSON, BibTeX, RIS, IA upload files

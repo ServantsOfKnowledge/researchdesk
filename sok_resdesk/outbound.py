@@ -7,6 +7,7 @@ and later runs update rather than duplicate (Koha biblionumber, Wikidata QID).
 
 from __future__ import annotations
 
+import json
 import time
 
 import frappe
@@ -27,6 +28,7 @@ from sok_resdesk.core.push import (
 	payload_hash,
 	wikidata_entity,
 )
+from sok_resdesk.holding import hold_when_paused
 
 MANAGERS = ("System Manager", "ResDesk Manager")
 RUN = "tabRD Push Run"
@@ -206,16 +208,22 @@ def _counts(run_name: str, counts: dict, extra: str = "", values: tuple = ()):
 				  (counts["sent"], counts["unchanged"], counts["skipped"], counts["failed"], *values, run_name))
 
 
-def run(run_name: str, force: int = 0, items: list | None = None) -> None:
+@hold_when_paused("long")
+def run(run_name: str, force: int = 0, items: list | None = None, resume: int = 0) -> None:
 	r = frappe.get_doc("RD Push Run", run_name)
-	if r.status == "Cancelled":
-		return
+	if r.status in ("Cancelled", "Paused"):
+		return  # stopped or paused before this job started
 	t = frappe.get_doc("RD Push Target", r.target)
 	names = items or _books(t)
-	frappe.db.sql(f"update `{RUN}` set status='Running', total=%s where name=%s", (len(names), run_name))
-	_log(run_name, f"{'DRY RUN: ' if r.dry_run else ''}{len(names)} books → {t.target_type} ({t.name})")
+	if resume:
+		counts = {k: cint(r.get(k)) for k in ("sent", "unchanged", "skipped", "failed")}
+		frappe.db.sql(f"update `{RUN}` set status='Running' where name=%s", run_name)
+		_log(run_name, f"carrying on: {len(names)} books left")
+	else:
+		counts = {"sent": 0, "unchanged": 0, "skipped": 0, "failed": 0}
+		frappe.db.sql(f"update `{RUN}` set status='Running', total=%s where name=%s", (len(names), run_name))
+		_log(run_name, f"{'DRY RUN: ' if r.dry_run else ''}{len(names)} books → {t.target_type} ({t.name})")
 	frappe.db.commit()
-	counts = {"sent": 0, "unchanged": 0, "skipped": 0, "failed": 0}
 	failed_in_a_row = 0
 	try:
 		client = _client(t)
@@ -227,11 +235,17 @@ def run(run_name: str, force: int = 0, items: list | None = None) -> None:
 		frappe.db.commit()
 		return
 	for n, item in enumerate(names, 1):
-		if frappe.db.get_value("RD Push Run", run_name, "status") == "Cancelled":
+		status = frappe.db.get_value("RD Push Run", run_name, "status")
+		if status == "Cancelled":
 			_log(run_name, "cancelled")
 			break
+		if status == "Paused" and _paused_here(run_name, names[n - 1:], counts, cint(force)):
+			return
 		try:
 			outcome, msg = push_one(t, client, item, bool(r.dry_run), bool(force))
+			# commit the book's record first: the log line below touches the run row, which a
+			# Pause or Cancel may have changed meanwhile (MariaDB would refuse the older snapshot)
+			frappe.db.commit()
 			counts[outcome] += 1
 			failed_in_a_row = 0
 			if outcome != "unchanged" or len(names) <= 50:
@@ -258,11 +272,72 @@ def run(run_name: str, force: int = 0, items: list | None = None) -> None:
 	frappe.db.commit()
 
 
+def _paused_here(run_name: str, remaining: list, counts: dict, force: int) -> bool:
+	"""Paused mid-run: keep the books not yet sent on the run (checked under the row lock so a
+	Resume at the same moment isn't missed)."""
+	frappe.db.commit()
+	if frappe.db.sql(f"select status from `{RUN}` where name=%s for update", run_name)[0][0] != "Paused":
+		frappe.db.commit()
+		return False
+	_counts(run_name, counts, ", held_items=%s", (json.dumps({"items": remaining, "force": force}),))
+	frappe.db.commit()
+	_log(run_name, f"paused: {len(remaining)} books left for later")
+	frappe.db.commit()
+	return True
+
+
+def pause_push(run_name: str, who: str) -> bool:
+	"""Pause a push run (Background Jobs, the run form). Used by jobs.pause_run / pause_all."""
+	status = frappe.db.sql(f"select status from `{RUN}` where name=%s for update", run_name)
+	if not status or status[0][0] not in ("Queued", "Running"):
+		frappe.db.rollback()
+		return False
+	frappe.db.sql(f"update `{RUN}` set status='Paused' where name=%s", run_name)
+	frappe.db.commit()
+	_log(run_name, f"pause requested by {who}")
+	frappe.db.commit()
+	# a run still waiting in the queue is taken out and started again on Resume
+	from frappe.utils.background_jobs import get_redis_conn
+	from rq.job import Job
+
+	try:
+		job = Job.fetch(f"{frappe.local.site}||resdesk-push-{run_name}", connection=get_redis_conn())
+		if job.get_status() == "queued":
+			args = (job.kwargs or {}).get("kwargs") or {}
+			job.cancel()
+			frappe.db.sql(f"select name from `{RUN}` where name=%s for update", run_name)
+			frappe.db.sql(f"update `{RUN}` set held_items=%s where name=%s",
+						  (json.dumps({"items": args.get("items"), "force": cint(args.get("force")), "fresh": 1}), run_name))
+			frappe.db.commit()
+	except Exception:
+		pass
+	return True
+
+
+def resume_push(run_name: str, who: str) -> int:
+	"""Carry on with a paused push run. Returns the number of books queued, or -1."""
+	row = frappe.db.sql(f"select status, held_items from `{RUN}` where name=%s for update", run_name)
+	if not row or row[0][0] != "Paused":
+		frappe.db.rollback()
+		return -1
+	held = json.loads(row[0][1]) if row[0][1] else {}
+	fresh = cint(held.get("fresh")) or "items" not in held
+	frappe.db.sql(f"update `{RUN}` set status=%s, held_items=null where name=%s", ("Queued" if fresh else "Running", run_name))
+	frappe.db.commit()
+	_log(run_name, f"resumed by {who}")
+	frappe.db.commit()
+	frappe.enqueue("sok_resdesk.outbound.run", queue="long", timeout=12 * 3600, run_name=run_name,
+				   force=cint(held.get("force")), items=held.get("items"), resume=0 if fresh else 1,
+				   job_id=f"resdesk-push-{run_name}")
+	return len(held.get("items") or [])
+
+
 @frappe.whitelist()
 def cancel(run_name: str) -> None:
 	"""Stop a push run: a queued one never starts, a running one stops after its current book."""
 	frappe.only_for(MANAGERS)
-	frappe.db.sql(f"update `{RUN}` set status='Cancelled' where name=%s and status in ('Queued','Running')", run_name)
+	frappe.db.sql(f"update `{RUN}` set status='Cancelled', held_items=null, finished_on=ifnull(finished_on, %s) "
+				  "where name=%s and status in ('Queued','Running','Paused')", (now_datetime(), run_name))
 	_log(run_name, f"cancel requested by {frappe.session.user}")
 	frappe.db.commit()
 	from frappe.utils.background_jobs import get_redis_conn
@@ -290,6 +365,7 @@ def on_item_change(doc, method=None):
 						   job_id=f"resdesk-autopush-{name}-{doc.name}", deduplicate=True, enqueue_after_commit=True)
 
 
+@hold_when_paused("default")
 def auto_push(target: str, item: str):
 	if frappe.db.get_value("RD Push Target", target, "enabled"):
 		_start(target, items=[item], triggered_by="Automatic")

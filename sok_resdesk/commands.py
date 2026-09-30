@@ -347,9 +347,13 @@ def add_reader_cmd(context, email, full_name, no_email):
 @click.option("--now", is_flag=True, help="With --stop/--stop-all: kill running jobs instead of letting them finish the current book")
 @click.option("--pause", is_flag=True, help="Pause scheduled ingests")
 @click.option("--resume", is_flag=True, help="Resume scheduled ingests")
+@click.option("--pause-run", help="Pause this ingest or push run (it keeps its place)")
+@click.option("--resume-run", help="Resume a paused run")
+@click.option("--pause-all", is_flag=True, help="Pause all runs, hold waiting jobs, pause schedules")
+@click.option("--resume-all", is_flag=True, help="Undo --pause-all: everything carries on")
 @pass_context
-def jobs_cmd(context, stop_run, stop_all, now, pause, resume):
-	"""What is running in the background, and stop it."""
+def jobs_cmd(context, stop_run, stop_all, now, pause, resume, pause_run, resume_run, pause_all, resume_all):
+	"""What is running in the background; pause, resume or stop it."""
 	frappe = _connect(context)
 	try:
 		frappe.set_user("Administrator")
@@ -361,16 +365,32 @@ def jobs_cmd(context, stop_run, stop_all, now, pause, resume):
 			click.echo(jobs.stop_all(force=int(now), pause=1)["message"])
 		if pause or resume:
 			click.echo(jobs.set_paused(1 if pause else 0)["message"])
+		if pause_run:
+			click.echo(jobs.pause_run(pause_run)["message"])
+		if resume_run:
+			click.echo(jobs.resume_run(resume_run)["message"])
+		if pause_all:
+			click.echo(jobs.pause_all()["message"])
+		if resume_all:
+			click.echo(jobs.resume_all()["message"])
 		o = jobs.overview()
+		if o["paused_all"]:
+			click.echo("EVERYTHING IS PAUSED (resume with --resume-all)")
 		click.echo(f"Workers: {o['workers']}   Schedules: {'PAUSED' if o['paused'] else 'on'}   "
 				   f"Search-engine tasks pending: {o['search'].get('pending', 0)}")
 		click.echo("\nIngest runs in progress:" if o["active_runs"] else "\nNo ingest running.")
 		for r in o["active_runs"]:
 			click.echo(f"  {r.name}  {r.profile}  {r.status}  {r.processed or 0}/{r.total_found or '?'} books"
 					   f"  ({r.failed_count or 0} failed)  {r.triggered_by}")
+		for r in o["push_runs"]:
+			click.echo(f"  {r.name}  push to {r.target}  {r.status}  {r.total or '?'} books")
 		click.echo("\nQueued / running jobs:" if o["jobs"] else "\nNo Research Desk jobs queued.")
 		for j in o["jobs"]:
 			click.echo(f"  {j['state']:8} {j['kind']:32} {j['short_id']}")
+		if o["held"]:
+			click.echo(f"\nHeld jobs ({len(o['held'])}): released by --resume-all or on the Background Jobs page")
+			for h in o["held"]:
+				click.echo(f"  {h['kind']:32} {h['job_id'] or ''}")
 		if o["schedules"]:
 			click.echo("\nScheduled profiles:")
 			for s in o["schedules"]:
