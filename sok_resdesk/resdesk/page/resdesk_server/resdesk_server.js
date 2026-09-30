@@ -288,7 +288,7 @@ class ResDeskServer {
 				<div><span>${__("Research Desk")}</span><b>v${esc(d.version)}</b>${u.newer ? pill(__("{0} available", [u.latest]), "blue") : ""}</div>
 				<div><span>${__("Frappe")}</span><b>${esc(d.frappe)}</b>${u.frappe_newer ? pill(__("{0} available", [u.frappe_latest]), "blue") : ""}</div>
 				<div><span>${__("Install")}</span><b>${esc(d.mode === "native" ? __("Native") : "Docker")}</b><small class="text-muted">${esc(d.site)}</small></div>
-				<div><span>${__("Health")}</span><b>${bad ? __("{0} problems", [bad]) : __("All good")}</b></div>
+				<div><span>${__("Health")}</span><b>${bad === 1 ? __("1 problem") : bad ? __("{0} problems", [bad]) : __("All good")}</b></div>
 				<div><span>${__("Disk")}</span><b>${d.disk.percent}%</b><small class="text-muted">${gb(d.disk.free)} ${__("free")}</small></div>
 				<div><span>${__("Updater helper")}</span><b>${h.configured ? (h.connected ? __("Connected") : __("Not reporting")) : __("Off")}</b></div>
 			</div>`;

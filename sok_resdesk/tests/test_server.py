@@ -30,13 +30,25 @@ CHANGELOG = """# Changelog
 
 
 class ServerTestCase(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		# what the site knew about releases before these tests, put back afterwards
+		cls._defaults = {k: frappe.db.get_default(k) for k in ("resdesk_updates", "resdesk_update_notified")}
+
+	@classmethod
+	def tearDownClass(cls):
+		for k, v in cls._defaults.items():
+			frappe.db.set_default(k, v or "")
+		frappe.db.commit()
+		super().tearDownClass()
+
 	def setUp(self):
 		frappe.set_user("Administrator")
 		self._conf = mock.patch.dict(frappe.local.conf, {"resdesk_agent_token": TOKEN})
 		self._conf.start()
 		self.addCleanup(self._conf.stop)
 		self._saved = frappe.db.get_singles_dict("RD Settings")
-		self._default = frappe.db.get_default("resdesk_updates")
 		frappe.cache.delete_value(server.AGENT_CACHE)
 		self._tasks = set(frappe.get_all(server.TASK, pluck="name"))
 		# tasks from before the test (a real site's history) wait aside, so they don't count
@@ -56,7 +68,6 @@ class ServerTestCase(IntegrationTestCase):
 			frappe.db.delete(server.TASK, name)
 		for f in ("allow_desk_upgrades", "alert_webhook_url", "alert_email"):
 			frappe.db.set_single_value("RD Settings", f, self._saved.get(f))
-		frappe.db.set_default("resdesk_updates", self._default or "")
 		frappe.cache.delete_value(server.AGENT_CACHE)
 		frappe.db.commit()
 
@@ -272,6 +283,8 @@ class TestBackupsAndLogs(ServerTestCase):
 		check = server._backup_check(frappe.db.get_singles_dict("RD Settings"))
 		self.assertEqual(check["state"], "bad")
 		frappe.db.set_default("resdesk_last_backup", "")
+		frappe.db.delete("Error Log", {"method": "Research Desk: backup failed"})
+		frappe.db.commit()
 
 	def test_logs(self):
 		self.assertIn("rows", server.logs("errors"))
