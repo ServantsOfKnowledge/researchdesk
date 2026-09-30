@@ -18,11 +18,13 @@ There are three ways to run Research Desk:
 | `backend` | Frappe web application (gunicorn) |
 | `websocket` | real-time updates in the Desk |
 | `queue` | background workers (`QUEUE_WORKERS`, default 2): run ingest batches and re-indexing in parallel |
-| `scheduler` | runs scheduled (Daily/Weekly) ingest profiles |
+| `scheduler` | runs scheduled ingest profiles, the daily sync with archive.org, nightly backups, quiet hours and alerts |
 | `db` | MariaDB 11.8: the catalogue |
 | `redis-cache`, `redis-queue` | cache and job queue |
 | `meilisearch` | the search engine: book records and the text of every page |
 | `configurator`, `create-site` | one-off setup steps that run and exit |
+| `monitor` (optional) | read-only view of container CPU and memory for Background Jobs (`./resdesk.sh resources monitor on`) |
+| `updater` (optional) | the updater helper: upgrades, restarts and server backups started from the Server page (`./resdesk.sh updater on`, [Server](server.md#the-updater-helper)) |
 
 Data lives in Docker volumes (`db-data`, `meili-data`, `sites`, …), so stopping or updating
 containers never deletes it. Only `./resdesk.sh uninstall` removes volumes.
@@ -194,7 +196,8 @@ creates a site with `developer_mode`, and prints next steps. See [Development](d
 ./upgrade.sh --main       # newest code on the main branch
 ```
 
-See [Operations → Upgrading](operations.md#upgrading).
+Or from the Desk (Research Desk → Server) with the updater helper on. See
+[Operations → Upgrading](operations.md#upgrading) and [Server](server.md#upgrading-from-the-desk).
 
 ## Uninstall
 

@@ -69,6 +69,12 @@ the home page there.
 The run page shows progress. Each book takes a few seconds: metadata, then the OCR text of
 every page. See [Choosing & ingesting books](ingesting.md) for more ideas.
 
+From then on the profile **keeps itself in step** with archive.org: every day new books added to
+the collection come in, changed ones are refreshed and removed ones are unpublished, and a
+collection page named after it appears on the portal. Check Count also tells you when a
+profile matches more books than this machine has room for (the
+[book limit](server.md#book-limit)).
+
 Books in your own folders (scans not yet on archive.org, a NAS, another server)? See
 [Books from your own folders or servers](local-folders.md).
 
@@ -98,6 +104,10 @@ by you. See [Who can see what](access.md).
 ./resdesk.sh help        # everything else
 ```
 
+Research Desk also backs itself up every night. **Research Desk → Server** in the Desk shows the
+backups (download one now and then, and keep it somewhere else), whether every part is working,
+and alerts you when something isn't.
+
 ## 9. Keep it up to date
 
 ```bash
@@ -107,5 +117,9 @@ by you. See [Who can see what](access.md).
 
 If anything goes wrong, the script prints the two commands that take you back to the
 previous version. See [Operations → Upgrading](operations.md#upgrading).
+
+Rather do it from the browser? Run `./resdesk.sh updater on` once; after that a System Manager
+can upgrade (and restart parts) from **Research Desk → Server**, and watch it happen
+([Server](server.md#upgrading-from-the-desk)).
 
 Having trouble? See [Operations → Troubleshooting](operations.md#troubleshooting).

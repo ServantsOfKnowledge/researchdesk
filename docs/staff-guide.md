@@ -55,6 +55,11 @@ Count** to see how many books match, then **Run Ingest**.
 
 ![An ingest profile](../sok_resdesk/public/images/guide/desk-profile.png)
 
+After the first run a profile keeps itself in step with archive.org: new books come in each
+day, changed ones are refreshed, removed ones are unpublished, and its portal collection follows
+along ([more](ingesting.md#keeping-in-step-with-archiveorg)). **Sync with archive.org** on the
+profile does it straight away.
+
 Books arrive in batches in the background. Only the details and the text of each page are
 downloaded; scans stay on archive.org (or your server) and are shown from there. Details:
 [Choosing & ingesting books](ingesting.md) and [Your own folders & servers](local-folders.md).

@@ -36,6 +36,16 @@
 - [x] Bulk editing by spreadsheet import with preview
 - [x] Push metadata to Internet Archive, Koha (REST), Wikidata and webhooks
 
+## v0.8 – v0.11: running a library day to day (done)
+
+- [x] Pause and resume runs, single jobs or everything; quiet hours
+- [x] Help on every screen: in-app docs, form tours, a getting-started checklist, reader tips; docs checked against the code in CI
+- [x] Resource presets, low-priority workers, one-file moves to another server or between Docker and native
+- [x] Server page: versions and new releases, health of every part, nightly backups, logs, alerts (Desk, email, webhook)
+- [x] Upgrades, rollbacks and restarts from the Desk through an optional updater helper
+- [x] Book limit from the machine's CPUs, memory and disk
+- [x] Profiles kept in step with archive.org (new, changed, removed books) and collections that mirror it
+
 ## Next: better for researchers
 
 - [ ] Romanised ↔ Kannada query transliteration (type `vachana`, match ವಚನ) for all Indic scripts

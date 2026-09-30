@@ -29,7 +29,7 @@
 │   MariaDB  ◀── catalogue ── Frappe ORM ──▶ search.py ──▶ Meilisearch              │
 │                                              ▲            rd_books · rd_pages      │
 │   redis-queue ──▶ queue worker ── ingest.py ─┘                                    │
-│   scheduler (Daily/Weekly profiles)          │                                    │
+│   scheduler (profiles, archive.org sync)     │                                    │
 └──────────────────────────────────────────────┼────────────────────────────────────┘
                                                ▼
                          archive.org: scrape API · metadata API · hOCR search text

@@ -8,6 +8,9 @@ Choose a collection, a search or a list of items on archive.org, and Research De
 
 - ingest from **archive.org** *or* from **IA-style item folders** on your own disk, NAS or web
   server, with a drop folder that picks up new and changed books automatically
+- **stay in step with archive.org** by itself: every day, books added to a collection come in,
+  changed ones are refreshed and removed ones are unpublished, and each archive.org collection
+  gets a portal page that keeps itself up to date
 - **catalogue** the books, cleaning up messy metadata (languages, dates, authors, subjects)
 - **index the full OCR text page by page**, so people can search *inside* 88,000+ books,
   in Kannada, Hindi, Konkani, Tamil, English and more
@@ -31,7 +34,8 @@ Choose a collection, a search or a list of items on archive.org, and Research De
   Desk (for staff), with step-by-step tours of the main forms, a getting-started checklist for
   a new library, and first-visit tips for readers
 - **keep the machine usable**: resource presets for a laptop, desktop or server, low-priority
-  background work, and quiet hours that pause heavy work during the day
+  background work, quiet hours that pause heavy work during the day, and a **book limit** worked
+  out from the machine's CPUs, memory and disk, so it never takes on more than it can hold
 - **move in one file** to another server, or between Docker and a native install
 - **see, pause and stop background work** from the Desk: every ingest run, metadata push, queued
   job and schedule on one page; pause a run or everything and carry on later, hold single jobs,
@@ -82,6 +86,14 @@ Keep it up to date with one command. It backs up first and rolls back cleanly:
 ./upgrade.sh              # upgrade to the latest release
 ```
 
+Or from the browser: **Research Desk → Server** shows when a new release is out, the health of
+every part and the backups. Turn on the updater helper once and upgrades, restarts and resource
+presets are a button there too ([Server](docs/server.md)):
+
+```bash
+./resdesk.sh updater on
+```
+
 ## Choose what to ingest
 
 **In the browser:** Desk → Research Desk → **Ingest Profiles** → New:
@@ -93,6 +105,9 @@ Keep it up to date with one command. It backs up first and rolls back cleanly:
 | Identifier list | one archive.org identifier per line |
 
 Click **Check Count** to see how many items match, set **Maximum Items**, then **Run Ingest**.
+After that first run the profile keeps itself in step with archive.org: new books come in each
+day, changed ones are refreshed, removed ones are unpublished
+([more](docs/ingesting.md#keeping-in-step-with-archiveorg)).
 
 **From the terminal:**
 
@@ -125,6 +140,8 @@ Click **Check Count** to see how many items match, set **Maximum Items**, then *
   Readers ◀── /library  (search, read, cite) ◀── Frappe web + API ◀─────┘
   Koha, VuFind, aggregators ◀── OAI-PMH / MARCXML / exports (MODS, Dublin Core, JSON-LD)
   archive.org, Koha, Wikidata, webhooks ◀── push targets
+  daily: new / changed / removed books from archive.org ──▶ Ingest jobs ──▶ mirrored collections
+  Desk → Server ◀── health, backups, alerts ──▶ updater helper (optional): upgrade, restart
   Zotero, Google Scholar ◀── citation_* meta tags, JSON-LD, COinS
 ```
 

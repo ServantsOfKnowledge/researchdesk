@@ -181,7 +181,7 @@ Research Desk job and discards held ones. By default it also pauses schedules. T
 running a profile again skips them. A job stopped immediately may leave the book it was on
 half-indexed; *Rebuild Search Index* (Settings) fixes that.
 
-**Pause Schedules** stops Hourly/Daily/Weekly profiles from starting new runs (also a checkbox in
+**Pause Schedules** stops Hourly/Daily/Weekly profiles and the daily sync with archive.org from starting new runs (also a checkbox in
 Settings, *Pause Scheduled Ingests*). Manual runs still work.
 
 From the terminal:
@@ -286,7 +286,7 @@ Every setting:
 | Delay Between Requests (seconds) | Pause between requests to archive.org. Raise it if archive.org asks you to slow down. |
 | Books per Background Batch | Large ingests are split into batches that run in parallel, one per queue worker. Add workers with QUEUE_WORKERS in .env. |
 | Keep a Local Copy of Page Text | Stores compressed OCR text on disk (about 20–60 KB per book) so re-indexing never needs to download from archive.org again. |
-| Pause Scheduled Ingests | Stops Hourly/Daily/Weekly profiles from starting new runs. Manual runs still work. Also on the Background Jobs page. |
+| Pause Scheduled Ingests | Stops Hourly/Daily/Weekly profiles and the daily sync with archive.org from starting new runs. Manual runs still work. Also on the Background Jobs page. |
 | Pause All Background Work | Set from the Background Jobs page: runs are paused and queued jobs held until you press Resume All there. |
 
 **Machine Resources**
