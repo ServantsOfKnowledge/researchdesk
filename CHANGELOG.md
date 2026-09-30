@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.10.0 (2026-09-30): keep the machine usable, move in one file, logo in the Desk
+
+- **Resource presets**: `./resdesk.sh resources light|standard|server` caps the background
+  workers, the search engine and the database (CPU, memory, number of parallel jobs,
+  search-indexing threads and memory, database cache); `./resdesk.sh resources set KEY=VALUE`
+  fine-tunes one cap; `./resdesk.sh resources` shows the caps and what each part uses now
+- Background workers run at **low CPU and disk priority**, so the portal and Desk stay quick
+- **Quiet hours** (Settings → Machine Resources): pause all background work between set times
+  (optionally weekdays only) and carry on afterwards
+- **Background Jobs → Machine**: CPU load, memory, disk, search-index size, the caps in force,
+  quiet hours, and choosing a preset; CPU and memory per part with the optional read-only
+  monitor (`./resdesk.sh resources monitor on`)
+- **Moving**: `./resdesk.sh export` makes one file with the catalogue, users, settings, files,
+  page text and the key to saved passwords; `./resdesk.sh import FILE` loads it into a new
+  install, Docker or native, and rebuilds search without downloading; `./resdesk.sh move-to
+  user@host --with-library` does it all over SSH. Guide: [Moving to another server](docs/moving.md)
+- Book folders are stored as `/library-source/…` on every install (a patch converts native
+  installs), so catalogues move between servers and between Docker and native;
+  `bench resdesk relink-folders` points books at a new folder
+- **Logo in the Desk**: the library's icon (or logo) in the Desk sidebar and on the apps screen,
+  with a Research Desk mark as the default; a new square **Icon** setting for small places
+
 ## 0.9.0 (2026-09-30): help on every screen, and docs that keep up
 
 - **Help inside the app**, made from the same `docs/*.md` files as on GitHub, with pictures:

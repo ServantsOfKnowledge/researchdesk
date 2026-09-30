@@ -30,6 +30,9 @@ Choose a collection, a search or a list of items on archive.org, and Research De
 - **help on every screen**: the documentation is built into the portal (for readers) and the
   Desk (for staff), with step-by-step tours of the main forms, a getting-started checklist for
   a new library, and first-visit tips for readers
+- **keep the machine usable**: resource presets for a laptop, desktop or server, low-priority
+  background work, and quiet hours that pause heavy work during the day
+- **move in one file** to another server, or between Docker and a native install
 - **see, pause and stop background work** from the Desk: every ingest run, metadata push, queued
   job and schedule on one page; pause a run or everything and carry on later, hold single jobs,
   or stop them
@@ -105,7 +108,7 @@ Click **Check Count** to see how many items match, set **Maximum Items**, then *
 | Librarians & educators | [Getting started](docs/getting-started.md) · [Choosing & ingesting books](docs/ingesting.md) · [Your own folders & servers](docs/local-folders.md) |
 | Library managers | [Who can see what: members-only books & reader accounts](docs/access.md) · [Collections, metadata, exports & pushing](docs/collections-and-metadata.md) |
 | Library systems staff | [Koha & interoperability](docs/koha.md) · [API](docs/api.md) |
-| System administrators | [Installation](docs/installation.md) · [Operations](docs/operations.md) · [Scaling to 50k books](docs/scaling.md) |
+| System administrators | [Installation](docs/installation.md) · [Operations](docs/operations.md) · [Moving to another server](docs/moving.md) · [Scaling to 50k books](docs/scaling.md) |
 | Developers | [Architecture](docs/architecture.md) · [Development](docs/development.md) · [Roadmap](docs/roadmap.md) |
 
 ## How it fits together

@@ -18,9 +18,16 @@ if [ "${NATIVE_DEV:-0}" != 1 ]; then
 fi
 # The asset watcher is only useful while editing Frappe's JS bundles
 sed -i.bak '/^watch:/d' Procfile && rm -f Procfile.bak
+# Resource settings (./resdesk.sh resources): search-indexing threads/memory, worker priority
+MEILI_EXTRA=""
+[ -n "${MEILI_MAX_INDEXING_THREADS:-}" ] && MEILI_EXTRA="$MEILI_EXTRA --max-indexing-threads $MEILI_MAX_INDEXING_THREADS"
+[ -n "${MEILI_MAX_INDEXING_MEMORY:-}" ] && MEILI_EXTRA="$MEILI_EXTRA --max-indexing-memory $MEILI_MAX_INDEXING_MEMORY"
+NICE="nice -n ${QUEUE_NICE:-10}"
+# background workers run at low priority so the portal stays responsive
+sed -i.bak -E "s#^(worker[^:]*): (nice -n [0-9]+ )?bench worker#\1: $NICE bench worker#" Procfile && rm -f Procfile.bak
 {
-  echo "meilisearch: meilisearch --db-path $BENCH_DIR/meili-data --http-addr 127.0.0.1:$MEILI_PORT --master-key $MEILI_KEY --no-analytics --env production 1>> logs/meilisearch.log 2>&1"
+  echo "meilisearch: meilisearch --db-path $BENCH_DIR/meili-data --http-addr 127.0.0.1:$MEILI_PORT --master-key $MEILI_KEY --no-analytics --env production$MEILI_EXTRA 1>> logs/meilisearch.log 2>&1"
   for i in $(seq 2 "$WORKERS"); do
-    echo "worker_rd$i: bench worker 1>> logs/worker.log 2>> logs/worker.error.log"
+    echo "worker_rd$i: $NICE bench worker 1>> logs/worker.log 2>> logs/worker.error.log"
   done
 } >> Procfile

@@ -336,3 +336,26 @@ def test_export_formats():
 	assert rows[0]["collection"] == "ServantsOfKnowledge" and rows[0]["mediatype"] == "texts"
 	j = metaio.json_record(rec, "https://x.org")
 	assert j["portal_url"].startswith("https://x.org/library/item/") and j["citation_type"] == "book"
+
+
+def test_quiet_hours():
+	import datetime as dt
+
+	from sok_resdesk.core.quiet import in_quiet_hours, minutes
+
+	wed = dt.datetime(2026, 9, 30, 10, 0)  # a Wednesday
+	assert in_quiet_hours(wed, "09:00", "18:00")
+	assert not in_quiet_hours(wed.replace(hour=18), "09:00", "18:00")
+	assert not in_quiet_hours(wed.replace(hour=8, minute=59), "09:00:00", dt.timedelta(hours=18))
+	# overnight
+	assert in_quiet_hours(wed.replace(hour=23), "22:00", "06:00")
+	assert in_quiet_hours(wed.replace(hour=5), "22:00", "06:00")
+	assert not in_quiet_hours(wed.replace(hour=12), "22:00", "06:00")
+	# weekdays only: Saturday daytime runs freely; Friday night into Saturday counts as Friday
+	sat = dt.datetime(2026, 10, 3, 10, 0)
+	assert not in_quiet_hours(sat, "09:00", "18:00", weekdays_only=True)
+	assert in_quiet_hours(sat.replace(hour=2), "22:00", "06:00", weekdays_only=True)
+	assert not in_quiet_hours(dt.datetime(2026, 10, 4, 2, 0), "22:00", "06:00", weekdays_only=True)
+	# unset or equal = never
+	assert not in_quiet_hours(wed, None, "18:00") and not in_quiet_hours(wed, "09:00", "09:00")
+	assert minutes(dt.time(7, 45)) == 465

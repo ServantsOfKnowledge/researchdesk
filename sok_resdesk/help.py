@@ -94,7 +94,13 @@ def get_page(slug: str = "staff-guide") -> dict:
 
 
 def boot_session(bootinfo):
-	"""Where each Desk screen's Help button goes, and which screens have a tour."""
+	"""The library's logo for the Desk sidebar; where each Help button goes; which screens have a tour."""
+	from sok_resdesk.resdesk.doctype.rd_settings.rd_settings import DEFAULT_LOGO
+
+	# a square picture suits the Desk's small icons best: the browser-tab icon, then the logo
+	logo = (frappe.db.get_single_value("RD Settings", "favicon")
+			or frappe.db.get_single_value("RD Settings", "portal_logo") or DEFAULT_LOGO)
+	bootinfo.resdesk_brand = {"logo": logo, "title": frappe.db.get_single_value("RD Settings", "portal_title") or ""}
 	if not any(r in frappe.get_roles() for r in STAFF):
 		return
 	from sok_resdesk.guide import TOURS

@@ -7,3 +7,4 @@ sok_resdesk.patches.v0_2.scale_settings
 sok_resdesk.patches.v0_3.branding_defaults
 sok_resdesk.patches.v0_5.access_defaults
 sok_resdesk.patches.v0_7.collections_and_types
+sok_resdesk.patches.v0_10.portable_folder_paths

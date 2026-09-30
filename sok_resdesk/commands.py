@@ -399,4 +399,36 @@ def jobs_cmd(context, stop_run, stop_all, now, pause, resume, pause_run, resume_
 		frappe.destroy()
 
 
+@resdesk.command("resource-preset")
+@click.option("--set", "preset", type=click.Choice(["light", "standard", "server"]),
+			  help="Record the preset in use (./resdesk.sh resources does this)")
+@pass_context
+def resource_preset_cmd(context, preset):
+	"""The resource preset chosen in the Desk (read by ./resdesk.sh resources apply)."""
+	frappe = _connect(context)
+	try:
+		if preset:
+			frappe.db.set_single_value("RD Settings", "resource_preset", preset)
+			frappe.db.commit()
+		click.echo(frappe.db.get_single_value("RD Settings", "resource_preset") or "")
+	finally:
+		frappe.destroy()
+
+
+@resdesk.command("relink-folders")
+@click.option("--from", "old_root", required=True, help="Where the book folders were, e.g. /Users/om/library")
+@click.option("--to", "new_root", default="/library-source", help="Where they are now (default: the library folder)")
+@pass_context
+def relink_folders_cmd(context, old_root, new_root):
+	"""Point books and profiles at the book folders' new place (after moving; see docs/moving.md)."""
+	frappe = _connect(context)
+	try:
+		from sok_resdesk.local_source import relink
+
+		counts = relink(old_root, new_root)
+		click.echo(f"{counts['RD Item']} books and {counts['RD Ingest Profile']} profiles now use {new_root}.")
+	finally:
+		frappe.destroy()
+
+
 commands = [resdesk]

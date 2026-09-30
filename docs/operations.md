@@ -48,6 +48,84 @@ Restarting workers (`./resdesk.sh restart`, `update`, a reboot) stops batches th
 progress. The run is marked *Interrupted* within a couple of hours. Run the profile again and
 already-ingested books are skipped.
 
+## Resources: how much of the machine Research Desk may use
+
+Big ingests and re-indexing can keep every CPU busy for hours. Four things keep that in check:
+
+**1. A preset** caps the background workers, the search engine and the database:
+
+```bash
+./resdesk.sh resources            # what is set, and what each part uses right now
+./resdesk.sh resources light      # a laptop or a shared computer
+./resdesk.sh resources standard   # a desktop or small server (the default)
+./resdesk.sh resources server     # a machine for Research Desk alone
+```
+
+| | light | standard | server |
+|---|---|---|---|
+| Background workers (books processed at once) | 1 | 2 | 4 |
+| CPU / memory per worker | 1 / 1 GB | 1 / 1.5 GB | 2 / 2 GB |
+| Search engine CPU / memory | 1 / 1 GB | 2 / 2 GB | no limit |
+| Search-indexing threads / memory | 1 / 256 MB | 2 / 1 GB | automatic |
+| Database CPU / memory, buffer pool | 1 / 1 GB, 256 MB | 1 / 1.5 GB, 512 MB | no limit, 2 GB |
+| Worker priority (nice) | 15 | 10 | 5 |
+| Memory in all, at most | about 3 GB | about 6.5 GB | as needed |
+
+Fine-tune any cap (the preset becomes *custom*):
+
+```bash
+./resdesk.sh resources set QUEUE_WORKERS=3 QUEUE_CPUS=1.5 MEILI_MAX_INDEXING_THREADS=2
+```
+
+| Setting | Caps |
+|---|---|
+| `QUEUE_WORKERS` | background workers: how many batches run at once (ingest, re-index, exports, pushes) |
+| `QUEUE_CPUS`, `QUEUE_MEMORY` | each worker, e.g. `1.5`, `2g` (`0` = no limit) |
+| `QUEUE_NICE` | worker priority, 0–19: higher is gentler on everything else |
+| `MEILI_CPUS`, `MEILI_MEMORY` | the search engine |
+| `MEILI_MAX_INDEXING_THREADS`, `MEILI_MAX_INDEXING_MEMORY` | how hard the search engine indexes, e.g. `2`, `1Gb` (empty = automatic) |
+| `DB_CPUS`, `DB_MEMORY`, `DB_BUFFER_POOL` | MariaDB, and its cache (e.g. `512M`) |
+| `GUNICORN_WORKERS` | web server processes (not capped: the portal should stay fast) |
+
+The workers always run at low CPU and disk priority, so the portal and the Desk stay responsive
+while they work. A worker that hits its memory cap is stopped by Docker and its batch has to be
+run again, so don't set `QUEUE_MEMORY` below 1 GB. On **Docker Desktop** (Mac, Windows) Docker
+itself has a ceiling too: Settings → Resources. The presets fit inside its defaults.
+
+**2. Quiet hours** (Settings → *Machine Resources*): pause all background work between two times
+every day, for example 09:00 to 18:00 on weekdays, and carry on afterwards. Runs keep their
+place, exactly like **Pause All**. Resuming by hand during quiet hours is respected until the
+next quiet period, and a pause you made yourself is never lifted automatically.
+
+![Background Jobs → Machine](../sok_resdesk/public/images/guide/desk-machine.png)
+
+**3. Background Jobs → Machine** shows CPU load, memory and disk of the machine (on Docker
+Desktop, of its virtual machine), the caps in force, the size of the search index and the quiet
+hours. **Change** picks a preset from the Desk; because Docker's limits are set outside the app,
+it takes effect when someone runs `./resdesk.sh resources apply` on the server. To see CPU and
+memory **per part** (workers, search engine, database…):
+
+```bash
+./resdesk.sh resources monitor on    # or off
+```
+
+This starts a small read-only proxy in front of Docker (it can list containers and their usage,
+nothing else). It's off by default because anything that can reach the Docker socket learns a
+lot about the machine.
+
+**4. Pause** a run, or everything, when you need the machine now
+([above](#pause-stop-for-now-carry-on-later)).
+
+On a **native install** the number of workers, their priority and the search-indexing limits
+apply (`./resdesk.sh resources light` rewrites the Procfile and restarts); CPU and memory caps
+are a Docker feature.
+
+## Moving to another server
+
+`./resdesk.sh export` puts everything in one file and `./resdesk.sh import FILE` loads it into a
+new install, Docker or native; `./resdesk.sh move-to user@host` does both over SSH. See
+[Moving to another server](moving.md).
+
 ## Background jobs: see, pause and stop what is running
 
 Desk → Research Desk → **Background Jobs** (`/app/resdesk-jobs`) shows everything Research Desk
@@ -168,10 +246,10 @@ Every setting:
 
 | Setting | What it does |
 |---|---|
-| Logo | PNG, SVG or JPG. Shown on the portal home page, in the top bar of every portal page and in the Desk. A wide logo about 400×120 px works well. |
+| Logo | PNG, SVG or JPG. Shown on the portal home page, in the top bar of every portal page and in the Desk. A wide logo about 400×120 px works well; add a square Icon below for the Desk's small icons. |
 | Show Logo on the Home Page | Show the logo above the name on the portal home page. |
 | Show Portal Name Next to the Logo in the Top Bar | Turn off when the logo already contains the library's name. |
-| Browser Tab Icon (optional) | Square image (PNG/ICO, 64×64 or larger). Leave empty to use the logo. |
+| Icon (optional) | Square image (PNG/ICO/SVG, 64×64 or larger): the browser tab and the Research Desk icon in the Desk. Leave empty to use the logo. |
 | Home Page Background Image (optional) | A wide photo behind the search box on the home page, e.g. a manuscript or library shelf. |
 
 **Search Engine (Meilisearch)**
@@ -195,6 +273,16 @@ Every setting:
 | Keep a Local Copy of Page Text | Stores compressed OCR text on disk (about 20–60 KB per book) so re-indexing never needs to download from archive.org again. |
 | Pause Scheduled Ingests | Stops Hourly/Daily/Weekly profiles from starting new runs. Manual runs still work. Also on the Background Jobs page. |
 | Pause All Background Work | Set from the Background Jobs page: runs are paused and queued jobs held until you press Resume All there. |
+
+**Machine Resources**
+
+| Setting | What it does |
+|---|---|
+| Resource Preset | How much of the machine Research Desk may use: light (a laptop), standard, or server (a dedicated machine). Docker's limits can only be changed outside the app, so after choosing, run ./resdesk.sh resources apply on the server. Choices: *light*, *standard*, *server*. |
+| Quiet Hours | Pause all background work between these times every day (e.g. office hours), and carry on afterwards. Ingests, pushes and re-indexing wait; the portal and Desk work as usual. |
+| Quiet From | Start of the quiet time, in the site's time zone. |
+| Quiet Until | End of the quiet time. Earlier than Quiet From means overnight (e.g. 22:00 to 06:00). |
+| Weekdays Only | Monday to Friday only; weekends run freely. |
 
 **Access & Sign-up**
 
@@ -292,10 +380,16 @@ Maintenance
   ./resdesk.sh screenshots [--query WORDS]  retake the pictures used in the guides (needs Playwright)
   ./resdesk.sh docs [--check]           refresh the settings and command reference in docs/
   ./resdesk.sh progress [RUN]           watch an ingest run
+  ./resdesk.sh resources [light|standard|server]  how much of the machine Research Desk may use
+  ./resdesk.sh resources set QUEUE_CPUS=1.5 …     fine-tune one cap (see docs/operations.md)
+  ./resdesk.sh resources monitor on|off            CPU/memory per part on Background Jobs (Docker)
   ./resdesk.sh workers <n>              number of parallel ingest workers (default 2)
   ./resdesk.sh reindex [--background] [--no-pages] [--reset]
   ./resdesk.sh backup                   database + files into ./site-backups
   ./resdesk.sh restore <file.sql.gz>    restore a database backup, then re-index
+  ./resdesk.sh export [FILE]            everything needed to move this install, in one file
+  ./resdesk.sh import FILE [--base-url URL]   load an export into this (new) install
+  ./resdesk.sh move-to USER@HOST [--with-library]   export, copy over SSH and import in one go
   ./resdesk.sh update [v0.4.0]          upgrade (same as ./upgrade.sh; --check to just look)
   ./resdesk.sh password [new]           reset the Administrator password
   ./resdesk.sh dev on|off               developer mode (Docker); native is always live
@@ -316,4 +410,6 @@ The Research Desk commands behind it (`./resdesk.sh <command>` runs `bench --sit
 | `access` | Who can see what: public, login-to-read or login-to-find (members only). | `VISIBILITY`<br>`--collection` Books in this collection, e.g. ServantsOfKnowledge<br>`--profile` Books ingested by this RD Ingest Profile<br>`--language` Books in this language, e.g. Kannada or kan<br>`--ids` Comma-separated item identifiers<br>`--ids-file` File with one identifier per line<br>`--all` Every book in the catalogue<br>`--apply-rules` Re-apply profiles, rules and the default (Settings → Access)<br>`--include-manual` With --apply-rules: also change books set by hand or in bulk<br>`--guests` What visitors who are not logged in may do<br>`--signup` How people get reader accounts<br>`--default` Visibility for new books when no profile or rule decides |
 | `add-reader` | Create a reader account (or give an existing account the Reader role). | `EMAIL`<br>`--name` Full name<br>`--no-email` Don't send the welcome email (set a password in the Desk instead) |
 | `jobs` | What is running in the background; pause, resume or stop it. | `--stop` Stop this ingest run (e.g. RUN-00042)<br>`--stop-all` Cancel all runs and queued Research Desk jobs, pause schedules<br>`--now` With --stop/--stop-all: kill running jobs instead of letting them finish the current book<br>`--pause` Pause scheduled ingests<br>`--resume` Resume scheduled ingests<br>`--pause-run` Pause this ingest or push run (it keeps its place)<br>`--resume-run` Resume a paused run<br>`--pause-all` Pause all runs, hold waiting jobs, pause schedules<br>`--resume-all` Undo --pause-all: everything carries on |
+| `resource-preset` | The resource preset chosen in the Desk (read by ./resdesk.sh resources apply). | `--set` Record the preset in use (./resdesk.sh resources does this) |
+| `relink-folders` | Point books and profiles at the book folders' new place (after moving; see docs/moving.md). | `--from` Where the book folders were, e.g. /Users/om/library<br>`--to` Where they are now (default: the library folder) |
 <!-- /generated:commands -->

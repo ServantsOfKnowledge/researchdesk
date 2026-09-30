@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-01 11:00:00.000000",
+ "modified": "2026-10-01 12:30:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -41,6 +41,13 @@
   "pause_scheduled_ingest",
   "pause_background",
   "held_jobs",
+  "machine_section",
+  "resource_preset",
+  "column_break_machine",
+  "quiet_hours",
+  "quiet_from",
+  "quiet_to",
+  "quiet_weekdays_only",
   "access_section",
   "guest_access",
   "default_visibility",
@@ -105,7 +112,7 @@
    "fieldtype": "Attach Image",
    "label": "Logo",
    "make_attachment_public": 1,
-   "description": "PNG, SVG or JPG. Shown on the portal home page, in the top bar of every portal page and in the Desk. A wide logo about 400×120 px works well."
+   "description": "PNG, SVG or JPG. Shown on the portal home page, in the top bar of every portal page and in the Desk. A wide logo about 400×120 px works well; add a square Icon below for the Desk's small icons."
   },
   {
    "fieldname": "logo_on_home",
@@ -128,9 +135,9 @@
   {
    "fieldname": "favicon",
    "fieldtype": "Attach Image",
-   "label": "Browser Tab Icon (optional)",
+   "label": "Icon (optional)",
    "make_attachment_public": 1,
-   "description": "Square image (PNG/ICO, 64×64 or larger). Leave empty to use the logo."
+   "description": "Square image (PNG/ICO/SVG, 64×64 or larger): the browser tab and the Research Desk icon in the Desk. Leave empty to use the logo."
   },
   {
    "fieldname": "home_banner",
@@ -246,6 +253,51 @@
    "label": "Held Jobs",
    "hidden": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "machine_section",
+   "fieldtype": "Section Break",
+   "label": "Machine Resources"
+  },
+  {
+   "fieldname": "resource_preset",
+   "fieldtype": "Select",
+   "label": "Resource Preset",
+   "options": "\nlight\nstandard\nserver",
+   "description": "How much of the machine Research Desk may use: light (a laptop), standard, or server (a dedicated machine). Docker's limits can only be changed outside the app, so after choosing, run ./resdesk.sh resources apply on the server."
+  },
+  {
+   "fieldname": "column_break_machine",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "quiet_hours",
+   "fieldtype": "Check",
+   "label": "Quiet Hours",
+   "default": "0",
+   "description": "Pause all background work between these times every day (e.g. office hours), and carry on afterwards. Ingests, pushes and re-indexing wait; the portal and Desk work as usual."
+  },
+  {
+   "fieldname": "quiet_from",
+   "fieldtype": "Time",
+   "label": "Quiet From",
+   "depends_on": "quiet_hours",
+   "description": "Start of the quiet time, in the site's time zone."
+  },
+  {
+   "fieldname": "quiet_to",
+   "fieldtype": "Time",
+   "label": "Quiet Until",
+   "depends_on": "quiet_hours",
+   "description": "End of the quiet time. Earlier than Quiet From means overnight (e.g. 22:00 to 06:00)."
+  },
+  {
+   "fieldname": "quiet_weekdays_only",
+   "fieldtype": "Check",
+   "label": "Weekdays Only",
+   "default": "0",
+   "depends_on": "quiet_hours",
+   "description": "Monday to Friday only; weekends run freely."
   },
   {
    "fieldname": "access_section",

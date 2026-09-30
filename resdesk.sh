@@ -81,6 +81,96 @@ case "$cmd" in
   screenshots) python3 scripts/screenshots.py --url "http://localhost:${HTTP_PORT:-8080}" "$@" ;;
   docs)     python3 scripts/gen_docs.py "$@" ;;
 
+  resources)
+    # Caps for the background workers, search engine and database (docs/operations.md#resources)
+    RES_KEYS="QUEUE_WORKERS QUEUE_CPUS QUEUE_MEMORY QUEUE_NICE MEILI_CPUS MEILI_MEMORY MEILI_MAX_INDEXING_THREADS MEILI_MAX_INDEXING_MEMORY DB_CPUS DB_MEMORY DB_BUFFER_POOL GUNICORN_WORKERS"
+    preset_values() {
+      case "$1" in
+        light)    echo "QUEUE_WORKERS=1 QUEUE_CPUS=1 QUEUE_MEMORY=1g QUEUE_NICE=15 MEILI_CPUS=1 MEILI_MEMORY=1g MEILI_MAX_INDEXING_THREADS=1 MEILI_MAX_INDEXING_MEMORY=256Mb DB_CPUS=1 DB_MEMORY=1g DB_BUFFER_POOL=256M GUNICORN_WORKERS=2" ;;
+        standard) echo "QUEUE_WORKERS=2 QUEUE_CPUS=1 QUEUE_MEMORY=1536m QUEUE_NICE=10 MEILI_CPUS=2 MEILI_MEMORY=2g MEILI_MAX_INDEXING_THREADS=2 MEILI_MAX_INDEXING_MEMORY=1Gb DB_CPUS=1 DB_MEMORY=1536m DB_BUFFER_POOL=512M GUNICORN_WORKERS=2" ;;
+        server)   echo "QUEUE_WORKERS=4 QUEUE_CPUS=2 QUEUE_MEMORY=2g QUEUE_NICE=5 MEILI_CPUS=0 MEILI_MEMORY=0 MEILI_MAX_INDEXING_THREADS= MEILI_MAX_INDEXING_MEMORY= DB_CPUS=0 DB_MEMORY=0 DB_BUFFER_POOL=2G GUNICORN_WORKERS=4" ;;
+        *) return 1 ;;
+      esac
+    }
+    show_resources() {
+      set -a; . ./.env; set +a
+      echo "Preset: ${RESOURCES_PRESET:-standard (default)}"
+      printf "  %-28s %s\n" "Background workers" "${QUEUE_WORKERS:-2} (each up to ${QUEUE_CPUS:-0} CPU, ${QUEUE_MEMORY:-0} memory; priority nice ${QUEUE_NICE:-10})"
+      printf "  %-28s %s\n" "Search engine (Meilisearch)" "${MEILI_CPUS:-0} CPU, ${MEILI_MEMORY:-0} memory; indexing threads ${MEILI_MAX_INDEXING_THREADS:-auto}, indexing memory ${MEILI_MAX_INDEXING_MEMORY:-auto}"
+      printf "  %-28s %s\n" "Database (MariaDB)" "${DB_CPUS:-0} CPU, ${DB_MEMORY:-0} memory; buffer pool ${DB_BUFFER_POOL:-256M}"
+      printf "  %-28s %s\n" "Web server" "${GUNICORN_WORKERS:-2} gunicorn workers"
+      echo "  (0 = no limit)"
+      if [ "$MODE" = native ]; then
+        echo; echo "Native install: CPU and memory caps don't apply; workers, priority and search-indexing limits do."
+        echo; ps -eo pcpu,pmem,rss,comm --sort=-pcpu 2>/dev/null | head -8 || ps -Ao pcpu,pmem,rss,comm | head -8
+      else
+        echo; echo "This machine (as Docker sees it): $(docker info --format '{{.NCPU}} {{.MemTotal}}' 2>/dev/null | awk '{printf "%s CPUs, %.1f GB memory", $1, $2/1073741824}')"
+        echo; docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}" $(docker compose ps -q 2>/dev/null) 2>/dev/null || true
+      fi
+      REQ=$(bench resdesk resource-preset 2>/dev/null | tail -1 || true)
+      if [ -n "$REQ" ] && [ "$REQ" != "${RESOURCES_PRESET:-}" ]; then
+        echo; echo "Chosen in the Desk: $REQ. Apply it with: ./resdesk.sh resources apply"
+      fi
+    }
+    check_fit() { # warn when the caps add up to more than the machine has
+      [ "$MODE" = native ] && return 0
+      set -a; . ./.env; set +a
+      NCPU=$(docker info --format '{{.NCPU}}' 2>/dev/null || echo 0)
+      python3 - "$NCPU" "${QUEUE_WORKERS:-2}" "${QUEUE_CPUS:-0}" "${MEILI_CPUS:-0}" "${DB_CPUS:-0}" <<'PY' || true
+import sys
+n, workers, qc, mc, dc = int(sys.argv[1] or 0), int(sys.argv[2]), float(sys.argv[3] or 0), float(sys.argv[4] or 0), float(sys.argv[5] or 0)
+total = workers * qc + mc + dc
+if n and qc and mc and dc and total > n:
+    print(f"Note: the caps add up to {total:g} CPUs and Docker has {n}. That's allowed (they rarely all peak at once),")
+    print("but if the machine feels slow, lower QUEUE_WORKERS or QUEUE_CPUS.")
+PY
+    }
+    apply_resources() {
+      set -a; . ./.env; set +a
+      if [ "$MODE" = native ]; then
+        bash scripts/native-procfile.sh "$BENCH_DIR" "${QUEUE_WORKERS:-2}" "${MEILI_PORT:-7700}" "$MEILI_MASTER_KEY"
+        native_stop; native_start
+      else
+        docker compose up -d --scale queue="${QUEUE_WORKERS:-2}" db meilisearch backend queue scheduler websocket
+        docker compose restart frontend >/dev/null   # it looks the web server up again
+      fi
+      check_fit
+      echo "Applied. ./resdesk.sh resources shows the result."
+    }
+    SUB="${1:-show}"; shift || true
+    case "$SUB" in
+      show) show_resources ;;
+      light|standard|server)
+        for kv in $(preset_values "$SUB"); do set_env "${kv%%=*}" "${kv#*=}"; done
+        set_env RESOURCES_PRESET "$SUB"
+        bench resdesk resource-preset --set "$SUB" >/dev/null 2>&1 || true
+        apply_resources ;;
+      set)
+        [ $# -gt 0 ] || { echo "Usage: ./resdesk.sh resources set KEY=VALUE …   keys: $RES_KEYS"; exit 1; }
+        for kv in "$@"; do
+          k="${kv%%=*}"; case " $RES_KEYS " in *" $k "*) set_env "$k" "${kv#*=}" ;; *) echo "Unknown setting $k (one of: $RES_KEYS)"; exit 1 ;; esac
+        done
+        set_env RESOURCES_PRESET custom
+        apply_resources ;;
+      apply)
+        REQ=$(bench resdesk resource-preset 2>/dev/null | tail -1 || true)
+        if [ -n "$REQ" ] && preset_values "$REQ" >/dev/null && [ "$REQ" != "${RESOURCES_PRESET:-}" ]; then
+          echo "Using the preset chosen in the Desk: $REQ"
+          for kv in $(preset_values "$REQ"); do set_env "${kv%%=*}" "${kv#*=}"; done
+          set_env RESOURCES_PRESET "$REQ"
+        fi
+        apply_resources ;;
+      monitor)
+        [ "$MODE" = native ] && { echo "Only for Docker installs."; exit 1; }
+        case "${1:-}" in
+          on)  set_env COMPOSE_PROFILES monitor; export COMPOSE_PROFILES=monitor
+               docker compose up -d --no-recreate monitor && echo "Background Jobs → Machine now shows CPU and memory per part." ;;
+          off) set_env COMPOSE_PROFILES ""; docker compose rm -sf monitor >/dev/null 2>&1 || true; echo "Monitor stopped." ;;
+          *)   echo "Usage: ./resdesk.sh resources monitor on|off   (now: ${COMPOSE_PROFILES:-off})"; exit 1 ;;
+        esac ;;
+      *) echo "Usage: ./resdesk.sh resources [light|standard|server|set KEY=VALUE…|apply|monitor on|off]"; exit 1 ;;
+    esac ;;
+
   workers)
     N="${1:-}"; [[ "$N" =~ ^[0-9]+$ ]] && [ "$N" -ge 1 ] || { echo "Usage: ./resdesk.sh workers <number>   (now: ${QUEUE_WORKERS:-2})"; exit 1; }
     set_env QUEUE_WORKERS "$N"
@@ -171,6 +261,10 @@ case "$cmd" in
     echo "Restored. Rebuilding the search index in the foreground (Ctrl+C to skip; run ./resdesk.sh reindex later)…"
     bench resdesk reindex ;;
 
+  export)   . scripts/move.sh; rd_export "$@" ;;
+  import)   . scripts/move.sh; rd_import "$@" ;;
+  move-to)  . scripts/move.sh; rd_move_to "$@" ;;
+
   update|upgrade)
     exec ./upgrade.sh "$@" ;;
 
@@ -226,10 +320,16 @@ Maintenance
   ./resdesk.sh screenshots [--query WORDS]  retake the pictures used in the guides (needs Playwright)
   ./resdesk.sh docs [--check]           refresh the settings and command reference in docs/
   ./resdesk.sh progress [RUN]           watch an ingest run
+  ./resdesk.sh resources [light|standard|server]  how much of the machine Research Desk may use
+  ./resdesk.sh resources set QUEUE_CPUS=1.5 …     fine-tune one cap (see docs/operations.md)
+  ./resdesk.sh resources monitor on|off            CPU/memory per part on Background Jobs (Docker)
   ./resdesk.sh workers <n>              number of parallel ingest workers (default 2)
   ./resdesk.sh reindex [--background] [--no-pages] [--reset]
   ./resdesk.sh backup                   database + files into ./site-backups
   ./resdesk.sh restore <file.sql.gz>    restore a database backup, then re-index
+  ./resdesk.sh export [FILE]            everything needed to move this install, in one file
+  ./resdesk.sh import FILE [--base-url URL]   load an export into this (new) install
+  ./resdesk.sh move-to USER@HOST [--with-library]   export, copy over SSH and import in one go
   ./resdesk.sh update [v0.4.0]          upgrade (same as ./upgrade.sh; --check to just look)
   ./resdesk.sh password [new]           reset the Administrator password
   ./resdesk.sh dev on|off               developer mode (Docker); native is always live

@@ -19,6 +19,13 @@ x-image: &image
       FRAPPE_IMAGE_PREFIX: ${FRAPPE_IMAGE_PREFIX:-frappe}
   restart: unless-stopped
 
+# Resource caps (./resdesk.sh resources). "0" or empty means no limit.
+x-limits-queue: &limits-queue
+  resources:
+    limits:
+      cpus: "${QUEUE_CPUS:-0}"
+      memory: "${QUEUE_MEMORY:-0}"
+
 x-backend: &backend
   <<: *image
   volumes:
@@ -40,6 +47,12 @@ services:
       - --collation-server=utf8mb4_unicode_ci
       - --skip-character-set-client-handshake
       - --skip-innodb-read-only-compressed
+      - --innodb-buffer-pool-size=${DB_BUFFER_POOL:-256M}
+    deploy:
+      resources:
+        limits:
+          cpus: "${DB_CPUS:-0}"
+          memory: "${DB_MEMORY:-0}"
     environment:
       MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?run ./install.sh first}
     healthcheck:
@@ -70,6 +83,21 @@ services:
       MEILI_NO_ANALYTICS: "true"
       # upgrade the index files in place when a newer Meilisearch patch release is pulled
       MEILI_UPGRADE_DB: "true"
+      # how hard indexing may work (./resdesk.sh resources); empty = Meilisearch decides
+      MEILI_MAX_INDEXING_THREADS: ${MEILI_MAX_INDEXING_THREADS:-}
+      MEILI_MAX_INDEXING_MEMORY: ${MEILI_MAX_INDEXING_MEMORY:-}
+    command:
+      - /bin/sh
+      - -c
+      - >
+        [ -n "$$MEILI_MAX_INDEXING_THREADS" ] || unset MEILI_MAX_INDEXING_THREADS;
+        [ -n "$$MEILI_MAX_INDEXING_MEMORY" ] || unset MEILI_MAX_INDEXING_MEMORY;
+        exec /bin/meilisearch
+    deploy:
+      resources:
+        limits:
+          cpus: "${MEILI_CPUS:-0}"
+          memory: "${MEILI_MEMORY:-0}"
     volumes:
       - meili-data:/meili_data
 
@@ -123,6 +151,10 @@ services:
     <<: *backend
     environment:
       GUNICORN_WORKERS: ${GUNICORN_WORKERS:-2}
+      RESDESK_DOCKER_API: http://monitor:2375
+      # shown on Background Jobs → Machine (the app can't change them: ./resdesk.sh resources)
+      RESDESK_RESOURCES: >-
+        preset=${RESOURCES_PRESET:-standard};workers=${QUEUE_WORKERS:-2};worker_cpus=${QUEUE_CPUS:-0};worker_memory=${QUEUE_MEMORY:-0};worker_nice=${QUEUE_NICE:-10};search_cpus=${MEILI_CPUS:-0};search_memory=${MEILI_MEMORY:-0};search_threads=${MEILI_MAX_INDEXING_THREADS:-};db_cpus=${DB_CPUS:-0};db_memory=${DB_MEMORY:-0};db_buffer_pool=${DB_BUFFER_POOL:-256M};web_workers=${GUNICORN_WORKERS:-2}
 
   websocket:
     <<: *backend
@@ -130,15 +162,34 @@ services:
 
   # Background workers. Each one processes one ingest batch at a time, so
   # QUEUE_WORKERS=4 ingests about four books at once. 2 to 4 is polite to archive.org.
+  # They run at low CPU and disk priority (QUEUE_NICE) so the portal stays quick.
   queue:
     <<: *backend
-    command: ["bench", "worker", "--queue", "long,default,short"]
+    command: ["nice", "-n", "${QUEUE_NICE:-10}", "ionice", "-c", "2", "-n", "7",
+              "bench", "worker", "--queue", "long,default,short"]
     deploy:
       replicas: ${QUEUE_WORKERS:-2}
+      <<: *limits-queue
 
   scheduler:
     <<: *backend
     command: ["bench", "schedule"]
+
+  # Optional (./resdesk.sh resources monitor on): lets Background Jobs show CPU and memory
+  # per part. A read-only proxy in front of the Docker socket: it can list containers and
+  # their usage, nothing else (no starting, stopping or creating).
+  monitor:
+    image: tecnativa/docker-socket-proxy:v0.5.0
+    profiles: ["monitor"]
+    restart: unless-stopped
+    environment:
+      CONTAINERS: 1
+      INFO: 1
+      POST: 0
+      EVENTS: 0
+      DISABLE_IPV6: 1
+    volumes:
+      - ${DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock:ro
 
   frontend:
     <<: *image

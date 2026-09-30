@@ -51,9 +51,11 @@ take seconds. At the end, answer **Y** to load 20 sample Kannada books.
 ## 4. Add your logo
 
 Desk → Research Desk → **Settings** → *Logo & Branding* → **Logo** → upload a PNG or SVG
-(a wide logo about 400×120 px works well) → **Save**. It appears on the home page, in the top
-bar and as the browser-tab icon. You can also set the portal name, tagline and a background photo
-for the home page there.
+(a wide logo about 400×120 px works well) → **Save**. It appears on the portal home page and top
+bar, on the login page, and in the Desk. Add a square **Icon** too (e.g. just the emblem of your
+logo): it is used for the browser tab and the Research Desk icon in the Desk, where a wide logo
+would be too small to read. You can also set the portal name, tagline and a background photo for
+the home page there.
 
 ## 5. Add your own selection of books
 

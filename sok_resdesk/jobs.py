@@ -142,6 +142,8 @@ def overview() -> dict:
 		"now": str(now_datetime())[:19],
 		"paused": cint(frappe.db.get_single_value("RD Settings", "pause_scheduled_ingest")),
 		"paused_all": int(holding.is_paused()),
+		"quiet": quiet_status(),
+		"machine": machine(),
 		"held": [{"key": h.get("key"), "kind": h.get("kind") or KINDS.get(h["method"], h["method"]),
 				  "held_on": h.get("held_on"), "job_id": h.get("job_id"),
 				  "run": (h.get("kwargs") or {}).get("run_name")} for h in holding.held_jobs()],
@@ -427,11 +429,23 @@ def release_held(keys=None, discard: int = 0) -> dict:
 def pause_all() -> dict:
 	"""Pause everything: runs are paused, waiting jobs held, schedules paused, and new jobs wait."""
 	frappe.only_for(MANAGERS)
-	who = frappe.session.user
+	runs, held = _pause_all(frappe.session.user)
+	return {"message": _("Paused: {0} runs, {1} waiting jobs held, schedules paused. Jobs already running finish "
+						 "their current step (a few seconds). Press Resume All to carry on.").format(runs, held)}
+
+
+@frappe.whitelist()
+def resume_all() -> dict:
+	frappe.only_for(MANAGERS)
+	runs, n = _resume_all(frappe.session.user)
+	return {"message": _("Resumed: {0} runs and {1} held jobs are running again.").format(runs, n)}
+
+
+def _pause_all(who: str) -> tuple[int, int]:
 	schedules_were = cint(frappe.db.get_single_value("RD Settings", "pause_scheduled_ingest"))
 	frappe.db.set_single_value("RD Settings", "pause_background", 1)
 	frappe.db.set_single_value("RD Settings", "pause_scheduled_ingest", 1)
-	frappe.cache.set_value("resdesk:schedules-were-paused", schedules_were)
+	frappe.db.set_default("resdesk_schedules_were_paused", str(schedules_were))
 	frappe.db.commit()
 	runs = sum(_pause_ingest(r, who) for r in frappe.get_all("RD Ingest Run", filters={"status": ("in", ["Queued", "Running"])}, pluck="name"))
 	from sok_resdesk.outbound import pause_push
@@ -442,18 +456,14 @@ def pause_all() -> dict:
 		if j["state"] == "queued" and _stop_rq(j["id"], False) == "cancelled":
 			holding.hold(j["method"], j["args"], queue=j["queue"], timeout=j["timeout"], job_id=j["short_id"], kind=j["kind"])
 			held += 1
-	return {"message": _("Paused: {0} runs, {1} waiting jobs held, schedules paused. Jobs already running finish "
-						 "their current step (a few seconds). Press Resume All to carry on.").format(runs, held)}
+	return runs, held
 
 
-@frappe.whitelist()
-def resume_all() -> dict:
-	frappe.only_for(MANAGERS)
-	who = frappe.session.user
+def _resume_all(who: str) -> tuple[int, int]:
 	frappe.db.set_single_value("RD Settings", "pause_background", 0)
-	was = frappe.cache.get_value("resdesk:schedules-were-paused")
-	frappe.db.set_single_value("RD Settings", "pause_scheduled_ingest", cint(was) if was is not None else 0)
-	frappe.cache.delete_value("resdesk:schedules-were-paused")
+	was = frappe.db.get_default("resdesk_schedules_were_paused")
+	frappe.db.set_single_value("RD Settings", "pause_scheduled_ingest", cint(was) if was not in (None, "") else 0)
+	frappe.db.set_default("resdesk_schedules_were_paused", "")
 	frappe.db.commit()
 	from sok_resdesk.outbound import resume_push
 
@@ -463,4 +473,157 @@ def resume_all() -> dict:
 	for r in frappe.get_all("RD Push Run", filters={"status": "Paused"}, pluck="name"):
 		runs += resume_push(r, who) >= 0
 	n = holding.release()
-	return {"message": _("Resumed: {0} runs and {1} held jobs are running again.").format(runs, n)}
+	return runs, n
+
+
+# -- the machine: how busy it is, and the caps Research Desk runs under ---------------------------
+
+def _limits() -> dict:
+	import os
+
+	raw = os.environ.get("RESDESK_RESOURCES", "")
+	return dict(kv.split("=", 1) for kv in raw.split(";") if "=" in kv)
+
+
+def _host() -> dict:
+	"""CPU load and memory of the machine the containers run on (inside Docker Desktop: its VM)."""
+	import os
+	import shutil
+
+	out = {"cpus": os.cpu_count() or 0}
+	try:
+		out["load"] = [round(x, 2) for x in os.getloadavg()]
+	except OSError:
+		out["load"] = []
+	try:
+		info = {}
+		with open("/proc/meminfo") as f:
+			for line in f:
+				k, v = line.split(":", 1)
+				info[k] = int(v.split()[0]) * 1024
+		out["mem_total"], out["mem_available"] = info.get("MemTotal"), info.get("MemAvailable")
+	except OSError:
+		pass
+	try:
+		du = shutil.disk_usage(frappe.get_site_path())
+		out["disk_total"], out["disk_free"] = du.total, du.free
+	except OSError:
+		pass
+	return out
+
+
+def _containers() -> list[dict] | None:
+	"""CPU % and memory of each Research Desk container, through the optional read-only
+	Docker proxy (./resdesk.sh resources monitor on). None when it isn't running."""
+	import os
+	from concurrent.futures import ThreadPoolExecutor
+
+	import requests
+
+	api = os.environ.get("RESDESK_DOCKER_API")
+	if not api:
+		return None
+	cached = frappe.cache.get_value("resdesk:container-stats")
+	if cached is not None:
+		return cached
+	try:
+		flt = frappe.as_json({"label": ["com.docker.compose.project=sok-resdesk"], "status": ["running"]})
+		items = requests.get(f"{api}/containers/json", params={"filters": flt}, timeout=3).json()
+	except Exception:
+		return None
+
+	previous = frappe.cache.get_value("resdesk:container-cpu") or {}
+	current = {}
+
+	def one(c):
+		# one-shot = a single fast sample; CPU % comes from the difference with the last one
+		try:
+			st = requests.get(f"{api}/containers/{c['Id']}/stats", params={"stream": "false", "one-shot": "true"},
+							  timeout=4).json()
+			cpu = st["cpu_stats"]
+			total, system = cpu["cpu_usage"]["total_usage"], cpu.get("system_cpu_usage", 0)
+			ncpu = cpu.get("online_cpus") or len(cpu["cpu_usage"].get("percpu_usage") or [1])
+			current[c["Id"]] = (total, system)
+			before = previous.get(c["Id"])
+			pct = 0.0
+			if before and system > before[1]:
+				pct = round((total - before[0]) / (system - before[1]) * ncpu * 100, 1)
+			mem = st.get("memory_stats", {})
+			used = mem.get("usage", 0) - (mem.get("stats", {}).get("inactive_file") or 0)
+			return {"name": c["Labels"].get("com.docker.compose.service", c["Names"][0].strip("/")),
+					"number": c["Labels"].get("com.docker.compose.container-number", "1"),
+					"cpu": max(pct, 0.0), "mem": used, "mem_limit": mem.get("limit", 0)}
+		except Exception:
+			return None
+
+	with ThreadPoolExecutor(max_workers=8) as pool:
+		rows = [r for r in pool.map(one, items) if r]
+	rows.sort(key=lambda r: (-r["cpu"], r["name"]))
+	frappe.cache.set_value("resdesk:container-cpu", current, expires_in_sec=600)
+	frappe.cache.set_value("resdesk:container-stats", rows, expires_in_sec=4)
+	return rows
+
+
+def _search_size() -> int | None:
+	from sok_resdesk.search import MeiliClient
+
+	try:
+		return MeiliClient.from_settings()._req("GET", "/stats").get("databaseSize")
+	except Exception:
+		return None
+
+
+def machine() -> dict:
+	return {
+		"host": _host(),
+		"limits": _limits(),
+		"containers": _containers(),
+		"search_size": _search_size(),
+		"requested_preset": frappe.db.get_single_value("RD Settings", "resource_preset") or "",
+		"native": not bool(_limits()),
+	}
+
+
+@frappe.whitelist()
+def choose_preset(preset: str) -> dict:
+	"""Record the resource preset chosen in the Desk; ./resdesk.sh resources apply uses it."""
+	frappe.only_for(MANAGERS)
+	if preset not in ("light", "standard", "server"):
+		frappe.throw(_("Choose light, standard or server."))
+	frappe.db.set_single_value("RD Settings", "resource_preset", preset)
+	return {"message": _("Preset {0} chosen. On the server, run: ./resdesk.sh resources apply").format(preset)}
+
+
+# -- quiet hours ---------------------------------------------------------------------------------
+
+def quiet_status() -> dict:
+	from frappe.utils import now_datetime as now
+
+	from sok_resdesk.core.quiet import in_quiet_hours
+
+	s = frappe.db.get_singles_dict("RD Settings")
+	on = cint(s.get("quiet_hours"))
+	inside = bool(on and in_quiet_hours(now(), s.get("quiet_from"), s.get("quiet_to"), bool(cint(s.get("quiet_weekdays_only")))))
+	return {"enabled": on, "inside": inside, "from": str(s.get("quiet_from") or "")[:5],
+			"to": str(s.get("quiet_to") or "")[:5], "weekdays_only": cint(s.get("quiet_weekdays_only"))}
+
+
+def apply_quiet_hours() -> None:
+	"""Every few minutes (scheduler): Pause All when quiet hours start, Resume All when they end.
+
+	Only the change of state acts, so a manager can still resume by hand during quiet hours
+	(it stays resumed until the next quiet period), and a pause made by hand is never lifted."""
+	q = quiet_status()
+	state = frappe.db.get_default("resdesk_quiet_state") or "outside"
+	who = "Quiet hours"
+	if q["inside"] and state != "inside":
+		if not holding.is_paused():
+			_pause_all(who)
+			frappe.db.set_default("resdesk_quiet_paused", "1")
+		frappe.db.set_default("resdesk_quiet_state", "inside")
+	elif not q["inside"] and state == "inside":
+		if frappe.db.get_default("resdesk_quiet_paused") == "1" and holding.is_paused():
+			_resume_all(who)
+		frappe.db.set_default("resdesk_quiet_paused", "")
+		frappe.db.set_default("resdesk_quiet_state", "outside")
+	frappe.db.commit()

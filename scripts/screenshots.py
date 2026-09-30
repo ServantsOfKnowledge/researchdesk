@@ -38,6 +38,7 @@ SHOTS: dict[str, tuple[str, str, str]] = {
 	"desk-profile": ("staff", "/app/rd-ingest-profile", "open-first"),
 	"desk-tour": ("staff", "/app/rd-ingest-profile/new", "tour"),
 	"desk-jobs": ("staff", "/app/resdesk-jobs", ""),
+	"desk-machine": ("staff", "/app/resdesk-jobs", "machine"),
 	"desk-items": ("staff", "/app/rd-item", ""),
 	"desk-collection": ("staff", "/app/rd-collection", "open-first"),
 	"desk-settings": ("staff", "/app/rd-settings", ""),
@@ -92,6 +93,10 @@ async def take(args) -> list[str]:
 					await page.wait_for_selector(".list-row-container a.ellipsis", timeout=15000)
 					await page.click(".list-row-container a.ellipsis")
 					await page.wait_for_timeout(3000)
+				elif action == "machine":
+					await page.wait_for_timeout(4000)  # two samples, for CPU per part
+					await page.evaluate("""[...document.querySelectorAll('.rdj-card h4')].find(h => h.textContent.trim() === 'Machine')
+						.closest('.rdj-card').scrollIntoView({block: 'end'})""")
 				elif action == "tour":
 					await page.wait_for_function("window.cur_frm && cur_frm.doctype === 'RD Ingest Profile'", timeout=15000)
 					await page.evaluate("cur_frm.tour.init({tour_name: cur_frm.doctype}).then(() => cur_frm.tour.start())")

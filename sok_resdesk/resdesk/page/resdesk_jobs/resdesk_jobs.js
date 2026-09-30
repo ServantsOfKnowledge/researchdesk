@@ -52,6 +52,7 @@ class ResDeskJobs {
 			this.call("release_held", { keys: JSON.stringify([String($(e.currentTarget).data("discard"))]), discard: 1 }, __("Discard this held job? It won't run."))
 		);
 		this.$body.on("click", "[data-release-all]", () => this.call("release_held", {}));
+		this.$body.on("click", "[data-choose-preset]", () => this.choose_preset());
 		this.$body.on("click", "[data-discard-all]", () => this.call("release_held", { discard: 1 }, __("Discard all held jobs? They won't run.")));
 		this.$body.on("click", "[data-cancel-search]", () => this.cancel_search());
 		this.start();
@@ -132,6 +133,38 @@ class ResDeskJobs {
 				)
 			);
 		}
+	}
+
+	choose_preset() {
+		const m = (this.data && this.data.machine) || {};
+		const d = new frappe.ui.Dialog({
+			title: __("How much of the machine may Research Desk use?"),
+			fields: [
+				{
+					fieldname: "preset",
+					fieldtype: "Select",
+					label: __("Preset"),
+					options: ["light", "standard", "server"],
+					default: m.requested_preset || (m.limits && m.limits.preset) || "standard",
+				},
+				{
+					fieldtype: "HTML",
+					options: `<table class="table table-sm small"><tbody>
+						<tr><th>light</th><td>${__("a laptop or a shared computer: 1 worker, search indexing on 1 thread, at most about 3 GB of memory")}</td></tr>
+						<tr><th>standard</th><td>${__("a desktop or small server: 2 workers, 2 indexing threads, at most about 6.5 GB of memory")}</td></tr>
+						<tr><th>server</th><td>${__("a machine for Research Desk alone: 4 workers, search engine and database uncapped")}</td></tr>
+					</tbody></table>
+					<p class="text-muted small">${__("Docker's limits are set outside the app, so the choice takes effect when someone runs this on the server:")}</p>
+					<pre class="small">./resdesk.sh resources apply</pre>`,
+				},
+			],
+			primary_action_label: __("Choose"),
+			primary_action: (v) => {
+				d.hide();
+				this.call("choose_preset", { preset: v.preset });
+			},
+		});
+		d.show();
 	}
 
 	stop_push(run) {
@@ -293,11 +326,65 @@ class ResDeskJobs {
 				<button class="btn btn-xs btn-default" data-discard-all>${__("Discard all")}</button>`
 			: `<p class="text-muted">${__("No jobs on hold. Use Hold on a waiting job, or Pause All, to keep jobs for later.")}</p>`;
 
+		const q = d.quiet || {};
 		const banner = d.paused_all
-			? `<div class="alert alert-warning">${__(
-					"Everything is paused: runs keep their place, waiting jobs are held, and new jobs wait. Press <b>Resume All</b> to carry on."
-			  )}</div>`
+			? `<div class="alert alert-warning">${
+					q.inside
+						? __("Quiet hours ({0} to {1}): everything is paused and carries on by itself at {1}. <b>Resume All</b> carries on now.", [q.from, q.to])
+						: __("Everything is paused: runs keep their place, waiting jobs are held, and new jobs wait. Press <b>Resume All</b> to carry on.")
+			  }</div>`
 			: "";
+
+		const m = d.machine || { host: {}, limits: {} };
+		const h = m.host || {};
+		const gb = (b) => (b ? (b / 1024 ** 3).toFixed(b >= 10 * 1024 ** 3 ? 0 : 1) + " GB" : "–");
+		const bar = (pct, label) => {
+			const p = Math.max(0, Math.min(100, Math.round(pct || 0)));
+			const color = p > 85 ? "var(--red-500)" : p > 65 ? "var(--orange-500)" : "var(--green-500)";
+			return `<div class="rdj-meter"><div class="rdj-meter__label">${label}</div>
+				<div class="rdj-meter__bar"><div style="width:${p}%;background:${color}"></div></div></div>`;
+		};
+		const load = (h.load || [])[0];
+		const cpu_pct = h.cpus && load != null ? (load / h.cpus) * 100 : null;
+		const mem_used = h.mem_total && h.mem_available != null ? h.mem_total - h.mem_available : null;
+		const L = m.limits || {};
+		const cap = (v, unit) => (!v || v === "0" ? __("no limit") : `${v}${unit || ""}`);
+		const limits = m.native
+			? `<p class="text-muted small">${__("Native install: workers {0}; CPU and memory caps are a Docker feature.", [L.workers || "?"])}</p>`
+			: `<table class="table table-sm rdj-table small"><tbody>
+				<tr><td>${__("Background workers")}</td><td>${esc(L.workers || "2")} × (${cap(L.worker_cpus, " CPU")}, ${cap(L.worker_memory)}) · ${__("low priority")} (nice ${esc(L.worker_nice || "10")})</td></tr>
+				<tr><td>${__("Search engine")}</td><td>${cap(L.search_cpus, " CPU")}, ${cap(L.search_memory)} · ${__("indexing threads")}: ${esc(L.search_threads || __("automatic"))}</td></tr>
+				<tr><td>${__("Database")}</td><td>${cap(L.db_cpus, " CPU")}, ${cap(L.db_memory)} · ${__("buffer pool")} ${esc(L.db_buffer_pool || "")}</td></tr>
+				<tr><td>${__("Web server")}</td><td>${esc(L.web_workers || "2")} ${__("workers")}</td></tr>
+			</tbody></table>`;
+		const rows = m.containers
+			? `<table class="table table-sm rdj-table small"><thead><tr><th>${__("Part")}</th><th>CPU</th><th>${__("Memory")}</th></tr></thead><tbody>${m.containers
+					.map(
+						(c) => `<tr><td>${esc(c.name)}${c.number !== "1" ? " " + esc(c.number) : ""}</td><td>${c.cpu}%</td>
+						<td>${gb(c.mem)}${c.mem_limit && c.mem_limit < (h.mem_total || Infinity) ? " / " + gb(c.mem_limit) : ""}</td></tr>`
+					)
+					.join("")}</tbody></table>`
+			: m.native
+			? ""
+			: `<p class="text-muted small">${__("For CPU and memory per part, run on the server:")} <code>./resdesk.sh resources monitor on</code></p>`;
+		const preset = L.preset || (m.native ? "" : "standard");
+		const machine = `
+			<div class="rdj-machine">
+				<div>
+					${bar(cpu_pct, `${__("CPU load")}: ${load != null ? load : "–"} ${__("on {0} CPUs", [h.cpus || "?"])}`)}
+					${bar(mem_used && h.mem_total ? (mem_used / h.mem_total) * 100 : 0, `${__("Memory")}: ${gb(mem_used)} ${__("of")} ${gb(h.mem_total)}`)}
+					${bar(h.disk_total ? ((h.disk_total - h.disk_free) / h.disk_total) * 100 : 0, `${__("Disk")}: ${gb(h.disk_free)} ${__("free")}${m.search_size ? " · " + __("search index") + " " + gb(m.search_size) : ""}`)}
+					<p class="small" style="margin-top:10px">${__("Preset in use")}: <b>${esc(preset || "–")}</b>
+						${m.requested_preset && m.requested_preset !== preset ? ` · ${__("chosen")}: <b>${esc(m.requested_preset)}</b> (${__("run")} <code>./resdesk.sh resources apply</code>)` : ""}
+						${m.native ? "" : `<button class="btn btn-xs btn-default" data-choose-preset style="margin-left:6px">${__("Change")}</button>`}</p>
+					<p class="small text-muted">${
+						q.enabled
+							? __("Quiet hours: {0} to {1}{2}.", [q.from, q.to, q.weekdays_only ? " " + __("on weekdays") : ""])
+							: __("Quiet hours are off.")
+					} <a href="/app/rd-settings">${__("Settings → Machine Resources")}</a></p>
+				</div>
+				<div>${limits}${rows}</div>
+			</div>`;
 
 		const schedules = d.schedules.length
 			? `<table class="table table-sm rdj-table"><tbody>${d.schedules
@@ -353,6 +440,12 @@ class ResDeskJobs {
 				.rdj-run__head { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
 				.rdj-run__actions { margin-left:auto; display:flex; gap:6px; }
 				.rdj-table td, .rdj-table th { vertical-align: middle; }
+				.rdj-machine { display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1.2fr); gap: 24px; }
+				@media (max-width: 900px) { .rdj-machine { grid-template-columns: 1fr; } }
+				.rdj-meter { margin-bottom: 10px; }
+				.rdj-meter__label { font-size: 12px; color: var(--text-muted); margin-bottom: 3px; }
+				.rdj-meter__bar { height: 8px; background: var(--gray-200, #eee); border-radius: 4px; overflow: hidden; }
+				.rdj-meter__bar div { height: 100%; }
 			</style>
 			${banner}
 			${summary}
@@ -360,6 +453,7 @@ class ResDeskJobs {
 			<div class="rdj-card"><h4>${__("Metadata pushes in progress")}</h4>${pushes}</div>
 			<div class="rdj-card"><h4>${__("Background jobs (Research Desk)")}</h4>${jobs}</div>
 			<div class="rdj-card"><h4>${__("Held jobs")}</h4>${held}</div>
+			<div class="rdj-card"><h4>${__("Machine")}</h4>${machine}</div>
 			<div class="rdj-card"><h4>${__("Scheduled ingests")}</h4>${schedules}</div>
 			<div class="rdj-card"><h4>${__("Search engine")}</h4>${search}</div>
 			<div class="rdj-card"><h4>${__("Recent runs")}</h4>${recent}</div>

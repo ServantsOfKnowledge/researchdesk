@@ -122,9 +122,10 @@ See [Collections, metadata & pushing](collections-and-metadata.md) and [Koha](ko
 | Section | What you set there |
 |---|---|
 | Portal | the library's name, tagline, public web address, OAI identifier and admin email |
-| Logo & Branding | logo, browser-tab icon and a picture for the home page |
+| Logo & Branding | logo (portal, login page, Desk), a square icon (browser tab and the Desk's Research Desk icon) and a picture for the home page |
 | Search Engine | the Meilisearch address and whether page text is indexed; **Rebuild Search Index** |
 | Internet Archive | contact sent with requests, delay between requests, books per batch, page-text cache, pausing schedules |
+| Machine Resources | the resource preset (light, standard, server) and quiet hours that pause background work at set times ([more](operations.md#resources-how-much-of-the-machine-research-desk-may-use)) |
 | Access & Sign-up | what visitors can do, the default for new books, reader accounts, what OAI-PMH shares, access rules |
 
 ![Settings](../sok_resdesk/public/images/guide/desk-settings.png)

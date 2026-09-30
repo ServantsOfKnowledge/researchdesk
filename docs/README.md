@@ -15,7 +15,8 @@ The same pages are inside the app: **Help** on the portal (for readers) and **He
 7. [Collections, metadata & pushing](collections-and-metadata.md): curated collections, editing details, exports (spreadsheet, MARCXML, MODS, Dublin Core, JSON-LD, IA), spreadsheet imports, pushing to Internet Archive, Koha, Wikidata or a webhook
 8. [Koha & interoperability](koha.md): OAI-PMH harvesting, MARCXML import, standalone mode
 9. [API](api.md): public HTTP endpoints
-10. [Operations](operations.md): upgrading and rolling back, backups, workers, background jobs (see, pause, resume and stop), re-indexing, logo & branding, troubleshooting
+10. [Operations](operations.md): upgrading and rolling back, backups, workers, background jobs (see, pause, resume and stop), resources (presets, quiet hours), re-indexing, logo & branding, troubleshooting
+   - [Moving to another server](moving.md): one-file export and import, `move-to` over SSH, Docker ↔ native
 11. [Scaling to 50,000 books](scaling.md): measured numbers, server sizing, running a large ingest
 12. [Architecture](architecture.md): components, data model, scaling from a laptop to a national library
 13. [Development](development.md): code layout, tests, adding a new source

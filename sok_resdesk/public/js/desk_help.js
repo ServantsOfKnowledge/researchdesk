@@ -11,6 +11,32 @@
 	}
 	window.rd_open_help = open_help;
 
+	// The library's logo (RD Settings → Logo, or the Research Desk mark) in the Desk sidebar
+	// header on Research Desk screens, instead of a letter.
+	function brand_sidebar() {
+		const brand = frappe.boot && frappe.boot.resdesk_brand;
+		const header = document.querySelector(".sidebar-header");
+		if (!brand || !brand.logo || !header) return;
+		const title_el = header.querySelector(".header-title");
+		const title = (title_el || {}).textContent || "";
+		if (!/^\s*(ResDesk|Research Desk)\s*$/.test(title)) return;
+		if (title.trim() === "ResDesk") title_el.textContent = __("Research Desk"); // the module's short name
+		const box = header.querySelector(".header-logo");
+		if (!box || box.dataset.rdLogo === brand.logo) return;
+		box.innerHTML = "";
+		const img = document.createElement("img");
+		img.src = brand.logo;
+		img.alt = brand.title || "Research Desk";
+		img.style.cssText = "width:100%;height:100%;object-fit:contain;border-radius:6px;";
+		box.appendChild(img);
+		box.dataset.rdLogo = brand.logo;
+		const bg = header.querySelector(".sidebar-item-icon");
+		if (bg) bg.style.background = "transparent";
+	}
+	$(document).on("page-change", () => setTimeout(brand_sidebar, 50));
+	frappe.router && frappe.router.on && frappe.router.on("change", () => setTimeout(brand_sidebar, 300));
+	new MutationObserver(() => brand_sidebar()).observe(document.body, { childList: true, subtree: true });
+
 	frappe.ui.form.on("*", {
 		refresh(frm) {
 			const c = conf();

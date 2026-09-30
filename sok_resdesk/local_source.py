@@ -76,6 +76,33 @@ def store_root(store: ItemStore) -> str:
 	return store.base if isinstance(store, HttpStore) else store.root
 
 
+def portable_path(path: str) -> str:
+	"""Write folders under the library folder as /library-source/…, the same on Docker and native
+	installs and on any server, so a catalogue can move (docs/moving.md)."""
+	if not path or path.startswith(("http://", "https://")):
+		return path
+	real, lib = os.path.realpath(path), os.path.realpath(library_dir())
+	if real == lib or real.startswith(lib + os.sep):
+		return DEFAULT_ROOT + real[len(lib):]
+	return path
+
+
+def relink(old_root: str, new_root: str = DEFAULT_ROOT) -> dict:
+	"""Books and profiles that point into old_root now point into new_root (after a move)."""
+	old_root, new_root = old_root.rstrip("/"), new_root.rstrip("/")
+	like = old_root.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "/%"
+	counts = {}
+	values = {"old": old_root, "new": new_root, "like": like}
+	for doctype, field in (("RD Item", "local_store"), ("RD Ingest Profile", "location")):
+		where = f"`{field}` = %(old)s or `{field}` like %(like)s"
+		counts[doctype] = frappe.db.sql(f"select count(*) from `tab{doctype}` where {where}", values)[0][0]
+		frappe.db.sql(
+			f"update `tab{doctype}` set `{field}` = concat(%(new)s, substring(`{field}`, char_length(%(old)s) + 1)) "
+			f"where {where}", values)
+	frappe.db.commit()
+	return counts
+
+
 _ia_session = requests.Session()
 
 
@@ -140,7 +167,7 @@ def ingest_local_one(store: ItemStore, item_id: str, loc: str, profile, fetch_te
 		"has_page_text": bool(pages) and not restricted,
 		"has_fulltext": bool(pages) and not restricted,
 		"on_archive_org": on_ia,
-		"local_store": store_root(store),
+		"local_store": portable_path(store_root(store)),
 		"local_path": loc,
 		"local_pdf": pdf or "",
 		"local_thumb": thumb or "",
