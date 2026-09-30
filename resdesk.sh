@@ -53,6 +53,17 @@ fi
 set_env() { # set_env KEY VALUE  (in .env)
   if grep -q "^$1=" .env; then sed -i.bak "s#^$1=.*#$1=$2#" .env && rm -f .env.bak; else echo "$1=$2" >> .env; fi
 }
+profile_on() {  # add a Docker Compose profile (monitor, updater) to COMPOSE_PROFILES in .env
+  local now=",${COMPOSE_PROFILES:-},"
+  case "$now" in *",$1,"*) ;; *) now="$now$1," ;; esac
+  now="$(echo "$now" | sed 's/^,*//; s/,*$//; s/,,*/,/g')"
+  set_env COMPOSE_PROFILES "$now"; export COMPOSE_PROFILES="$now"
+}
+profile_off() {
+  local now=",${COMPOSE_PROFILES:-},"
+  now="$(echo "${now//,$1,/,}" | sed 's/^,*//; s/,*$//; s/,,*/,/g')"
+  set_env COMPOSE_PROFILES "$now"; export COMPOSE_PROFILES="$now"
+}
 
 cmd="${1:-help}"; shift || true
 case "$cmd" in
@@ -164,9 +175,9 @@ PY
       monitor)
         [ "$MODE" = native ] && { echo "Only for Docker installs."; exit 1; }
         case "${1:-}" in
-          on)  set_env COMPOSE_PROFILES monitor; export COMPOSE_PROFILES=monitor
+          on)  profile_on monitor
                docker compose up -d --no-recreate monitor && echo "Background Jobs → Machine now shows CPU and memory per part." ;;
-          off) set_env COMPOSE_PROFILES ""; docker compose rm -sf monitor >/dev/null 2>&1 || true; echo "Monitor stopped." ;;
+          off) profile_off monitor; docker compose rm -sf monitor >/dev/null 2>&1 || true; echo "Monitor stopped." ;;
           *)   echo "Usage: ./resdesk.sh resources monitor on|off   (now: ${COMPOSE_PROFILES:-off})"; exit 1 ;;
         esac ;;
       *) echo "Usage: ./resdesk.sh resources [light|standard|server|set KEY=VALUE…|apply|monitor on|off]"; exit 1 ;;
@@ -269,6 +280,50 @@ PY
   update|upgrade)
     exec ./upgrade.sh "$@" ;;
 
+  updater)
+    # The updater helper: lets the Server page in the Desk upgrade, restart and back up (docs/server.md)
+    case "${1:-status}" in
+      on)
+        TOKEN="$(python3 -c 'import secrets; print(secrets.token_hex(32))' 2>/dev/null || openssl rand -hex 32)"
+        set_env RESDESK_AGENT_TOKEN "$TOKEN"
+        bench set-config resdesk_agent_token "$TOKEN" >/dev/null
+        if [ "$MODE" = native ]; then
+          set_env UPDATER 1; export UPDATER=1
+          bash scripts/native-procfile.sh "$BENCH_DIR" "${QUEUE_WORKERS:-2}" "${MEILI_PORT:-7700}" "$MEILI_MASTER_KEY"
+          native_stop; native_start
+        else
+          RESDESK_DIR="$(pwd)"; export RESDESK_DIR; set_env RESDESK_DIR "$RESDESK_DIR"
+          if [ "$(uname -s)" = Linux ]; then  # write files in this folder as you, not as root
+            SOCK="${DOCKER_SOCKET:-/var/run/docker.sock}"
+            set_env RESDESK_UID "$(id -u)"; set_env RESDESK_GID "$(id -g)"
+            set_env DOCKER_GID "$(stat -c %g "$SOCK" 2>/dev/null || echo 0)"
+            set -a; . ./.env; set +a
+          fi
+          profile_on updater
+          docker compose build updater
+          docker compose up -d --no-deps updater
+        fi
+        echo "Updater helper on. The Server page in the Desk (/app/resdesk-server) can now upgrade,"
+        echo "restart and back up this install. Turn it off with: ./resdesk.sh updater off" ;;
+      off)
+        set_env RESDESK_AGENT_TOKEN ""
+        bench set-config resdesk_agent_token "" >/dev/null || true
+        if [ "$MODE" = native ]; then
+          set_env UPDATER 0; export UPDATER=0
+          bash scripts/native-procfile.sh "$BENCH_DIR" "${QUEUE_WORKERS:-2}" "${MEILI_PORT:-7700}" "$MEILI_MASTER_KEY"
+          native_stop; native_start
+        else
+          profile_off updater
+          docker compose rm -sf updater >/dev/null 2>&1 || true
+        fi
+        echo "Updater helper off. The Server page still shows everything; upgrades are done here with ./upgrade.sh." ;;
+      status)
+        if [ -z "${RESDESK_AGENT_TOKEN:-}" ]; then echo "Updater helper: off (turn on: ./resdesk.sh updater on)"; exit 0; fi
+        if [ "$MODE" = native ]; then pgrep -f "scripts/agent.py" >/dev/null && echo "Updater helper: running" || echo "Updater helper: on, but not running (./resdesk.sh restart)"
+        else docker compose ps updater; echo; docker compose logs --tail 10 updater; fi ;;
+      *) echo "Usage: ./resdesk.sh updater on|off|status"; exit 1 ;;
+    esac ;;
+
   password)
     NEW="${1:-}"; [ -n "$NEW" ] || { read -r -s -p "New Administrator password: " NEW; echo; }
     bench set-admin-password "$NEW" && echo "Updated. (Remember to update ADMIN_PASSWORD in .env if you rely on it.)" ;;
@@ -332,6 +387,7 @@ Maintenance
   ./resdesk.sh import FILE [--base-url URL]   load an export into this (new) install
   ./resdesk.sh move-to USER@HOST [--with-library]   export, copy over SSH and import in one go
   ./resdesk.sh update [v0.4.0]          upgrade (same as ./upgrade.sh; --check to just look)
+  ./resdesk.sh updater on|off|status    let the Server page in the Desk upgrade, restart and back up
   ./resdesk.sh password [new]           reset the Administrator password
   ./resdesk.sh dev on|off               developer mode (Docker); native is always live
   ./resdesk.sh console | shell | bench …  for developers

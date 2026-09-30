@@ -432,3 +432,84 @@ def test_quiet_hours():
 	# unset or equal = never
 	assert not in_quiet_hours(wed, None, "18:00") and not in_quiet_hours(wed, "09:00", "09:00")
 	assert minutes(dt.time(7, 45)) == 465
+
+
+def test_versions_and_release_notes():
+	from sok_resdesk.core import updates as upd
+
+	assert upd.parse_version("v0.10.1") == (0, 10, 1) == upd.parse_version("0.10.1")
+	assert upd.parse_version("main") is None and upd.parse_version("v1.0.0-rc1") is None
+	assert upd.is_newer("v0.11.0", "0.10.1") and not upd.is_newer("v0.9.9", "0.10.0")
+	assert not upd.is_newer(None, "0.10.0") and not upd.is_newer("v0.11.0", "")
+	tags = ["v0.9.0", "v0.10.0", "v0.10.1", "v0.2.0", "nightly", "v16.1.0"]
+	assert upd.latest_release(tags) == "v16.1.0" and upd.latest_release(tags, major=0) == "v0.10.1"
+	assert upd.latest_release([]) is None
+	assert upd.releases_between(tags, "0.9.0", "v0.10.1") == ["v0.10.1", "v0.10.0"]
+	changelog = """# Changelog
+
+## 0.11.0 (2026-10-02): the Server page
+
+- Upgrades from the Desk
+- NEEDS-REINDEX
+
+## 0.10.1 (2026-09-30): gentler workers
+
+- nice 19
+
+## 0.10.0 (2026-09-30): resources
+- presets
+"""
+	notes = upd.changelog_sections(changelog, "0.10.0")
+	assert [n["version"] for n in notes] == ["0.11.0", "0.10.1"]
+	assert notes[0]["date"] == "2026-10-02" and notes[0]["title"] == "the Server page"
+	assert "Upgrades from the Desk" in notes[0]["notes"] and upd.needs_reindex(notes)
+	assert [n["version"] for n in upd.changelog_sections(changelog, "0.10.0", "v0.10.1")] == ["0.10.1"]
+	assert not upd.needs_reindex(upd.changelog_sections(changelog, "0.10.0", "0.10.1"))
+	assert upd.safe_release_ref("latest") == "latest" and upd.safe_release_ref("0.11.0") == "v0.11.0"
+	assert upd.safe_release_ref("v0.11.0") == "v0.11.0" and upd.safe_release_ref("main") == "main"
+	for bad in ("v0.11.0; rm -rf /", "--help", "HEAD~1", "../x"):
+		try:
+			upd.safe_release_ref(bad)
+			raise AssertionError(bad)
+		except ValueError:
+			pass
+
+
+def test_updater_helper_commands():
+	"""The helper only runs a short list of commands, with checked arguments."""
+	import importlib.util
+	from pathlib import Path
+
+	spec = importlib.util.spec_from_file_location(
+		"agent", Path(__file__).resolve().parents[2] / "scripts" / "agent.py"
+	)
+	agent = importlib.util.module_from_spec(spec)
+	spec.loader.exec_module(agent)
+	docker, native = {"INSTALL_MODE": "docker"}, {"INSTALL_MODE": "native"}
+	assert agent.command_for("upgrade", {}, docker) == ["./upgrade.sh", "--yes"]
+	assert agent.command_for("upgrade", {"target": "v0.11.0", "backup": 0, "frappe": 0}, docker) == [
+		"./upgrade.sh",
+		"--yes",
+		"v0.11.0",
+		"--no-backup",
+		"--no-frappe",
+	]
+	assert agent.command_for("upgrade", {"target": "main"}, docker) == ["./upgrade.sh", "--yes", "--main"]
+	assert agent.command_for("upgrade", {"target": "v1; reboot"}, docker) is None
+	assert agent.command_for("restart", {"service": "workers"}, docker) == [
+		"docker",
+		"compose",
+		"restart",
+		"queue",
+	]
+	assert agent.command_for("restart", {"service": "db"}, docker) is None
+	assert agent.command_for("restart", {"service": "workers"}, native) is None
+	assert agent.command_for("restart", {"service": "all"}, native) == ["./resdesk.sh", "restart"]
+	assert agent.command_for("apply_resources", {"preset": "light"}, docker) == [
+		"./resdesk.sh",
+		"resources",
+		"light",
+	]
+	assert agent.command_for("apply_resources", {"preset": "huge"}, docker) is None
+	assert agent.command_for("server_backup", {}, native) == ["./resdesk.sh", "backup"]
+	assert agent.command_for("rm", {}, docker) is None

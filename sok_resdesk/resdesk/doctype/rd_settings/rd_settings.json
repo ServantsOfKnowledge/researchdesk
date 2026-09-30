@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-01 12:30:00.000000",
+ "modified": "2026-10-02 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -48,6 +48,17 @@
   "quiet_from",
   "quiet_to",
   "quiet_weekdays_only",
+  "server_section",
+  "check_updates",
+  "allow_desk_upgrades",
+  "backup_schedule",
+  "backup_with_files",
+  "backup_keep",
+  "column_break_server",
+  "alert_email",
+  "alert_emails",
+  "alert_webhook_url",
+  "alert_disk_percent",
   "access_section",
   "guest_access",
   "default_visibility",
@@ -298,6 +309,82 @@
    "default": "0",
    "depends_on": "quiet_hours",
    "description": "Monday to Friday only; weekends run freely."
+  },
+  {
+   "fieldname": "server_section",
+   "fieldtype": "Section Break",
+   "label": "Server & Updates",
+   "collapsible": 1,
+   "description": "Updates, backups and alerts. The Server page (Research Desk → Server) shows the state of each part and, with the updater helper turned on, upgrades and restarts from the Desk."
+  },
+  {
+   "fieldname": "check_updates",
+   "fieldtype": "Check",
+   "label": "Check for New Releases",
+   "default": "1",
+   "description": "Once a day, look on GitHub for a newer Research Desk release and Frappe patch, and tell managers when there is one."
+  },
+  {
+   "fieldname": "allow_desk_upgrades",
+   "fieldtype": "Check",
+   "label": "Allow Upgrades and Restarts from the Desk",
+   "default": "1",
+   "description": "Only matters when the updater helper is turned on (./resdesk.sh updater on). Untick to allow them on the server only; the Server page still shows everything."
+  },
+  {
+   "fieldname": "backup_schedule",
+   "fieldtype": "Select",
+   "label": "Automatic Backups",
+   "options": "Off\nDaily\nWeekly",
+   "default": "Daily",
+   "description": "Back up the database every night (Weekly: on Sunday night). Backups are kept on the server; download them from the Server page and keep copies elsewhere."
+  },
+  {
+   "fieldname": "backup_with_files",
+   "fieldtype": "Check",
+   "label": "Include Uploaded Files",
+   "default": "0",
+   "description": "Also back up uploaded files (logos, pictures, attachments). Books themselves are never in backups: they stay on archive.org or in your folders."
+  },
+  {
+   "fieldname": "backup_keep",
+   "fieldtype": "Int",
+   "label": "Backups to Keep",
+   "default": "7",
+   "non_negative": 1,
+   "description": "Older backups are deleted after each new one."
+  },
+  {
+   "fieldname": "column_break_server",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "alert_email",
+   "fieldtype": "Check",
+   "label": "Email Alerts to Managers",
+   "default": "1",
+   "description": "When a part stops working, the disk is nearly full, a backup or upgrade fails, or a new release is out. Needs an outgoing email account (Desk → Email Account). Alerts always appear in the Desk's notifications too."
+  },
+  {
+   "fieldname": "alert_emails",
+   "fieldtype": "Small Text",
+   "label": "Also Email",
+   "description": "More addresses for alerts, separated by commas."
+  },
+  {
+   "fieldname": "alert_webhook_url",
+   "fieldtype": "Data",
+   "label": "Alert Webhook URL",
+   "options": "URL",
+   "description": "Also post alerts as JSON to this address, for example a Slack, Mattermost or Discord incoming webhook (the text is in \"text\")."
+  },
+  {
+   "fieldname": "alert_disk_percent",
+   "fieldtype": "Int",
+   "label": "Alert When Disk Is This Full (%)",
+   "default": "90",
+   "non_negative": 1,
+   "description": "Warn when the disk holding Research Desk's data is this full."
   },
   {
    "fieldname": "access_section",

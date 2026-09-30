@@ -9,10 +9,13 @@ ARG FRAPPE_IMAGE_PREFIX=frappe
 FROM ${FRAPPE_IMAGE_PREFIX}/build:${FRAPPE_BRANCH} AS builder
 ARG FRAPPE_BRANCH=version-16
 ARG FRAPPE_PATH=https://github.com/frappe/frappe
+# set by upgrade.sh to the newest commit on FRAPPE_BRANCH: a new value rebuilds this layer and so
+# brings in Frappe's patch releases; the same value keeps the cached layer (./upgrade.sh --no-frappe)
+ARG FRAPPE_COMMIT=
 USER frappe
 
-# 1. Frappe framework (cached layer: only rebuilt when FRAPPE_BRANCH changes)
-RUN bench init \
+# 1. Frappe framework (cached layer: rebuilt when FRAPPE_BRANCH or FRAPPE_COMMIT changes)
+RUN echo "Frappe ${FRAPPE_BRANCH} ${FRAPPE_COMMIT}" && bench init \
       --frappe-branch=${FRAPPE_BRANCH} \
       --frappe-path=${FRAPPE_PATH} \
       --no-procfile --no-backups --skip-redis-config-generation \

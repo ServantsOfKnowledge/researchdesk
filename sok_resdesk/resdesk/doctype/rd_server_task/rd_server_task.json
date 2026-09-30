@@ -1,0 +1,146 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-01 10:00:00.000000",
+ "modified": "2026-10-01 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Server Task",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "description": "Upgrades, restarts and other changes to the installation requested from the Server page, carried out by the updater helper.",
+ "field_order": [
+  "title",
+  "action",
+  "status",
+  "requested_by",
+  "column_break_t",
+  "started_on",
+  "finished_on",
+  "exit_code",
+  "args",
+  "section_result",
+  "summary",
+  "log"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Task",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "action",
+   "fieldtype": "Select",
+   "label": "Action",
+   "options": "upgrade\nrestart\napply_resources\nserver_backup\ncheck_updates\nlogs",
+   "read_only": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Queued\nRunning\nSucceeded\nFailed\nCancelled",
+   "default": "Queued",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "requested_by",
+   "fieldtype": "Link",
+   "label": "Requested By",
+   "options": "User",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_t",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "started_on",
+   "fieldtype": "Datetime",
+   "label": "Started",
+   "read_only": 1
+  },
+  {
+   "fieldname": "finished_on",
+   "fieldtype": "Datetime",
+   "label": "Finished",
+   "read_only": 1
+  },
+  {
+   "fieldname": "exit_code",
+   "fieldtype": "Int",
+   "label": "Exit Code",
+   "read_only": 1
+  },
+  {
+   "fieldname": "args",
+   "fieldtype": "Code",
+   "label": "Details",
+   "options": "JSON",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_result",
+   "fieldtype": "Section Break",
+   "label": "Result"
+  },
+  {
+   "fieldname": "summary",
+   "fieldtype": "Small Text",
+   "label": "Summary",
+   "read_only": 1
+  },
+  {
+   "fieldname": "log",
+   "fieldtype": "Code",
+   "label": "Log",
+   "read_only": 1,
+   "description": "What the updater helper printed (the end of it, for long tasks)."
+  }
+ ],
+ "links": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "in_create": 1,
+ "track_changes": 0,
+ "title_field": "title",
+ "show_title_field_in_link": 0,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 0,
+   "share": 0
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 0,
+   "share": 0
+  }
+ ],
+ "autoname": "TASK-.#####",
+ "naming_rule": "Expression (old style)"
+}

@@ -32,4 +32,9 @@ sed -i.bak -E "s#^(worker[^:]*): (nice -n [0-9]+ )?bench worker#\1: $NICE bench 
   for i in $(seq 2 "$WORKERS"); do
     echo "worker_rd$i: $NICE bench worker 1>> logs/worker.log 2>> logs/worker.error.log"
   done
+  # the updater helper (./resdesk.sh updater on): the Server page's upgrades and restarts
+  if [ "${UPDATER:-0}" = 1 ]; then
+    APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+    echo "updater: RESDESK_DIR=$APP_DIR python3 $APP_DIR/scripts/agent.py 1>> logs/updater.log 2>&1"
+  fi
 } >> Procfile

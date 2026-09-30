@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.11.0 (2026-10-02): look after the server from the Desk
+
+- **Server page** in the Desk (Research Desk → Server): Research Desk and Frappe versions and
+  whether a newer release is out, with its release notes; the health of every part (database,
+  cache, workers, scheduler, search engine, disk, backups, errors); backups; recent errors,
+  failed jobs and log files; alerts; resources
+- **Upgrade from the Desk** with the optional **updater helper** (`./resdesk.sh updater on`):
+  a System Manager upgrades to the latest release or goes back to an earlier one, restarts a
+  part (portal, workers, scheduler, search engine or everything), applies a resource preset,
+  backs up on the server and reads each part's logs, and watches the output live. The helper
+  runs only those commands (`./upgrade.sh`, `./resdesk.sh`, `docker compose restart/logs`),
+  with checked arguments and a secret token; it is off unless turned on, and Settings can
+  switch the Desk buttons off. Every request is kept as an RD Server Task with its log
+- **Automatic backups**: every night by default (Settings → Server & Updates: daily, weekly or
+  off, how many to keep, with or without uploaded files); make, list, download and delete
+  backups on the Server page
+- **Alerts** to managers when a part stops working (and when it recovers), the disk is nearly
+  full, a backup or upgrade fails, or a new release is out: Desk notifications, email and a
+  webhook (Slack, Mattermost, Discord). `sok_resdesk.server.ping` for uptime monitors
+- Daily **update check** for new Research Desk releases and Frappe patches
+- Upgrades on Docker now really bring Frappe's newest v16 patch release (the Frappe part of the
+  image is rebuilt when a new patch is out; `--no-frappe` keeps it). The first upgrade to
+  0.11 rebuilds it, which takes 10 minutes or more
+- `./upgrade.sh` runs from a copy of itself (it replaces its own file), keeps going when
+  GitHub can't be reached, and says so when going back to an earlier release
+- Book folders and logs are no longer sent to Docker when the image is built
+- `COMPOSE_PROFILES` keeps both the monitor and the updater when either is turned on or off
+
 ## 0.10.1 (2026-09-30): gentler workers by default, more tests, formatted code
 
 - Background workers now run at the **lowest priority (nice 19) by default** on every preset, and

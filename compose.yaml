@@ -17,6 +17,8 @@ x-image: &image
     args:
       FRAPPE_BRANCH: ${FRAPPE_BRANCH:-version-16}
       FRAPPE_IMAGE_PREFIX: ${FRAPPE_IMAGE_PREFIX:-frappe}
+      # the Frappe commit to build (upgrade.sh sets it); a new value rebuilds Frappe
+      FRAPPE_COMMIT: ${FRAPPE_COMMIT:-}
   restart: unless-stopped
 
 # Resource caps (./resdesk.sh resources). "0" or empty means no limit.
@@ -192,6 +194,31 @@ services:
       DISABLE_IPV6: 1
     volumes:
       - ${DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock:ro
+
+  # Optional (./resdesk.sh updater on): the updater helper, which lets the Server page in the
+  # Desk upgrade, restart and back up this install (docs/server.md). It controls Docker and
+  # can change this folder, so it is off unless you turn it on; it only runs ./upgrade.sh,
+  # ./resdesk.sh and docker compose for the tasks a System Manager starts in the Desk.
+  updater:
+    image: sok-resdesk-updater:local
+    build:
+      context: docker
+      dockerfile: updater.Dockerfile
+    profiles: ["updater"]
+    restart: unless-stopped
+    working_dir: ${RESDESK_DIR:-/resdesk}
+    command: ["python3", "scripts/agent.py"]
+    user: "${RESDESK_UID:-0}:${RESDESK_GID:-0}"
+    group_add: ["${DOCKER_GID:-0}"]
+    environment:
+      RESDESK_DIR: ${RESDESK_DIR:-/resdesk}
+      RESDESK_AGENT_URL: http://frontend:8080
+      RESDESK_IN_DOCKER: "1"
+    volumes:
+      - ${DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
+      # the install folder at the same path as on the host, so docker compose run from
+      # inside finds the same files (.env, compose.yaml, library) the host does
+      - ${RESDESK_DIR:-.}:${RESDESK_DIR:-/resdesk}
 
   frontend:
     <<: *image

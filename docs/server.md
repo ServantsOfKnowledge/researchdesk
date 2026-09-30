@@ -1,0 +1,192 @@
+# Server: updates, health & backups
+
+The **Server** page in the Desk (Research Desk → *Server*, or `/app/resdesk-server`) shows
+the state of the whole installation in one place and, if you allow it, lets a System Manager
+look after it without opening a terminal:
+
+- which version of Research Desk and Frappe is running, and whether a newer one is out;
+- whether every part is working: database, cache, background workers, scheduler, search
+  engine, disk space, backups;
+- backups: make one, download one, and when they are made automatically;
+- recent errors, failed jobs and log files;
+- alerts by Desk notification, email and webhook when something goes wrong;
+- with the **updater helper** on: **upgrade**, go back to an earlier release, **restart** a
+  part, apply a **resource preset**, and read each part's logs, all from the Desk.
+
+![The Server page](../sok_resdesk/public/images/guide/desk-server.png)
+
+ResDesk Managers can see the page, make and list backups, and read logs. Changing the
+installation (upgrading, restarting, applying a preset, deleting a backup) and downloading
+backups needs the **System Manager** role.
+
+## The Server page
+
+| Part of the page | What it shows |
+|---|---|
+| Summary | Research Desk and Frappe versions (with *available* when a newer one is out), Docker or native install, health, disk space, the updater helper |
+| Health | each part, with **OK**, **Check** (worth a look) or **Problem**, and a sentence saying why |
+| Updates | the newest release, *What's new* from its release notes, and either the **Upgrade** button or the command to run on the server |
+| Services | with the helper: every container (Docker) or process (native) and its state, **Logs** for each, and **Restart** buttons |
+| Backups | the automatic schedule, **Back up now**, the list of backups with download links |
+| Logs | recent errors, failed background jobs, and the end of any log file |
+| Resources | the resource preset in use, and **Apply a preset now** with the helper ([Resources](operations.md#resources-how-much-of-the-machine-research-desk-may-use)) |
+| Alerts | where alerts go, and a test button |
+| Updater helper | whether it is on and connected, and how to turn it on or off |
+
+What each health line means:
+
+| Line | Problem means |
+|---|---|
+| Background workers | none is running: ingests, exports and pushes wait. *Check* while Pause All is on |
+| Scheduler | it hasn't run for 20 minutes: scheduled ingests, backups, quiet hours and alerts stop. *Check* when it has been switched off on purpose |
+| Search engine | Meilisearch doesn't answer: the portal can't search |
+| Disk | fuller than the alert level (Settings, 90% by default); *Check* 10% before |
+| Backups | the last backup failed, or the newest is older than the schedule promises |
+| Errors | *Check* when errors were logged or background jobs failed in the last day: open them under Logs |
+| Updater helper | it is on but hasn't reported for a minute and a half |
+
+The page refreshes itself every 15 seconds.
+
+## Checking for updates
+
+Once a day Research Desk looks on GitHub for a newer release and for Frappe patch releases, and
+tells managers when one is out (Settings → *Server & Updates* → *Check for New Releases*).
+**Check for Updates** on the Server page looks straight away. With the updater helper on, the
+server also asks its own git remote, which is what an upgrade installs from.
+
+*What's new* shows the release notes of every release between yours and the newest one. If a
+release needs the search index rebuilt, the page says so.
+
+## Upgrading from the Desk
+
+With the updater helper on and the System Manager role, press **Upgrade to vX.Y.Z**:
+
+- **Release**: the latest, or an older one to go back to. Going back only changes the code:
+  if that release can't read the database as it is now, restore the backup made before the
+  upgrade you are undoing.
+- **Back up first** (recommended) makes a backup into `site-backups/` on the server.
+- **Also update Frappe** brings Frappe to its newest v16 patch release. On Docker this rebuilds
+  the Frappe part of the image when a newer patch is out, which takes 10 minutes or more.
+
+The upgrade is exactly `./upgrade.sh` ([Upgrading](operations.md#upgrading)), run on the server
+by the helper: backup, new code, Frappe, migrations, restart, health check. The page shows its
+output as it runs. The portal and the Desk go offline for a few minutes; the page says so and
+reconnects by itself. When it finishes, managers get an alert with the result, and the task
+stays in the list with its full log (Research Desk → *Server Tasks*).
+
+If an upgrade fails, nothing is lost. The log ends with what went wrong and the two commands
+that put things back (the previous version, and the backup it just made). Running ingests and
+pushes are interrupted by the restart; resume them on Background Jobs.
+
+Without the helper, the Updates box shows the command to run on the server instead:
+`./upgrade.sh`. Settings → *Server & Updates* → *Allow Upgrades and Restarts from the Desk*
+switches the buttons off (for everyone) without touching the server.
+
+## Restarting and reading logs
+
+With the helper, **Services** lists every part with its state. **Restart** the portal and Desk,
+the background workers, the scheduler, the search engine, or everything (native installs can
+only restart everything). **Logs** shows the last few hundred lines of that part.
+
+Without the helper, the health list still shows whether each part answers, and **Logs** shows
+errors, failed jobs and the log files the app can read. On the server:
+`./resdesk.sh status`, `./resdesk.sh logs queue`, `./resdesk.sh restart`.
+
+## Backups
+
+Research Desk backs up its database every night at 02:30 (server time) by itself: Settings →
+*Server & Updates*:
+
+| Setting | |
+|---|---|
+| Automatic Backups | Daily (the default), Weekly (Sunday night) or Off |
+| Include Uploaded Files | also back up logos, pictures and attachments. Books themselves are never in a backup: they stay on archive.org or in your folders |
+| Backups to Keep | older ones are deleted after each new backup (7 by default) |
+
+**Back up now** and **Back up with files** make one straight away (it takes a moment to appear).
+A System Manager can download each part of a backup and delete old ones. With the helper,
+**Back up on the server** runs `./resdesk.sh backup`, which also copies the backup into
+`site-backups/` in the Research Desk folder.
+
+These backups stay on the same disk as Research Desk. **Download one now and then** (or copy
+`site-backups/`) and keep it somewhere else: another disk, Nextcloud, a NAS. Restoring is done
+on the server: `./resdesk.sh restore FILE` ([Backups](operations.md#backups)). The search index
+is never in a backup; it is rebuilt from the catalogue.
+
+A backup that fails raises an alert and shows as a **Problem**.
+
+## Alerts
+
+Managers (ResDesk Manager and System Manager) are told when:
+
+- a part stops working (workers, scheduler, cache, search engine, the helper), and again when
+  it is fine;
+- the disk is fuller than the alert level;
+- a backup fails;
+- an upgrade from the Desk finishes or fails;
+- a new release is out (once per release).
+
+Checks run every 10 minutes. Alerts go to:
+
+| Where | How |
+|---|---|
+| Desk notifications | always (the bell at the top of the Desk) |
+| Email | to every manager, and the *Also Email* addresses, when *Email Alerts to Managers* is on. Needs an outgoing email account: Desk → Email Account |
+| Webhook | *Alert Webhook URL*: a JSON post with the message in `text`, which Slack, Mattermost and Discord (add `/slack` to a Discord webhook address) show as a message. Other fields: `event`, `severity` (`bad`, `ok`, `info`), `message`, `site`, `link`, `at` |
+
+**Send a test alert** (Server page, Alerts) checks all three.
+
+For an outside uptime monitor (Uptime Kuma, a hosting provider's check, a load balancer), use
+`https://your-library/api/method/sok_resdesk.server.ping`: it answers `{"status": "ok"}`, or
+HTTP 503 when a part is down, and says nothing else.
+
+## The updater helper
+
+The app can't replace or restart itself from inside its own container, so upgrades and restarts
+from the Desk need something next to it: the **updater helper**. It is off until you turn it
+on, because it can control Docker and change the Research Desk folder.
+
+```bash
+./resdesk.sh updater on        # turn it on (once)
+./resdesk.sh updater status    # is it running? its last lines
+./resdesk.sh updater off       # turn it off again
+```
+
+- **Docker**: a small container, `updater`, with the Docker command line, git and Python. It
+  sees the Research Desk folder and the Docker socket. On Linux it runs as your user, so files
+  it writes in the folder stay yours.
+- **Native**: a process in the bench's Procfile (`updater`), started with the others.
+
+`updater on` makes a new secret token each time and restarts nothing else (native installs
+restart once to add the process).
+
+### How the updater helper works
+
+Every five seconds the helper tells Research Desk what it sees (version, git state, which parts
+run, disk space) and asks whether there is work. When a System Manager presses a button, the
+page records an **RD Server Task**; the helper picks it up, runs the matching command and sends
+back the output:
+
+| Task | Command |
+|---|---|
+| Upgrade | `./upgrade.sh --yes [vX.Y.Z] [--no-backup] [--no-frappe]` |
+| Restart | `docker compose restart …` (native: `./resdesk.sh restart`) |
+| Apply a preset | `./resdesk.sh resources light\|standard\|server` |
+| Server backup | `./resdesk.sh backup` |
+| Check for updates | `git fetch --tags` |
+| Logs | `docker compose logs --tail N part` (native: the part's log file) |
+
+That list is all it does: nothing else can be asked of it, and every argument is checked twice,
+by the site and by the helper. It talks only to your own Research Desk, with a secret token
+kept in `.env` and the site config. Long tasks run apart from the helper (in a short-lived
+container on Docker, a detached process on native), so they carry on while the restart they
+cause replaces the helper itself.
+
+### Troubleshooting the helper
+
+| Problem | Try |
+|---|---|
+| *Not reporting* on the Server page | `./resdesk.sh updater status`; `./resdesk.sh updater on` again |
+| "The site refused the token" in its log | `./resdesk.sh updater on` (makes a new token for both sides) |
+| An upgrade says there are local code changes | someone edited files in the Research Desk folder: `git status`, then commit or `git stash` them |
+| A task stays *Running* | the helper stopped reporting; after three hours the task is marked failed. Its log is in `logs/upgrade-<date>.log` on the server |

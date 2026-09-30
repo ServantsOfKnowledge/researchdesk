@@ -60,6 +60,13 @@ may read it; when false, `pdf_url` is empty.
 `sok_resdesk.api.stats` returns counts of items, creators, full-text items, languages,
 indexed pages and search-engine health.
 
+`sok_resdesk.server.ping` is for uptime monitors (Uptime Kuma, a load balancer, a cron job):
+`{"status": "ok"}`, or HTTP 503 with `"degraded"` when the workers, scheduler, cache or search
+engine are down. It says nothing more, so it is safe to leave open.
+
+`sok_resdesk.server.agent_sync` is only for the updater helper (it needs the helper's token);
+see [Server](server.md#how-the-updater-helper-works).
+
 `sok_resdesk.api.file?item_id=<id>&name=<file name>` streams the PDF or cover of a book that
 lives in your own folders or on your book server (HTTP range requests supported). Only those
 two files are ever served, and the PDF only when the caller may read the book.
@@ -115,6 +122,13 @@ two files are ever served, and the PDF only when the caller may read the book.
 | `sok_resdesk.transfer.rerun_export` (`name`) | rebuild an export's file with current data |
 | `sok_resdesk.help.get_page` (`slug`) | a help page (docs/*.md) as HTML with its table of contents, for the Desk |
 | `sok_resdesk.guide.checklist` · `checklist_mark` (`key`, `what`=`done`/`skipped`/`hide`) · `restart_checklist` | the getting-started checklist on the workspace |
+| `sok_resdesk.server.status` | everything on the Server page: versions, updates, health, backups, helper, recent tasks |
+| `sok_resdesk.server.check_updates` | look for a newer release and Frappe patch now (also daily) |
+| `sok_resdesk.server.request_task` (`action`, `args` JSON) | ask the updater helper to `upgrade` (`target`=`latest`/`vX.Y.Z`, `backup`, `frappe`), `restart` (`service`=`web`/`workers`/`scheduler`/`search`/`all`), `apply_resources` (`preset`), `server_backup`, `check_updates` or `logs` (`service`, `lines`); returns the task name. Changes to the installation need the System Manager role |
+| `sok_resdesk.server.get_task` (`name`) · `cancel_task` (`name`) | a task's status and log; cancel one still waiting |
+| `sok_resdesk.server.take_backup` (`with_files`) · `delete_backup` (`name`) | back up now in the background; delete a backup (System Manager). Download: `/backups/<file>` (System Manager) |
+| `sok_resdesk.server.logs` (`source`=`errors`/`failed_jobs`/`files`, `name`, `lines`) | recent errors, failed jobs, or the end of a log file |
+| `sok_resdesk.server.test_alert` | send a test alert to the Desk, email and webhook |
 
 See [Collections, metadata & pushing](collections-and-metadata.md) for what these do.
 

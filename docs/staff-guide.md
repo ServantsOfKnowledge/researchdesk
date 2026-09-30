@@ -13,8 +13,8 @@ never see the Desk; they use the portal at `/library`.
 
 - **Get started with Research Desk**, at the top, is a checklist for a new library (see
   [below](#the-getting-started-checklist)). Hide it when you're done.
-- **Shortcuts**: Ingest Profiles, Items, Collections, Background Jobs, Open Portal, Settings and
-  Help.
+- **Shortcuts**: Ingest Profiles, Items, Collections, Background Jobs, Server, Open Portal,
+  Settings and Help.
 - **Cards** list everything else: the catalogue (items, collections, authors, subjects), ingest
   (profiles, runs, background jobs), setup, readers (sign-up requests, users) and metadata
   (exports, spreadsheet imports, push targets).
@@ -64,6 +64,17 @@ downloaded; scans stay on archive.org (or your server) and are shown from there.
 ([more](operations.md#background-jobs-see-pause-and-stop-what-is-running)).
 
 ![Background Jobs](../sok_resdesk/public/images/guide/desk-jobs.png)
+
+## The Server page
+
+**Server** shows whether every part of Research Desk is working, which version runs and whether
+a newer one is out, the backups, recent errors and logs. Managers get an alert (in the Desk, by
+email or a webhook) when something stops working. With the updater helper turned on, a System
+Manager can also upgrade, restart and apply resource presets from here.
+
+![The Server page](../sok_resdesk/public/images/guide/desk-server.png)
+
+Details: [Server: updates, health & backups](server.md).
 
 ## The catalogue
 
@@ -126,6 +137,7 @@ See [Collections, metadata & pushing](collections-and-metadata.md) and [Koha](ko
 | Search Engine | the Meilisearch address and whether page text is indexed; **Rebuild Search Index** |
 | Internet Archive | contact sent with requests, delay between requests, books per batch, page-text cache, pausing schedules |
 | Machine Resources | the resource preset (light, standard, server) and quiet hours that pause background work at set times ([more](operations.md#resources-how-much-of-the-machine-research-desk-may-use)) |
+| Server & Updates | update checks, automatic backups, where alerts go, and whether upgrades may be started from the Desk ([more](server.md)) |
 | Access & Sign-up | what visitors can do, the default for new books, reader accounts, what OAI-PMH shares, access rules |
 
 ![Settings](../sok_resdesk/public/images/guide/desk-settings.png)
@@ -136,7 +148,8 @@ Take the tour on the Settings form for the fields most libraries change first.
 
 | Role | Can |
 |---|---|
-| ResDesk Manager | everything: settings, ingests, background jobs, access, pushes, readers |
+| ResDesk Manager | everything in the library: settings, ingests, background jobs, access, pushes, readers; the Server page and backups |
+| System Manager | also upgrades, restarts and downloading backups on the Server page |
 | ResDesk Cataloguer | edit books, authors, subjects and collections; exports and spreadsheet imports; read ingest runs |
 | ResDesk Reader | the portal only: read members-only books |
 

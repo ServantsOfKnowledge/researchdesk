@@ -54,8 +54,14 @@ doc_events = {
 
 scheduler_events = {
 	# quiet hours: pause all background work at set times (RD Settings → Machine Resources)
-	"cron": {"*/5 * * * *": ["sok_resdesk.jobs.apply_quiet_hours"]},
+	"cron": {
+		"*/5 * * * *": ["sok_resdesk.jobs.apply_quiet_hours"],
+		# Server page: alerts when a part stops working (RD Settings → Server & Updates)
+		"*/10 * * * *": ["sok_resdesk.server.watch"],
+		# automatic backups, at night (server time zone)
+		"30 2 * * *": ["sok_resdesk.server.scheduled_backup"],
+	},
 	"hourly": ["sok_resdesk.ingest.mark_interrupted_runs", "sok_resdesk.ingest.run_scheduled_hourly"],
-	"daily": ["sok_resdesk.ingest.run_scheduled_daily"],
+	"daily": ["sok_resdesk.ingest.run_scheduled_daily", "sok_resdesk.server.scheduled_update_check"],
 	"weekly": ["sok_resdesk.ingest.run_scheduled_weekly"],
 }

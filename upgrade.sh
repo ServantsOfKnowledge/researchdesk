@@ -6,14 +6,23 @@
 #  ./upgrade.sh v0.4.0       upgrade (or roll back) to a specific release
 #  ./upgrade.sh --main       upgrade to the newest code on the main branch
 #  ./upgrade.sh --check      only report whether an update is available
-#  options: --yes (don't ask)  --no-backup  --no-frappe (native: keep Frappe as is)
+#  options: --yes (don't ask)  --no-backup  --no-frappe (keep Frappe as it is)
 #
 #  What it does: backup → fetch new code → update Frappe (patch releases
 #  within v16) → rebuild → database migrations → search-index settings →
 #  restart → health check. Logs go to logs/upgrade-<date>.log.
+#  The Server page in the Desk runs this too, through the updater helper.
 # ---------------------------------------------------------------------------
 set -euo pipefail
-cd "$(dirname "$0")"
+# Run from a copy: the upgrade replaces this very file, and bash reads scripts as it goes.
+if [ -z "${RESDESK_UPGRADE_DIR:-}" ]; then
+  RESDESK_UPGRADE_DIR="$(cd "$(dirname "$0")" && pwd)"; export RESDESK_UPGRADE_DIR
+  COPY="$(mktemp "${TMPDIR:-/tmp}/resdesk-upgrade.XXXXXX")"
+  cp "$0" "$COPY"
+  exec bash "$COPY" "$@"
+fi
+cd "$RESDESK_UPGRADE_DIR"
+case "$0" in */resdesk-upgrade.*) trap 'rm -f "$0"' EXIT ;; esac
 APP_DIR="$(pwd)"
 
 YES=0; CHECK=0; BACKUP=1; FRAPPE=1; TARGET=""; USE_MAIN=0
@@ -24,7 +33,7 @@ for arg in "$@"; do
     --no-backup) BACKUP=0 ;;
     --no-frappe) FRAPPE=0 ;;
     --main) USE_MAIN=1 ;;
-    -h|--help) sed -n '2,15p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,16p' "$0"; exit 0 ;;
     v*|[0-9]*) TARGET="$arg" ;;
     *) echo "Unknown option: $arg"; exit 1 ;;
   esac
@@ -67,8 +76,13 @@ if [ "$(git rev-parse HEAD)" = "$TARGET_SHA" ]; then
   [ "$YES" = 1 ] || { read -r -p "  Re-run migrations and a health check anyway? [y/N]: " a || true; [[ "${a:-N}" =~ ^[Yy] ]] || exit 0; }
 else
   echo
-  echo "  What's new:"
-  git log --no-merges --format='    • %s' "HEAD..$TARGET_SHA" 2>/dev/null | head -20 || true
+  if git merge-base --is-ancestor "$TARGET_SHA" HEAD 2>/dev/null; then
+    echo "  Going back to an earlier release. Only the code goes back: if that release can't read"
+    echo "  the database as it is now, restore the backup made before the upgrade you are undoing."
+  else
+    echo "  What's new:"
+    git log --no-merges --format='    • %s' "HEAD..$TARGET_SHA" 2>/dev/null | head -20 || true
+  fi
   [ "$CHECK" = 1 ] && { echo; echo "  Run ./upgrade.sh to install it."; exit 0; }
 fi
 
@@ -111,7 +125,7 @@ if [ "$BACKUP" = 1 ]; then
     echo "      run again without one:  ./upgrade.sh --no-backup"
     exit 1
   fi
-  BACKUP_FILE="$(ls -t site-backups/*-database.sql.gz 2>/dev/null | head -1)"
+  BACKUP_FILE="$(ls -t site-backups/*-database.sql.gz 2>/dev/null | head -1 || true)"
   ok "Saved ${BACKUP_FILE:-site-backups/}"
 else
   warn "Skipped (--no-backup)"
@@ -137,7 +151,7 @@ if [ "$MODE" = native ]; then
   cd "$BENCH_DIR"
   if [ "$FRAPPE" = 1 ]; then
     BR="$(cd apps/frappe && git rev-parse --abbrev-ref HEAD)"
-    REMOTE="$(cd apps/frappe && git remote | head -1)"
+    REMOTE="$(cd apps/frappe && git remote | head -1 || true)"
     (cd apps/frappe && git fetch --quiet "$REMOTE" "$BR" && git merge --quiet --ff-only FETCH_HEAD) \
       && ok "Frappe $(cd apps/frappe && git describe --tags --abbrev=0 2>/dev/null) ($BR)" \
       || warn "Frappe not updated (local changes or no network); continuing with the current version"
@@ -176,7 +190,24 @@ else
   if [ -n "${RESDESK_IMAGE:-}" ]; then
     docker compose pull
   else
-    docker compose build     # also picks up Frappe patch releases from the version-16 base images
+    # Frappe patch releases: build against the newest commit on the Frappe branch (a changed
+    # FRAPPE_COMMIT rebuilds the Frappe layer); --no-frappe keeps the one built last time
+    if [ "$FRAPPE" = 1 ]; then
+      NEW_COMMIT="$( (git ls-remote https://github.com/frappe/frappe "refs/heads/${FRAPPE_BRANCH:-version-16}" 2>/dev/null || true) | cut -c1-12)"
+      if [ -n "$NEW_COMMIT" ] && [ "$NEW_COMMIT" != "${FRAPPE_COMMIT:-}" ]; then
+        if grep -q '^FRAPPE_COMMIT=' .env; then sed -i.bak "s#^FRAPPE_COMMIT=.*#FRAPPE_COMMIT=$NEW_COMMIT#" .env && rm -f .env.bak
+        else echo "FRAPPE_COMMIT=$NEW_COMMIT" >> .env; fi
+        export FRAPPE_COMMIT="$NEW_COMMIT"
+        ok "Frappe ${FRAPPE_BRANCH:-version-16} at $NEW_COMMIT: rebuilding Frappe (10 minutes or more)"
+      elif [ -z "$NEW_COMMIT" ]; then
+        warn "Could not ask GitHub for Frappe's newest version; keeping the current one"
+      else
+        ok "Frappe unchanged"
+      fi
+    else
+      ok "Frappe kept as it is (--no-frappe)"
+    fi
+    docker compose build
   fi
   docker compose pull db redis-cache redis-queue meilisearch --quiet 2>/dev/null || true
   docker image prune -f >/dev/null 2>&1 || true   # drop the previous build's layers (never touches your data)
@@ -228,15 +259,17 @@ else
     printf "."; sleep 5
   done
   [ "$MIGRATED" = 1 ] || { echo; warn "Migrations are still running after 15 minutes."; show_containers; false; }
-  ./resdesk.sh bench execute sok_resdesk.search.setup_indexes >/dev/null || warn "Search index settings will be applied on the next ingest"
+  docker compose exec -T backend bench --site "$SITE" execute sok_resdesk.search.setup_indexes >/dev/null || warn "Search index settings will be applied on the next ingest"
 fi
 
 # -- 5. health check -------------------------------------------------------------------------
 bold "5/5  Health check"
 PORT="${HTTP_PORT:-8080}"
-for _ in $(seq 1 40); do curl -fs -o /dev/null "http://localhost:$PORT/library" && break; sleep 3; done
-curl -fs -o /dev/null "http://localhost:$PORT/library" && ok "Portal answers on http://localhost:$PORT/library" || { warn "Portal is not answering"; false; }
-STATS="$(curl -fs "http://localhost:$PORT/api/method/sok_resdesk.api.stats" || true)"
+# the updater helper runs this inside Docker, where the portal is at http://frontend:8080
+BASE="${RESDESK_HEALTH_URL:-http://localhost:$PORT}"
+for _ in $(seq 1 40); do curl -fs -o /dev/null "$BASE/library" && break; sleep 3; done
+curl -fs -o /dev/null "$BASE/library" && ok "Portal answers on http://localhost:$PORT/library" || { warn "Portal is not answering"; false; }
+STATS="$(curl -fs "$BASE/api/method/sok_resdesk.api.stats" || true)"
 echo "$STATS" | grep -q '"search":"ok"' && ok "Search engine OK" || warn "Search engine not answering yet: check ./resdesk.sh logs"
 trap - ERR
 echo

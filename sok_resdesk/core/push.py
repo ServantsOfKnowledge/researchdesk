@@ -17,7 +17,7 @@ import time
 
 import requests
 
-USER_AGENT = "SoK-ResearchDesk/0.10 (+https://github.com/ServantsOfKnowledge/researchdesk)"
+USER_AGENT = "SoK-ResearchDesk/0.11 (+https://github.com/ServantsOfKnowledge/researchdesk)"
 
 
 class PushError(Exception):

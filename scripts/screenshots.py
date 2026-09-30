@@ -39,6 +39,7 @@ SHOTS: dict[str, tuple[str, str, str]] = {
 	"desk-tour": ("staff", "/app/rd-ingest-profile/new", "tour"),
 	"desk-jobs": ("staff", "/app/resdesk-jobs", ""),
 	"desk-machine": ("staff", "/app/resdesk-jobs", "machine"),
+	"desk-server": ("staff", "/app/resdesk-server", ""),
 	"desk-items": ("staff", "/app/rd-item", ""),
 	"desk-collection": ("staff", "/app/rd-collection", "open-first"),
 	"desk-settings": ("staff", "/app/rd-settings", ""),

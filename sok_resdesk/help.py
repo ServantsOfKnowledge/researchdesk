@@ -32,6 +32,8 @@ SCREEN_HELP = {
 	"RD Creator": ("staff-guide", "authors-and-subjects"),
 	"RD Subject": ("staff-guide", "authors-and-subjects"),
 	"resdesk-jobs": ("operations", "background-jobs-see-pause-and-stop-what-is-running"),
+	"resdesk-server": ("server", "the-server-page"),
+	"RD Server Task": ("server", "upgrading-from-the-desk"),
 	"research-desk": ("staff-guide", "the-research-desk-workspace"),
 }
 

@@ -15,6 +15,12 @@ itself starts.
 
 ## Backups
 
+Research Desk backs up its database **every night** by itself (Settings → *Server & Updates*:
+daily, weekly or off, how many to keep, with or without uploaded files). The **Server** page in
+the Desk lists the backups, makes one on request and lets a System Manager download them
+([Server](server.md#backups)). Those backups stay on the server's disk, so also keep copies
+somewhere else. From the command line:
+
 ```bash
 ./resdesk.sh backup
 ```
@@ -195,6 +201,10 @@ workers and the scheduler; queued jobs wait in Redis until `./resdesk.sh start`.
 
 ## Upgrading
 
+The **Server** page in the Desk shows when a new release is out and what it brings. With the
+updater helper turned on (`./resdesk.sh updater on`), a System Manager can upgrade from there
+and watch it happen; see [Server](server.md#upgrading-from-the-desk). On the server:
+
 ```bash
 ./upgrade.sh --check      # is there a newer release? shows what changed
 ./upgrade.sh              # upgrade to the latest release (asks first)
@@ -207,8 +217,9 @@ workers and the scheduler; queued jobs wait in Redis until `./resdesk.sh start`.
 
 1. **backs up** the database and files into `site-backups/` (skip with `--no-backup`),
 2. **fetches** the new Research Desk code from GitHub,
-3. **updates Frappe** to the newest patch release of v16. Docker rebuilds the image; native
-   updates the bench (skip with `--no-frappe`),
+3. **updates Frappe** to the newest patch release of v16. Docker rebuilds the Frappe part of
+   the image when a newer patch is out (10 minutes or more); native updates the bench (skip
+   either with `--no-frappe`),
 4. runs **database migrations** and re-applies the search-index settings,
 5. **restarts** and runs a **health check** (portal and search engine).
 
@@ -287,6 +298,20 @@ Every setting:
 | Quiet From | Start of the quiet time, in the site's time zone. |
 | Quiet Until | End of the quiet time. Earlier than Quiet From means overnight (e.g. 22:00 to 06:00). |
 | Weekdays Only | Monday to Friday only; weekends run freely. |
+
+**Server & Updates**
+
+| Setting | What it does |
+|---|---|
+| Check for New Releases | Once a day, look on GitHub for a newer Research Desk release and Frappe patch, and tell managers when there is one. |
+| Allow Upgrades and Restarts from the Desk | Only matters when the updater helper is turned on (./resdesk.sh updater on). Untick to allow them on the server only; the Server page still shows everything. |
+| Automatic Backups | Back up the database every night (Weekly: on Sunday night). Backups are kept on the server; download them from the Server page and keep copies elsewhere. Choices: *Off*, *Daily*, *Weekly*. |
+| Include Uploaded Files | Also back up uploaded files (logos, pictures, attachments). Books themselves are never in backups: they stay on archive.org or in your folders. |
+| Backups to Keep | Older backups are deleted after each new one. |
+| Email Alerts to Managers | When a part stops working, the disk is nearly full, a backup or upgrade fails, or a new release is out. Needs an outgoing email account (Desk → Email Account). Alerts always appear in the Desk's notifications too. |
+| Also Email | More addresses for alerts, separated by commas. |
+| Alert Webhook URL | Also post alerts as JSON to this address, for example a Slack, Mattermost or Discord incoming webhook (the text is in "text"). |
+| Alert When Disk Is This Full (%) | Warn when the disk holding Research Desk's data is this full. |
 
 **Access & Sign-up**
 
@@ -395,6 +420,7 @@ Maintenance
   ./resdesk.sh import FILE [--base-url URL]   load an export into this (new) install
   ./resdesk.sh move-to USER@HOST [--with-library]   export, copy over SSH and import in one go
   ./resdesk.sh update [v0.4.0]          upgrade (same as ./upgrade.sh; --check to just look)
+  ./resdesk.sh updater on|off|status    let the Server page in the Desk upgrade, restart and back up
   ./resdesk.sh password [new]           reset the Administrator password
   ./resdesk.sh dev on|off               developer mode (Docker); native is always live
   ./resdesk.sh console | shell | bench …  for developers

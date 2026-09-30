@@ -47,7 +47,7 @@ researchdesk/
     ├── www/library/        portal pages (index = search, item = book page, collections, collection, help)
     ├── public/             css/resdesk.css, js/library.js, js/item.js, js/basket.js, js/tips.js,
     │                       js/desk_help.js, images/guide/ (screenshots used in docs/)
-    └── tests/              test_core.py, test_push.py, test_docs.py, unit_folder.py (pytest), test_integration.py, test_operations.py (Frappe)
+    └── tests/              test_core.py, test_push.py, test_docs.py, unit_folder.py (pytest), test_integration.py, test_operations.py, test_server.py (Frappe)
 ```
 
 ## Workflow
@@ -79,7 +79,8 @@ Without dev mode, the Docker setup needs a rebuild after code changes: `docker c
 pip install pytest requests && pytest      # test_core.py, test_push.py, test_docs.py, unit_folder.py
 
 # integration, inside a site: catalogue and access (test_integration.py); pushing, pause and
-# resume, Pause All, quiet hours, the checklist, portable folders (test_operations.py)
+# resume, Pause All, quiet hours, the checklist, portable folders (test_operations.py); the
+# Server page: the updater helper's protocol, tasks and permissions, updates, alerts, backups (test_server.py)
 bench --site resdesk.localhost set-config allow_tests true
 bench --site resdesk.localhost run-tests --app sok_resdesk
 #   Docker: docker compose exec backend bench --site resdesk.localhost run-tests --app sok_resdesk

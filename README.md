@@ -36,14 +36,18 @@ Choose a collection, a search or a list of items on archive.org, and Research De
 - **see, pause and stop background work** from the Desk: every ingest run, metadata push, queued
   job and schedule on one page; pause a run or everything and carry on later, hold single jobs,
   or stop them
+- **look after the server from the Desk**: versions and new releases with their notes, the
+  health of every part, nightly backups to download, errors and logs, and alerts by Desk
+  notification, email or webhook. With the optional updater helper, upgrade (or go back),
+  restart parts and apply resource presets from the Desk too
 - run **in Docker or directly on the computer** (macOS or Ubuntu/Debian), and **upgrade with one
-  command** that backs up first and tells you how to roll back
+  command** (or one button) that backs up first and tells you how to roll back
 
 It's built to install with one command, for librarians, educators, archivists and
 anyone else who can open a terminal. It scales to tens of thousands of books on one server
 ([measured](docs/scaling.md)).
 
-> Status: **proof of concept (v0.9)**. It works end to end and is tested against live
+> Status: **proof of concept (v0.11)**. It works end to end and is tested against live
 > Servants of Knowledge data, but expect changes before 1.0. See [the roadmap](docs/roadmap.md).
 
 ---
@@ -108,7 +112,7 @@ Click **Check Count** to see how many items match, set **Maximum Items**, then *
 | Librarians & educators | [Getting started](docs/getting-started.md) · [Choosing & ingesting books](docs/ingesting.md) · [Your own folders & servers](docs/local-folders.md) |
 | Library managers | [Who can see what: members-only books & reader accounts](docs/access.md) · [Collections, metadata, exports & pushing](docs/collections-and-metadata.md) |
 | Library systems staff | [Koha & interoperability](docs/koha.md) · [API](docs/api.md) |
-| System administrators | [Installation](docs/installation.md) · [Operations](docs/operations.md) · [Moving to another server](docs/moving.md) · [Scaling to 50k books](docs/scaling.md) |
+| System administrators | [Installation](docs/installation.md) · [Server: updates, health & backups](docs/server.md) · [Operations](docs/operations.md) · [Moving to another server](docs/moving.md) · [Scaling to 50k books](docs/scaling.md) |
 | Developers | [Architecture](docs/architecture.md) · [Development](docs/development.md) · [Roadmap](docs/roadmap.md) |
 
 ## How it fits together

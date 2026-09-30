@@ -42,6 +42,15 @@ Socket.IO, the scheduler, the queue workers and Meilisearch from a Procfile in
 `~/researchdesk-bench`; MariaDB and Redis come from Homebrew or apt. The app folder is
 symlinked into the bench, so `./upgrade.sh` updates code in one place for both modes.
 
+**Server management.** The Server page (`server.py`) reads everything it can from inside the
+app: versions, the health of each part, backups, logs. Changing the installation (upgrading,
+restarting, applying a resource preset) has to happen outside it, so the page records an
+**RD Server Task** and the optional *updater helper* (`scripts/agent.py`: a small container
+with the Docker socket, or a Procfile process on native installs) picks it up, runs the same
+`./upgrade.sh` or `./resdesk.sh` command a person would, and reports back. Long tasks run in a
+separate short-lived container (or a detached process), so they outlive the restarts they
+cause. Details: [Server](server.md#how-the-updater-helper-works).
+
 ## Data model (DocTypes, module *ResDesk*)
 
 | DocType | Purpose | Key fields |
@@ -53,7 +62,7 @@ symlinked into the bench, so `./upgrade.sh` updates code in one place for both m
 | **RD Subject** | keyword / heading | subject_name, scheme |
 | **RD Ingest Profile** | *what* to ingest | scope (collection / query / identifiers), filter, max items, full text, schedule |
 | **RD Ingest Run** | one execution | status, counts, log |
-| **RD Settings** | single | portal, branding, OAI, Meilisearch, IA politeness, guest access, reader sign-up, access rules |
+| **RD Settings** | single | portal, branding, OAI, Meilisearch, IA politeness, machine resources, server & updates (update checks, backups, alerts), guest access, reader sign-up, access rules |
 | RD Access Rule | child table of settings | match_on (collection, subject, language, creator, source, profile), value, visibility |
 | **RD Collection** | a curated collection | title, slug (the name and web address), published, featured, cover, curator, description, rules, item_count |
 | RD Collection Rule | child table | match_on (source collection, subject, language, creator, source, profile, document type), how (is exactly / contains), value |
@@ -64,6 +73,7 @@ symlinked into the bench, so `./upgrade.sh` updates code in one place for both m
 | **RD Push Run** | one push | status, counts, log |
 | **RD External Record** | what was sent where | item, target, external id (Koha biblionumber, Wikidata QID), url, last hash |
 | **RD Reader Request** | a sign-up waiting for approval | user, status (Pending / Approved / Rejected); approving adds the ResDesk Reader role |
+| **RD Server Task** | an upgrade, restart, resource preset, server backup, update check or log request from the Server page, carried out by the updater helper | action, arguments (checked), status (Queued / Running / Succeeded / Failed / Cancelled), requested by, log, summary |
 
 `raw_metadata` keeps the untouched source record, so re-normalising later never needs a
 re-download.
