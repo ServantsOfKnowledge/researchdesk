@@ -282,13 +282,59 @@ class ResDeskServer {
 		const mb = (b) => (b >= 1024 ** 3 ? gb(b) : Math.max(1, Math.round(b / 1024 ** 2)) + " MB");
 		const cmd = (text) => `<div class="rds-cmd"><code>${esc(text)}</code><button class="btn btn-xs btn-default" data-copy="${esc(text)}">${__("Copy")}</button></div>`;
 
+		const cap = d.capacity || {};
 		const bad = d.health.filter((c) => c.state === "bad").length;
+		const m = cap.machine || {};
+		const res = m.books || {};
+		const res_row = (key, label, have) =>
+			res[key] != null
+				? `<tr><td>${label}</td><td class="text-muted">${have}</td><td>${__("about {0} books", [res[key].toLocaleString()])}</td>
+					<td>${m.by === key ? pill(__("the limit"), "blue") : ""}</td></tr>`
+				: "";
+		const capacity = `
+			<p>${
+				cap.mode === "none"
+					? __("No book limit is set.")
+					: cap.limit_books
+					? __("{0} books ({1} pages of text) of a limit of about <b>{2}</b>: room for about {3} more.", [
+							(cap.books || 0).toLocaleString(),
+							(cap.pages || 0).toLocaleString(),
+							cap.limit_books.toLocaleString(),
+							(cap.remaining_books || 0).toLocaleString(),
+					  ])
+					: __("The limit couldn't be worked out on this machine.")
+			} ${cap.mode === "custom" ? __("(a number chosen in Settings)") : cap.mode === "auto" ? __("(what this machine can hold)") : ""}</p>
+			${
+				cap.limit_units
+					? `<div class="rdj-meter__bar" style="height:8px;background:var(--gray-200,#eee);border-radius:4px;overflow:hidden;margin-bottom:10px"><div style="height:100%;width:${Math.min(
+							100,
+							cap.percent || 0
+					  )}%;background:${cap.percent >= 100 ? "var(--red-500)" : cap.percent >= 90 ? "var(--orange-500)" : "var(--green-500)"}"></div></div>`
+					: ""
+			}
+			${cap.full ? `<div class="alert alert-danger small">${__("The limit is reached: ingests keep updating the books already here but add no new ones.")}</div>` : ""}
+			${
+				m.known
+					? `<table class="table table-sm rds-table small"><thead><tr><th>${__("This machine")}</th><th></th><th>${__("can hold")}</th><th></th></tr></thead><tbody>
+					${res_row("cpu", __("CPUs"), cap.host.cpus || "?")}
+					${res_row("memory", __("Memory"), gb(cap.host.mem_total))}
+					${res_row("disk", __("Disk"), `${gb(cap.host.disk_free)} ${__("free")}`)}
+				</tbody></table>
+				<p class="text-muted small">${__("Estimated at this library's average of {0} pages per book, from sizes measured on real books. Books with more pages use more of the limit.", [
+					cap.pages_per_book,
+				])}</p>`
+					: ""
+			}
+			<a class="small" href="/app/rd-settings">${__("Settings → Machine Resources → Book Limit")}</a>`;
 		const summary = `
 			<div class="rds-summary">
 				<div><span>${__("Research Desk")}</span><b>v${esc(d.version)}</b>${u.newer ? pill(__("{0} available", [u.latest]), "blue") : ""}</div>
 				<div><span>${__("Frappe")}</span><b>${esc(d.frappe)}</b>${u.frappe_newer ? pill(__("{0} available", [u.frappe_latest]), "blue") : ""}</div>
 				<div><span>${__("Install")}</span><b>${esc(d.mode === "native" ? __("Native") : "Docker")}</b><small class="text-muted">${esc(d.site)}</small></div>
 				<div><span>${__("Health")}</span><b>${bad === 1 ? __("1 problem") : bad ? __("{0} problems", [bad]) : __("All good")}</b></div>
+				<div><span>${__("Books")}</span><b>${(cap.books || 0).toLocaleString()}</b><small class="text-muted">${
+					cap.limit_books ? __("of about {0} ({1}%)", [cap.limit_books.toLocaleString(), cap.percent]) : __("no limit")
+				}</small></div>
 				<div><span>${__("Disk")}</span><b>${d.disk.percent}%</b><small class="text-muted">${gb(d.disk.free)} ${__("free")}</small></div>
 				<div><span>${__("Updater helper")}</span><b>${h.configured ? (h.connected ? __("Connected") : __("Not reporting")) : __("Off")}</b></div>
 			</div>`;
@@ -450,6 +496,7 @@ class ResDeskServer {
 			<div class="rds-grid">
 				<div>
 					<div class="rds-card"><h4>${__("Health")}</h4>${health}</div>
+					<div class="rds-card"><h4>${__("Book limit")}</h4>${capacity}</div>
 					<div class="rds-card"><h4>${__("Updates")}</h4>${updates}</div>
 					<div class="rds-card"><h4>${__("Services")}</h4>${services}</div>
 					<div class="rds-card"><h4>${__("Recent server tasks")}</h4>${tasks}</div>

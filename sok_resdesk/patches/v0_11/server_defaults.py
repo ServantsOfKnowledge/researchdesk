@@ -11,6 +11,7 @@ def execute():
 		("backup_keep", 7),
 		("alert_email", 1),
 		("alert_disk_percent", 90),
+		("book_limit", "Automatic"),
 	):
 		stored = frappe.db.get_singles_dict("RD Settings").get(field)
 		if stored in (None, ""):

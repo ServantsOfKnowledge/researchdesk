@@ -294,6 +294,8 @@ Every setting:
 | Setting | What it does |
 |---|---|
 | Resource Preset | How much of the machine Research Desk may use: light (a laptop), standard, or server (a dedicated machine). Docker's limits can only be changed outside the app, so after choosing, run ./resdesk.sh resources apply on the server. Choices: *light*, *standard*, *server*. |
+| Book Limit | How many books the catalogue may hold. Automatic: what this machine's CPUs, memory and disk can take (the Server page shows the numbers). At the limit, ingests keep updating books already here but add no new ones. Books with many pages count for more. Choices: *Automatic*, *A number I choose*, *No limit*. |
+| Books at Most | The limit in books of this library's average size (more than the machine can take is allowed, at your own risk). |
 | Quiet Hours | Pause all background work between these times every day (e.g. office hours), and carry on afterwards. Ingests, pushes and re-indexing wait; the portal and Desk work as usual. |
 | Quiet From | Start of the quiet time, in the site's time zone. |
 | Quiet Until | End of the quiet time. Earlier than Quiet From means overnight (e.g. 22:00 to 06:00). |

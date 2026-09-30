@@ -288,7 +288,10 @@ def _get_json(url: str):
 	r = requests.get(
 		url,
 		timeout=15,
-		headers={"User-Agent": "SoK-ResearchDesk/0.11 update check (+https://github.com/ServantsOfKnowledge/researchdesk)", "Accept": "application/vnd.github+json"},
+		headers={
+			"User-Agent": "SoK-ResearchDesk/0.11 update check (+https://github.com/ServantsOfKnowledge/researchdesk)",
+			"Accept": "application/vnd.github+json",
+		},
 	)
 	r.raise_for_status()
 	return r.json() if "json" in r.headers.get("content-type", "") else r.text
@@ -480,6 +483,10 @@ def health() -> list[dict]:
 	)
 
 	out.append(_backup_check(s))
+
+	from sok_resdesk.capacity import health_check
+
+	out.append(health_check())
 
 	day = add_to_date(now_datetime(), days=-1)
 	errors = frappe.db.count("Error Log", {"creation": (">", day)})
@@ -889,11 +896,16 @@ def watch() -> None:
 			continue
 		bad = c["state"] == "bad"
 		current[c["key"]] = "bad" if bad else "ok"
+		link = c.get("link") or "/app/resdesk-server"
+		if c["key"] == "capacity" and c["state"] == "warn":
+			current["capacity"] = "warn"  # 90% of the book limit: worth one alert too
+			if previous.get("capacity") not in ("warn", "bad"):
+				send_alert("capacity", "warn", f"{c['label']}: {c['detail']}", link=link)
+			continue
+		was_bad = previous.get(c["key"]) in (("bad", "warn") if c["key"] == "capacity" else ("bad",))
 		if bad and previous.get(c["key"]) != "bad":
-			send_alert(
-				c["key"], "bad", f"{c['label']}: {c['detail']}", link=c.get("link") or "/app/resdesk-server"
-			)
-		elif not bad and previous.get(c["key"]) == "bad":
+			send_alert(c["key"], "bad", f"{c['label']}: {c['detail']}", link=link)
+		elif not bad and was_bad:
 			send_alert(c["key"], "ok", _("{0} is fine again.").format(c["label"]), link="/app/resdesk-server")
 	frappe.db.set_default("resdesk_alert_state", json.dumps(current))
 	frappe.db.commit()
@@ -981,4 +993,11 @@ def status() -> dict:
 		},
 		"is_admin": _is_admin(),
 		"resource_preset": s.get("resource_preset") or "",
+		"capacity": _capacity(),
 	}
+
+
+def _capacity() -> dict:
+	from sok_resdesk.capacity import status as capacity_status
+
+	return capacity_status()

@@ -19,6 +19,10 @@
 - **Alerts** to managers when a part stops working (and when it recovers), the disk is nearly
   full, a backup or upgrade fails, or a new release is out: Desk notifications, email and a
   webhook (Slack, Mattermost, Discord). `sok_resdesk.server.ping` for uptime monitors
+- **Book limit**: how many books this machine can hold, worked out from its CPUs, memory and
+  free disk (counted in pages, so thick books use more), or a number chosen in Settings, or no
+  limit. At the limit, ingests keep updating existing books but add no new ones; managers get an
+  alert at 90% and at 100%; the Server page and Check Count show the room left
 - Daily **update check** for new Research Desk releases and Frappe patches
 - Upgrades on Docker now really bring Frappe's newest v16 patch release (the Frappe part of the
   image is rebuilt when a new patch is out; `--no-frappe` keeps it). The first upgrade to

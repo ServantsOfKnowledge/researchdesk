@@ -136,7 +136,7 @@ See [Collections, metadata & pushing](collections-and-metadata.md) and [Koha](ko
 | Logo & Branding | logo (portal, login page, Desk), a square icon (browser tab and the Desk's Research Desk icon) and a picture for the home page |
 | Search Engine | the Meilisearch address and whether page text is indexed; **Rebuild Search Index** |
 | Internet Archive | contact sent with requests, delay between requests, books per batch, page-text cache, pausing schedules |
-| Machine Resources | the resource preset (light, standard, server) and quiet hours that pause background work at set times ([more](operations.md#resources-how-much-of-the-machine-research-desk-may-use)) |
+| Machine Resources | the resource preset (light, standard, server), the book limit (how many books this machine may hold), and quiet hours that pause background work at set times ([more](operations.md#resources-how-much-of-the-machine-research-desk-may-use)) |
 | Server & Updates | update checks, automatic backups, where alerts go, and whether upgrades may be started from the Desk ([more](server.md)) |
 | Access & Sign-up | what visitors can do, the default for new books, reader accounts, what OAI-PMH shares, access rules |
 

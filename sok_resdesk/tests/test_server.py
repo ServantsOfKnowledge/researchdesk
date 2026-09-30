@@ -66,7 +66,14 @@ class ServerTestCase(IntegrationTestCase):
 		frappe.db.rollback()
 		for name in set(frappe.get_all(server.TASK, pluck="name")) - self._tasks:
 			frappe.db.delete(server.TASK, name)
-		for f in ("allow_desk_upgrades", "alert_webhook_url", "alert_email"):
+		frappe.db.delete("RD Item", {"name": ("like", "rdtest.cap%")})
+		for f in (
+			"allow_desk_upgrades",
+			"alert_webhook_url",
+			"alert_email",
+			"book_limit",
+			"book_limit_number",
+		):
 			frappe.db.set_single_value("RD Settings", f, self._saved.get(f))
 		frappe.cache.delete_value(server.AGENT_CACHE)
 		frappe.db.commit()
@@ -304,3 +311,82 @@ class TestBackupsAndLogs(ServerTestCase):
 		self.assertEqual(s["helper"]["services"][0]["service"], "backend")
 		self.assertTrue(s["is_admin"])
 		self.assertTrue(str(now_datetime())[:4] in s["now"])
+		self.assertIn("limit_books", s["capacity"])
+
+
+class TestBookLimit(ServerTestCase):
+	def record(self, n: int, pages: int = 200):
+		from sok_resdesk.core.normalize import normalize_ia_item
+
+		identifier = f"rdtest.cap{n:04d}"
+		meta = {"identifier": identifier, "title": f"Capacity test {n}", "language": "English"}
+		record = normalize_ia_item(identifier, meta, [])
+		record.update({"page_count": pages, "has_page_text": True})
+		return record
+
+	def limit(self, books: int):
+		"""A limit just above what the catalogue holds now, so a few test books fill it."""
+		from sok_resdesk import capacity
+
+		frappe.db.set_single_value("RD Settings", {"book_limit": "A number I choose", "book_limit_number": 0})
+		st = capacity.status()
+		frappe.db.set_single_value("RD Settings", "book_limit_number", st["books"] + books)
+		return capacity.status()
+
+	def test_new_books_stop_at_the_limit(self):
+		from sok_resdesk import capacity
+		from sok_resdesk.catalogue import upsert_item
+
+		st = self.limit(2)
+		self.assertEqual(st["mode"], "custom")
+		per_book = int(capacity.cap.pages_per_book(st["books"], st["pages"]))  # an average-sized book
+		upsert_item(self.record(1, per_book))
+		upsert_item(self.record(2, per_book))
+		self.assertTrue(capacity.status()["full"])
+		with self.assertRaises(capacity.BookLimitReached):
+			upsert_item(self.record(3, per_book))
+		self.assertFalse(frappe.db.exists("RD Item", "rdtest.cap0003"))
+		# books already in the catalogue are still updated
+		rec = self.record(1, per_book)
+		rec["title"] = "Capacity test, corrected"
+		upsert_item(rec)
+		self.assertEqual(
+			frappe.db.get_value("RD Item", "rdtest.cap0001", "title"), "Capacity test, corrected"
+		)
+		check = capacity.health_check()
+		self.assertEqual(check["state"], "bad")
+
+	def test_thick_books_use_more(self):
+		from sok_resdesk import capacity
+		from sok_resdesk.catalogue import upsert_item
+
+		st = self.limit(2)
+		with self.assertRaises(capacity.BookLimitReached):
+			upsert_item(self.record(1, st["pages_per_book"] * 3))
+
+	def test_no_limit_and_automatic(self):
+		from sok_resdesk import capacity
+
+		frappe.db.set_single_value("RD Settings", "book_limit", "No limit")
+		st = capacity.status()
+		self.assertIsNone(st["limit_units"])
+		self.assertEqual(capacity.health_check()["state"], "off")
+		self.assertTrue(capacity.has_room(10**9))
+		frappe.db.set_single_value("RD Settings", "book_limit", "Automatic")
+		st = capacity.status()
+		self.assertEqual(st["mode"], "auto")
+		self.assertTrue(st["machine"]["known"])
+		self.assertGreater(st["limit_books"], 0)
+		self.assertIn(st["machine"]["by"], ("cpu", "memory", "disk"))
+
+	def test_warning_at_ninety_percent_alerts_once(self):
+		frappe.db.set_default("resdesk_alert_state", "{}")
+		state = [{"key": "capacity", "label": "Book limit", "state": "warn", "detail": "91%"}]
+		with mock.patch.object(server, "health", side_effect=lambda: state):
+			server.watch()
+			server.watch()
+			state[0]["state"] = "bad"
+			server.watch()
+			state[0]["state"] = "ok"
+			server.watch()
+		self.assertEqual([a[1] for a in self.alerts], ["warn", "bad", "ok"])

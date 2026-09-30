@@ -29,6 +29,7 @@ backups needs the **System Manager** role.
 | Services | with the helper: every container (Docker) or process (native) and its state, **Logs** for each, and **Restart** buttons |
 | Backups | the automatic schedule, **Back up now**, the list of backups with download links |
 | Logs | recent errors, failed background jobs, and the end of any log file |
+| Book limit | how many books the catalogue holds, the limit, and what this machine's CPUs, memory and disk can each take ([below](#book-limit)) |
 | Resources | the resource preset in use, and **Apply a preset now** with the helper ([Resources](operations.md#resources-how-much-of-the-machine-research-desk-may-use)) |
 | Alerts | where alerts go, and a test button |
 | Updater helper | whether it is on and connected, and how to turn it on or off |
@@ -42,10 +43,38 @@ What each health line means:
 | Search engine | Meilisearch doesn't answer: the portal can't search |
 | Disk | fuller than the alert level (Settings, 90% by default); *Check* 10% before |
 | Backups | the last backup failed, or the newest is older than the schedule promises |
+| Book limit | the catalogue is at its limit: no new books are added. *Check* from 90% |
 | Errors | *Check* when errors were logged or background jobs failed in the last day: open them under Logs |
 | Updater helper | it is on but hasn't reported for a minute and a half |
 
 The page refreshes itself every 15 seconds.
+
+## Book limit
+
+A machine can only hold so many books before searching slows down or the disk fills up.
+Research Desk works out how many from the machine's **CPUs, memory and free disk**, using sizes
+measured on real books ([Scaling](scaling.md)): about 27 KB of disk and 1.5 KB of memory per
+page of text, and about 2.3 million pages per CPU, with 3 GB of memory for everything else and
+some disk kept free for upgrades and backups (5% of the disk, 10 to 50 GB). The smallest of the
+three is the limit.
+
+Size is counted in **pages**, so a 600-page book uses three times the room of a 200-page one;
+the limit is shown in books at your library's own average. The Server page shows how many books
+each resource could hold, which one sets the limit, and how much room is left.
+
+Settings → *Machine Resources* → **Book Limit**:
+
+| Choice | |
+|---|---|
+| Automatic (the default) | what this machine can hold; it grows when you add memory, CPUs or disk |
+| A number I choose | *Books at Most*, e.g. to keep room for something else on the same machine. More than the machine can take is allowed, at your own risk |
+| No limit | never stop; the Server page still shows what the machine can hold |
+
+At the limit, **ingests keep updating the books already in the catalogue but add no new ones**:
+they are counted as skipped, and the run's log says *book limit reached*. **Check Count** on an
+ingest profile says when a profile matches more books than there is room for. Managers get an
+alert at 90% and again at the limit. To make room: add disk, memory or CPUs (Docker Desktop:
+Settings → Resources), raise the limit in Settings, or remove books you don't need.
 
 ## Checking for updates
 

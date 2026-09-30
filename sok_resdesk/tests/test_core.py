@@ -434,6 +434,40 @@ def test_quiet_hours():
 	assert minutes(dt.time(7, 45)) == 465
 
 
+def test_book_capacity():
+	from sok_resdesk.core import capacity as cap
+
+	GB = cap.GB
+	# a laptop-sized Docker: 2 CPUs, 8 GB, 250 GB free on a 300 GB disk, empty catalogue
+	e = cap.estimate(2, 8 * GB, 300 * GB, 250 * GB)
+	assert e["known"] and e["by"] == "memory" and e["pages_per_book"] == 184
+	assert 15_000 < e["capacity_books"] < 20_000
+	assert e["books"]["cpu"] > e["books"]["memory"] and e["books"]["disk"] > e["books"]["memory"]
+	# the recommended minimum server for 50,000 books holds about that many
+	e = cap.estimate(4, 16 * GB, 300 * GB, 290 * GB)
+	assert 40_000 < e["capacity_books"] < 60_000
+	# a nearly full disk is the limit, and what is already stored counts as usable
+	e = cap.estimate(8, 32 * GB, 100 * GB, 12 * GB, books=1000, pages=184_000)
+	assert e["by"] == "disk"
+	assert e["books"]["disk"] > 1000  # the books already here fit, of course
+	# the library's own average page count once there are enough books
+	assert cap.pages_per_book(10, 5000) == cap.DEFAULT_PAGES_PER_BOOK
+	assert cap.pages_per_book(100, 40_000) == 400
+	# limits: automatic, a chosen number of books, none
+	machine = cap.estimate(2, 8 * GB, 300 * GB, 250 * GB)
+	assert cap.limit_units("auto", 0, machine, 0, 0) == machine["capacity_units"]
+	assert cap.limit_units("none", 0, machine, 0, 0) is None
+	units = cap.limit_units("custom", 10, machine, 0, 0)
+	assert round(units) == round(10 * (184 + cap.BOOK_UNITS))
+	assert cap.limit_units("custom", 0, machine, 0, 0) == machine["capacity_units"]  # 0 = not chosen
+	assert cap.limit_units("auto", 0, {"known": False}, 0, 0) is None
+	# room: pages count, a book without text still takes a little
+	assert cap.room(units, 9, 9 * 184) and not cap.room(units, 10, 10 * 184)
+	assert not cap.room(units, 9, 9 * 184, new_pages=400)  # a thick book doesn't fit
+	assert cap.room(None, 10**9, 10**12)
+	assert cap.estimate(0, None, None, None)["known"] is False
+
+
 def test_versions_and_release_notes():
 	from sok_resdesk.core import updates as upd
 

@@ -145,6 +145,10 @@ DESCRIPTIVE = (
 def upsert_item(record: dict, raw: dict | None = None, profile: str | None = None) -> tuple[str, bool]:
 	"""Create or update an RD Item from a normalised record. Returns (name, created)."""
 	exists = frappe.db.exists("RD Item", record["item_id"])
+	if not exists:
+		from sok_resdesk.capacity import check_room
+
+		check_room(record)  # Settings → Machine Resources → Book Limit
 	doc = frappe.get_doc("RD Item", record["item_id"]) if exists else frappe.new_doc("RD Item")
 	locked = bool(exists and doc.get("lock_metadata"))
 	doc.flags.from_ingest = True

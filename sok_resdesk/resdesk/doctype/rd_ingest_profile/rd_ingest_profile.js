@@ -20,9 +20,15 @@ frappe.ui.form.on("RD Ingest Profile", {
 				callback: (r) => {
 					frappe.msgprint({
 						title: __("Matching items"),
-						message: __("{0} items match this profile.", [
-							(r.message.count || 0).toLocaleString(),
-						]) + `<br><br><code>${frappe.utils.escape_html(r.message.query)}</code>`,
+						message:
+							__("{0} items match this profile.", [(r.message.count || 0).toLocaleString()]) +
+							(r.message.room != null && r.message.count > r.message.room
+								? `<br><br><span class="text-warning">${__(
+										"Room for about {0} more books under the book limit ({1}): books past it are skipped. See Settings → Machine Resources.",
+										[r.message.room.toLocaleString(), (r.message.limit || 0).toLocaleString()]
+								  )}</span>`
+								: "") +
+							`<br><br><code>${frappe.utils.escape_html(r.message.query)}</code>`,
 						indicator: "blue",
 					});
 					frm.reload_doc();

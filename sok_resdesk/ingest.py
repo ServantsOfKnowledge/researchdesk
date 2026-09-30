@@ -123,7 +123,10 @@ def count_profile(profile: str) -> dict:
 	else:
 		count = client().count(query)
 	frappe.db.set_value("RD Ingest Profile", profile, "matching_count", count)
-	return {"count": count, "query": query}
+	from sok_resdesk.capacity import status
+
+	room = status()
+	return {"count": count, "query": query, "room": room["remaining_books"], "limit": room["limit_books"]}
 
 
 @frappe.whitelist()
@@ -417,6 +420,9 @@ def run_batch(run_name: str, item_ids: list, batch_no: int = 0, verbose: bool = 
 		from sok_resdesk.local_source import ingest_local_one, open_profile_store
 
 		store = open_profile_store(profile)
+	from sok_resdesk.capacity import BookLimitReached, has_room
+
+	limit_told = False
 	for pos, entry in enumerate(item_ids):
 		item_id, loc = (entry[0], entry[1]) if isinstance(entry, (list, tuple)) else (entry, None)
 		frappe.db.commit()  # start each item with a fresh snapshot
@@ -426,6 +432,14 @@ def run_batch(run_name: str, item_ids: list, batch_no: int = 0, verbose: bool = 
 			break
 		if status == "Paused" and _paused_here(run_name, item_ids[pos:], batch_no, verbose):
 			break
+		# at the book limit, books already in the catalogue are still updated; new ones wait
+		if not frappe.db.exists("RD Item", item_id) and not has_room():
+			if not limit_told:
+				_log(run_name, f"batch {batch_no}: book limit reached: new books are skipped", verbose)
+				limit_told = True
+			_bump(run_name, processed=1, skipped_count=1)
+			frappe.db.commit()
+			continue
 		error = None
 		for attempt in range(3):
 			try:
@@ -454,6 +468,11 @@ def run_batch(run_name: str, item_ids: list, batch_no: int = 0, verbose: bool = 
 			)
 			if verbose and outcome != "unchanged":
 				print(f"{'NEW' if outcome == 'created' else 'UPD'} {item_id} ({pages} pages)")
+		elif isinstance(error, BookLimitReached):  # another batch took the last room meanwhile
+			_bump(run_name, processed=1, skipped_count=1)
+			if not limit_told:
+				_log(run_name, f"batch {batch_no}: book limit reached: new books are skipped", verbose)
+				limit_told = True
 		else:
 			_bump(run_name, processed=1, failed_count=1)
 			_log(run_name, f"FAIL {item_id}: {str(error)[:300]}", verbose)

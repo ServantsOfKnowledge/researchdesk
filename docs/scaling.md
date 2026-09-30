@@ -55,6 +55,10 @@ under a second on the hardware below. Measure on your own server before a public
 | Disk | 300 GB SSD | 500 GB NVMe |
 | Workers | `QUEUE_WORKERS=4` | `QUEUE_WORKERS=6` |
 
+Research Desk applies these numbers itself: the **book limit** (Settings → Machine Resources)
+stops adding new books when the machine is full, and the Server page shows how many books its
+CPUs, memory and disk can each hold ([Book limit](server.md#book-limit)).
+
 A laptop is fine for a few thousand books; for 50k use a server (or at least an external SSD
 for Docker's data). Meilisearch reads its index through memory-mapped files, so more RAM means
 more of the index stays in memory and search is faster.

@@ -122,6 +122,7 @@ two files are ever served, and the PDF only when the caller may read the book.
 | `sok_resdesk.transfer.rerun_export` (`name`) | rebuild an export's file with current data |
 | `sok_resdesk.help.get_page` (`slug`) | a help page (docs/*.md) as HTML with its table of contents, for the Desk |
 | `sok_resdesk.guide.checklist` · `checklist_mark` (`key`, `what`=`done`/`skipped`/`hide`) · `restart_checklist` | the getting-started checklist on the workspace |
+| `sok_resdesk.capacity.get_status` | the book limit: books and pages in the catalogue, the limit, room left, and what the machine's CPUs, memory and disk can each hold |
 | `sok_resdesk.server.status` | everything on the Server page: versions, updates, health, backups, helper, recent tasks |
 | `sok_resdesk.server.check_updates` | look for a newer release and Frappe patch now (also daily) |
 | `sok_resdesk.server.request_task` (`action`, `args` JSON) | ask the updater helper to `upgrade` (`target`=`latest`/`vX.Y.Z`, `backup`, `frappe`), `restart` (`service`=`web`/`workers`/`scheduler`/`search`/`all`), `apply_resources` (`preset`), `server_backup`, `check_updates` or `logs` (`service`, `lines`); returns the task name. Changes to the installation need the System Manager role |
