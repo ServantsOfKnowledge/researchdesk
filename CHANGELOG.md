@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.7.0 (2026-09-30): collections, metadata exports and pushing to other systems
+
+After upgrading, run `./resdesk.sh reindex --background` once so the new Collection and
+Document Type filters work in search (the portal keeps working while it runs).
+
+- **Curated collections** (Research Desk → Collections): your own groupings of books, with a
+  portal page each (`/library/collection/<address>`), a `/library/collections` listing,
+  featured collections on the home page, and an OAI-PMH set `rd:<address>`. Add books from the
+  Items list (selected or all matching), from a portal search, on the book form, by spreadsheet,
+  or with **rules** (source collection, subject, language, creator, source, profile or document
+  type; "is exactly" or "contains") that also catch newly ingested books
+- The archive.org collections field is now called **Source Collections**
+- **Document Type** per book (Book, Periodical, Article, Thesis, Report, Manuscript, Map,
+  Other), guessed at ingest; a search filter, and used for BibTeX/RIS/CSL citation types
+- **Keep My Edits**: details corrected by staff (form or spreadsheet) are no longer overwritten
+  when a book is re-ingested
+- **Metadata exports** (Research Desk → Exports): Spreadsheet (CSV/Excel), JSON, JSON Lines,
+  Dublin Core, MODS 3.7, MARCXML, JSON-LD, CSL-JSON, BibTeX, RIS, Internet Archive bulk-upload
+  CSV and IA `meta.xml` files; for everything, a collection, a profile, a source collection, a
+  search, the Items list filter or selected books; big exports run in the background
+- **Spreadsheet import** (Research Desk → Spreadsheet Imports): edit an exported spreadsheet and
+  import it back, with a preview of every change and problem before anything is applied; can
+  create records for new IDs
+- **Push Targets** (Research Desk → Push Targets): send metadata to the **Internet Archive**
+  (update your items' metadata), **Koha** (create/update biblios over the REST API, Koha 23.11+),
+  **Wikidata** (complete or create edition items, paced for bot rules) or any **webhook**
+  (signed JSON). Dry run by default, per-run logs, only changed books are sent, and optional
+  automatic pushes when a book is edited
+- Background Jobs lists export, import, collection and push jobs; Stop Everything also stops push runs
+- New docs page: [Collections, metadata & pushing](docs/collections-and-metadata.md)
+
 ## 0.6.0 (2026-09-30): take control of background work
 
 - New Desk page **Background Jobs** (`/app/resdesk-jobs`, on the Research Desk workspace):

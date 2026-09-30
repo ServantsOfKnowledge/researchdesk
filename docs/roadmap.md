@@ -27,7 +27,16 @@
 - [x] Reader accounts: staff-added, open sign-up or sign-up with approval
 - [x] Bulk visibility by selection, filter, portal search, profile, rules and CLI
 
-## v0.6: better for researchers
+## v0.6 – v0.7: control, collections and metadata (done)
+
+- [x] Background Jobs page: see and stop ingest runs, queued jobs and schedules
+- [x] Curated collections (by hand, in bulk, by rules) with portal pages and OAI-PMH sets
+- [x] Document types; staff edits kept on re-ingest ("Keep My Edits")
+- [x] Metadata exports: spreadsheet, JSON, Dublin Core, MODS, MARCXML, JSON-LD, CSL-JSON, BibTeX, RIS, IA upload files
+- [x] Bulk editing by spreadsheet import with preview
+- [x] Push metadata to Internet Archive, Koha (REST), Wikidata and webhooks
+
+## Next: better for researchers
 
 - [ ] Romanised ↔ Kannada query transliteration (type `vachana`, match ವಚನ) for all Indic scripts
 - [ ] Phrase search, boolean operators and "near" in the portal
@@ -36,7 +45,7 @@
 - [ ] Persistent identifiers (ARK/Handle/DOI) for portal records
 - [ ] Portal UI in Kannada and other languages (Frappe translations)
 
-## v0.7: better data
+## Then: better data
 
 - [ ] Re-OCR pipeline for poor scans (Tesseract/other engines with trained Kannada models), replacing IA text in the index
 - [ ] Authority control: reconcile creators with VIAF/Wikidata; subjects with LCSH/Sears

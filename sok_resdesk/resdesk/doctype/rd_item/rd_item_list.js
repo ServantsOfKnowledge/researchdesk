@@ -49,6 +49,47 @@ frappe.listview_settings["RD Item"] = {
 			d.show();
 		};
 
+		const collection_dialog = (label, args, count) => {
+			const d = new frappe.ui.Dialog({
+				title: label,
+				fields: [
+					{ fieldname: "action", fieldtype: "Select", label: __("Action"), options: [
+						{ value: "add", label: __("Add to collection") },
+						{ value: "remove", label: __("Remove from collection") },
+					], default: "add" },
+					{ fieldname: "collection", fieldtype: "Link", options: "RD Collection", label: __("Collection"), reqd: 1,
+					  description: __("Type a new name and choose “Create a new RD Collection” to make one.") },
+				],
+				primary_action_label: count ? __("Apply to {0} books", [count]) : __("Apply"),
+				primary_action(v) {
+					d.hide();
+					frappe.call({
+						method: "sok_resdesk.curation.bulk",
+						args: { action: v.action, collection: v.collection, ...args },
+						freeze: true,
+						callback: (r) => {
+							frappe.show_alert({ message: r.message.message, indicator: "green" }, 7);
+							listview.refresh();
+						},
+					});
+				},
+			});
+			d.show();
+		};
+		listview.page.add_actions_menu_item(__("Add to / Remove from Collection"), () => {
+			const names = listview.get_checked_items(true);
+			collection_dialog(__("Selected books"), { names: JSON.stringify(names) }, names.length);
+		});
+		listview.page.add_menu_item(__("Add All Matching Books to a Collection"), () => {
+			const filters = listview.get_filters_for_args();
+			frappe.db.count("RD Item", { filters }).then((count) =>
+				collection_dialog(__("Books matching the current filters"), filters.length ? { filters: JSON.stringify(filters) } : { everything: 1 }, count)
+			);
+		});
+		listview.page.add_menu_item(__("Export Metadata of Matching Books"), () =>
+			frappe.new_doc("RD Export", { scope: "Filters", filters_json: JSON.stringify(listview.get_filters_for_args()) })
+		);
+
 		listview.page.add_actions_menu_item(__("Set Who Can See Them"), () => {
 			const names = listview.get_checked_items(true);
 			ask(__("Selected books"), { names: JSON.stringify(names) }, names.length);

@@ -128,7 +128,11 @@
 					{% if item.subjects %}<dt>{{ _("Subjects") }}</dt><dd>
 						{% for s in item.subjects %}<a class="rd-chip" href="/library?subjects={{ s | urlencode }}">{{ s }}</a>{% endfor %}
 					</dd>{% endif %}
-					{% if item.collections %}<dt>{{ _("Collections") }}</dt><dd>{{ item.collections | join(", ") }}</dd>{% endif %}
+					{% if curated %}<dt>{{ _("Collections") }}</dt><dd>
+						{% for c in curated %}<a class="rd-chip" href="/library/collection/{{ c.name | urlencode }}">{{ c.title }}</a>{% endfor %}
+					</dd>{% endif %}
+					{% if item.item_type and item.item_type != "Book" %}<dt>{{ _("Type") }}</dt><dd>{{ _(item.item_type) }}</dd>{% endif %}
+					{% if item.collections %}<dt>{{ _("Source collections") }}</dt><dd>{{ item.collections | join(", ") }}</dd>{% endif %}
 					<dt>{{ _("Access") }}</dt><dd>{{ item.access_status }}{% if item.visibility != "Public" %} · {{ _("members only") if item.visibility == "Login to find" else _("login to read") }}{% endif %}</dd>
 					{% if item.licence_url %}<dt>{{ _("Licence") }}</dt><dd><a href="{{ item.licence_url }}" rel="license">{{ item.licence_url }}</a></dd>{% endif %}
 					{% if item.rights %}<dt>{{ _("Rights") }}</dt><dd>{{ item.rights }}</dd>{% endif %}

@@ -1,7 +1,7 @@
 {
  "app": "sok_resdesk",
  "charts": [],
- "content": "[{\"data\": {\"col\": 12, \"text\": \"<span class=\\\"h4\\\"><b>Research Desk</b></span>\"}, \"id\": \"rd-h\", \"type\": \"header\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Ingest Profiles\"}, \"id\": \"rd-s1\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Items\"}, \"id\": \"rd-s2\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Background Jobs\"}, \"id\": \"rd-s5\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Open Portal\"}, \"id\": \"rd-s3\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Settings\"}, \"id\": \"rd-s4\", \"type\": \"shortcut\"}, {\"data\": {\"card_name\": \"Catalogue\", \"col\": 3}, \"id\": \"rd-c1\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Ingest\", \"col\": 3}, \"id\": \"rd-c2\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Setup\", \"col\": 3}, \"id\": \"rd-c3\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Readers\", \"col\": 3}, \"id\": \"rd-c4\", \"type\": \"card\"}]",
+ "content": "[{\"data\": {\"col\": 12, \"text\": \"<span class=\\\"h4\\\"><b>Research Desk</b></span>\"}, \"id\": \"rd-h\", \"type\": \"header\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Ingest Profiles\"}, \"id\": \"rd-s1\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Items\"}, \"id\": \"rd-s2\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Collections\"}, \"id\": \"rd-s6\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Background Jobs\"}, \"id\": \"rd-s5\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Open Portal\"}, \"id\": \"rd-s3\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Settings\"}, \"id\": \"rd-s4\", \"type\": \"shortcut\"}, {\"data\": {\"card_name\": \"Catalogue\", \"col\": 3}, \"id\": \"rd-c1\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Ingest\", \"col\": 3}, \"id\": \"rd-c2\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Setup\", \"col\": 3}, \"id\": \"rd-c3\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Readers\", \"col\": 3}, \"id\": \"rd-c4\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Metadata\", \"col\": 3}, \"id\": \"rd-c5\", \"type\": \"card\"}]",
  "creation": "2026-09-29 15:43:25.717447",
  "custom_blocks": [],
  "docstatus": 0,
@@ -31,6 +31,16 @@
    "link_to": "RD Item",
    "link_type": "DocType",
    "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "link_count": 0,
+   "onboard": 0,
+   "label": "Collections",
+   "link_to": "RD Collection",
+   "link_type": "DocType",
    "type": "Link"
   },
   {
@@ -139,9 +149,68 @@
    "link_to": "User",
    "link_type": "DocType",
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "link_count": 0,
+   "onboard": 0,
+   "label": "Metadata",
+   "link_type": "DocType",
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "link_count": 0,
+   "onboard": 0,
+   "label": "Exports",
+   "link_to": "RD Export",
+   "link_type": "DocType",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "link_count": 0,
+   "onboard": 0,
+   "label": "Spreadsheet Imports",
+   "link_to": "RD Metadata Import",
+   "link_type": "DocType",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "link_count": 0,
+   "onboard": 0,
+   "label": "Push Targets",
+   "link_to": "RD Push Target",
+   "link_type": "DocType",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "link_count": 0,
+   "onboard": 0,
+   "label": "Push Runs",
+   "link_to": "RD Push Run",
+   "link_type": "DocType",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "link_count": 0,
+   "onboard": 0,
+   "label": "Pushed Records",
+   "link_to": "RD External Record",
+   "link_type": "DocType",
+   "type": "Link"
   }
  ],
- "modified": "2026-09-30 12:00:00.000000",
+ "modified": "2026-09-30 14:00:00.000000",
  "modified_by": "Administrator",
  "module": "ResDesk",
  "name": "Research Desk",
@@ -164,6 +233,13 @@
    "doc_view": "",
    "label": "Items",
    "link_to": "RD Item",
+   "type": "DocType"
+  },
+  {
+   "color": "Purple",
+   "doc_view": "",
+   "label": "Collections",
+   "link_to": "RD Collection",
    "type": "DocType"
   },
   {

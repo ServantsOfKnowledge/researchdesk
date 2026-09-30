@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-09-30 10:00:00.000000",
+ "modified": "2026-09-30 14:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Item",
@@ -15,6 +15,7 @@
   "alt_title",
   "column_break_a",
   "source",
+  "item_type",
   "published",
   "visibility",
   "visibility_set_by",
@@ -38,6 +39,7 @@
   "description",
   "subjects",
   "collections",
+  "curated_collections",
   "section_rights",
   "licence_url",
   "rights",
@@ -62,6 +64,7 @@
   "source_signature",
   "section_system",
   "ingest_profile",
+  "lock_metadata",
   "last_ingested",
   "indexed_pages",
   "column_break_s",
@@ -103,6 +106,14 @@
    "label": "Source",
    "options": "Internet Archive\nLocal\nOther",
    "default": "Internet Archive",
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "item_type",
+   "fieldtype": "Select",
+   "label": "Document Type",
+   "options": "Book\nPeriodical\nArticle\nThesis\nReport\nManuscript\nMap\nOther",
+   "default": "Book",
    "in_standard_filter": 1
   },
   {
@@ -243,7 +254,14 @@
    "fieldname": "collections",
    "fieldtype": "Small Text",
    "label": "Source Collections",
-   "description": "One per line"
+   "description": "Collections on archive.org (or in meta.xml). Your own collections are below."
+  },
+  {
+   "fieldname": "curated_collections",
+   "fieldtype": "Table MultiSelect",
+   "label": "Collections",
+   "options": "RD Item Collection",
+   "description": "Your curated collections this book belongs to."
   },
   {
    "fieldname": "section_rights",
@@ -391,6 +409,13 @@
    "label": "Ingest Profile",
    "options": "RD Ingest Profile",
    "read_only": 1
+  },
+  {
+   "fieldname": "lock_metadata",
+   "fieldtype": "Check",
+   "label": "Keep My Edits",
+   "default": "0",
+   "description": "Re-ingesting from the source won't overwrite this book's catalogue details. Set automatically when you edit them here or import a spreadsheet; untick to let the source win again."
   },
   {
    "fieldname": "last_ingested",

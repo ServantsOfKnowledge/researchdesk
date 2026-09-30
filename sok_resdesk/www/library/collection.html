@@ -1,0 +1,30 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="rd" id="rd-library" data-fixed='{{ fixed_filters }}' data-staff="{{ 1 if viewer.staff else 0 }}"
+	data-login="{{ login_url }}" data-signup="{{ 1 if viewer.signup else 0 }}">
+	<nav class="rd-crumbs"><a href="/library">← {{ portal_title }}</a> · <a href="/library/collections">{{ _("Collections") }}</a></nav>
+	<header class="rd-coll-head">
+		{% if collection.cover_image %}<img class="rd-coll-head__cover" src="{{ collection.cover_image }}" alt="">{% endif %}
+		<div>
+			<h1 class="rd-page-title">{{ collection.title }}</h1>
+			<p class="rd-muted">{{ count }} {{ _("books") }}{% if curator_name %} · {{ _("Curated by") }} {{ curator_name }}{% endif %}
+				{% if viewer.staff %} · <a href="/app/rd-collection/{{ collection.name | urlencode }}">{{ _("Edit") }}</a>{% endif %}
+				{% if not collection.published %} · <span class="rd-badge">{{ _("not published") }}</span>{% endif %}</p>
+			{% if collection.description %}<div class="rd-coll-head__desc">{{ collection.description }}</div>{% endif %}
+		</div>
+	</header>
+	<div class="rd-coll-search">
+		{% include "templates/includes/rd_search_form.html" %}
+	</div>
+	{% include "templates/includes/rd_results.html" %}
+</div>
+{% endblock %}
+
+{% block script %}
+<script>window.RD_LABELS = {{ facet_labels | tojson }};</script>
+<script src="/assets/sok_resdesk/js/basket.js"></script>
+<script src="/assets/sok_resdesk/js/library.js"></script>
+{% endblock %}

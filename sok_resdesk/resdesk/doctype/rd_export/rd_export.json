@@ -1,0 +1,185 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-09-30 16:00:00.000000",
+ "modified": "2026-09-30 16:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Export",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "field_order": [
+  "export_format",
+  "scope",
+  "collection",
+  "profile",
+  "source_collection",
+  "search_query",
+  "filters_json",
+  "include_unpublished",
+  "column_break_e",
+  "status",
+  "item_count",
+  "file_url",
+  "finished_on",
+  "section_log",
+  "log"
+ ],
+ "fields": [
+  {
+   "fieldname": "export_format",
+   "fieldtype": "Select",
+   "label": "Format",
+   "options": "Spreadsheet (CSV)\nSpreadsheet (Excel)\nJSON (everything)\nJSON Lines\nDublin Core XML\nMODS XML\nMARCXML (Koha)\nJSON-LD (schema.org)\nCSL-JSON\nBibTeX\nRIS\nInternet Archive bulk-upload CSV\nInternet Archive meta.xml files (zip)",
+   "default": "Spreadsheet (CSV)",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "scope",
+   "fieldtype": "Select",
+   "label": "Which Books",
+   "options": "Everything\nCollection\nIngest Profile\nSource Collection\nSearch\nFilters\nSelected Books",
+   "default": "Everything",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "collection",
+   "fieldtype": "Link",
+   "label": "Collection",
+   "options": "RD Collection",
+   "depends_on": "eval:doc.scope=='Collection'",
+   "mandatory_depends_on": "eval:doc.scope=='Collection'"
+  },
+  {
+   "fieldname": "profile",
+   "fieldtype": "Link",
+   "label": "Ingest Profile",
+   "options": "RD Ingest Profile",
+   "depends_on": "eval:doc.scope=='Ingest Profile'",
+   "mandatory_depends_on": "eval:doc.scope=='Ingest Profile'"
+  },
+  {
+   "fieldname": "source_collection",
+   "fieldtype": "Data",
+   "label": "Source Collection",
+   "depends_on": "eval:doc.scope=='Source Collection'",
+   "mandatory_depends_on": "eval:doc.scope=='Source Collection'",
+   "description": "e.g. ServantsOfKnowledge"
+  },
+  {
+   "fieldname": "search_query",
+   "fieldtype": "Data",
+   "label": "Search",
+   "depends_on": "eval:doc.scope=='Search'",
+   "description": "Words to search for, as on the portal"
+  },
+  {
+   "fieldname": "filters_json",
+   "fieldtype": "Code",
+   "label": "Filters",
+   "options": "JSON",
+   "depends_on": "eval:['Filters','Selected Books'].includes(doc.scope)",
+   "description": "Set by the Items list (menu → Export Metadata of Matching Books)."
+  },
+  {
+   "fieldname": "include_unpublished",
+   "fieldtype": "Check",
+   "label": "Include Unpublished Books",
+   "default": "0"
+  },
+  {
+   "fieldname": "column_break_e",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nQueued\nRunning\nDone\nFailed",
+   "default": "Draft",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "item_count",
+   "fieldtype": "Int",
+   "label": "Books Exported",
+   "read_only": 1
+  },
+  {
+   "fieldname": "file_url",
+   "fieldtype": "Data",
+   "label": "File",
+   "read_only": 1,
+   "options": "URL"
+  },
+  {
+   "fieldname": "finished_on",
+   "fieldtype": "Datetime",
+   "label": "Finished On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_log",
+   "fieldtype": "Section Break",
+   "collapsible": 1,
+   "label": "Log"
+  },
+  {
+   "fieldname": "log",
+   "fieldtype": "Code",
+   "label": "Log",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  }
+ ],
+ "track_changes": 0,
+ "autoname": "EXP-.#####",
+ "naming_rule": "Expression (old style)"
+}

@@ -1,0 +1,13 @@
+{# search box + mode switch, shared by the library home and collection pages #}
+		<form class="rd-search" id="rd-search-form" role="search" autocomplete="off">
+			<label class="sr-only" for="rd-q">{{ _("Search") }}</label>
+			<input id="rd-q" name="q" type="search" class="rd-search__input"
+				placeholder="{{ _('Search titles, authors, subjects… (ಕನ್ನಡದಲ್ಲೂ ಹುಡುಕಿ)') }}" />
+			<button class="rd-btn rd-btn--primary" type="submit">{{ _("Search") }}</button>
+		</form>
+
+		<div class="rd-modes" role="radiogroup" aria-label="{{ _('Search mode') }}">
+			<label><input type="radio" name="rd-mode" value="books" checked> {{ _("Books") }}</label>
+			<label><input type="radio" name="rd-mode" value="pages"> {{ _("Inside the text") }}</label>
+			<span class="rd-muted rd-count">{{ frappe.format(item_count, {"fieldtype": "Int"}) }} {{ _("books in the catalogue") }}</span>
+		</div>

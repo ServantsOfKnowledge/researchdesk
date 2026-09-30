@@ -97,6 +97,23 @@ def _person_display(person: dict) -> str:
 	return person["name"]
 
 
+# item_type -> (BibTeX, BibLaTeX, RIS, CSL)
+CITATION_TYPES = {
+	"Book": ("book", "book", "BOOK", "book"),
+	"Periodical": ("misc", "periodical", "JFULL", "periodical"),
+	"Article": ("article", "article", "JOUR", "article-journal"),
+	"Thesis": ("phdthesis", "thesis", "THES", "thesis"),
+	"Report": ("techreport", "report", "RPRT", "report"),
+	"Manuscript": ("unpublished", "unpublished", "MANSCPT", "manuscript"),
+	"Map": ("misc", "misc", "MAP", "map"),
+	"Other": ("misc", "misc", "GEN", "document"),
+}
+
+
+def cite_types(item: dict) -> tuple[str, str, str, str]:
+	return CITATION_TYPES.get(item.get("item_type") or "Book", CITATION_TYPES["Book"])
+
+
 def url_for(item: dict, base_url: str = "") -> str:
 	if base_url:
 		return f"{base_url.rstrip('/')}/library/item/{item['item_id']}"
@@ -152,11 +169,12 @@ def to_bibtex(item: dict, base_url: str = "", biblatex: bool = False) -> str:
 		note += f"; {item['ark']}"
 	fields.append(("note", _bib_escape(note)))
 	body = ",\n".join(f"  {k} = {{{v}}}" for k, v in fields)
-	return f"@book{{{cite_key(item)},\n{body}\n}}\n"
+	kind = cite_types(item)[1 if biblatex else 0]
+	return f"@{kind}{{{cite_key(item)},\n{body}\n}}\n"
 
 
 def to_ris(item: dict, base_url: str = "") -> str:
-	lines = ["TY  - BOOK"]
+	lines = [f"TY  - {cite_types(item)[2]}"]
 	for p in _people(item):
 		lines.append(f"AU  - {p['name']}")
 		if p["alt"]:
@@ -198,7 +216,7 @@ def to_csl(item: dict, base_url: str = "") -> dict:
 		authors.append(entry)
 	csl = {
 		"id": item["item_id"],
-		"type": "book",
+		"type": cite_types(item)[3],
 		"title": item.get("title") or item["item_id"],
 		"author": authors,
 		"URL": url_for(item, base_url),

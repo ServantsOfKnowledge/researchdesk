@@ -1,0 +1,9 @@
+<a class="rd-coll-card" href="/library/collection/{{ c.name }}">
+	<div class="rd-coll-card__cover"{% if c.cover_image %} style="background-image:url('{{ c.cover_image }}')"{% endif %}>
+		{% if not c.cover_image %}<span>{{ (c.title or c.name)[:1] }}</span>{% endif %}
+	</div>
+	<div class="rd-coll-card__body">
+		<h3>{{ c.title }}</h3>
+		<p class="rd-muted">{{ c.count }} {{ _("books") if c.count != 1 else _("book") }}</p>
+	</div>
+</a>

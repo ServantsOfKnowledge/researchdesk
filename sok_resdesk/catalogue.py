@@ -34,6 +34,7 @@ def item_to_record(doc) -> dict:
 	return {
 		"item_id": doc.item_id,
 		"source": doc.source,
+		"item_type": doc.get("item_type") or "Book",
 		"title": doc.title,
 		"alt_title": doc.alt_title or "",
 		"creators": creators,
@@ -64,7 +65,9 @@ def item_to_record(doc) -> dict:
 		"local_pdf": doc.local_pdf or "",
 		"pdf_url": _pdf_url(doc),
 		"modified": doc.modified,
-		"set_specs": [c for c in (doc.collections or "").splitlines() if c.strip()],
+		"curated_collections": [r.collection for r in doc.get("curated_collections") or []],
+		"set_specs": [c for c in (doc.collections or "").splitlines() if c.strip()]
+		+ [f"rd:{r.collection}" for r in doc.get("curated_collections") or []],
 	}
 
 
@@ -118,19 +121,32 @@ def _ensure_subject(name: str) -> str:
 	return name
 
 
+# What a cataloguer edits. When an item has "Keep My Edits" on, re-ingesting leaves these alone.
+DESCRIPTIVE = (
+	"title", "alt_title", "date_raw", "year", "language", "language_label", "publisher", "place", "series",
+	"isbn", "description", "licence_url", "rights", "item_type",
+)
+
+
 def upsert_item(record: dict, raw: dict | None = None, profile: str | None = None) -> tuple[str, bool]:
 	"""Create or update an RD Item from a normalised record. Returns (name, created)."""
 	exists = frappe.db.exists("RD Item", record["item_id"])
 	doc = frappe.get_doc("RD Item", record["item_id"]) if exists else frappe.new_doc("RD Item")
+	locked = bool(exists and doc.get("lock_metadata"))
+	doc.flags.from_ingest = True
 
 	simple = (
 		"item_id", "source", "title", "alt_title", "date_raw", "year", "language", "language_label",
 		"publisher", "place", "series", "isbn", "page_count", "description", "licence_url", "rights",
 		"access_status", "source_url", "thumbnail_url", "ark", "ocr_engine", "ocr_language",
 		"scanning_centre", "added_on_source",
-		"local_store", "local_path", "local_pdf", "local_thumb", "text_source", "source_signature",
+		"local_store", "local_path", "local_pdf", "local_thumb", "text_source", "source_signature", "item_type",
 	)
 	for field in simple:
+		if locked and field in DESCRIPTIVE:
+			continue
+		if field == "item_type" and not record.get(field):
+			continue
 		value = record.get(field)
 		if isinstance(value, str):
 			limit = 1000 if field in ("title", "alt_title") else 500 if field in ("publisher", "licence_url", "series", "source_url") else None
@@ -143,6 +159,8 @@ def upsert_item(record: dict, raw: dict | None = None, profile: str | None = Non
 	doc.collections = "\n".join(record.get("collections") or [])
 
 	alts = record.get("alt_creators") or []
+	if locked:
+		return _save_ingested(doc, exists, raw, profile, record)
 	doc.set("creators", [])
 	seen = set()
 	for i, name in enumerate(record.get("creators") or []):
@@ -160,14 +178,21 @@ def upsert_item(record: dict, raw: dict | None = None, profile: str | None = Non
 			seen.add(name)
 			doc.append("subjects", {"subject": name})
 
+	return _save_ingested(doc, exists, raw, profile, record)
+
+
+def _save_ingested(doc, exists, raw, profile, record) -> tuple[str, bool]:
 	if raw is not None:
 		doc.raw_metadata = json.dumps(raw, ensure_ascii=False)[:500000]
 	if profile:
 		doc.ingest_profile = profile
 	if not exists:
 		from sok_resdesk.access import initial_visibility
+		from sok_resdesk.curation import collections_for_new_item
 
 		doc.visibility, doc.visibility_set_by = initial_visibility(record, profile)
+		for c in collections_for_new_item({**record, "item_type": doc.item_type}, profile):
+			doc.append("curated_collections", {"collection": c})
 	doc.last_ingested = now_datetime()
 	doc.flags.skip_search_index = True  # the ingest job indexes with page text itself
 	if exists:

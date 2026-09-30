@@ -19,11 +19,17 @@ researchdesk/
 └── sok_resdesk/            the Frappe app
     ├── hooks.py            routes, doc events, scheduler, install hooks
     ├── core/               pure Python, no Frappe:  ia.py  folder.py  normalize.py  citations.py  marc.py  oai.py  access.py
+    │                                           collections.py (rules, slugs)  metaio.py (export formats, spreadsheet)  push.py (IA, Koha, Wikidata, webhook clients)
     ├── catalogue.py        settings, upsert RD Item, record <-> dict
     ├── ingest.py           ingest jobs, scheduler, whitelisted actions
     ├── local_source.py     IA-style item folders on disk / NAS / web server
     ├── search.py           Meilisearch adapter, indexing, search
     ├── access.py           who can see what: members, bulk visibility, reader sign-up
+    ├── curation.py         curated collections: membership, rules, counts
+    ├── transfer.py         metadata exports and spreadsheet imports
+    ├── outbound.py         push runs to other systems, automatic pushes
+    ├── jobs.py             Background Jobs page: see and stop runs and queued jobs
+    ├── portal.py           helpers for portal pages (collection cards, facet labels)
     ├── api.py              public API
     ├── oai.py              OAI-PMH endpoint (Frappe store for core/oai.py)
     ├── commands.py         `bench … resdesk` CLI
@@ -32,9 +38,9 @@ researchdesk/
     ├── patches/            data migrations between versions (listed in patches.txt)
     ├── resdesk/workspace/  the Research Desk workspace (shipped as a file so migrate keeps it)
     ├── resdesk/doctype/    DocTypes (JSON + controllers + form scripts)
-    ├── www/library/        portal pages (index = search, item = book page)
+    ├── www/library/        portal pages (index = search, item = book page, collections, collection)
     ├── public/             css/resdesk.css, js/library.js, js/item.js, js/basket.js
-    └── tests/              test_core.py + unit_folder.py (pytest), test_integration.py (Frappe)
+    └── tests/              test_core.py + test_push.py + unit_folder.py (pytest), test_integration.py (Frappe)
 ```
 
 ## Workflow

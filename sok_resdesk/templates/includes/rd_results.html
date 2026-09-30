@@ -1,0 +1,66 @@
+{# facets, toolbar, staff bar, results and pager #}
+	<div class="rd-layout">
+		<aside class="rd-facets" id="rd-facets" aria-label="{{ _('Filters') }}">
+			<div class="rd-facet">
+				<h3>{{ _("Year") }}</h3>
+				<div class="rd-years">
+					<input type="number" id="rd-year-from" placeholder="{{ _('from') }}" min="1000" max="2100">
+					<input type="number" id="rd-year-to" placeholder="{{ _('to') }}" min="1000" max="2100">
+				</div>
+			</div>
+			<div id="rd-facet-lists"></div>
+		</aside>
+
+		<main class="rd-results">
+			<div class="rd-toolbar">
+				<div id="rd-summary" class="rd-muted"></div>
+				<div class="rd-toolbar__right">
+					<select id="rd-sort" aria-label="{{ _('Sort') }}">
+						<option value="">{{ _("Relevance") }}</option>
+						<option value="year:asc">{{ _("Oldest first") }}</option>
+						<option value="year:desc">{{ _("Newest first") }}</option>
+						<option value="title_sort:asc">{{ _("Title A–Z") }}</option>
+					</select>
+					<div class="rd-basket" id="rd-basket">
+						<button class="rd-btn" id="rd-basket-btn" type="button">
+							{{ _("My list") }} <span class="rd-badge" id="rd-basket-count">0</span>
+						</button>
+						<div class="rd-basket__menu" id="rd-basket-menu" hidden>
+							<p class="rd-muted">{{ _("Export all saved items:") }}</p>
+							<a data-fmt="bibtex">BibTeX</a>
+							<a data-fmt="ris">RIS (Zotero, Mendeley, EndNote)</a>
+							<a data-fmt="csl-json">CSL-JSON</a>
+							<a data-fmt="apa">APA</a>
+							<a data-fmt="marc">MARCXML (Koha)</a>
+							<a data-action="share">{{ _("Copy share link") }}</a>
+							<a data-action="clear" class="rd-danger">{{ _("Clear list") }}</a>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div id="rd-active-filters" class="rd-chips"></div>
+			{% if viewer.staff %}
+			<form class="rd-staffbar" id="rd-staffbar" hidden>
+				<span>{{ _("Staff:") }} {{ _("set who can see") }} <b id="rd-staff-count">0</b> {{ _("matching books") }}</span>
+				<select id="rd-staff-vis" aria-label="{{ _('Visibility') }}">
+					{% for v in visibilities %}<option value="{{ v }}">{{ _(v) }}</option>{% endfor %}
+				</select>
+				<button class="rd-btn" type="submit">{{ _("Apply") }}</button>
+				<span class="rd-muted" id="rd-staff-msg"></span>
+			</form>
+			<form class="rd-staffbar" id="rd-staffbar-coll" hidden>
+				<select id="rd-staff-coll-action" aria-label="{{ _('Add or remove') }}">
+					<option value="add">{{ _("Add them to") }}</option>
+					<option value="remove">{{ _("Remove them from") }}</option>
+				</select>
+				<select id="rd-staff-coll" aria-label="{{ _('Collection') }}">
+					{% for cname, ctitle in (facet_labels.curated or {}).items() %}<option value="{{ cname }}">{{ ctitle }}</option>{% endfor %}
+					<option value="__new__">{{ _("New collection…") }}</option>
+				</select>
+				<button class="rd-btn" type="submit">{{ _("Apply") }}</button>
+			</form>
+			{% endif %}
+			<ol id="rd-hits" class="rd-hits" aria-live="polite"></ol>
+			<nav id="rd-pager" class="rd-pager" aria-label="{{ _('Pages') }}"></nav>
+		</main>
+	</div>

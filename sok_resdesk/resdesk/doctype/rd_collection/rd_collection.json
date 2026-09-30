@@ -1,0 +1,164 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-09-30 14:00:00.000000",
+ "modified": "2026-09-30 14:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Collection",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "field_order": [
+  "title",
+  "slug",
+  "published",
+  "featured",
+  "column_break_c",
+  "cover_image",
+  "curator",
+  "sort_order",
+  "item_count",
+  "section_desc",
+  "description",
+  "section_rules",
+  "rules",
+  "rules_applied_on"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "in_list_view": 1,
+   "bold": 1
+  },
+  {
+   "fieldname": "slug",
+   "fieldtype": "Data",
+   "label": "Web Address",
+   "unique": 1,
+   "description": "Used in the portal link /library/collection/<this>. Filled in from the title."
+  },
+  {
+   "fieldname": "published",
+   "fieldtype": "Check",
+   "label": "Show on Portal",
+   "default": "1",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "featured",
+   "fieldtype": "Check",
+   "label": "Featured on the Home Page",
+   "default": "0"
+  },
+  {
+   "fieldname": "column_break_c",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cover_image",
+   "fieldtype": "Attach Image",
+   "label": "Cover Image"
+  },
+  {
+   "fieldname": "curator",
+   "fieldtype": "Link",
+   "label": "Curator",
+   "options": "User"
+  },
+  {
+   "fieldname": "sort_order",
+   "fieldtype": "Int",
+   "label": "Order on the Collections Page",
+   "default": "0"
+  },
+  {
+   "fieldname": "item_count",
+   "fieldtype": "Int",
+   "label": "Books",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "section_desc",
+   "fieldtype": "Section Break",
+   "label": "About"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text Editor",
+   "label": "Description"
+  },
+  {
+   "fieldname": "section_rules",
+   "fieldtype": "Section Break",
+   "label": "Add Books Automatically",
+   "description": "Books that match any of these rules join the collection when they are ingested. Use Apply Rules to add books already in the catalogue. You can always add or remove books by hand too."
+  },
+  {
+   "fieldname": "rules",
+   "fieldtype": "Table",
+   "label": "Rules",
+   "options": "RD Collection Rule"
+  },
+  {
+   "fieldname": "rules_applied_on",
+   "fieldtype": "Datetime",
+   "label": "Rules Last Applied",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  }
+ ],
+ "autoname": "field:slug",
+ "naming_rule": "By fieldname",
+ "title_field": "title",
+ "show_title_field_in_link": 1,
+ "search_fields": "title",
+ "image_field": "cover_image",
+ "track_changes": 1
+}

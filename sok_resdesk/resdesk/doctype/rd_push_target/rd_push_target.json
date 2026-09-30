@@ -1,0 +1,265 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-09-30 18:00:00.000000",
+ "modified": "2026-09-30 18:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Push Target",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "field_order": [
+  "target_name",
+  "target_type",
+  "enabled",
+  "dry_run",
+  "column_break_t",
+  "scope",
+  "collection",
+  "auto_push",
+  "last_run",
+  "section_ia",
+  "ia_access",
+  "ia_secret",
+  "ia_fields",
+  "section_koha",
+  "koha_url",
+  "koha_auth",
+  "koha_user",
+  "koha_password",
+  "koha_framework",
+  "section_wd",
+  "wd_api",
+  "wd_user",
+  "wd_password",
+  "wd_create",
+  "section_hook",
+  "hook_url",
+  "hook_secret"
+ ],
+ "fields": [
+  {
+   "fieldname": "target_name",
+   "fieldtype": "Data",
+   "label": "Name",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "target_type",
+   "fieldtype": "Select",
+   "label": "Send To",
+   "options": "Internet Archive\nKoha\nWikidata\nWebhook",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "default": "1",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "dry_run",
+   "fieldtype": "Check",
+   "label": "Dry Run",
+   "default": "1",
+   "description": "Work out and log every change without sending anything. Untick once the log looks right."
+  },
+  {
+   "fieldname": "column_break_t",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "scope",
+   "fieldtype": "Select",
+   "label": "Which Books",
+   "options": "Collection\nEverything",
+   "default": "Collection",
+   "reqd": 1
+  },
+  {
+   "fieldname": "collection",
+   "fieldtype": "Link",
+   "label": "Collection",
+   "options": "RD Collection",
+   "depends_on": "eval:doc.scope=='Collection'",
+   "mandatory_depends_on": "eval:doc.scope=='Collection'"
+  },
+  {
+   "fieldname": "auto_push",
+   "fieldtype": "Check",
+   "label": "Send Changes Automatically",
+   "default": "0",
+   "description": "When a book in scope is edited (form, bulk change, spreadsheet import), send it within a minute."
+  },
+  {
+   "fieldname": "last_run",
+   "fieldtype": "Link",
+   "label": "Last Run",
+   "options": "RD Push Run",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_ia",
+   "fieldtype": "Section Break",
+   "label": "Internet Archive",
+   "depends_on": "eval:doc.target_type=='Internet Archive'",
+   "description": "Your archive.org S3-like API keys (archive.org/account/s3.php). Only items your account can edit are updated; fields you leave empty in Research Desk are never deleted on archive.org."
+  },
+  {
+   "fieldname": "ia_access",
+   "fieldtype": "Data",
+   "label": "Access Key",
+   "depends_on": "eval:doc.target_type=='Internet Archive'"
+  },
+  {
+   "fieldname": "ia_secret",
+   "fieldtype": "Password",
+   "label": "Secret Key",
+   "depends_on": "eval:doc.target_type=='Internet Archive'"
+  },
+  {
+   "fieldname": "ia_fields",
+   "fieldtype": "Small Text",
+   "label": "Fields to Update",
+   "depends_on": "eval:doc.target_type=='Internet Archive'",
+   "default": "title, alt_title, creator, date, publisher, language, subject, description, volume, isbn, licenseurl",
+   "description": "archive.org field names, comma-separated."
+  },
+  {
+   "fieldname": "section_koha",
+   "fieldtype": "Section Break",
+   "label": "Koha",
+   "depends_on": "eval:doc.target_type=='Koha'",
+   "description": "Koha 23.11 or later. Turn on RESTBasicAuth (user + password) or RESTOAuth2ClientCredentials (API key of a staff user with editcatalogue) in Koha's system preferences."
+  },
+  {
+   "fieldname": "koha_url",
+   "fieldtype": "Data",
+   "label": "Koha Staff URL",
+   "options": "URL",
+   "depends_on": "eval:doc.target_type=='Koha'",
+   "description": "e.g. https://library-intra.example.org"
+  },
+  {
+   "fieldname": "koha_auth",
+   "fieldtype": "Select",
+   "label": "Login With",
+   "options": "User and Password\nOAuth2 Client Credentials",
+   "default": "User and Password",
+   "depends_on": "eval:doc.target_type=='Koha'"
+  },
+  {
+   "fieldname": "koha_user",
+   "fieldtype": "Data",
+   "label": "User / Client ID",
+   "depends_on": "eval:doc.target_type=='Koha'"
+  },
+  {
+   "fieldname": "koha_password",
+   "fieldtype": "Password",
+   "label": "Password / Client Secret",
+   "depends_on": "eval:doc.target_type=='Koha'"
+  },
+  {
+   "fieldname": "koha_framework",
+   "fieldtype": "Data",
+   "label": "MARC Framework Code",
+   "depends_on": "eval:doc.target_type=='Koha'",
+   "description": "Leave empty for the default framework."
+  },
+  {
+   "fieldname": "section_wd",
+   "fieldtype": "Section Break",
+   "label": "Wikidata",
+   "depends_on": "eval:doc.target_type=='Wikidata'",
+   "description": "Books are looked up by their Internet Archive ID first; existing items only get statements they are missing. New items are created as 'version, edition or translation'. Create a bot password at Special:BotPasswords; large batches need an approved bot account. Try test.wikidata.org first only with Dry Run (its property numbers differ)."
+  },
+  {
+   "fieldname": "wd_api",
+   "fieldtype": "Data",
+   "label": "API URL",
+   "default": "https://www.wikidata.org/w/api.php",
+   "depends_on": "eval:doc.target_type=='Wikidata'"
+  },
+  {
+   "fieldname": "wd_user",
+   "fieldtype": "Data",
+   "label": "Bot Username",
+   "description": "e.g. SanchiBot@researchdesk",
+   "depends_on": "eval:doc.target_type=='Wikidata'"
+  },
+  {
+   "fieldname": "wd_password",
+   "fieldtype": "Password",
+   "label": "Bot Password",
+   "depends_on": "eval:doc.target_type=='Wikidata'"
+  },
+  {
+   "fieldname": "wd_create",
+   "fieldtype": "Check",
+   "label": "Create New Items",
+   "default": "0",
+   "depends_on": "eval:doc.target_type=='Wikidata'",
+   "description": "Off: only complete items that already exist on Wikidata. On: also create items for books that have none."
+  },
+  {
+   "fieldname": "section_hook",
+   "fieldtype": "Section Break",
+   "label": "Webhook",
+   "depends_on": "eval:doc.target_type=='Webhook'",
+   "description": "Each book is POSTed as JSON: {event, sent_at, data}. With a secret, the X-ResDesk-Signature header is sha256=HMAC of the body."
+  },
+  {
+   "fieldname": "hook_url",
+   "fieldtype": "Data",
+   "label": "URL",
+   "options": "URL",
+   "depends_on": "eval:doc.target_type=='Webhook'"
+  },
+  {
+   "fieldname": "hook_secret",
+   "fieldtype": "Password",
+   "label": "Secret",
+   "depends_on": "eval:doc.target_type=='Webhook'"
+  }
+ ],
+ "links": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  }
+ ],
+ "autoname": "field:target_name",
+ "naming_rule": "By fieldname",
+ "track_changes": 1
+}

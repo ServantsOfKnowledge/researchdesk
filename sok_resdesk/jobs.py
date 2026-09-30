@@ -19,6 +19,13 @@ KINDS = {
 	"sok_resdesk.search.rebuild_batch": "Search index rebuild",
 	"sok_resdesk.access.apply_visibility": "Change who can see books",
 	"sok_resdesk.access.recompute": "Apply access rules",
+	"sok_resdesk.curation.add_items": "Add books to a collection",
+	"sok_resdesk.curation.remove_items": "Remove books from a collection",
+	"sok_resdesk.curation.apply_rules_now": "Apply collection rules",
+	"sok_resdesk.transfer.run_export": "Metadata export",
+	"sok_resdesk.transfer.apply_plan": "Spreadsheet import",
+	"sok_resdesk.outbound.run": "Push metadata to another system",
+	"sok_resdesk.outbound.auto_push": "Automatic push of one book",
 }
 
 
@@ -237,6 +244,7 @@ def stop_all(force: int = 0, pause: int = 1, search: int = 0) -> dict:
 	runs = frappe.get_all("RD Ingest Run", filters={"status": ("in", ACTIVE)}, pluck="name")
 	for run in runs:
 		_cancel_run_row(run, f"Stopped by {frappe.session.user} (stop everything)")
+	frappe.db.sql("update `tabRD Push Run` set status='Cancelled' where status in ('Queued','Running')")
 	if cint(pause):
 		frappe.db.set_single_value("RD Settings", "pause_scheduled_ingest", 1)
 	frappe.db.commit()

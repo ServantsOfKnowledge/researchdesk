@@ -74,7 +74,12 @@ class FrappeStore:
 				c = c.strip()
 				if c:
 					seen[c] = seen.get(c, 0) + 1
-		return [(c, c) for c, n in sorted(seen.items(), key=lambda x: -x[1]) if n > 0][:500]
+		sets = [(c, c) for c, n in sorted(seen.items(), key=lambda x: -x[1]) if n > 0][:500]
+		curated = frappe.get_all("RD Collection", filters={"published": 1}, fields=["name", "title"], order_by="sort_order, title")
+		if curated:
+			sets.append(("rd", f"{portal_title()} collections"))
+			sets += [(f"rd:{c.name}", c.title) for c in curated]
+		return sets
 
 	def get(self, item_id: str) -> dict | None:
 		if not frappe.db.sql(f"select 1 from `tabRD Item` where name=%s and {_where()}", item_id):
@@ -89,7 +94,13 @@ class FrappeStore:
 		if until:
 			conditions.append("modified <= %(until)s")
 			values["until"] = to_system(until)
-		if set_spec:
+		if set_spec == "rd":
+			conditions.append("exists (select 1 from `tabRD Item Collection` c where c.parent=`tabRD Item`.name)")
+		elif set_spec and set_spec.startswith("rd:"):
+			conditions.append("exists (select 1 from `tabRD Item Collection` c where c.parent=`tabRD Item`.name "
+							  "and c.collection=%(curated)s)")
+			values["curated"] = set_spec[3:]
+		elif set_spec:
 			conditions.append("concat('\n', collections, '\n') like %(set)s")
 			values["set"] = f"%\n{set_spec}\n%"
 		where = " and ".join(conditions)

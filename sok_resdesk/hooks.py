@@ -9,6 +9,7 @@ app_license = "MIT"
 
 website_route_rules = [
 	{"from_route": "/library/item/<item_id>", "to_route": "library/item"},
+	{"from_route": "/library/collection/<collection>", "to_route": "library/collection"},
 ]
 
 
@@ -24,11 +25,12 @@ after_migrate = "sok_resdesk.setup.after_migrate"
 
 doc_events = {
 	"RD Item": {
-		"on_update": "sok_resdesk.search.on_item_update",
+		"on_update": ["sok_resdesk.search.on_item_update", "sok_resdesk.outbound.on_item_change"],
 		"on_trash": "sok_resdesk.search.on_item_trash",
 	},
 	# portal sign-ups become readers, or wait for approval (RD Settings → Reader Accounts)
 	"User": {"after_insert": "sok_resdesk.access.on_user_insert"},
+	"RD Collection": {"on_trash": "sok_resdesk.curation.on_collection_trash"},
 }
 
 # Scheduled ingest (profiles set to Daily / Weekly) ---------------------------

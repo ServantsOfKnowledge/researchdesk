@@ -152,6 +152,30 @@ def is_restricted(meta: dict) -> bool:
 	return flag in ("true", "1", "yes")
 
 
+ITEM_TYPES = ("Book", "Periodical", "Article", "Thesis", "Report", "Manuscript", "Map", "Other")
+
+_TYPE_HINTS = (
+	("Periodical", ("periodical", "magazine", "journal", "newspaper", "patrika", "ಪತ್ರಿಕೆ", "gazette", "bulletin")),
+	("Thesis", ("thesis", "dissertation", "ph.d", "phd")),
+	("Manuscript", ("manuscript", "palm leaf", "palm-leaf", "ಹಸ್ತಪ್ರತಿ", "ತಾಳೆಗರಿ")),
+	("Report", ("annual report", "report of", "proceedings")),
+	("Map", ("map", "atlas")),
+)
+
+
+def guess_item_type(meta: dict) -> str:
+	"""Best guess of what kind of document this is. IA calls everything 'texts', so we look
+	at the title, subjects and collections for hints; anything unclear is a Book."""
+	haystack = " ".join(
+		as_list(meta.get("subject")) + as_list(meta.get("collection")) + [first(meta.get("title"))]
+		+ as_list(meta.get("type"))
+	).lower()
+	for kind, words in _TYPE_HINTS:
+		if any(w in haystack for w in words):
+			return kind
+	return "Book"
+
+
 def normalize_ia_item(identifier: str, meta: dict, files: list[dict] | None = None) -> dict:
 	"""Map one IA metadata record to the RD Item shape used by the catalogue."""
 	files = files or []
@@ -173,6 +197,7 @@ def normalize_ia_item(identifier: str, meta: dict, files: list[dict] | None = No
 	return {
 		"item_id": identifier,
 		"source": "Internet Archive",
+		"item_type": guess_item_type(meta),
 		"title": clean_text(first(meta.get("title"))) or identifier,
 		"alt_title": clean_text(first(meta.get("alt_title"))),
 		"creators": creators,

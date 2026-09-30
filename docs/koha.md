@@ -16,7 +16,7 @@ Research Desk is an **OAI-PMH 2.0 data provider**:
 | | |
 |---|---|
 | Metadata formats | `oai_dc` (Dublin Core), `marc21` (MARCXML) |
-| Sets | source collections (e.g. `ServantsOfKnowledge`, `KannadaUniversity`, `JaiGyan`) |
+| Sets | source collections (e.g. `ServantsOfKnowledge`, `KannadaUniversity`, `JaiGyan`), and your curated collections as `rd:<web address>` (e.g. `rd:epigraphy`) |
 | Identifiers | `oai:<repository-id>:<IA identifier>` |
 | Selective harvesting | `from` / `until` (UTC), `set` |
 | Page size | 100 records with resumption tokens |
@@ -88,7 +88,15 @@ Records validate against the Library of Congress MARC21 slim schema. Subjects ar
 uncontrolled (653) because IA subject data is free text; mapping to LCSH or other schemes is on
 the [roadmap](roadmap.md).
 
-## Option C: Research Desk on its own
+## Option C: Research Desk pushes records into Koha
+
+Instead of Koha harvesting, Research Desk can create and update biblios in Koha directly through
+Koha's REST API (Koha 23.11 or later), for one collection or everything, by hand or whenever a
+book is edited. It remembers each biblionumber, so later pushes update the same record. Set it up
+under **Research Desk → Push Targets**; see
+[Pushing metadata to other systems](collections-and-metadata.md#koha).
+
+## Option D: Research Desk on its own
 
 Everything a reader needs (discovery, faceted search, full text, reading, citation) works
 without any other system. The Frappe data model can be extended with holdings, patrons and

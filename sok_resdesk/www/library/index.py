@@ -21,6 +21,12 @@ def get_context(context):
 	context.viewer = access.viewer()
 	context.login_url = access.login_url("/library")
 	context.visibilities = access.VISIBILITIES
+	from sok_resdesk.portal import collection_cards, facet_labels
+
+	cards = collection_cards()
+	context.featured_collections = [c for c in cards if c.featured][:8]
+	context.has_collections = bool(cards)
+	context.facet_labels = facet_labels()
 	context.logo = s.portal_logo if s.portal_logo and s.logo_on_home else ""
 	context.home_banner = s.home_banner or ""
 	context.metatags = {

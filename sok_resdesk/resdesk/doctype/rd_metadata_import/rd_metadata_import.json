@@ -1,0 +1,135 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-09-30 16:00:00.000000",
+ "modified": "2026-09-30 16:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Metadata Import",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "field_order": [
+  "import_file",
+  "create_missing",
+  "column_break_i",
+  "status",
+  "rows",
+  "changed",
+  "created",
+  "problems",
+  "section_preview",
+  "preview"
+ ],
+ "fields": [
+  {
+   "fieldname": "import_file",
+   "fieldtype": "Attach",
+   "label": "Spreadsheet",
+   "reqd": 1,
+   "description": "A CSV or Excel file with an item_id column, like the one Export (Spreadsheet) makes. Only the columns in the file are changed; blank cells clear a field."
+  },
+  {
+   "fieldname": "create_missing",
+   "fieldtype": "Check",
+   "label": "Create Records for New IDs",
+   "default": "0",
+   "description": "Rows whose item_id isn't in the catalogue become new records (Source: Other). Otherwise they are skipped."
+  },
+  {
+   "fieldname": "column_break_i",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nPreviewed\nQueued\nApplying\nDone\nFailed",
+   "default": "Draft",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "rows",
+   "fieldtype": "Int",
+   "label": "Rows",
+   "read_only": 1
+  },
+  {
+   "fieldname": "changed",
+   "fieldtype": "Int",
+   "label": "Books to Change / Changed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "created",
+   "fieldtype": "Int",
+   "label": "New Records",
+   "read_only": 1
+  },
+  {
+   "fieldname": "problems",
+   "fieldtype": "Int",
+   "label": "Problems",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_preview",
+   "fieldtype": "Section Break",
+   "label": "What Will Change"
+  },
+  {
+   "fieldname": "preview",
+   "fieldtype": "Code",
+   "label": "Preview",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  }
+ ],
+ "track_changes": 0,
+ "autoname": "IMP-.#####",
+ "naming_rule": "Expression (old style)"
+}

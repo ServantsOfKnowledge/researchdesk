@@ -29,7 +29,7 @@ BOOK_SETTINGS = {
 	],
 	"filterableAttributes": [
 		"item_id", "language", "language_label", "year", "decade", "creators", "subjects", "collections",
-		"access_status", "has_fulltext", "source", "visibility",
+		"access_status", "has_fulltext", "source", "visibility", "curated", "item_type",
 	],
 	"sortableAttributes": ["year", "title_sort", "indexed_at"],
 	"displayedAttributes": ["*"],
@@ -50,12 +50,13 @@ PAGE_SETTINGS = {
 	"prefixSearch": "indexingTime",
 	"facetSearch": False,
 	"searchCutoffMs": 1500,
-	"filterableAttributes": ["item_id", "language_label", "year", "decade", "collections", "creators", "visibility"],
+	"filterableAttributes": ["item_id", "language_label", "year", "decade", "collections", "creators", "visibility",
+							 "curated", "item_type", "subjects"],
 	"sortableAttributes": ["leaf"],
 	"displayedAttributes": ["*"],
 	"pagination": {"maxTotalHits": 10000},
 }
-FACETS = ["language_label", "decade", "subjects", "creators", "collections"]
+FACETS = ["curated", "item_type", "language_label", "decade", "subjects", "creators", "collections"]
 
 
 class SearchError(Exception):
@@ -180,6 +181,8 @@ def book_document(record: dict, excerpt: str = "") -> dict:
 		"has_fulltext": bool(record.get("has_fulltext")),
 		"source": record.get("source"),
 		"visibility": record.get("visibility") or "Public",
+		"curated": record.get("curated_collections") or [],
+		"item_type": record.get("item_type") or "Book",
 		"thumbnail_url": record.get("thumbnail_url"),
 		"text_excerpt": excerpt[:5000],
 		"indexed_at": int(now_datetime().timestamp()),
@@ -201,6 +204,9 @@ def page_documents(record: dict, pages: list[dict], max_chars: int = 6000) -> li
 			"language_label": record.get("language_label") or "Unknown",
 			"collections": record.get("collections") or [],
 			"visibility": record.get("visibility") or "Public",
+			"curated": record.get("curated_collections") or [],
+			"item_type": record.get("item_type") or "Book",
+			"subjects": record.get("subjects") or [],
 		})
 	return docs
 
@@ -231,6 +237,55 @@ def index_record(record: dict, pages: list[dict] | None = None, client: MeiliCli
 	return count
 
 
+PAGE_FIELDS = ("creators", "year", "decade", "language_label", "collections", "visibility", "curated",
+			   "item_type", "subjects")
+
+
+def update_item_fields(names: list[str], client: MeiliClient | None = None, wait: bool = False) -> None:
+	"""Push catalogue edits (metadata, visibility, collections) to both indexes without
+	re-indexing page text. Book documents keep their text excerpt; page documents get the
+	fields they carry for filtering. Batched: one index task per 500 books / 10,000 pages."""
+	client = client or MeiliClient.from_settings()
+	names = [n for n in dict.fromkeys(names) if n]
+	last = None
+	for i in range(0, len(names), 200):
+		chunk = frappe.get_all("RD Item", filters={"name": ("in", names[i:i + 200]), "published": 1}, pluck="name")
+		if not chunk:
+			continue
+		books = {}
+		for name in chunk:
+			doc = book_document(item_to_record(frappe.get_doc("RD Item", name)))
+			doc.pop("indexed_at", None)
+			books[name] = doc
+		flt = f"item_id IN [{', '.join(_quote(n) for n in chunk)}]"
+		indexed = {d["item_id"] for d in client._req("POST", f"/indexes/{client.books}/documents/fetch",
+													 json={"filter": flt, "fields": ["item_id"], "limit": 1000}).get("results", [])}
+		new = [dict(b, text_excerpt="") for n, b in books.items() if n not in indexed]
+		if new:
+			last = client.add(client.books, new)
+		partial = [{k: v for k, v in b.items() if k != "text_excerpt"} for n, b in books.items() if n in indexed]
+		if partial:
+			last = client._req("PUT", f"/indexes/{client.books}/documents", json=partial)
+		updates, offset = [], 0
+		while True:
+			res = client._req("POST", f"/indexes/{client.pages}/documents/fetch",
+							  json={"filter": flt, "fields": ["id", "item_id"], "limit": 10000, "offset": offset})
+			rows = res.get("results", [])
+			for r in rows:
+				b = books.get(r["item_id"])
+				if b:
+					updates.append({"id": r["id"], **{k: b.get(k) for k in PAGE_FIELDS}})
+			offset += len(rows)
+			if len(updates) >= 10000 or not rows or offset >= res.get("total", 0):
+				if updates:
+					last = client._req("PUT", f"/indexes/{client.pages}/documents", json=updates)
+					updates = []
+			if not rows or offset >= res.get("total", 0):
+				break
+	if wait and last:
+		client.wait(last, timeout=120)  # so the next search already sees the change
+
+
 def remove_record(item_id: str, client: MeiliClient | None = None) -> None:
 	client = client or MeiliClient.from_settings()
 	client.delete(client.books, [doc_id(item_id)])
@@ -248,12 +303,7 @@ def on_item_update(doc, method=None):
 		if not doc.published:
 			remove_record(doc.item_id, client)
 		else:
-			client.add(client.books, [book_document(item_to_record(doc))])
-			before = doc.get_doc_before_save()
-			if before and (before.visibility or "Public") != (doc.visibility or "Public"):
-				from sok_resdesk.access import update_index_visibility
-
-				update_index_visibility([doc.name], doc.visibility or "Public")
+			update_item_fields([doc.name], client)
 	except SearchError as e:
 		frappe.log_error("Research Desk: search index update failed", str(e))
 
@@ -380,7 +430,7 @@ def build_filter(filters: dict | None) -> list:
 	for field, values in (filters or {}).items():
 		if field in ("year_from", "year_to"):
 			continue
-		if field not in FACETS + ["language", "item_id", "access_status"]:
+		if field not in FACETS + ["language", "item_id", "access_status"]:  # noqa: RUF005
 			continue
 		if isinstance(values, str):
 			values = [values]

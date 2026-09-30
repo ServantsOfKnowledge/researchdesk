@@ -2,12 +2,24 @@
 (function () {
 	const $ = (sel) => document.querySelector(sel);
 	const FACET_LABELS = {
+		curated: "Collection",
+		item_type: "Type",
 		language_label: "Language",
 		decade: "Decade",
 		subjects: "Subject",
 		creators: "Author",
-		collections: "Collection",
+		collections: "Source collection",
 	};
+	// ids shown as names (curated collections); filters fixed by the page (a collection page)
+	const LABELS = window.RD_LABELS || {};
+	const label = (field, value) => (LABELS[field] && LABELS[field][value]) || value;
+	const rootData = () => (document.getElementById("rd-library") || {}).dataset || {};
+	let FIXED = {};
+	try {
+		FIXED = JSON.parse(rootData().fixed || "{}");
+	} catch (e) {
+		FIXED = {};
+	}
 	const FACET_FIELDS = Object.keys(FACET_LABELS);
 	const state = { q: "", mode: "books", page: 1, sort: "", filters: {} };
 
@@ -51,6 +63,12 @@
 		$("#rd-year-to").value = state.filters.year_to || "";
 	}
 
+	function allFilters() {
+		const out = { ...state.filters };
+		Object.entries(FIXED).forEach(([k, v]) => (out[k] = [...new Set([...(out[k] || []), ...v])]));
+		return out;
+	}
+
 	// ---- API --------------------------------------------------------------------
 	async function run() {
 		toUrl();
@@ -62,7 +80,7 @@
 			page: state.page,
 			per_page: 20,
 			sort: state.sort,
-			filters: JSON.stringify(state.filters),
+			filters: JSON.stringify(allFilters()),
 		});
 		try {
 			const res = await fetch(`/api/method/sok_resdesk.api.search?${params}`, { headers: { Accept: "application/json" } });
@@ -143,6 +161,7 @@
 		const bar = $("#rd-staffbar");
 		if (!bar) return;
 		bar.hidden = !lastTotal;
+		if ($("#rd-staffbar-coll")) $("#rd-staffbar-coll").hidden = !lastTotal;
 		$("#rd-staff-count").textContent = lastTotal.toLocaleString();
 		$("#rd-staff-msg").textContent = state.mode === "pages" ? "(books with a matching page)" : "";
 	}
@@ -153,7 +172,7 @@
 		$("#rd-staff-msg").textContent = "Working…";
 		const body = new URLSearchParams({
 			visibility: vis,
-			search: JSON.stringify({ q: state.q, mode: state.mode, filters: state.filters }),
+			search: JSON.stringify({ q: state.q, mode: state.mode, filters: allFilters() }),
 		});
 		try {
 			const res = await fetch("/api/method/sok_resdesk.access.bulk_set_visibility", {
@@ -170,9 +189,44 @@
 		}
 	}
 
+	async function addToCollection(e) {
+		e.preventDefault();
+		let coll = $("#rd-staff-coll").value;
+		const csrf = (window.frappe && frappe.csrf_token) || "";
+		const post = async (method, params) => {
+			const res = await fetch(`/api/method/${method}`, {
+				method: "POST",
+				headers: { Accept: "application/json", "X-Frappe-CSRF-Token": csrf },
+				body: new URLSearchParams(params),
+			});
+			const out = await res.json();
+			if (!res.ok) throw new Error(out.exception || res.statusText);
+			return out.message;
+		};
+		try {
+			if (coll === "__new__") {
+				const title = prompt("Name of the new collection:");
+				if (!title) return;
+				coll = await post("sok_resdesk.curation.create", { title });
+			}
+			const action = $("#rd-staff-coll-action").value;
+			const verb = action === "add" ? "Add" : "Remove";
+			if (!confirm(`${verb} ${lastTotal.toLocaleString()} ${state.mode === "pages" ? "matching pages' books" : "books"} ${action === "add" ? "to" : "from"} “${label("curated", coll)}”?`)) return;
+			$("#rd-staff-msg").textContent = "Working…";
+			const out = await post("sok_resdesk.curation.bulk", {
+				action,
+				collection: coll,
+				search: JSON.stringify({ q: state.q, mode: state.mode, filters: allFilters() }),
+			});
+			$("#rd-staff-msg").textContent = out.message;
+		} catch (err) {
+			$("#rd-staff-msg").textContent = `Could not change: ${String(err.message).slice(0, 160)}`;
+		}
+	}
+
 	function renderFacets(facets) {
 		const html = FACET_FIELDS.map((field) => {
-			const values = Object.entries(facets[field] || {});
+			const values = Object.entries(facets[field] || {}).filter(([v]) => !(FIXED[field] || []).includes(v));
 			if (!values.length) return "";
 			const selected = state.filters[field] || [];
 			if (field === "decade") values.sort((a, b) => a[0].localeCompare(b[0]));
@@ -180,7 +234,7 @@
 			const rows = shown
 				.map(
 					([v, n]) => `<li><label><input type="checkbox" data-field="${field}" value="${esc(v)}" ${selected.includes(v) ? "checked" : ""}>
-						<span>${esc(v)}</span> <span class="rd-muted">${n}</span></label></li>`
+						<span>${esc(label(field, v))}</span> <span class="rd-muted">${n}</span></label></li>`
 				)
 				.join("");
 			return `<div class="rd-facet"><h3>${FACET_LABELS[field]}</h3><ul>${rows}</ul></div>`;
@@ -192,7 +246,7 @@
 		const chips = [];
 		Object.entries(state.filters).forEach(([k, v]) =>
 			(Array.isArray(v) ? v : [v]).forEach((x) =>
-				chips.push(`<button class="rd-chip is-active" data-field="${k}" data-value="${esc(x)}" type="button">${esc(x)} ✕</button>`)
+				chips.push(`<button class="rd-chip is-active" data-field="${k}" data-value="${esc(x)}" type="button">${esc(label(k, x))} ✕</button>`)
 			)
 		);
 		$("#rd-active-filters").innerHTML = chips.join("");
@@ -276,6 +330,7 @@
 		});
 		document.addEventListener("rd-basket-change", markBasket);
 		if ($("#rd-staffbar")) $("#rd-staffbar").addEventListener("submit", applyStaffBar);
+		if ($("#rd-staffbar-coll")) $("#rd-staffbar-coll").addEventListener("submit", addToCollection);
 
 		// basket menu
 		$("#rd-basket-btn").addEventListener("click", () => ($("#rd-basket-menu").hidden = !$("#rd-basket-menu").hidden));

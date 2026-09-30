@@ -9,18 +9,7 @@
 		<h1 class="rd-hero__title">{{ portal_title }}</h1>
 		{% if tagline %}<p class="rd-hero__tagline">{{ tagline }}</p>{% endif %}
 
-		<form class="rd-search" id="rd-search-form" role="search" autocomplete="off">
-			<label class="sr-only" for="rd-q">{{ _("Search") }}</label>
-			<input id="rd-q" name="q" type="search" class="rd-search__input"
-				placeholder="{{ _('Search titles, authors, subjects… (ಕನ್ನಡದಲ್ಲೂ ಹುಡುಕಿ)') }}" />
-			<button class="rd-btn rd-btn--primary" type="submit">{{ _("Search") }}</button>
-		</form>
-
-		<div class="rd-modes" role="radiogroup" aria-label="{{ _('Search mode') }}">
-			<label><input type="radio" name="rd-mode" value="books" checked> {{ _("Books") }}</label>
-			<label><input type="radio" name="rd-mode" value="pages"> {{ _("Inside the text") }}</label>
-			<span class="rd-muted rd-count">{{ frappe.format(item_count, {"fieldtype": "Int"}) }} {{ _("books in the catalogue") }}</span>
-		</div>
+		{% include "templates/includes/rd_search_form.html" %}
 		{% if viewer.pending %}
 		<p class="rd-access-note">{{ _("Your account is waiting for approval. Until then you see what visitors see.") }}</p>
 		{% elif not viewer.logged_in and viewer.guest_mode == "Records only" %}
@@ -29,64 +18,27 @@
 		{% endif %}
 	</header>
 
-	<div class="rd-layout">
-		<aside class="rd-facets" id="rd-facets" aria-label="{{ _('Filters') }}">
-			<div class="rd-facet">
-				<h3>{{ _("Year") }}</h3>
-				<div class="rd-years">
-					<input type="number" id="rd-year-from" placeholder="{{ _('from') }}" min="1000" max="2100">
-					<input type="number" id="rd-year-to" placeholder="{{ _('to') }}" min="1000" max="2100">
-				</div>
-			</div>
-			<div id="rd-facet-lists"></div>
-		</aside>
 
-		<main class="rd-results">
-			<div class="rd-toolbar">
-				<div id="rd-summary" class="rd-muted"></div>
-				<div class="rd-toolbar__right">
-					<select id="rd-sort" aria-label="{{ _('Sort') }}">
-						<option value="">{{ _("Relevance") }}</option>
-						<option value="year:asc">{{ _("Oldest first") }}</option>
-						<option value="year:desc">{{ _("Newest first") }}</option>
-						<option value="title_sort:asc">{{ _("Title A–Z") }}</option>
-					</select>
-					<div class="rd-basket" id="rd-basket">
-						<button class="rd-btn" id="rd-basket-btn" type="button">
-							{{ _("My list") }} <span class="rd-badge" id="rd-basket-count">0</span>
-						</button>
-						<div class="rd-basket__menu" id="rd-basket-menu" hidden>
-							<p class="rd-muted">{{ _("Export all saved items:") }}</p>
-							<a data-fmt="bibtex">BibTeX</a>
-							<a data-fmt="ris">RIS (Zotero, Mendeley, EndNote)</a>
-							<a data-fmt="csl-json">CSL-JSON</a>
-							<a data-fmt="apa">APA</a>
-							<a data-fmt="marc">MARCXML (Koha)</a>
-							<a data-action="share">{{ _("Copy share link") }}</a>
-							<a data-action="clear" class="rd-danger">{{ _("Clear list") }}</a>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div id="rd-active-filters" class="rd-chips"></div>
-			{% if viewer.staff %}
-			<form class="rd-staffbar" id="rd-staffbar" hidden>
-				<span>{{ _("Staff:") }} {{ _("set who can see") }} <b id="rd-staff-count">0</b> {{ _("matching books") }}</span>
-				<select id="rd-staff-vis" aria-label="{{ _('Visibility') }}">
-					{% for v in visibilities %}<option value="{{ v }}">{{ _(v) }}</option>{% endfor %}
-				</select>
-				<button class="rd-btn" type="submit">{{ _("Apply") }}</button>
-				<span class="rd-muted" id="rd-staff-msg"></span>
-			</form>
-			{% endif %}
-			<ol id="rd-hits" class="rd-hits" aria-live="polite"></ol>
-			<nav id="rd-pager" class="rd-pager" aria-label="{{ _('Pages') }}"></nav>
-		</main>
-	</div>
+	{% if featured_collections %}
+	<section class="rd-featured">
+		<div class="rd-featured__head">
+			<h2>{{ _("Collections") }}</h2>
+			<a href="/library/collections">{{ _("All collections") }} →</a>
+		</div>
+		<div class="rd-coll-grid">
+			{% for c in featured_collections %}{% include "templates/includes/rd_collection_card.html" %}{% endfor %}
+		</div>
+	</section>
+	{% elif has_collections %}
+	<p class="rd-browse"><a href="/library/collections">{{ _("Browse collections") }} →</a></p>
+	{% endif %}
+
+	{% include "templates/includes/rd_results.html" %}
 </div>
 {% endblock %}
 
 {% block script %}
+<script>window.RD_LABELS = {{ facet_labels | tojson }};</script>
 <script src="/assets/sok_resdesk/js/basket.js"></script>
 <script src="/assets/sok_resdesk/js/library.js"></script>
 {% endblock %}

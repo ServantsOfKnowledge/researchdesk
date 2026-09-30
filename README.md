@@ -21,6 +21,12 @@ Choose a collection, a search or a list of items on archive.org, and Research De
   catalogue with reading for members, or an internal library; readers sign up, are approved,
   or are added by staff, and books can be switched in bulk by collection, filter or search
 - carry **your library's logo and name** on the portal, the admin bar and the browser tab
+- let staff build **curated collections** (by hand, in bulk or by rules), each with its own
+  portal page and OAI-PMH set, and **correct catalogue details** that survive re-ingest
+- **export metadata** as a spreadsheet, JSON, Dublin Core, MODS, MARCXML, JSON-LD, BibTeX/RIS or
+  Internet Archive upload files, and **edit many books at once** by importing an edited spreadsheet
+- **push metadata** to the Internet Archive, Koha, Wikidata or any web service (webhook), with a
+  dry run first and automatic updates when a book is edited
 - **see and stop background work** from the Desk: every ingest run, queued job and schedule on one
   page, with Stop, Stop now and Stop Everything
 - run **in Docker or directly on the computer** (macOS or Ubuntu/Debian), and **upgrade with one
@@ -30,7 +36,7 @@ It's built to install with one command, for librarians, educators, archivists an
 anyone else who can open a terminal. It scales to tens of thousands of books on one server
 ([measured](docs/scaling.md)).
 
-> Status: **proof of concept (v0.5)**. It works end to end and is tested against live
+> Status: **proof of concept (v0.7)**. It works end to end and is tested against live
 > Servants of Knowledge data, but expect changes before 1.0. See [the roadmap](docs/roadmap.md).
 
 ---
@@ -92,7 +98,7 @@ Click **Check Count** to see how many items match, set **Maximum Items**, then *
 |---|---|
 | Librarians & educators | [Getting started](docs/getting-started.md) · [Choosing & ingesting books](docs/ingesting.md) · [Your own folders & servers](docs/local-folders.md) |
 | Researchers | [Searching](docs/searching.md) · [Citations & reading lists](docs/citations.md) |
-| Library managers | [Who can see what: members-only books & reader accounts](docs/access.md) |
+| Library managers | [Who can see what: members-only books & reader accounts](docs/access.md) · [Collections, metadata, exports & pushing](docs/collections-and-metadata.md) |
 | Library systems staff | [Koha & interoperability](docs/koha.md) · [API](docs/api.md) |
 | System administrators | [Installation](docs/installation.md) · [Operations](docs/operations.md) · [Scaling to 50k books](docs/scaling.md) |
 | Developers | [Architecture](docs/architecture.md) · [Development](docs/development.md) · [Roadmap](docs/roadmap.md) |
@@ -105,7 +111,8 @@ Click **Check Count** to see how many items match, set **Maximum Items**, then *
                                                         └──────▶ Meilisearch       (books + pages)
                                                                         │
   Readers ◀── /library  (search, read, cite) ◀── Frappe web + API ◀─────┘
-  Koha, VuFind, aggregators ◀── OAI-PMH / MARCXML
+  Koha, VuFind, aggregators ◀── OAI-PMH / MARCXML / exports (MODS, Dublin Core, JSON-LD)
+  archive.org, Koha, Wikidata, webhooks ◀── push targets
   Zotero, Google Scholar ◀── citation_* meta tags, JSON-LD, COinS
 ```
 

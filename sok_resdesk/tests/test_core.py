@@ -256,3 +256,83 @@ def test_access_initial_visibility():
 	assert a.initial_visibility(record, None, lang, a.PUBLIC)[0] == a.LOGIN_TO_FIND
 	prof = [{"match_on": "Ingest Profile", "value": "Staff scans", "visibility": a.LOGIN_TO_FIND}]
 	assert a.initial_visibility({**record, "ingest_profile": "Staff scans"}, None, prof, a.PUBLIC)[0] == a.LOGIN_TO_FIND
+
+
+def test_collections_core():
+	from sok_resdesk.core import collections as c
+
+	assert c.slugify("Kannada Literature: Vachanas & more") == "kannada-literature-vachanas-more"
+	assert c.slugify("ಕನ್ನಡ ಸಾಹಿತ್ಯ") == "ಕನ್ನಡ-ಸಾಹಿತ್ಯ"
+	assert c.slugify("  !! ") == "collection"
+	rec = {"subjects": ["Archaeology -- Karnataka"], "collections": ["JaiGyan"], "item_type": "Periodical",
+		   "language_label": "Kannada", "language": "kan"}
+	assert c.matches(rec, [{"match_on": "Subject", "how": "contains", "value": "archaeology"}])
+	assert not c.matches(rec, [{"match_on": "Subject", "value": "archaeology"}])
+	assert c.matches(rec, [{"match_on": "Source Collection", "value": "jaigyan"}])
+	assert c.matches(rec, [{"match_on": "Document Type", "value": "Periodical"}])
+	assert c.matches(rec, [{"match_on": "Language", "value": "kan"}])
+	assert not c.matches(rec, [])
+
+
+def test_item_types_and_citations():
+	from sok_resdesk.core.citations import to_bibtex, to_csl, to_ris
+
+	assert normalize.guess_item_type({"title": "Kannada Sahitya Patrike", "subject": "Periodicals"}) == "Periodical"
+	assert normalize.guess_item_type({"title": "A study", "subject": "Thesis (Ph.D.)"}) == "Thesis"
+	assert normalize.guess_item_type({"title": "Ivaru Kanda Vijayanagara"}) == "Book"
+	item = {**sample_item(), "item_type": "Thesis"}
+	assert to_bibtex(item).startswith("@phdthesis{")
+	assert to_ris(item).startswith("TY  - THES")
+	assert to_csl(item)["type"] == "thesis"
+
+
+def _rec():
+	r = sample_item()
+	r.update({"item_type": "Book", "curated_collections": ["kannada-lit"], "visibility": "Public", "published": True})
+	return r
+
+
+def test_spreadsheet_round_trip():
+	from sok_resdesk.core import metaio
+
+	rec = _rec()
+	row = metaio.record_to_row(rec, "https://lib.example.org")
+	assert row["creators"] == "ಶ್ರೀ ಕೆ ಸುಭಾಶ್ಚಂದ್ರ ಶೆಣೈ" and row["year"] == "1955" and row["collections"] == "kannada-lit"
+	csv_text = metaio.rows_to_csv([row])
+	back = metaio.csv_to_rows(csv_text.encode("utf-8"))[0]
+	assert back == row
+	# nothing edited -> no changes
+	assert metaio.row_changes(back, rec) == ({}, [])
+	# edit a few cells, drop most columns
+	edited = {"item_id": rec["item_id"], "title": "New title", "subjects": "A; B", "year": "1956",
+			  "item_type": "periodical", "visibility": "login to read", "published": "0"}
+	changes, problems = metaio.row_changes(edited, rec)
+	assert problems == []
+	assert changes == {"title": "New title", "subjects": ["A", "B"], "year": 1956, "item_type": "Periodical",
+					   "visibility": "Login to read", "published": False}
+	_, problems = metaio.row_changes({"item_id": "x", "year": "c. 1950", "item_type": "Poster"}, rec)
+	assert len(problems) == 2
+
+
+def test_export_formats():
+	import csv as _csv
+	import io as _io
+	import xml.dom.minidom as md
+
+	from sok_resdesk.core import metaio
+
+	rec = _rec()
+	md.parseString(metaio.dublin_core_collection([rec], "https://x.org"))
+	mods = metaio.mods_collection([rec], "https://x.org")
+	md.parseString(mods)
+	assert "<genre authority=\"local\">book</genre>" in mods
+	graph = json.loads(metaio.jsonld_graph([rec], "https://x.org"))
+	assert graph["@graph"][0]["@type"] and "@context" not in graph["@graph"][0]
+	meta = metaio.meta_xml(rec)
+	md.parseString(meta)
+	assert "<subject>ಒಂದಾಣೆ ಮಾಲೆ</subject>" in meta
+	rows = list(_csv.DictReader(_io.StringIO(metaio.ia_bulk_csv([rec], "ServantsOfKnowledge"))))
+	assert rows[0]["identifier"] == rec["item_id"] and rows[0]["subject[1]"] == "ಕನ್ನಡ ಸಾಹಿತ್ಯ"
+	assert rows[0]["collection"] == "ServantsOfKnowledge" and rows[0]["mediatype"] == "texts"
+	j = metaio.json_record(rec, "https://x.org")
+	assert j["portal_url"].startswith("https://x.org/library/item/") and j["citation_type"] == "book"

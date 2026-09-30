@@ -159,3 +159,23 @@
 @media (prefers-color-scheme: dark) {
 	.rd-badge--members { background: #3a2c12; border-color: #7a5a20; color: #f3d59a; }
 }
+
+/* collections */
+.rd-page-title { font-size: 1.8rem; margin: 6px 0 8px; }
+.rd-browse { margin: 18px 0 0; }
+.rd-featured { margin: 26px 0 8px; }
+.rd-featured__head { display: flex; align-items: baseline; justify-content: space-between; }
+.rd-featured__head h2 { font-size: 1.1rem; margin: 0 0 10px; }
+.rd-coll-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; margin: 10px 0 20px; }
+.rd-coll-card { display: block; border: 1px solid var(--rd-border); border-radius: 10px; overflow: hidden; background: var(--rd-bg); color: inherit; }
+.rd-coll-card:hover { text-decoration: none; border-color: var(--rd-accent); }
+.rd-coll-card__cover { height: 120px; background: var(--rd-soft) center/cover no-repeat; display: flex; align-items: center; justify-content: center; }
+.rd-coll-card__cover span { font-size: 2.4rem; color: var(--rd-muted); }
+.rd-coll-card__body { padding: 10px 12px; }
+.rd-coll-card__body h3 { font-size: 1rem; margin: 0 0 2px; }
+.rd-coll-card__body p { margin: 0; font-size: .85rem; }
+.rd-coll-head { display: flex; gap: 18px; align-items: flex-start; margin: 8px 0 14px; }
+.rd-coll-head__cover { width: 160px; height: 120px; object-fit: cover; border-radius: 8px; flex: none; }
+.rd-coll-head__desc { max-width: 70ch; }
+.rd-coll-search { margin-bottom: 8px; }
+@media (max-width: 640px) { .rd-coll-head { flex-direction: column; } .rd-coll-head__cover { width: 100%; } }

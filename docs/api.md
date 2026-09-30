@@ -19,7 +19,7 @@ Base: `<BASE_URL>/api/method/`
 |---|---|---|
 | `q` | `""` | query text (any script) |
 | `mode` | `books` | `books` or `pages` (full text inside books) |
-| `filters` | `{}` | JSON, e.g. `{"language_label":["Kannada"],"decade":["1950s"],"year_from":1900,"year_to":1950}`. Facet keys: `language_label`, `decade`, `subjects`, `creators`, `collections` |
+| `filters` | `{}` | JSON, e.g. `{"language_label":["Kannada"],"decade":["1950s"],"year_from":1900,"year_to":1950}`. Facet keys: `curated` (your collections, by web address), `item_type` (Book, Periodical, Thesis…), `language_label`, `decade`, `subjects`, `creators`, `collections` (source collections on archive.org) |
 | `page`, `per_page` | 1, 20 | `per_page` ≤ 100 |
 | `sort` | relevance | `year:asc`, `year:desc`, `title_sort:asc` (books mode) |
 
@@ -95,6 +95,16 @@ indexed pages and search-engine health.
 | `sok_resdesk.jobs.stop_run` (`run`, `force`) | stop one run and drop its queued batches |
 | `sok_resdesk.jobs.stop_all` (`force`, `pause`, `search`) | stop all Research Desk background work |
 | `sok_resdesk.jobs.cancel_job` (`job_id`) · `set_paused` (`paused`) · `cancel_search_tasks` | single job, schedules, search indexing |
+| `sok_resdesk.curation.create` (`title`, `description`) | make a collection, returns its name (web address) |
+| `sok_resdesk.curation.bulk` (`action`=`add`/`remove`, `collection`, and one of `names`, `filters`, `profile`, `language`, `search`, `source_collection`, `everything=1`) | add or remove many books; over 200 run in the background |
+| `sok_resdesk.curation.apply_rules` (`collection`) | add every book matching the collection's rules |
+| `sok_resdesk.transfer.quick_export` (`export_format`, and `search`, `collection` or `filters`) | download an export straight away (≤ 2,000 books); bigger ones: `POST /api/resource/RD Export` |
+| `sok_resdesk.transfer.preview_import` · `apply_import` (`name` of an RD Metadata Import) | check, then apply, an edited spreadsheet |
+| `sok_resdesk.outbound.test_connection` (`target`) | check a push target's address and login |
+| `sok_resdesk.outbound.start` (`target`, `dry_run`, `force`, `items`) | start a push run, returns its name |
+| `sok_resdesk.outbound.cancel` (`run_name`) | stop a push run |
+
+See [Collections, metadata & pushing](collections-and-metadata.md) for what these do.
 
 Frappe's standard REST API also works for staff: `/api/resource/RD Item`,
 `/api/resource/RD Ingest Profile`, … with token or session authentication.

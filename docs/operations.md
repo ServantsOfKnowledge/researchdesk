@@ -57,12 +57,12 @@ is doing in the background and refreshes every 5 seconds:
 |---|---|---|
 | Summary | active runs, running and waiting jobs, workers, search-engine tasks, schedules on/paused | **Stop Everything**, **Pause / Resume Schedules** |
 | Ingest runs in progress | profile, progress bar, new/updated/failed counts, last progress | **Stop** (after the current book) · **Stop now** |
-| Background jobs | every queued or running ingest batch, re-index batch and bulk visibility change | **Cancel** / **Stop** per job |
+| Background jobs | every queued or running ingest batch, re-index batch, bulk visibility or collection change, export, spreadsheet import and push run | **Cancel** / **Stop** per job |
 | Scheduled ingests | profiles set to Hourly, Daily or Weekly, with their last run | pause them all, or set a profile's Schedule to Manual |
 | Search engine | indexing work Meilisearch still has to do (this is what uses CPU after a big ingest or an upgrade) | **Cancel pending indexing** |
 | Recent runs | the last ten runs and how they ended | |
 
-**Stop Everything** cancels every active run and removes every queued Research Desk job. By
+**Stop Everything** cancels every active ingest and push run and removes every queued Research Desk job. By
 default it also pauses schedules. Tick *immediately* to kill running jobs as well. Books already
 ingested stay in the catalogue, and running a profile again skips them. A job stopped
 immediately may leave the book it was on half-indexed; *Rebuild Search Index* (Settings) fixes that.

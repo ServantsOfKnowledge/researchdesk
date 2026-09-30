@@ -32,6 +32,9 @@ def get_context(context):
 		record["pdf_url"] = ""  # keep it out of the page and its citation meta tags
 	context.item = record
 	context.viewer = access.viewer()
+	names = record.get("curated_collections") or []
+	context.curated = frappe.get_all("RD Collection", filters={"name": ("in", names), "published": 1},
+									 fields=["name", "title"], order_by="title") if names else []
 	context.login_url = access.login_url(f"/library/item/{item_id}")
 	context.title = citations.display_title(record)
 	context.start_leaf = max(0, cint(frappe.form_dict.get("page")))

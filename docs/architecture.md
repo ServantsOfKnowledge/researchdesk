@@ -46,7 +46,7 @@ symlinked into the bench, so `./upgrade.sh` updates code in one place for both m
 
 | DocType | Purpose | Key fields |
 |---|---|---|
-| **RD Item** | one book/document | `item_id` (= IA identifier, the document name), title, alt_title, creators (table), year, language (ISO 639-3), publisher, subjects (multi-select), collections, licence, access, visibility (Public / Login to read / Login to find) and visibility_set_by, page_count, has_page_text, ark, raw_metadata (JSON) |
+| **RD Item** | one book/document | `item_id` (= IA identifier, the document name), title, alt_title, creators (table), year, language (ISO 639-3), publisher, subjects (multi-select), collections (source), curated_collections, item_type, lock_metadata ("Keep My Edits"), licence, access, visibility (Public / Login to read / Login to find) and visibility_set_by, page_count, has_page_text, ark, raw_metadata (JSON) |
 | RD Item Creator | child table | creator → RD Creator, role, name_as_given |
 | RD Item Subject | child table | subject → RD Subject |
 | **RD Creator** | authority-lite person record | full_name, alt_name (romanised), VIAF, Wikidata |
@@ -55,6 +55,14 @@ symlinked into the bench, so `./upgrade.sh` updates code in one place for both m
 | **RD Ingest Run** | one execution | status, counts, log |
 | **RD Settings** | single | portal, branding, OAI, Meilisearch, IA politeness, guest access, reader sign-up, access rules |
 | RD Access Rule | child table of settings | match_on (collection, subject, language, creator, source, profile), value, visibility |
+| **RD Collection** | a curated collection | title, slug (the name and web address), published, featured, cover, curator, description, rules, item_count |
+| RD Collection Rule | child table | match_on (source collection, subject, language, creator, source, profile, document type), how (is exactly / contains), value |
+| RD Item Collection | child table of RD Item (`curated_collections`) | collection |
+| **RD Export** | one metadata export | format, which books, status, file |
+| **RD Metadata Import** | one spreadsheet import | file, preview, counts, status |
+| **RD Push Target** | where to send metadata | type (Internet Archive / Koha / Wikidata / Webhook), dry run, scope, auto push, credentials (Password fields) |
+| **RD Push Run** | one push | status, counts, log |
+| **RD External Record** | what was sent where | item, target, external id (Koha biblionumber, Wikidata QID), url, last hash |
 | **RD Reader Request** | a sign-up waiting for approval | user, status (Pending / Approved / Rejected); approving adds the ResDesk Reader role |
 
 `raw_metadata` keeps the untouched source record, so re-normalising later never needs a
