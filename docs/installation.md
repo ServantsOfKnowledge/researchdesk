@@ -103,14 +103,52 @@ If you changed `BASE_URL` after the first install, apply it with:
 
 ### Coolify
 
-Research Desk is a standard Docker Compose app:
+Research Desk runs as a Docker Compose resource in Coolify, built from this repository.
 
-1. In Coolify: *New Resource → Docker Compose*, from this Git repository (`compose.yaml`).
-2. Add the variables from `.env.example` as environment variables. Generate
-   `ADMIN_PASSWORD`, `DB_ROOT_PASSWORD` and `MEILI_MASTER_KEY` with long random strings.
-3. Assign your domain to the **frontend** service on port 8080, and set `BASE_URL` to it.
-4. Deploy. The `create-site` container creates the site on the first deploy and, on later
-   ones, migrates when the new code needs it.
+1. *New Resource → Docker Compose*, from this Git repository, branch `main`, file `compose.yaml`.
+2. **Environment Variables** tab (Developer view takes a whole `.env` at once):
+
+   ```
+   BASE_URL=https://library.example.org
+   ADMIN_PASSWORD=...          # long random strings
+   DB_ROOT_PASSWORD=...
+   MEILI_MASTER_KEY=...
+   QUEUE_WORKERS=1             # required: see below
+   WORKERS_PER_CONTAINER=3     # how many ingest workers
+   HTTP_PORT=18080             # any free port: Coolify's proxy doesn't use it
+   ```
+
+   Coolify gives every container a fixed name, so it can't run several copies of the worker
+   container (Docker stops with *can't set container_name and queue as container name must be
+   unique*). `QUEUE_WORKERS=1` runs one worker container and `WORKERS_PER_CONTAINER` the
+   workers inside it. `LIBRARY_DIR`, if you ingest from folders, must be an absolute path on
+   the server.
+3. **Configuration → Services → frontend → Domains**: `https://library.example.org:8080` (the
+   `:8080` is the port inside the container; visitors use the plain address, and Coolify gets
+   the certificate).
+4. **Deploy.** The first build takes 10 minutes or more (it builds Frappe). The `create-site`
+   container creates the site, and on later deploys migrates when the new code needs it.
+
+Changed a variable? **Redeploy** (a restart keeps the old values). To upgrade, redeploy the
+latest code. The updater helper and the Background Jobs container monitor don't work under
+Coolify (they need a Research Desk folder and Compose project of their own), so the Server
+page's Upgrade and Restart buttons stay off; health, backups, logs and alerts work.
+
+**Moving an existing install to Coolify**: make an export on the old install
+(`./resdesk.sh export`), copy it to the Coolify server, clone this repository there and load it
+into the containers Coolify made:
+
+```bash
+git clone https://github.com/ServantsOfKnowledge/researchdesk.git && cd researchdesk
+./resdesk.sh coolify list                                # finds Research Desk's containers
+./resdesk.sh coolify import ~/resdesk-move-20261001-0930.tar.gz
+```
+
+It restores the export into the Coolify site, sets the address from `BASE_URL` and starts
+rebuilding search. `./resdesk.sh coolify bench ...` runs any bench command on that site (e.g.
+`bench set-admin-password NEW`), and `./resdesk.sh coolify export` makes an export from it. With
+more than one Research Desk on the server, add `--project ID` (from `list`). See
+[Moving](moving.md).
 
 ## Developer mode (Docker, code from this folder)
 

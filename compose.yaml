@@ -158,7 +158,7 @@ services:
       RESDESK_DOCKER_API: http://monitor:2375
       # shown on Background Jobs → Machine (the app can't change them: ./resdesk.sh resources)
       RESDESK_RESOURCES: >-
-        preset=${RESOURCES_PRESET:-standard};workers=${QUEUE_WORKERS:-2};worker_cpus=${QUEUE_CPUS:-0};worker_memory=${QUEUE_MEMORY:-0};worker_nice=${WORKER_NICE:-19};search_cpus=${MEILI_CPUS:-0};search_memory=${MEILI_MEMORY:-0};search_threads=${MEILI_MAX_INDEXING_THREADS:-};db_cpus=${DB_CPUS:-0};db_memory=${DB_MEMORY:-0};db_buffer_pool=${DB_BUFFER_POOL:-256M};web_workers=${GUNICORN_WORKERS:-2}
+        preset=${RESOURCES_PRESET:-standard};workers=${QUEUE_WORKERS:-2};per_container=${WORKERS_PER_CONTAINER:-1};worker_cpus=${QUEUE_CPUS:-0};worker_memory=${QUEUE_MEMORY:-0};worker_nice=${WORKER_NICE:-19};search_cpus=${MEILI_CPUS:-0};search_memory=${MEILI_MEMORY:-0};search_threads=${MEILI_MAX_INDEXING_THREADS:-};db_cpus=${DB_CPUS:-0};db_memory=${DB_MEMORY:-0};db_buffer_pool=${DB_BUFFER_POOL:-256M};web_workers=${GUNICORN_WORKERS:-2}
 
   websocket:
     <<: *backend
@@ -168,10 +168,12 @@ services:
   # QUEUE_WORKERS=4 ingests about four books at once. 2 to 4 is polite to archive.org.
   # They run at the lowest CPU priority (WORKER_NICE, 19) and low disk priority so the portal
   # stays quick; give them more with ./resdesk.sh resources set WORKER_NICE=10 (0 = normal).
+  # WORKERS_PER_CONTAINER=N runs N workers inside each container (a Frappe worker pool): for
+  # hosts that give every container a fixed name and so can't run copies, like Coolify.
   queue:
     <<: *backend
-    command: ["nice", "-n", "${WORKER_NICE:-19}", "ionice", "-c", "2", "-n", "7",
-              "bench", "worker", "--queue", "long,default,short"]
+    command: ["nice", "-n", "${WORKER_NICE:-19}", "ionice", "-c", "2", "-n", "7", "sh", "-c",
+              "if [ ${WORKERS_PER_CONTAINER:-1} -gt 1 ]; then exec bench worker-pool --num-workers ${WORKERS_PER_CONTAINER:-1} --queue long,default,short; else exec bench worker --queue long,default,short; fi"]
     deploy:
       replicas: ${QUEUE_WORKERS:-2}
       <<: *limits-queue

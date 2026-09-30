@@ -1,6 +1,7 @@
 # shellcheck shell=bash
 # Moving an installation to another server, or between Docker and native.
-# Sourced by resdesk.sh (it provides MODE, SITE, BENCH_DIR, bench, set_env and .env):
+# Sourced by resdesk.sh (it provides MODE, SITE, BENCH_DIR, bench, set_env and .env), and by
+# scripts/coolify.sh (MODE=container: BACKEND_CTR, PROJECT and the settings, no .env):
 #   ./resdesk.sh export [FILE]                   one archive with everything needed
 #   ./resdesk.sh import FILE [--base-url URL] [--yes]
 #   ./resdesk.sh move-to USER@HOST[:DIR] [--base-url URL] [--with-library] [--port N]
@@ -8,22 +9,40 @@
 
 move_tmp() { mktemp -d "${TMPDIR:-/tmp}/resdesk-move.XXXXXX"; }
 
+# Run a command in the backend container: this folder's Compose project, or (MODE=container)
+# a container found by scripts/coolify.sh.   backend_exec [-u root] COMMAND...
+backend_exec() {
+  local as=()
+  [ "${1:-}" = -u ] && { as=(-u "$2"); shift 2; }
+  if [ "$MODE" = container ]; then docker exec ${as[@]+"${as[@]}"} "$BACKEND_CTR" "$@"
+  else docker compose exec -T ${as[@]+"${as[@]}"} backend "$@"; fi
+}
+backend_running() {
+  if [ "$MODE" = container ]; then [ "$(docker inspect -f '{{.State.Running}}' "$BACKEND_CTR" 2>/dev/null)" = true ]
+  else [ -n "$(docker compose ps -q --status running backend 2>/dev/null)" ]; fi
+}
+app_version() { # the Research Desk version that will read the database
+  if [ "$MODE" = native ]; then cat sok_resdesk/__init__.py; else backend_exec cat apps/sok_resdesk/sok_resdesk/__init__.py; fi \
+    | sed -n 's/^__version__ = "\(.*\)".*/\1/p' | tr -d '\r'
+}
+
 # Run a command where the site lives, and copy files in and out of it.
 site_run() {
-  if [ "$MODE" = native ]; then (cd "$BENCH_DIR" && "$@"); else docker compose exec -T backend "$@"; fi
+  if [ "$MODE" = native ]; then (cd "$BENCH_DIR" && "$@"); else backend_exec "$@"; fi
 }
 site_path() { # path of the site folder, as seen by site_run
   if [ "$MODE" = native ]; then echo "$BENCH_DIR/sites/$SITE"; else echo "sites/$SITE"; fi
 }
 copy_out() { # copy_out <path in site_run's world> <local file>
-  if [ "$MODE" = native ]; then cp -p "$1" "$2"; else docker compose exec -T backend cat "$1" > "$2"; fi
+  if [ "$MODE" = native ]; then cp -p "$1" "$2"; else backend_exec cat "$1" > "$2"; fi
 }
 copy_in() { # copy_in <local file> <name>  → prints the path the site can read it from
   if [ "$MODE" = native ]; then
     (cd "$(dirname "$1")" && echo "$(pwd)/$(basename "$1")")
   else
-    docker compose cp "$1" "backend:/tmp/$2" >/dev/null 2>&1
-    docker compose exec -T -u root backend chown frappe "/tmp/$2"
+    if [ "$MODE" = container ]; then docker cp "$1" "$BACKEND_CTR:/tmp/$2" >/dev/null
+    else docker compose cp "$1" "backend:/tmp/$2" >/dev/null 2>&1; fi
+    backend_exec -u root chown frappe "/tmp/$2"
     echo "/tmp/$2"
   fi
 }
@@ -31,7 +50,7 @@ copy_in() { # copy_in <local file> <name>  → prints the path the site can read
 rd_export() {
   OUT="${1:-site-backups/resdesk-move-$(date +%Y%m%d-%H%M).tar.gz}"
   mkdir -p "$(dirname "$OUT")"
-  if [ "$MODE" != native ] && [ -z "$(docker compose ps -q --status running backend 2>/dev/null)" ]; then
+  if [ "$MODE" != native ] && ! backend_running; then
     echo "Start Research Desk first (./resdesk.sh start): the export reads the running site."; exit 1
   fi
   T=$(move_tmp); trap 'rm -rf "$T"' EXIT
@@ -49,19 +68,18 @@ rd_export() {
 
   echo "3/4 Keys and settings…"
   site_run cat "$(site_path)/site_config.json" > "$T/site_config.json.full"
-  python3 - "$T" "$MODE" "$SITE" <<'PY'
+  python3 - "$T" "$MODE" "$SITE" "$(app_version)" <<'PY'
 import json, sys, os, datetime, re
-t, mode, site = sys.argv[1:4]
+t, mode, site, version = sys.argv[1:5]
 conf = json.load(open(os.path.join(t, "site_config.json.full")))
 os.remove(os.path.join(t, "site_config.json.full"))
 # only what the new site needs: the key that unlocks saved passwords (push targets, search key…)
 json.dump({"encryption_key": conf.get("encryption_key")}, open(os.path.join(t, "keys.json"), "w"))
 env = {}
-for line in open(".env"):
+for line in open(".env") if os.path.exists(".env") else []:
     m = re.match(r"^([A-Z_]+)=(.*)$", line.strip())
     if m and m.group(1) in ("PORTAL_TITLE", "CONTACT_EMAIL", "BASE_URL", "TIMEZONE", "COUNTRY", "CURRENCY"):
         env[m.group(1)] = m.group(2).strip('"')
-version = re.search(r'__version__ = "([^"]+)"', open("sok_resdesk/__init__.py").read()).group(1)
 # where the book folders were (native installs keep real paths): the import relinks them
 library_dir = conf.get("resdesk_library_dir") or "/library-source"
 json.dump({"format": 1, "version": version, "made": datetime.datetime.now().isoformat(timespec="seconds"),
@@ -89,16 +107,16 @@ rd_import() {
     esac
   done
   [ -f "$F" ] || { echo "Usage: ./resdesk.sh import FILE.tar.gz [--base-url https://new.address] [--yes]"; exit 1; }
-  if [ "$MODE" != native ] && [ -z "$(docker compose ps -q --status running backend 2>/dev/null)" ]; then
+  if [ "$MODE" != native ] && ! backend_running; then
     echo "Start Research Desk first (./resdesk.sh start). Install it with ./install.sh if this is a new server."; exit 1
   fi
   T=$(move_tmp); trap 'rm -rf "$T"' EXIT
   tar -xzf "$F" -C "$T"
   [ -f "$T/manifest.json" ] && [ -f "$T/database.sql.gz" ] || { echo "$F is not a Research Desk export."; exit 1; }
   read -r FROM_VERSION FROM_SITE <<< "$(python3 -c "import json;m=json.load(open('$T/manifest.json'));print(m['version'], m.get('site',''))")"
-  HERE=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' sok_resdesk/__init__.py)
+  HERE=$(app_version)
   if ! python3 -c "import sys;v=lambda s:[int(x) for x in s.split('.')];sys.exit(0 if v('$HERE')>=v('$FROM_VERSION') else 1)"; then
-    echo "The export comes from Research Desk $FROM_VERSION; this install is $HERE. Upgrade first: ./upgrade.sh"; exit 1
+    echo "The export comes from Research Desk $FROM_VERSION; this install is $HERE. Upgrade first: ${UPGRADE_HINT:-./upgrade.sh}"; exit 1
   fi
   echo "Importing $FROM_SITE (Research Desk $FROM_VERSION) into $SITE ($MODE)."
   if [ "$YES" != 1 ]; then
@@ -120,7 +138,7 @@ rd_import() {
     PT=$(copy_in "$T/page-text.tar.gz" rd-move-pages.tar.gz)
     site_run bash -c "mkdir -p '$(site_path)/private' && tar -xzf '$PT' -C '$(site_path)/private'"
   fi
-  [ "$MODE" = native ] || docker compose exec -T -u root backend bash -c "rm -f /tmp/rd-move-*"
+  [ "$MODE" = native ] || backend_exec -u root bash -c "rm -f /tmp/rd-move-*"
 
   echo "4/5 Updating to this install…"
   bench migrate >/dev/null
@@ -128,7 +146,7 @@ rd_import() {
   ARGS=(--meili-url "$MURL" --meili-key "$MEILI_MASTER_KEY")
   [ -n "$BASE" ] && ARGS+=(--base-url "$BASE")
   bench resdesk configure "${ARGS[@]}" >/dev/null
-  [ -n "$BASE" ] && set_env BASE_URL "$BASE"
+  [ -n "$BASE" ] && [ "$MODE" != container ] && set_env BASE_URL "$BASE"
   # book folders: point books and profiles at /library-source, which is this install's LIBRARY_DIR
   OLD_LIB=$(python3 -c "import json;print(json.load(open('$T/manifest.json')).get('library_dir') or '/library-source')")
   [ "$OLD_LIB" != "/library-source" ] && bench resdesk relink-folders --from "$OLD_LIB" | tail -1
@@ -136,10 +154,11 @@ rd_import() {
 
   echo "5/5 Rebuilding the search index in the background (from the page text: no downloads)…"
   bench resdesk reindex --background >/dev/null || echo "  (run ./resdesk.sh reindex --background once it's up)"
-  [ "$MODE" = native ] || docker compose restart backend queue scheduler frontend >/dev/null
+  if [ "$MODE" = container ]; then restart_containers
+  elif [ "$MODE" != native ]; then docker compose restart backend queue scheduler frontend >/dev/null; fi
   echo
   echo "Imported. Search fills up over the next minutes (Background Jobs shows progress)."
-  echo "- Log in with the Administrator password of the OLD server (change it: ./resdesk.sh password)."
+  echo "- Log in with the Administrator password of the OLD server (change it: ${PASSWORD_HINT:-./resdesk.sh password})."
   [ -z "$BASE" ] && echo "- If the address changed, set Settings → Public Base URL (or re-run with --base-url)."
   echo "- Copy your book folders (LIBRARY_DIR) separately if you ingest from folders; see docs/moving.md."
 }

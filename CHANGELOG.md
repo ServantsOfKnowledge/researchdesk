@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.13.0 (2026-10-01): Coolify
+
+- **Deploys on Coolify**: `WORKERS_PER_CONTAINER` runs several background workers inside one
+  container (a Frappe worker pool). Coolify names every container, so it can't run copies of
+  the worker container and stopped with *container name must be unique*; set
+  `QUEUE_WORKERS=1` and `WORKERS_PER_CONTAINER` to the workers you want
+- **`./resdesk.sh coolify`** moves an install into Coolify: `list` finds Research Desk's
+  containers on the server, `import FILE` loads an export into them (the address comes from
+  Coolify's `BASE_URL`), `export` makes one, `bench ...` runs a bench command on the site. No
+  `.env` needed: it reads the settings from the containers
+- Installation guide: Coolify step by step (variables, domain and port, redeploying, what
+  doesn't apply there)
+
 ## 0.12.1 (2026-10-01): no migrate when nothing needs it
 
 - **Starts, restarts and upgrades skip the database migrate when the code hasn't changed what

@@ -2,6 +2,8 @@
 # Everyday commands for SoK Research Desk (Docker or native install).  ./resdesk.sh help
 set -euo pipefail
 cd "$(dirname "$0")"
+# Coolify and similar hosts: no .env here, the containers have their own names
+[ "${1:-}" = coolify ] && { shift; exec bash scripts/coolify.sh "$@"; }
 [ -f .env ] || { echo "No .env found. Run ./install.sh first."; exit 1; }
 set -a; . ./.env; set +a
 SITE="${SITE_NAME:-resdesk.localhost}"
@@ -93,7 +95,7 @@ case "$cmd" in
 
   resources)
     # Caps for the background workers, search engine and database (docs/operations.md#resources)
-    RES_KEYS="QUEUE_WORKERS QUEUE_CPUS QUEUE_MEMORY WORKER_NICE MEILI_CPUS MEILI_MEMORY MEILI_MAX_INDEXING_THREADS MEILI_MAX_INDEXING_MEMORY DB_CPUS DB_MEMORY DB_BUFFER_POOL GUNICORN_WORKERS"
+    RES_KEYS="QUEUE_WORKERS WORKERS_PER_CONTAINER QUEUE_CPUS QUEUE_MEMORY WORKER_NICE MEILI_CPUS MEILI_MEMORY MEILI_MAX_INDEXING_THREADS MEILI_MAX_INDEXING_MEMORY DB_CPUS DB_MEMORY DB_BUFFER_POOL GUNICORN_WORKERS"
     preset_values() {
       case "$1" in
         light)    echo "QUEUE_WORKERS=1 QUEUE_CPUS=1 QUEUE_MEMORY=1g MEILI_CPUS=1 MEILI_MEMORY=1g MEILI_MAX_INDEXING_THREADS=1 MEILI_MAX_INDEXING_MEMORY=256Mb DB_CPUS=1 DB_MEMORY=1g DB_BUFFER_POOL=256M GUNICORN_WORKERS=2" ;;
@@ -105,7 +107,7 @@ case "$cmd" in
     show_resources() {
       set -a; . ./.env; set +a
       echo "Preset: ${RESOURCES_PRESET:-standard (default)}"
-      printf "  %-28s %s\n" "Background workers" "${QUEUE_WORKERS:-2} (each up to ${QUEUE_CPUS:-0} CPU, ${QUEUE_MEMORY:-0} memory; priority nice ${WORKER_NICE:-19})"
+      printf "  %-28s %s\n" "Background workers" "${QUEUE_WORKERS:-2}$([ "${WORKERS_PER_CONTAINER:-1}" -gt 1 ] 2>/dev/null && echo " containers × ${WORKERS_PER_CONTAINER} workers") (each container up to ${QUEUE_CPUS:-0} CPU, ${QUEUE_MEMORY:-0} memory; priority nice ${WORKER_NICE:-19})"
       printf "  %-28s %s\n" "Search engine (Meilisearch)" "${MEILI_CPUS:-0} CPU, ${MEILI_MEMORY:-0} memory; indexing threads ${MEILI_MAX_INDEXING_THREADS:-auto}, indexing memory ${MEILI_MAX_INDEXING_MEMORY:-auto}"
       printf "  %-28s %s\n" "Database (MariaDB)" "${DB_CPUS:-0} CPU, ${DB_MEMORY:-0} memory; buffer pool ${DB_BUFFER_POOL:-256M}"
       printf "  %-28s %s\n" "Web server" "${GUNICORN_WORKERS:-2} gunicorn workers"
@@ -386,6 +388,7 @@ Maintenance
   ./resdesk.sh export [FILE]            everything needed to move this install, in one file
   ./resdesk.sh import FILE [--base-url URL]   load an export into this (new) install
   ./resdesk.sh move-to USER@HOST [--with-library]   export, copy over SSH and import in one go
+  ./resdesk.sh coolify import FILE          on a Coolify server: load an export (also: list, export, bench)
   ./resdesk.sh update [v0.4.0]          upgrade (same as ./upgrade.sh; --check to just look)
   ./resdesk.sh updater on|off|status    let the Server page in the Desk upgrade, restart and back up
   ./resdesk.sh password [new]           reset the Administrator password

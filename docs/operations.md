@@ -86,7 +86,8 @@ Fine-tune any cap (the preset becomes *custom*):
 | Setting | Caps |
 |---|---|
 | `QUEUE_WORKERS` | background workers: how many batches run at once (ingest, re-index, exports, pushes) |
-| `QUEUE_CPUS`, `QUEUE_MEMORY` | each worker, e.g. `1.5`, `2g` (`0` = no limit) |
+| `WORKERS_PER_CONTAINER` | workers inside each worker container (default 1). For Coolify and other hosts that can't run copies of a container: set `QUEUE_WORKERS=1` and this to the number of workers you want |
+| `QUEUE_CPUS`, `QUEUE_MEMORY` | each worker container, e.g. `1.5`, `2g` (`0` = no limit): all its workers share it |
 | `WORKER_NICE` | worker priority, 0–19: 19 (the default) is gentlest on everything else; lower gives workers more CPU time when the machine is busy |
 | `MEILI_CPUS`, `MEILI_MEMORY` | the search engine |
 | `MEILI_MAX_INDEXING_THREADS`, `MEILI_MAX_INDEXING_MEMORY` | how hard the search engine indexes, e.g. `2`, `1Gb` (empty = automatic) |
@@ -456,6 +457,7 @@ Maintenance
   ./resdesk.sh export [FILE]            everything needed to move this install, in one file
   ./resdesk.sh import FILE [--base-url URL]   load an export into this (new) install
   ./resdesk.sh move-to USER@HOST [--with-library]   export, copy over SSH and import in one go
+  ./resdesk.sh coolify import FILE          on a Coolify server: load an export (also: list, export, bench)
   ./resdesk.sh update [v0.4.0]          upgrade (same as ./upgrade.sh; --check to just look)
   ./resdesk.sh updater on|off|status    let the Server page in the Desk upgrade, restart and back up
   ./resdesk.sh password [new]           reset the Administrator password

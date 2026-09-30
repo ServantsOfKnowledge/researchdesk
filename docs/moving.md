@@ -89,6 +89,12 @@ shows the re-index). Then point your domain at the new server.
   ([Operations → Resources](operations.md#resources-how-much-of-the-machine-research-desk-may-use)).
 - **Koha and other harvesters** only need the new OAI-PMH address if the address changed.
 
+## To or from Coolify
+
+Coolify runs the same containers under its own names, so use `./resdesk.sh coolify import`
+there instead of `import` ([Installation → Coolify](installation.md#coolify)). Leaving Coolify:
+`./resdesk.sh coolify export` on its server, then `./resdesk.sh import` on the new one.
+
 ## Between Docker and native
 
 The same commands work in every direction: the file doesn't depend on how Research Desk runs.
