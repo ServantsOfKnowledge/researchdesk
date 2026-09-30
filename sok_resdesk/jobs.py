@@ -282,7 +282,7 @@ def stop_all(force: int = 0, pause: int = 1, search: int = 0) -> dict:
 		try:
 			cancel_search_tasks()
 		except Exception:
-			pass
+			frappe.log_error(title="Research Desk: could not cancel search-engine tasks")
 	parts = [_("{0} runs cancelled").format(len(runs)), _("{0} queued jobs removed").format(counts["cancelled"] + dropped)]
 	if cint(force):
 		parts.append(_("{0} running jobs stopped").format(counts["stopped"]))

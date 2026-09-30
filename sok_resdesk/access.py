@@ -369,8 +369,8 @@ def notify_managers(request) -> None:
 				"document_type": "RD Reader Request", "document_name": request.name,
 				"subject": _("{0} asked for a reader account").format(request.full_name or request.email),
 			}).insert(ignore_permissions=True)
-		except Exception:
-			pass
+		except Exception:  # a missing alert must not stop the sign-up
+			frappe.log_error(title="Research Desk: could not alert a manager about a reader request")
 
 
 def add_reader(email: str, full_name: str = "", send_welcome: bool = True) -> str:

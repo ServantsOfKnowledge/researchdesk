@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Moving an installation to another server, or between Docker and native.
 # Sourced by resdesk.sh (it provides MODE, SITE, BENCH_DIR, bench, set_env and .env):
 #   ./resdesk.sh export [FILE]                   one archive with everything needed
@@ -172,8 +173,8 @@ rd_move_to() {
     echo "Copying book folders $LIBRARY_DIR → $HOST:$RLIB (only what's new or changed)…"
     rsync -a --info=progress2 -e "ssh -p $PORT" "$LIBRARY_DIR/" "$HOST:$RLIB/"
   fi
-  ARGS="--yes"; [ -n "$BASE" ] && ARGS="$ARGS --base-url '$BASE'"
-  "${SSH[@]}" "cd '$RDIR' && ./resdesk.sh import '$(basename "$FILE")' $ARGS && rm -f '$(basename "$FILE")'"
+  IMPORT_ARGS="--yes"; [ -n "$BASE" ] && IMPORT_ARGS="$IMPORT_ARGS --base-url '$BASE'"
+  "${SSH[@]}" "cd '$RDIR' && ./resdesk.sh import '$(basename "$FILE")' $IMPORT_ARGS && rm -f '$(basename "$FILE")'"
   echo
   echo "Moved to $HOST. This install still runs; stop it with ./resdesk.sh stop once the new one looks right."
   echo "A copy of the export stays in $FILE (it holds the key to saved passwords: delete it when done)."

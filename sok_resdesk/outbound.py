@@ -298,6 +298,7 @@ def pause_push(run_name: str, who: str) -> bool:
 	frappe.db.commit()
 	# a run still waiting in the queue is taken out and started again on Resume
 	from frappe.utils.background_jobs import get_redis_conn
+	from rq.exceptions import NoSuchJobError
 	from rq.job import Job
 
 	try:
@@ -309,8 +310,10 @@ def pause_push(run_name: str, who: str) -> bool:
 			frappe.db.sql(f"update `{RUN}` set held_items=%s where name=%s",
 						  (json.dumps({"items": args.get("items"), "force": cint(args.get("force")), "fresh": 1}), run_name))
 			frappe.db.commit()
+	except NoSuchJobError:
+		pass  # already started: the run notices the pause itself
 	except Exception:
-		pass
+		frappe.log_error(title=f"Research Desk: could not hold push run {run_name}")
 	return True
 
 
@@ -341,6 +344,7 @@ def cancel(run_name: str) -> None:
 	_log(run_name, f"cancel requested by {frappe.session.user}")
 	frappe.db.commit()
 	from frappe.utils.background_jobs import get_redis_conn
+	from rq.exceptions import NoSuchJobError
 	from rq.job import Job
 
 	try:
@@ -348,8 +352,10 @@ def cancel(run_name: str) -> None:
 		if job.get_status() == "queued":
 			job.cancel()
 			frappe.db.set_value("RD Push Run", run_name, "finished_on", now_datetime(), update_modified=False)
+	except NoSuchJobError:
+		pass  # already started or finished
 	except Exception:
-		pass
+		frappe.log_error(title=f"Research Desk: could not cancel queued push run {run_name}")
 
 
 # -- automatic pushes -------------------------------------------------------------------------------
