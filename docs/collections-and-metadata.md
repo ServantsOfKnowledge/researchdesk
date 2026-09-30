@@ -39,9 +39,10 @@ Create one at **Research Desk → Collections → + Add**. Give it a title; the 
   Source, Ingest Profile and Document Type; matching ignores case. A book that matches **any** rule
   is added. Press **Apply Rules** to add existing books; newly ingested books are added as they arrive.
   Rules only add books, they never remove one you added by hand.
-- **From archive.org, automatically**: an ingest profile for an archive.org collection keeps a
-  collection of the same name up to date by itself, adding and removing books as archive.org
-  does ([Keeping in step with archive.org](ingesting.md#keeping-in-step-with-archiveorg)).
+- **From archive.org, automatically**: every archive.org collection your books belong to
+  (sub-collections too) gets a collection of the same name, kept up to date by itself, adding
+  and removing books as archive.org does, with sub-collections shown under their parent
+  ([Keeping in step with archive.org](ingesting.md#keeping-in-step-with-archiveorg)).
 
 ### On the portal
 

@@ -50,6 +50,7 @@ doc_events = {
 	"RD Collection": {"on_trash": "sok_resdesk.curation.on_collection_trash"},
 	# a profile's portal collection (Keep in Step with archive.org)
 	"RD Ingest Profile": {"on_update": "sok_resdesk.ia_sync.on_profile_update"},
+	"RD Settings": {"on_update": "sok_resdesk.ia_sync.on_settings_update"},
 }
 
 # Scheduled ingest (profiles set to Daily / Weekly) ---------------------------

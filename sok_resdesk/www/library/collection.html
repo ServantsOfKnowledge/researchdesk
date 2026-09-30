@@ -5,7 +5,7 @@
 {% block page_content %}
 <div class="rd" id="rd-library" data-fixed='{{ fixed_filters }}' data-staff="{{ 1 if viewer.staff else 0 }}"
 	data-login="{{ login_url }}" data-signup="{{ 1 if viewer.signup else 0 }}">
-	<nav class="rd-crumbs"><a href="/library">← {{ portal_title }}</a> · <a href="/library/collections">{{ _("Collections") }}</a></nav>
+	<nav class="rd-crumbs"><a href="/library">← {{ portal_title }}</a> · <a href="/library/collections">{{ _("Collections") }}</a>{% if parent %} · <a href="/library/collection/{{ parent.name }}">{{ parent.title }}</a>{% endif %}</nav>
 	<header class="rd-coll-head">
 		{% if collection.cover_image %}<img class="rd-coll-head__cover" src="{{ collection.cover_image }}" alt="">{% endif %}
 		<div>
@@ -16,6 +16,12 @@
 			{% if collection.description %}<div class="rd-coll-head__desc">{{ collection.description }}</div>{% endif %}
 		</div>
 	</header>
+	{% if subcollections %}
+	<h2 class="rd-coll-subhead">{{ _("Sub-collections") }}</h2>
+	<div class="rd-coll-grid">
+		{% for c in subcollections %}{% include "templates/includes/rd_collection_card.html" %}{% endfor %}
+	</div>
+	{% endif %}
 	<div class="rd-coll-search">
 		{% include "templates/includes/rd_search_form.html" %}
 	</div>

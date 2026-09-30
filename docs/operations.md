@@ -317,6 +317,14 @@ Every setting:
 | Alert Webhook URL | Also post alerts as JSON to this address, for example a Slack, Mattermost or Discord incoming webhook (the text is in "text"). |
 | Alert When Disk Is This Full (%) | Warn when the disk holding Research Desk's data is this full. |
 
+**Collections from archive.org**
+
+| Setting | What it does |
+|---|---|
+| A Portal Collection for Every archive.org Collection | Every archive.org collection your books belong to (such as the Servants of Knowledge sub-collections) gets its own collection page on the portal, named after it, with its description, shown under the collection it belongs to. Off: only the collection of each ingest profile that asks for one. |
+| Smallest Collection to Show | Only make a page for archive.org collections with at least this many of your books. |
+| Skip These archive.org Collections | archive.org collection identifiers that should not get a page, one per line (for example a big general collection most of your books are also in). |
+
 **Access & Sign-up**
 
 | Setting | What it does |

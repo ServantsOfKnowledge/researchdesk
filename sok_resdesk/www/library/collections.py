@@ -13,6 +13,7 @@ def get_context(context):
 	context.show_sidebar = 0
 	context.portal_title = s.portal_title or "SoK Research Desk"
 	context.title = f"Collections · {context.portal_title}"
-	context.collections = collection_cards()
+	# sub-collections are listed on the page of the collection they belong to
+	context.collections = [c for c in collection_cards() if not c.part_of]
 	context.metatags = {"title": context.title, "description": s.portal_tagline or ""}
 	return context

@@ -31,7 +31,12 @@ def get_context(context):
 	context.show_sidebar = 0
 	context.portal_title = s.portal_title or "SoK Research Desk"
 	context.collection = doc
-	context.count = next((c.count for c in collection_cards() if c.name == doc.name), 0)
+	cards = collection_cards()
+	context.count = next((c.count for c in cards if c.name == doc.name), 0)
+	context.subcollections = [c for c in cards if c.part_of == doc.name]
+	context.parent = next(
+		(c for c in cards if c.name == next((x.part_of for x in cards if x.name == doc.name), None)), None
+	)
 	context.curator_name = frappe.db.get_value("User", doc.curator, "full_name") if doc.curator else ""
 	context.title = f"{doc.title} · {context.portal_title}"
 	context.viewer = viewer

@@ -64,7 +64,7 @@ cause. Details: [Server](server.md#how-the-updater-helper-works).
 | **RD Ingest Run** | one execution | status, counts, log |
 | **RD Settings** | single | portal, branding, OAI, Meilisearch, IA politeness, machine resources, server & updates (update checks, backups, alerts), guest access, reader sign-up, access rules |
 | RD Access Rule | child table of settings | match_on (collection, subject, language, creator, source, profile), value, visibility |
-| **RD Collection** | a curated collection | title, slug (the name and web address), published, featured, cover, curator, description, rules, item_count |
+| **RD Collection** | a curated collection | title, slug (the name and web address), published, featured, cover, curator, description, rules, item_count, mirror_of (the archive.org collection it follows), part_of (the collection it belongs to) |
 | RD Collection Rule | child table | match_on (source collection, subject, language, creator, source, profile, document type), how (is exactly / contains), value |
 | RD Item Collection | child table of RD Item (`curated_collections`) | collection |
 | **RD Export** | one metadata export | format, which books, status, file |

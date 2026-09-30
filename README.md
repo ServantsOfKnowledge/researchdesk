@@ -9,8 +9,8 @@ Choose a collection, a search or a list of items on archive.org, and Research De
 - ingest from **archive.org** *or* from **IA-style item folders** on your own disk, NAS or web
   server, with a drop folder that picks up new and changed books automatically
 - **stay in step with archive.org** by itself: every day, books added to a collection come in,
-  changed ones are refreshed and removed ones are unpublished, and each archive.org collection
-  gets a portal page that keeps itself up to date
+  changed ones are refreshed and removed ones are unpublished, and every archive.org collection
+  the books belong to (sub-collections too) gets a portal page that keeps itself up to date
 - **catalogue** the books, cleaning up messy metadata (languages, dates, authors, subjects)
 - **index the full OCR text page by page**, so people can search *inside* 88,000+ books,
   in Kannada, Hindi, Konkani, Tamil, English and more

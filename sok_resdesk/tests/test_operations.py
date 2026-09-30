@@ -30,6 +30,9 @@ SETTINGS_FIELDS = (
 	"quiet_weekdays_only",
 	"resource_preset",
 	"book_limit",
+	"mirror_all_collections",
+	"mirror_min_books",
+	"mirror_skip",
 )
 DEFAULTS = (
 	"resdesk_schedules_were_paused",
@@ -370,6 +373,7 @@ class FakeIA:
 		self.changed: set[str] = set()
 		self.dark: set[str] = set()
 		self.moved: set[str] = set()  # still on archive.org, but in another collection
+		self.sub: set[str] = set()  # also in the sub-collection rdtestsub
 
 	def iter_identifiers(self, query, limit=0, page_size=1000):
 		if "addeddate" in query:
@@ -386,9 +390,13 @@ class FakeIA:
 
 		if identifier == "rdtestcoll":
 			return {"metadata": {"title": "RD Test Collection", "description": "From archive.org"}}
+		if identifier == "rdtestsub":
+			return {"metadata": {"title": "RD Test Sub", "collection": ["printdisabled", "rdtestcoll"]}}
 		if identifier in self.dark or identifier not in self.books:
 			raise IAError("item not found or dark")
 		coll = ["othercoll"] if identifier in self.moved else ["rdtestcoll"]
+		if identifier in self.sub:
+			coll.append("rdtestsub")
 		meta = {
 			"identifier": identifier,
 			"title": self.books[identifier],
@@ -401,7 +409,7 @@ class FakeIA:
 class TestIASync(OpsTestCase):
 	def setUp(self):
 		super().setUp()
-		frappe.db.set_single_value("RD Settings", "book_limit", "No limit")
+		frappe.db.set_single_value("RD Settings", {"book_limit": "No limit", "mirror_all_collections": 0})
 		self.ia = FakeIA()
 		for p in (
 			mock.patch("sok_resdesk.ingest.client", return_value=self.ia),
@@ -522,3 +530,50 @@ class TestIASync(OpsTestCase):
 		self.assertEqual(frappe.db.count("RD Item Collection", {"collection": coll}), 4)
 		ia_sync.refresh_mirrors()  # after an upgrade: all profiles, and nothing doubles
 		self.assertEqual(frappe.db.count("RD Collection", {"mirror_of": "rdtestcoll"}), 1)
+
+	def test_every_archive_org_collection_gets_a_page(self):
+		from sok_resdesk import ia_sync
+
+		frappe.db.set_single_value(
+			"RD Settings", {"mirror_all_collections": 1, "mirror_min_books": 2, "mirror_skip": ""}
+		)
+		self.ia.sub = {f"{PREFIX}0001", f"{PREFIX}0002"}
+		real = ia_sync._members
+
+		def only_test_books():
+			members, spelling = real()
+			return {
+				k: {b for b in v if b.startswith(PREFIX)}
+				for k, v in members.items()
+				if k.startswith("rdtest")
+			}, spelling
+
+		with mock.patch.object(ia_sync, "_members", side_effect=only_test_books):
+			self.run_profile("Manual")
+			sub_name = frappe.db.get_value("RD Collection", {"mirror_of": "rdtestsub"})
+			top = frappe.db.get_value("RD Collection", {"mirror_of": "rdtestcoll"})
+			self.assertTrue(sub_name and top)
+			self.assertEqual(
+				frappe.db.get_value("RD Collection", sub_name, ["title", "part_of"]), ("RD Test Sub", top)
+			)
+			self.assertEqual(frappe.db.count("RD Item Collection", {"collection": sub_name}), 2)
+			# too small, or skipped in Settings: no page
+			frappe.db.delete("RD Collection Rule", {"parent": sub_name})
+			frappe.db.delete("RD Collection", sub_name)
+			frappe.db.set_single_value("RD Settings", "mirror_skip", "RDTESTSUB")
+			ia_sync.refresh_mirrors()
+			self.assertFalse(frappe.db.exists("RD Collection", {"mirror_of": "rdtestsub"}))
+			frappe.db.set_single_value("RD Settings", {"mirror_skip": "", "mirror_min_books": 3})
+			ia_sync.refresh_mirrors()
+			self.assertFalse(frappe.db.exists("RD Collection", {"mirror_of": "rdtestsub"}))
+
+		# on the portal, the sub-collection is listed under its parent
+		from sok_resdesk.portal import collection_cards
+
+		frappe.db.set_single_value("RD Settings", "mirror_min_books", 1)
+		with mock.patch.object(ia_sync, "_members", side_effect=only_test_books):
+			ia_sync.refresh_mirrors()
+		cards = {c.name: c for c in collection_cards()}
+		sub_name = frappe.db.get_value("RD Collection", {"mirror_of": "rdtestsub"})
+		self.assertEqual(cards[sub_name].part_of, top)
+		self.assertEqual(cards[top].subcollections, 1)

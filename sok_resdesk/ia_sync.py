@@ -154,7 +154,7 @@ def _alert(profile, gone: int, total: int) -> None:
 
 
 def after_run(run_name: str) -> None:
-	"""A run finished: remember how far the catalogue is in step, and update the portal collection."""
+	"""A run finished: remember how far the catalogue is in step, and update the portal collections."""
 	run = frappe.db.get_value(
 		"RD Ingest Run", run_name, ["profile", "status", "started_on", "creation"], as_dict=True
 	)
@@ -168,35 +168,130 @@ def after_run(run_name: str) -> None:
 		not profile.synced_on or get_datetime(started) > get_datetime(profile.synced_on)
 	):
 		frappe.db.set_value("RD Ingest Profile", profile.name, "synced_on", started, update_modified=False)
-	if (
-		cint(profile.mirror_collection)
-		and profile.scope_type == "Collection"
-		and (profile.ia_collection or "").strip()
-	):
-		name = ensure_mirror(profile)
-		if name:
-			sync_mirror(name)
 	frappe.db.commit()
+	refresh_mirrors()
 
 
-def refresh_mirrors(profile: str | None = None) -> None:
-	"""Make or update the portal collection of every archive.org profile that asks for one (or
-	of one profile): after an upgrade, and when a profile's setting is switched on."""
-	filters = {"source": "Internet Archive", "scope_type": "Collection", "mirror_collection": 1}
-	if profile:
-		filters["name"] = profile
-	for name in frappe.get_all("RD Ingest Profile", filters=filters, pluck="name"):
-		doc = frappe.get_doc("RD Ingest Profile", name)
-		if not (doc.ia_collection or "").strip() or not frappe.db.exists("RD Item", {"ingest_profile": name}):
-			continue  # nothing ingested yet: the first run makes it
+# -- portal collections that mirror archive.org ------------------------------------------------------
+
+# archive.org's own groupings that say nothing about the books' subject or source
+NOT_COLLECTIONS = {
+	"additional_collections",
+	"americana",
+	"books_by_language",
+	"community",
+	"folkscanomy",
+	"inlibrary",
+	"internetarchivebooks",
+	"opensource",
+	"printdisabled",
+	"texts",
+}
+
+
+def _members() -> tuple[dict[str, set[str]], dict[str, str]]:
+	"""archive.org collection (lower case) -> books in it, and the identifier as archive.org spells it."""
+	members: dict[str, set[str]] = {}
+	spelling: dict[str, str] = {}
+	for name, cols in frappe.db.sql(
+		"""select name, collections from `tabRD Item`
+		where ifnull(source, '') != 'Local' and ifnull(removed_from_source, 0) = 0"""
+	):
+		for c in (cols or "").splitlines():
+			c = c.strip()
+			if c:
+				members.setdefault(c.lower(), set()).add(name)
+				spelling.setdefault(c.lower(), c)
+	return members, spelling
+
+
+def wanted_collections(members: dict[str, set[str]], spelling: dict[str, str]) -> list[str]:
+	"""Which archive.org collections get a portal page: every one the books are in (Settings), and
+	the collection of each profile that asks for one."""
+	s = frappe.db.get_singles_dict("RD Settings")
+	want: dict[str, str] = {}
+	mirror_all = s.get("mirror_all_collections")
+	if mirror_all in (None, "") or cint(mirror_all):
+		skip = {
+			x.strip().lower()
+			for x in (s.get("mirror_skip") or "").replace(",", "\n").splitlines()
+			if x.strip()
+		}
+		smallest = max(1, cint(s.get("mirror_min_books")) or 1)
+		for key, books in members.items():
+			if key in skip or key in NOT_COLLECTIONS or key.startswith("fav-") or len(books) < smallest:
+				continue
+			want[key] = spelling[key]
+	for p in frappe.get_all(
+		"RD Ingest Profile",
+		filters={"source": "Internet Archive", "scope_type": "Collection", "mirror_collection": 1},
+		fields=["name", "ia_collection"],
+	):
+		key = (p.ia_collection or "").strip().lower()
+		if key and key in members:
+			want.setdefault(key, spelling.get(key) or p.ia_collection.strip())
+	return sorted(want.values(), key=str.lower)
+
+
+def refresh_mirrors(profile: str | None = None) -> dict:
+	"""Make and fill the portal collections that mirror archive.org: after every run, after an
+	upgrade, and when the settings change. Returns counts for the log."""
+	members, spelling = _members()
+	made = added = removed = 0
+	for ia_id in wanted_collections(members, spelling):
 		try:
-			collection = ensure_mirror(doc)
-			if collection:
-				sync_mirror(collection)
+			name, _parent, new = ensure_mirror(ia_id)
+			made += new
+			a, r = sync_mirror(name, members.get(ia_id.lower(), set()))
+			added, removed = added + a, removed + r
 			frappe.db.commit()
 		except Exception:
 			frappe.db.rollback()
-			frappe.log_error(title=f"Research Desk: could not update the portal collection of {name}")
+			frappe.log_error(title=f"Research Desk: could not update the portal collection for {ia_id}")
+	# collections made before their archive.org parent was recorded: look it up once
+	for name, ia_id in frappe.get_all(
+		"RD Collection",
+		filters={"mirror_of": ("is", "set"), "mirror_parent": ("is", "not set")},
+		fields=["name", "mirror_of"],
+		as_list=True,
+	):
+		if frappe.db.get_value("RD Collection", name, "mirror_parent") is None:
+			frappe.db.set_value(
+				"RD Collection", name, "mirror_parent", _ia_parent(ia_id), update_modified=False
+			)
+	frappe.db.commit()
+	# sub-collections: shown under the collection they belong to on archive.org, when it has a page
+	by_ia = dict(
+		frappe.get_all(
+			"RD Collection", filters={"mirror_of": ("is", "set")}, fields=["mirror_of", "name"], as_list=True
+		)
+	)
+	by_ia = {k.lower(): v for k, v in by_ia.items()}
+	for name, parent in frappe.get_all(
+		"RD Collection",
+		filters={"mirror_parent": ("is", "set")},
+		fields=["name", "mirror_parent"],
+		as_list=True,
+	):
+		target = by_ia.get(parent.lower())
+		if target and target != name and not frappe.db.get_value("RD Collection", name, "part_of"):
+			frappe.db.set_value("RD Collection", name, "part_of", target, update_modified=False)
+	for p in frappe.get_all(
+		"RD Ingest Profile",
+		filters={
+			"source": "Internet Archive",
+			"scope_type": "Collection",
+			**({"name": profile} if profile else {}),
+		},
+		fields=["name", "ia_collection", "portal_collection"],
+	):
+		target = by_ia.get((p.ia_collection or "").strip().lower())
+		if target and p.portal_collection != target:
+			frappe.db.set_value(
+				"RD Ingest Profile", p.name, "portal_collection", target, update_modified=False
+			)
+	frappe.db.commit()
+	return {"made": made, "added": added, "removed": removed}
 
 
 def on_profile_update(doc, method=None) -> None:
@@ -207,56 +302,76 @@ def on_profile_update(doc, method=None) -> None:
 		and cint(doc.mirror_collection)
 		and (doc.has_value_changed("mirror_collection") or doc.has_value_changed("ia_collection"))
 	):
-		frappe.enqueue(
-			"sok_resdesk.ia_sync.refresh_mirrors", queue="long", profile=doc.name, enqueue_after_commit=True
-		)
+		frappe.enqueue("sok_resdesk.ia_sync.refresh_mirrors", queue="long", enqueue_after_commit=True)
 
 
-def ensure_mirror(profile) -> str | None:
-	"""The portal collection for a profile's archive.org collection, made on first use."""
-	ia_collection = profile.ia_collection.strip()
-	name = profile.portal_collection
-	if name and frappe.db.exists("RD Collection", name):
-		return name
+def on_settings_update(doc, method=None) -> None:
+	if any(doc.has_value_changed(f) for f in ("mirror_all_collections", "mirror_min_books", "mirror_skip")):
+		frappe.enqueue("sok_resdesk.ia_sync.refresh_mirrors", queue="long", enqueue_after_commit=True)
+
+
+def _ia_parent(ia_collection: str) -> str:
+	try:
+		from sok_resdesk.ingest import client
+
+		parent = client().metadata(ia_collection).get("metadata", {}).get("collection") or ""
+	except Exception:
+		return ""
+	parents = [parent] if isinstance(parent, str) else parent
+	return next((c for c in parents if c and c.lower() not in NOT_COLLECTIONS), "")
+
+
+def ensure_mirror(ia_collection: str) -> tuple[str, str, bool]:
+	"""The portal collection for an archive.org collection, made on first use with its name and
+	description from archive.org. Returns (name, the archive.org collection it is part of, made now)."""
 	name = frappe.db.get_value("RD Collection", {"mirror_of": ia_collection})
-	if not name:
-		title, description = ia_collection, ""
-		try:
-			from sok_resdesk.ingest import client
+	if name:
+		return name, "", False
+	title, description, parent = ia_collection, "", ""
+	try:
+		from sok_resdesk.ingest import client
 
-			meta = client().metadata(ia_collection).get("metadata", {})
-			title = meta.get("title") or title
-			title = title[0] if isinstance(title, list) else title
-			description = meta.get("description") or ""
-			description = "<br>".join(description) if isinstance(description, list) else description
-		except Exception:
-			pass  # named after the identifier; staff can rename it
-		slug = frappe.scrub(ia_collection).replace("_", "-")
-		if frappe.db.exists("RD Collection", slug):
-			slug = f"{slug}-ia"
-		doc = frappe.get_doc(
-			{
-				"doctype": "RD Collection",
-				"title": title,
-				"slug": slug,
-				"published": 1,
-				"description": description,
-				"mirror_of": ia_collection,
-				"rules": [{"match_on": "Source Collection", "how": "is exactly", "value": ia_collection}],
-			}
-		).insert(ignore_permissions=True)
-		name = doc.name
-	frappe.db.set_value("RD Ingest Profile", profile.name, "portal_collection", name, update_modified=False)
-	return name
+		meta = client().metadata(ia_collection).get("metadata", {})
+		title = meta.get("title") or title
+		title = title[0] if isinstance(title, list) else title
+		description = meta.get("description") or ""
+		description = "<br>".join(description) if isinstance(description, list) else description
+		parent = meta.get("collection") or ""
+		parent = next(
+			(
+				c
+				for c in ([parent] if isinstance(parent, str) else parent)
+				if c.lower() not in NOT_COLLECTIONS
+			),
+			"",
+		)
+	except Exception:
+		pass  # named after the identifier; staff can rename it
+	slug = frappe.scrub(ia_collection).replace("_", "-")
+	if frappe.db.exists("RD Collection", slug):
+		slug = f"{slug}-ia"
+	doc = frappe.get_doc(
+		{
+			"doctype": "RD Collection",
+			"title": title,
+			"slug": slug,
+			"published": 1,
+			"description": description,
+			"mirror_of": ia_collection,
+			"mirror_parent": parent,
+			"rules": [{"match_on": "Source Collection", "how": "is exactly", "value": ia_collection}],
+		}
+	).insert(ignore_permissions=True)
+	return doc.name, parent, True
 
 
-def sync_mirror(collection: str) -> tuple[int, int]:
+def sync_mirror(collection: str, want: set[str] | None = None) -> tuple[int, int]:
 	"""Make a mirror collection hold exactly the books in its archive.org collection."""
 	from sok_resdesk import curation
 
-	want = set(curation.rule_members(collection))
-	gone = set(frappe.get_all("RD Item", filters={"removed_from_source": 1}, pluck="name"))
-	want -= gone
+	if want is None:
+		ia_id = frappe.db.get_value("RD Collection", collection, "mirror_of") or ""
+		want = _members()[0].get(ia_id.lower(), set())
 	have = set(
 		frappe.db.sql_list(
 			"select parent from `tabRD Item Collection` where collection=%s and parenttype='RD Item'",

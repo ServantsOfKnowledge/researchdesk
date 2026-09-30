@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-30 14:00:00.000000",
- "modified": "2026-10-02 12:00:00.000000",
+ "modified": "2026-10-02 14:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Collection",
@@ -20,6 +20,8 @@
   "sort_order",
   "item_count",
   "mirror_of",
+  "part_of",
+  "mirror_parent",
   "section_desc",
   "description",
   "section_rules",
@@ -89,6 +91,20 @@
    "label": "Mirrors archive.org Collection",
    "read_only": 1,
    "description": "Kept up to date by an ingest profile: books join and leave as they do on archive.org. Books added by hand are removed at the next update; make your own collection for a hand-picked set."
+  },
+  {
+   "fieldname": "part_of",
+   "fieldtype": "Link",
+   "label": "Part Of",
+   "options": "RD Collection",
+   "description": "The larger collection this one belongs to. The portal shows it as a sub-collection there. Filled in for collections that mirror archive.org."
+  },
+  {
+   "fieldname": "mirror_parent",
+   "fieldtype": "Data",
+   "label": "archive.org Parent Collection",
+   "read_only": 1,
+   "hidden": 1
   },
   {
    "fieldname": "section_desc",

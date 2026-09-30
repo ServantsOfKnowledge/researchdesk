@@ -4,6 +4,6 @@
 	</div>
 	<div class="rd-coll-card__body">
 		<h3>{{ c.title }}</h3>
-		<p class="rd-muted">{{ c.count }} {{ _("books") if c.count != 1 else _("book") }}</p>
+		<p class="rd-muted">{{ c.count }} {{ _("books") if c.count != 1 else _("book") }}{% if c.subcollections %} · {{ c.subcollections }} {{ _("sub-collections") if c.subcollections != 1 else _("sub-collection") }}{% endif %}</p>
 	</div>
 </a>

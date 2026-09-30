@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.12.0 (2026-10-01): a portal page for every archive.org collection
+
+- **Every archive.org collection your books belong to gets a portal collection**, sub-collections
+  included (for Servants of Knowledge: *Karnataka Archaeology*, *Karnataka Tulu Sahitya
+  Academy* and the rest), named and described as on archive.org and kept in step as books come
+  and go. Sub-collections are shown on their parent's page; the Collections page lists the top
+  level. Settings → Collections from archive.org: on by default, a smallest size, and
+  collections to skip; archive.org's general groupings never get a page
+
 ## 0.11.2 (2026-10-01): quicker upgrades
 
 - **Upgrades reuse Frappe** when it hasn't changed: Frappe and its Python and Node packages are

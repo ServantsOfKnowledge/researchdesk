@@ -166,12 +166,27 @@ or no longer in the collection; for a *Search Query* profile, only dark books). 
 profile's books seem to vanish at once (more than 20, and more than a tenth), that looks like a
 problem on archive.org's side: nothing is unpublished and managers get an alert.
 
-**Portal collection.** For a *Collection* profile, Research Desk also makes a collection page
-on the portal named after the archive.org collection (with its description), as soon as the
-profile has books (after its first run, after an upgrade, or when you tick *Portal Collection
-for It*), and keeps it exactly in step: books join and leave with archive.org. Profiles on the same archive.org
-collection share one page. Rename it or give it a cover as you like; for a hand-picked set,
-make your own collection, as books added by hand to a mirrored one are removed at the next update.
+**Portal collections.** Every archive.org collection your books belong to gets its own
+collection page on the portal, named after it and with its description from archive.org: for
+Servants of Knowledge books that is *Servants Of Knowledge* and its sub-collections such as
+*Karnataka Archaeology* or *Karnataka Tulu Sahitya Academy*. Sub-collections are shown on the
+page of the collection they belong to on archive.org, and the Collections page lists only the
+top level. The pages appear as soon as there are books (after a run, after an upgrade, or when
+the setting is switched on) and stay exactly in step: books join and leave with archive.org.
+
+Settings → *Collections from archive.org*:
+
+| Setting | |
+|---|---|
+| A Portal Collection for Every archive.org Collection | on by default. Off: only the collection of each profile that has *Portal Collection for It* ticked |
+| Smallest Collection to Show | leave out archive.org collections with fewer of your books than this |
+| Skip These archive.org Collections | identifiers that should not get a page, one per line |
+
+archive.org's general groupings (such as *printdisabled*, *inlibrary* or *opensource*) and
+people's favourites lists never get a page. Rename a page or give it a cover as you like; its
+books follow archive.org, so for a hand-picked set make your own collection (books added by
+hand to a mirrored one are removed at the next update). A page whose archive.org collection is
+later skipped stays as it is: unpublish or delete it in the Desk.
 
 **Sync with archive.org** on the profile does the same straight away. The run's log lists what
 was new, changed, removed or back.

@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-02 13:00:00.000000",
+ "modified": "2026-10-02 14:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -61,6 +61,11 @@
   "alert_emails",
   "alert_webhook_url",
   "alert_disk_percent",
+  "ia_collections_section",
+  "mirror_all_collections",
+  "mirror_min_books",
+  "column_break_iac",
+  "mirror_skip",
   "access_section",
   "guest_access",
   "default_visibility",
@@ -403,6 +408,40 @@
    "default": "90",
    "non_negative": 1,
    "description": "Warn when the disk holding Research Desk's data is this full."
+  },
+  {
+   "fieldname": "ia_collections_section",
+   "fieldtype": "Section Break",
+   "label": "Collections from archive.org",
+   "collapsible": 1,
+   "description": "Portal collections that mirror archive.org: made and kept up to date by themselves as books come in, change or leave."
+  },
+  {
+   "fieldname": "mirror_all_collections",
+   "fieldtype": "Check",
+   "label": "A Portal Collection for Every archive.org Collection",
+   "default": "1",
+   "description": "Every archive.org collection your books belong to (such as the Servants of Knowledge sub-collections) gets its own collection page on the portal, named after it, with its description, shown under the collection it belongs to. Off: only the collection of each ingest profile that asks for one."
+  },
+  {
+   "fieldname": "mirror_min_books",
+   "fieldtype": "Int",
+   "label": "Smallest Collection to Show",
+   "default": "1",
+   "non_negative": 1,
+   "depends_on": "mirror_all_collections",
+   "description": "Only make a page for archive.org collections with at least this many of your books."
+  },
+  {
+   "fieldname": "column_break_iac",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mirror_skip",
+   "fieldtype": "Small Text",
+   "label": "Skip These archive.org Collections",
+   "depends_on": "mirror_all_collections",
+   "description": "archive.org collection identifiers that should not get a page, one per line (for example a big general collection most of your books are also in)."
   },
   {
    "fieldname": "access_section",

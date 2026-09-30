@@ -12,7 +12,16 @@ def collection_cards() -> list[frappe._dict]:
 	rows = frappe.get_all(
 		"RD Collection",
 		filters={"published": 1},
-		fields=["name", "title", "cover_image", "featured", "sort_order", "curator", "description"],
+		fields=[
+			"name",
+			"title",
+			"cover_image",
+			"featured",
+			"sort_order",
+			"curator",
+			"description",
+			"part_of",
+		],
 		order_by="sort_order asc, title asc",
 	)
 	if not rows:
@@ -24,8 +33,16 @@ def collection_cards() -> list[frappe._dict]:
 		where i.published = 1 and {access.sql_condition("i.visibility")} group by c.collection"""
 		)
 	)
+	published = {r.name for r in rows}
+	subs: dict[str, int] = {}
 	for r in rows:
 		r.count = counts.get(r.name, 0)
+		if r.part_of and r.part_of not in published:
+			r.part_of = None  # its parent isn't on the portal: show it at the top level
+		if r.part_of:
+			subs[r.part_of] = subs.get(r.part_of, 0) + 1
+	for r in rows:
+		r.subcollections = subs.get(r.name, 0)
 	return rows
 
 
