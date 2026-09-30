@@ -167,8 +167,9 @@ profile's books seem to vanish at once (more than 20, and more than a tenth), th
 problem on archive.org's side: nothing is unpublished and managers get an alert.
 
 **Portal collection.** For a *Collection* profile, Research Desk also makes a collection page
-on the portal named after the archive.org collection (with its description) and keeps it
-exactly in step: books join and leave with archive.org. Profiles on the same archive.org
+on the portal named after the archive.org collection (with its description), as soon as the
+profile has books (after its first run, after an upgrade, or when you tick *Portal Collection
+for It*), and keeps it exactly in step: books join and leave with archive.org. Profiles on the same archive.org
 collection share one page. Rename it or give it a cover as you like; for a hand-picked set,
 make your own collection, as books added by hand to a mirrored one are removed at the next update.
 

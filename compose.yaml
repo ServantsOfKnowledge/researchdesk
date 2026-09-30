@@ -17,7 +17,7 @@ x-image: &image
     args:
       FRAPPE_BRANCH: ${FRAPPE_BRANCH:-version-16}
       FRAPPE_IMAGE_PREFIX: ${FRAPPE_IMAGE_PREFIX:-frappe}
-      # the Frappe commit to build (upgrade.sh sets it); a new value rebuilds Frappe
+      # a new value rebuilds Frappe: upgrade.sh sets it to the newest v16 release when there is one
       FRAPPE_COMMIT: ${FRAPPE_COMMIT:-}
   restart: unless-stopped
 

@@ -48,6 +48,8 @@ doc_events = {
 	# portal sign-ups become readers, or wait for approval (RD Settings → Reader Accounts)
 	"User": {"after_insert": "sok_resdesk.access.on_user_insert"},
 	"RD Collection": {"on_trash": "sok_resdesk.curation.on_collection_trash"},
+	# a profile's portal collection (Keep in Step with archive.org)
+	"RD Ingest Profile": {"on_update": "sok_resdesk.ia_sync.on_profile_update"},
 }
 
 # Scheduled ingest (profiles set to Daily / Weekly) ---------------------------

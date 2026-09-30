@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.11.2 (2026-10-01): quicker upgrades
+
+- **Upgrades reuse Frappe** when it hasn't changed: Frappe and its Python and Node packages are
+  built again only when a newer Frappe v16 *release* is out (before, any new commit on Frappe's
+  branch did it, 10 minutes or more). On Docker the image is split so that an upgrade of
+  Research Desk alone rebuilds a few MB instead of copying the whole 1 GB Frappe bench again
+  (about a minute instead of several, and 1 GB less disk each time). Native upgrades skip
+  reinstalling packages and rebuild only Research Desk's assets when Frappe didn't change
+- **Portal collections for archive.org profiles** appear straight after upgrading and as soon
+  as *Portal Collection for It* is ticked, instead of only after the profile's next run
+
 ## 0.11.1 (2026-10-01): moving from a Mac
 
 - `./resdesk.sh move-to` works with the bash that comes with macOS (it stopped with

@@ -149,6 +149,7 @@ if [ "$MODE" = native ]; then
   bold "3/5  Frappe and dependencies"
   ./resdesk.sh stop >/dev/null || true
   cd "$BENCH_DIR"
+  FRAPPE_BEFORE="$(cd apps/frappe && git rev-parse HEAD 2>/dev/null || true)"
   if [ "$FRAPPE" = 1 ]; then
     BR="$(cd apps/frappe && git rev-parse --abbrev-ref HEAD)"
     REMOTE="$(cd apps/frappe && git remote | head -1 || true)"
@@ -156,9 +157,20 @@ if [ "$MODE" = native ]; then
       && ok "Frappe $(cd apps/frappe && git describe --tags --abbrev=0 2>/dev/null) ($BR)" \
       || warn "Frappe not updated (local changes or no network); continuing with the current version"
   fi
-  bench setup requirements frappe >/dev/null   # frappe only: our app has no extra requirements and may have any git remote
-  uv pip install --python env/bin/python -e apps/sok_resdesk >/dev/null
-  ok "Python and Node packages"
+  # Only what changed: Frappe's Python and Node packages when Frappe moved, this app's when its
+  # pyproject.toml did (it has no packages of its own today)
+  FRAPPE_CHANGED=0
+  [ "$(cd apps/frappe && git rev-parse HEAD 2>/dev/null || true)" != "$FRAPPE_BEFORE" ] && FRAPPE_CHANGED=1
+  if [ "$FRAPPE_CHANGED" = 1 ]; then
+    bench setup requirements frappe >/dev/null   # frappe only: our app has no extra requirements and may have any git remote
+    ok "Frappe's Python and Node packages"
+  else
+    ok "Frappe unchanged: its packages are already installed"
+  fi
+  if ! (cd "$APP_DIR" && git diff --quiet "$PREV_SHA" HEAD -- pyproject.toml) || [ ! -e env/bin/python ]; then
+    uv pip install --python env/bin/python -e apps/sok_resdesk >/dev/null
+    ok "Research Desk's Python package"
+  fi
   bold "4/5  Database migrations and assets"
   # migrations need Redis and Meilisearch up
   redis-server config/redis_cache.conf --daemonize yes >/dev/null
@@ -168,7 +180,7 @@ if [ "$MODE" = native ]; then
   MEILI_PID=$!; sleep 2
   bench --site "$SITE" migrate
   bench --site "$SITE" execute sok_resdesk.search.setup_indexes >/dev/null || warn "Search index settings will be applied on the next ingest"
-  bench build >/dev/null
+  if [ "$FRAPPE_CHANGED" = 1 ]; then bench build >/dev/null; else bench build --app sok_resdesk >/dev/null; fi
   redis-cli -p "$(awk '/^port/{print $2}' config/redis_cache.conf)" shutdown nosave >/dev/null 2>&1 || true
   redis-cli -p "$(awk '/^port/{print $2}' config/redis_queue.conf)" shutdown nosave >/dev/null 2>&1 || true
   kill "$MEILI_PID" 2>/dev/null || true
@@ -190,19 +202,23 @@ else
   if [ -n "${RESDESK_IMAGE:-}" ]; then
     docker compose pull
   else
-    # Frappe patch releases: build against the newest commit on the Frappe branch (a changed
-    # FRAPPE_COMMIT rebuilds the Frappe layer); --no-frappe keeps the one built last time
+    # Frappe: rebuild it (10 minutes or more) only when a newer v16 *release* is out than the one
+    # in the image; otherwise the cached build is used and only Research Desk itself is rebuilt
     if [ "$FRAPPE" = 1 ]; then
-      NEW_COMMIT="$( (git ls-remote https://github.com/frappe/frappe "refs/heads/${FRAPPE_BRANCH:-version-16}" 2>/dev/null || true) | cut -c1-12)"
-      if [ -n "$NEW_COMMIT" ] && [ "$NEW_COMMIT" != "${FRAPPE_COMMIT:-}" ]; then
-        if grep -q '^FRAPPE_COMMIT=' .env; then sed -i.bak "s#^FRAPPE_COMMIT=.*#FRAPPE_COMMIT=$NEW_COMMIT#" .env && rm -f .env.bak
-        else echo "FRAPPE_COMMIT=$NEW_COMMIT" >> .env; fi
-        export FRAPPE_COMMIT="$NEW_COMMIT"
-        ok "Frappe ${FRAPPE_BRANCH:-version-16} at $NEW_COMMIT: rebuilding Frappe (10 minutes or more)"
-      elif [ -z "$NEW_COMMIT" ]; then
-        warn "Could not ask GitHub for Frappe's newest version; keeping the current one"
+      MAJOR="${FRAPPE_BRANCH:-version-16}"; MAJOR="${MAJOR#version-}"
+      LATEST="$( (git ls-remote --tags --refs https://github.com/frappe/frappe "refs/tags/v${MAJOR}.*" 2>/dev/null || true) \
+        | sed 's#.*refs/tags/##' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)"
+      HAVE="$(docker run --rm --entrypoint cat "${RESDESK_IMAGE:-sok-resdesk}:${RESDESK_TAG:-local}" \
+        apps/frappe/frappe/__init__.py 2>/dev/null | sed -n 's/^__version__ = "\(.*\)"/v\1/p' || true)"
+      if [ -z "$LATEST" ]; then
+        warn "Could not ask GitHub for Frappe's newest release; keeping Frappe ${HAVE:-as it is}"
+      elif [ -n "$HAVE" ] && [ "$(printf '%s\n%s\n' "$LATEST" "$HAVE" | sort -V | tail -1)" = "$HAVE" ]; then
+        ok "Frappe $HAVE is the newest release: no rebuild needed"
       else
-        ok "Frappe unchanged"
+        if grep -q '^FRAPPE_COMMIT=' .env; then sed -i.bak "s#^FRAPPE_COMMIT=.*#FRAPPE_COMMIT=$LATEST#" .env && rm -f .env.bak
+        else echo "FRAPPE_COMMIT=$LATEST" >> .env; fi
+        export FRAPPE_COMMIT="$LATEST"
+        ok "Frappe ${HAVE:-?} → $LATEST: rebuilding Frappe (10 minutes or more, only for a new Frappe release)"
       fi
     else
       ok "Frappe kept as it is (--no-frappe)"

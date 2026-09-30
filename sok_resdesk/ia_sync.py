@@ -179,6 +179,39 @@ def after_run(run_name: str) -> None:
 	frappe.db.commit()
 
 
+def refresh_mirrors(profile: str | None = None) -> None:
+	"""Make or update the portal collection of every archive.org profile that asks for one (or
+	of one profile): after an upgrade, and when a profile's setting is switched on."""
+	filters = {"source": "Internet Archive", "scope_type": "Collection", "mirror_collection": 1}
+	if profile:
+		filters["name"] = profile
+	for name in frappe.get_all("RD Ingest Profile", filters=filters, pluck="name"):
+		doc = frappe.get_doc("RD Ingest Profile", name)
+		if not (doc.ia_collection or "").strip() or not frappe.db.exists("RD Item", {"ingest_profile": name}):
+			continue  # nothing ingested yet: the first run makes it
+		try:
+			collection = ensure_mirror(doc)
+			if collection:
+				sync_mirror(collection)
+			frappe.db.commit()
+		except Exception:
+			frappe.db.rollback()
+			frappe.log_error(title=f"Research Desk: could not update the portal collection of {name}")
+
+
+def on_profile_update(doc, method=None) -> None:
+	"""Portal collection switched on (or the collection changed): make it now, in the background."""
+	if (
+		doc.source == "Internet Archive"
+		and doc.scope_type == "Collection"
+		and cint(doc.mirror_collection)
+		and (doc.has_value_changed("mirror_collection") or doc.has_value_changed("ia_collection"))
+	):
+		frappe.enqueue(
+			"sok_resdesk.ia_sync.refresh_mirrors", queue="long", profile=doc.name, enqueue_after_commit=True
+		)
+
+
 def ensure_mirror(profile) -> str | None:
 	"""The portal collection for a profile's archive.org collection, made on first use."""
 	ia_collection = profile.ia_collection.strip()

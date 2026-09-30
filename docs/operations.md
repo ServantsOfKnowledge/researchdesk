@@ -217,9 +217,11 @@ and watch it happen; see [Server](server.md#upgrading-from-the-desk). On the ser
 
 1. **backs up** the database and files into `site-backups/` (skip with `--no-backup`),
 2. **fetches** the new Research Desk code from GitHub,
-3. **updates Frappe** to the newest patch release of v16. Docker rebuilds the Frappe part of
-   the image when a newer patch is out (10 minutes or more); native updates the bench (skip
-   either with `--no-frappe`),
+3. **updates Frappe** to the newest patch release of v16, *only when there is a newer one*:
+   Docker rebuilds the Frappe part of the image (10 minutes or more) and native reinstalls its
+   packages only then. Otherwise Frappe and its Python and Node packages are reused as they are,
+   and only Research Desk itself is rebuilt, which takes about a minute (skip Frappe updates
+   with `--no-frappe`),
 4. runs **database migrations** and re-applies the search-index settings,
 5. **restarts** and runs a **health check** (portal and search engine).
 

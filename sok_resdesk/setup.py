@@ -94,6 +94,12 @@ def after_migrate():
 	except Exception:
 		frappe.log_error("Research Desk: could not set up the on-screen guide")
 	try:
+		# portal collections for archive.org profiles, straight after an upgrade (in the background:
+		# it may ask archive.org for the collections' names)
+		frappe.enqueue("sok_resdesk.ia_sync.refresh_mirrors", queue="long", enqueue_after_commit=True)
+	except Exception:
+		frappe.log_error("Research Desk: could not queue the portal collections update")
+	try:
 		from sok_resdesk.search import MeiliClient
 
 		MeiliClient.from_settings().setup()

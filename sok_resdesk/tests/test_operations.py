@@ -504,3 +504,21 @@ class TestIASync(OpsTestCase):
 		self.assertFalse(ia_sync.is_sync_run(run, profile))
 		profile.keep_in_sync = 0
 		self.assertFalse(ia_sync.is_sync_run(frappe._dict(triggered_by="Scheduler"), profile))
+
+	def test_portal_collection_made_after_upgrade_and_when_switched_on(self):
+		from sok_resdesk import ia_sync
+
+		frappe.db.set_value("RD Ingest Profile", self.profile.name, "mirror_collection", 0)
+		self.run_profile("Manual")  # books in, but no portal collection asked for
+		self.assertFalse(frappe.db.get_value("RD Ingest Profile", self.profile.name, "portal_collection"))
+		profile = frappe.get_doc("RD Ingest Profile", self.profile.name)
+		profile.mirror_collection = 1
+		self.enqueued.clear()
+		profile.save()
+		self.assertEqual(self.enqueued[-1][0], "sok_resdesk.ia_sync.refresh_mirrors")
+		ia_sync.refresh_mirrors(**{k: v for k, v in self.enqueued[-1][1].items() if k == "profile"})
+		coll = frappe.db.get_value("RD Ingest Profile", self.profile.name, "portal_collection")
+		self.assertEqual(frappe.db.get_value("RD Collection", coll, "mirror_of"), "rdtestcoll")
+		self.assertEqual(frappe.db.count("RD Item Collection", {"collection": coll}), 4)
+		ia_sync.refresh_mirrors()  # after an upgrade: all profiles, and nothing doubles
+		self.assertEqual(frappe.db.count("RD Collection", {"mirror_of": "rdtestcoll"}), 1)
