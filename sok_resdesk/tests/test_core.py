@@ -547,3 +547,77 @@ def test_updater_helper_commands():
 	assert agent.command_for("apply_resources", {"preset": "huge"}, docker) is None
 	assert agent.command_for("server_backup", {}, native) == ["./resdesk.sh", "backup"]
 	assert agent.command_for("rm", {}, docker) is None
+
+
+def test_migrate_fingerprint(tmp_path):
+	from sok_resdesk.core import schema
+
+	bench = tmp_path
+	(bench / "sites" / "site1").mkdir(parents=True)
+	(bench / "sites" / "apps.txt").write_text("frappe\nsok_resdesk\n")
+	files = {
+		"frappe/frappe/__init__.py": '__version__ = "16.1.0"',
+		"frappe/frappe/core/doctype/user/user.json": "{}",
+		"frappe/frappe/core/doctype/user/user.py": "x = 1",
+		"frappe/frappe/public/build.json": "{}",
+		"sok_resdesk/sok_resdesk/__init__.py": '__version__ = "1.0.0"',
+		"sok_resdesk/sok_resdesk/hooks.py": "app_name = 'sok_resdesk'",
+		"sok_resdesk/sok_resdesk/patches.txt": "[post_model_sync]",
+		"sok_resdesk/sok_resdesk/patches/v1/p.py": "def execute(): pass",
+		"sok_resdesk/sok_resdesk/setup.py": "def after_migrate(): pass",
+		"sok_resdesk/sok_resdesk/search.py": "x = 1",
+		"sok_resdesk/sok_resdesk/resdesk/doctype/rd_item/rd_item.json": "{}",
+	}
+	for rel, text in files.items():
+		p = bench / "apps" / rel
+		p.parent.mkdir(parents=True, exist_ok=True)
+		p.write_text(text)
+	assert "core/doctype/user/user.json" in schema.app_files(str(bench), "frappe")
+	assert "public/build.json" not in schema.app_files(str(bench), "frappe")
+	assert "patches/v1/p.py" in schema.app_files(str(bench), "sok_resdesk")
+
+	first = schema.fingerprint(str(bench))
+	assert first == schema.fingerprint(str(bench))
+
+	def changed(rel, text="changed"):
+		p = bench / "apps" / rel
+		old = p.read_text()
+		p.write_text(text)
+		result = schema.fingerprint(str(bench)) != first
+		p.write_text(old)
+		return result
+
+	# what migrate acts on
+	for rel in (
+		"frappe/frappe/__init__.py",
+		"frappe/frappe/core/doctype/user/user.json",
+		"sok_resdesk/sok_resdesk/hooks.py",
+		"sok_resdesk/sok_resdesk/patches.txt",
+		"sok_resdesk/sok_resdesk/patches/v1/p.py",
+		"sok_resdesk/sok_resdesk/setup.py",
+		"sok_resdesk/sok_resdesk/resdesk/doctype/rd_item/rd_item.json",
+	):
+		assert changed(rel), rel
+	# ordinary code changes don't need a migrate
+	for rel in (
+		"frappe/frappe/core/doctype/user/user.py",
+		"frappe/frappe/public/build.json",
+		"sok_resdesk/sok_resdesk/search.py",
+	):
+		assert not changed(rel), rel
+	assert schema.fingerprint(str(bench)) == first
+
+	# no database settings: can't tell, so migrate
+	assert schema.stored(str(bench), "site1") is None
+	assert schema.needs_migrate(str(bench), "site1")[0]
+	assert schema.needs_migrate(str(bench), "nosite") == (True, "no such site")
+	schema.stored = lambda b, s: first
+	try:
+		assert schema.needs_migrate(str(bench), "site1") == (
+			False,
+			"the database is up to date with the code",
+		)
+	finally:
+		import importlib
+
+		importlib.reload(schema)

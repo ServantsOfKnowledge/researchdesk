@@ -1,5 +1,6 @@
 #!/bin/bash
-# Creates the Research Desk site on first run; migrates it on later runs.
+# Creates the Research Desk site on first run; on later runs migrates it when the code has
+# changed since the last migrate (sok_resdesk/core/schema.py), or always with FORCE_MIGRATE=1.
 # Runs inside the "create-site" one-shot container (see compose.yaml).
 set -euo pipefail
 cd /home/frappe/frappe-bench
@@ -11,8 +12,13 @@ wait-for-it -t 120 redis-cache:6379
 wait-for-it -t 120 redis-queue:6379
 
 if [ -d "sites/${SITE_NAME}" ]; then
-  echo ">> Site ${SITE_NAME} exists: running migrate"
-  bench --site "${SITE_NAME}" migrate
+  if [ "${FORCE_MIGRATE:-0}" != 1 ] && WHY="$(env/bin/python -m sok_resdesk.core.schema check "${SITE_NAME}")"; then
+    echo ">> Site ${SITE_NAME} exists: ${WHY}, no migrate needed"
+  else
+    echo ">> Site ${SITE_NAME} exists: ${WHY:-migrate asked for}, running migrate"
+    # --skip-search-index: Frappe's own website search isn't used (the portal searches with Meilisearch)
+    bench --site "${SITE_NAME}" migrate --skip-search-index
+  fi
 else
   echo ">> Creating site ${SITE_NAME}"
   bench new-site "${SITE_NAME}" \
@@ -33,7 +39,12 @@ else
   bench --site "${SITE_NAME}" enable-scheduler
 fi
 
-if [ -n "${BASE_URL:-}" ]; then
+stored_host() {
+  env/bin/python -c 'import json,sys; print(json.load(open(sys.argv[1])).get("host_name") or "")' \
+    "sites/${SITE_NAME}/site_config.json" 2>/dev/null || true
+}
+# only when the address changed: saving Settings on every start competes with running jobs
+if [ -n "${BASE_URL:-}" ] && [ "$(stored_host)" != "${BASE_URL}" ]; then
   # host_name: used by Frappe for absolute URLs and the realtime (socket.io) origin check
   bench --site "${SITE_NAME}" set-config host_name "${BASE_URL}"
   # not worth failing an upgrade over: it only records the address (Settings can set it too)

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.12.1 (2026-10-01): no migrate when nothing needs it
+
+- **Starts, restarts and upgrades skip the database migrate when the code hasn't changed what
+  it acts on** (Frappe or Research Desk version, DocTypes and other definitions, patches,
+  `hooks.py`, the setup code). Before, every start ran a full `bench migrate` next to the
+  running portal and workers. A fingerprint of that code is recorded in the database by each
+  migrate; the check takes a fraction of a second. `./resdesk.sh migrate` or
+  `FORCE_MIGRATE=1` still migrate on demand
+- Migrates no longer queue Frappe's website search index (the portal uses Meilisearch)
+- Start-up saves the public address to Settings only when `BASE_URL` changed, instead of on
+  every start
+
 ## 0.12.0 (2026-10-01): a portal page for every archive.org collection
 
 - **Every archive.org collection your books belong to gets a portal collection**, sub-collections

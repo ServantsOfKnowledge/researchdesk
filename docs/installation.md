@@ -50,7 +50,7 @@ multi-architecture.
 
 The installer writes `.env` with random passwords (keep it private). You can re-run
 `./install.sh` safely at any time. It keeps `.env` and your data, rebuilds if needed and
-migrates the site.
+migrates the site if the code needs it ([Database migrations](operations.md#database-migrations)).
 
 Settings you can change in `.env` before (re)running the installer:
 
@@ -109,8 +109,8 @@ Research Desk is a standard Docker Compose app:
 2. Add the variables from `.env.example` as environment variables. Generate
    `ADMIN_PASSWORD`, `DB_ROOT_PASSWORD` and `MEILI_MASTER_KEY` with long random strings.
 3. Assign your domain to the **frontend** service on port 8080, and set `BASE_URL` to it.
-4. Deploy. The `create-site` container creates the site on the first deploy and migrates on
-   later ones.
+4. Deploy. The `create-site` container creates the site on the first deploy and, on later
+   ones, migrates when the new code needs it.
 
 ## Developer mode (Docker, code from this folder)
 
@@ -125,7 +125,8 @@ The easiest way to keep developing: no Python, MariaDB or Node needed on your co
 - Background workers need `./resdesk.sh restart` to pick up Python changes.
 - `developer_mode` is on, so DocTypes you edit in the Desk are written back into
   `sok_resdesk/resdesk/doctype/` for you to commit.
-- After changing a DocType's JSON by hand, run `./resdesk.sh migrate`.
+- After changing a DocType's JSON by hand, run `./resdesk.sh migrate` (a restart also migrates,
+  because the JSON changed).
 
 `./resdesk.sh dev off` rebuilds the image with the current code and goes back to normal mode.
 Dev mode uses a development web server with a debugger, so **don't use it on a public server**.

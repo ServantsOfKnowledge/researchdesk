@@ -139,6 +139,7 @@ services:
       PORTAL_TITLE: ${PORTAL_TITLE:-SoK Research Desk}
       CONTACT_EMAIL: ${CONTACT_EMAIL:-}
       BASE_URL: ${BASE_URL:-}
+      FORCE_MIGRATE: ${FORCE_MIGRATE:-0}
       TIMEZONE: ${TIMEZONE:-Asia/Kolkata}
       COUNTRY: ${COUNTRY:-India}
       CURRENCY: ${CURRENCY:-INR}

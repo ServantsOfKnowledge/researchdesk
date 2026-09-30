@@ -222,12 +222,37 @@ and watch it happen; see [Server](server.md#upgrading-from-the-desk). On the ser
    packages only then. Otherwise Frappe and its Python and Node packages are reused as they are,
    and only Research Desk itself is rebuilt, which takes about a minute (skip Frappe updates
    with `--no-frappe`),
-4. runs **database migrations** and re-applies the search-index settings,
+4. runs **database migrations**, *only when the new code needs them*, and re-applies the
+   search-index settings ([below](#database-migrations)),
 5. **restarts** and runs a **health check** (portal and search engine).
 
 The portal is offline for a few minutes. Everything is written to `logs/upgrade-<date>.log`. If
 a step fails, the script stops and prints the two commands that put you back where you were:
 checking out the previous version, and restoring the backup it just made.
+
+### Database migrations
+
+A migrate (`bench migrate`) brings the database in line with the code: new patches, changed
+DocTypes, then Research Desk's own setup (roles, workspace, branding, the on-screen guide). It
+takes from several seconds to a few minutes, and the portal and workers are running while it
+does. So Research Desk only migrates **when the code that shapes the database has changed**
+since the last migrate: the Frappe or Research Desk version, a DocType or other definition, a
+patch, `hooks.py`, or the setup code. Bug-fix releases that only change other Python, the
+portal pages or the scripts skip it, and so does every ordinary start or restart. The
+`create-site` log says which: *no migrate needed* or *running migrate*.
+
+Each migrate records a fingerprint of that code in the database. A database restored from a
+backup carries the fingerprint of the code it was made with, so it is migrated on the next
+start if the code has moved on since. To migrate anyway:
+
+```bash
+./resdesk.sh migrate                 # now, whatever changed
+FORCE_MIGRATE=1 ./resdesk.sh start   # Docker: on this start
+./upgrade.sh                         # when already up to date, "re-run migrations anyway?" forces it
+```
+
+Migrates skip Frappe's website search index (`--skip-search-index`): the portal searches with
+Meilisearch, so rebuilding it was work for nothing after every migrate.
 
 Local code changes block an upgrade (so nothing is overwritten). Commit or `git stash` them
 first. Releases that change the search index say so at the end. Then run

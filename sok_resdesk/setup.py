@@ -106,6 +106,13 @@ def after_migrate():
 	except Exception:
 		# Search engine may not be up yet during migrate; the ingest job sets indexes up too.
 		pass
+	try:
+		# last: lets the next start-up skip migrate while the code stays the same (core/schema.py)
+		from sok_resdesk.core import schema
+
+		schema.record()
+	except Exception:
+		frappe.log_error("Research Desk: could not record the migrated code version")
 
 
 def create_roles():

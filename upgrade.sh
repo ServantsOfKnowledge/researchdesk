@@ -74,6 +74,7 @@ if [ "$(git rev-parse HEAD)" = "$TARGET_SHA" ]; then
   ok "Already up to date."
   [ "$CHECK" = 1 ] && exit 0
   [ "$YES" = 1 ] || { read -r -p "  Re-run migrations and a health check anyway? [y/N]: " a || true; [[ "${a:-N}" =~ ^[Yy] ]] || exit 0; }
+  export FORCE_MIGRATE=1   # asked for: migrate even though the code is the same
 else
   echo
   if git merge-base --is-ancestor "$TARGET_SHA" HEAD 2>/dev/null; then
@@ -178,7 +179,11 @@ if [ "$MODE" = native ]; then
   meilisearch --db-path "$BENCH_DIR/meili-data" --http-addr "127.0.0.1:${MEILI_PORT:-7700}" --master-key "$MEILI_MASTER_KEY" \
     --no-analytics --env production >> logs/meilisearch.log 2>&1 &
   MEILI_PID=$!; sleep 2
-  bench --site "$SITE" migrate
+  if [ "${FORCE_MIGRATE:-0}" != 1 ] && WHY="$(BENCH_DIR="$BENCH_DIR" env/bin/python -m sok_resdesk.core.schema check "$SITE")"; then
+    ok "No migrate needed: $WHY"
+  else
+    bench --site "$SITE" migrate --skip-search-index
+  fi
   bench --site "$SITE" execute sok_resdesk.search.setup_indexes >/dev/null || warn "Search index settings will be applied on the next ingest"
   if [ "$FRAPPE_CHANGED" = 1 ]; then bench build >/dev/null; else bench build --app sok_resdesk >/dev/null; fi
   redis-cli -p "$(awk '/^port/{print $2}' config/redis_cache.conf)" shutdown nosave >/dev/null 2>&1 || true
@@ -268,7 +273,11 @@ else
     CID=$(docker compose ps -a -q create-site 2>/dev/null || true)
     STATE=$( [ -n "$CID" ] && docker inspect -f '{{.State.Status}} {{.State.ExitCode}}' "$CID" 2>/dev/null || echo none)
     case "$STATE" in
-      "exited 0") echo; ok "Database migrated"; MIGRATED=1; break ;;
+      "exited 0") echo
+        if docker compose logs --no-color --tail 30 create-site 2>/dev/null | grep "exists:" | tail -1 | grep -q "no migrate needed"; then
+          ok "Database already up to date: no migrate needed"
+        else ok "Database migrated"; fi
+        MIGRATED=1; break ;;
       exited*) echo; docker compose logs --tail 40 create-site; false ;;
       created*|none) [ "$i" -gt 24 ] && { echo; warn "The migration container never started."; show_containers; false; } ;;
     esac

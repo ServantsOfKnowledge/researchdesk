@@ -154,6 +154,7 @@ The in-app help, tours and checklist:
 | Help pages (portal `/library/help`, Desk `/app/resdesk-help`) | `help.py`, `core/helpdocs.py`, `www/library/help.*`, `resdesk/page/resdesk_help/` |
 | **Help** / **Take the tour** buttons on forms | `public/js/desk_help.js`, `help.py` `SCREEN_HELP` |
 | Form tours | `guide.py` `TOURS` (Frappe Form Tours, written on every migrate) |
+| When start-up migrates | `core/schema.py`: the files whose change needs a migrate. Code that `after_migrate` runs goes in `AFTER_MIGRATE_FILES` |
 | Getting-started checklist | `guide.py` `STEPS`, drawn by `desk_help.js` in the workspace block *Research Desk Checklist* |
 | Reader tips on the portal | `templates/includes/rd_tips.html`, `public/js/tips.js` |
 
