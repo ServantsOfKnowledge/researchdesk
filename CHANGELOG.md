@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.10.1 (2026-09-30): gentler workers by default, more tests, formatted code
+
+- Background workers now run at the **lowest priority (nice 19) by default** on every preset, and
+  that is the level they really get: Frappe's own +10 for workers no longer adds on top. To let
+  them work harder, `./resdesk.sh resources set WORKER_NICE=10` (0 = normal). `WORKER_NICE`
+  replaces `QUEUE_NICE`, which is no longer used
+- More integration tests (`tests/test_operations.py`): pushing, dry runs, pause and resume,
+  cancel, Pause All, quiet hours, the getting-started checklist, resource presets and portable
+  folder paths. CI also checks the worker priority and moves the install (export, import back)
+- Code formatted with `ruff format`, checked in CI
+- Errors while pausing or cancelling a queued push are written to the Error Log instead of being
+  hidden
+
 ## 0.10.0 (2026-09-30): keep the machine usable, move in one file, logo in the Desk
 
 - **Resource presets**: `./resdesk.sh resources light|standard|server` caps the background

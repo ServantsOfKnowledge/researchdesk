@@ -68,7 +68,7 @@ Big ingests and re-indexing can keep every CPU busy for hours. Four things keep 
 | Search engine CPU / memory | 1 / 1 GB | 2 / 2 GB | no limit |
 | Search-indexing threads / memory | 1 / 256 MB | 2 / 1 GB | automatic |
 | Database CPU / memory, buffer pool | 1 / 1 GB, 256 MB | 1 / 1.5 GB, 512 MB | no limit, 2 GB |
-| Worker priority (nice) | 15 | 10 | 5 |
+| Worker priority (nice) | 19 (lowest) | 19 (lowest) | 19 (lowest) |
 | Memory in all, at most | about 3 GB | about 6.5 GB | as needed |
 
 Fine-tune any cap (the preset becomes *custom*):
@@ -81,14 +81,18 @@ Fine-tune any cap (the preset becomes *custom*):
 |---|---|
 | `QUEUE_WORKERS` | background workers: how many batches run at once (ingest, re-index, exports, pushes) |
 | `QUEUE_CPUS`, `QUEUE_MEMORY` | each worker, e.g. `1.5`, `2g` (`0` = no limit) |
-| `QUEUE_NICE` | worker priority, 0–19: higher is gentler on everything else |
+| `WORKER_NICE` | worker priority, 0–19: 19 (the default) is gentlest on everything else; lower gives workers more CPU time when the machine is busy |
 | `MEILI_CPUS`, `MEILI_MEMORY` | the search engine |
 | `MEILI_MAX_INDEXING_THREADS`, `MEILI_MAX_INDEXING_MEMORY` | how hard the search engine indexes, e.g. `2`, `1Gb` (empty = automatic) |
 | `DB_CPUS`, `DB_MEMORY`, `DB_BUFFER_POOL` | MariaDB, and its cache (e.g. `512M`) |
 | `GUNICORN_WORKERS` | web server processes (not capped: the portal should stay fast) |
 
-The workers always run at low CPU and disk priority, so the portal and the Desk stay responsive
-while they work. A worker that hits its memory cap is stopped by Docker and its batch has to be
+The workers run at the lowest CPU priority and low disk priority, so the portal and the Desk
+stay responsive while they work. Priority only matters when the machine is busy: an idle machine
+still gives the workers all the CPU they ask for. To let them work harder next to other programs,
+raise their priority, e.g. `./resdesk.sh resources set WORKER_NICE=10` (`0` is normal priority).
+
+A worker that hits its memory cap is stopped by Docker and its batch has to be
 run again, so don't set `QUEUE_MEMORY` below 1 GB. On **Docker Desktop** (Mac, Windows) Docker
 itself has a ceiling too: Settings → Resources. The presets fit inside its defaults.
 

@@ -20,6 +20,8 @@ jobs:
           python-version: "3.14"
       - run: pip install ruff pytest requests
       - run: ruff check sok_resdesk scripts
+      - name: "Code is formatted (fix with: ruff format sok_resdesk scripts)"
+        run: ruff format --check sok_resdesk scripts
       - run: pytest -q sok_resdesk/tests/test_core.py sok_resdesk/tests/test_push.py sok_resdesk/tests/unit_folder.py
       - name: Docs match the code (see docs/development.md → Keeping the docs current)
         run: pytest -q sok_resdesk/tests/test_docs.py
@@ -34,10 +36,15 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install with the same script librarians use
         run: ./install.sh --yes --no-sample
-      - name: Frappe integration tests
+      - name: Frappe integration tests (catalogue, access, pushing, pause/resume, quiet hours, moving)
         run: |
           ./resdesk.sh bench set-config allow_tests true
           docker compose exec -T backend bench --site resdesk.localhost run-tests --app sok_resdesk
+      - name: Background workers run at low priority
+        run: |
+          # the nice level of each worker process (field 19 of /proc/PID/stat): 19 unless WORKER_NICE is set
+          docker compose exec -T queue sh -c 'for p in /proc/[0-9]*; do [ "$p" = /proc/$$ ] && continue; tr "\0" " " < $p/cmdline 2>/dev/null | grep -q "bench_helper frappe worker" && cut -d" " -f19 $p/stat; done' \
+            | tee /dev/stderr | awk '{n++} $1 != 19 {bad=1} END {exit bad || !n}'
       - name: Small live ingest from the Internet Archive
         run: ./resdesk.sh ingest --collection ServantsOfKnowledge --filter "language:eng" --limit 3
       - name: Smoke-test public endpoints
@@ -48,6 +55,16 @@ jobs:
           curl -fsS "$B/api/method/sok_resdesk.api.search?q=india" | grep -q '"hits"'
           curl -fsS "$B/api/method/sok_resdesk.oai.endpoint?verb=Identify" | grep -q "<Identify>"
           curl -fsS "$B/api/method/sok_resdesk.api.stats"
+      - name: Move an install - export, then import the archive back
+        run: |
+          set -e
+          before=$(docker compose exec -T backend bench --site resdesk.localhost execute frappe.db.count --args '["RD Item"]' | tail -1)
+          ./resdesk.sh export site-backups/ci-move.tar.gz
+          ./resdesk.sh import site-backups/ci-move.tar.gz --yes
+          after=$(docker compose exec -T backend bench --site resdesk.localhost execute frappe.db.count --args '["RD Item"]' | tail -1)
+          echo "books before: $before, after: $after"; [ "$before" = "$after" ]
+          curl -fsS http://localhost:8080/library > /dev/null
+          rm -f site-backups/ci-move.tar.gz
       - name: Logs on failure
         if: failure()
         run: docker compose logs --tail 200

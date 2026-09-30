@@ -117,6 +117,7 @@ services:
         bench set-config -g redis_queue "redis://redis-queue:6379";
         bench set-config -g redis_socketio "redis://redis-queue:6379";
         bench set-config -gp socketio_port 9000;
+        bench set-config -gp background_process_niceness 0;
     volumes:
       - sites:/home/frappe/frappe-bench/sites
       - logs:/home/frappe/frappe-bench/logs
@@ -154,7 +155,7 @@ services:
       RESDESK_DOCKER_API: http://monitor:2375
       # shown on Background Jobs → Machine (the app can't change them: ./resdesk.sh resources)
       RESDESK_RESOURCES: >-
-        preset=${RESOURCES_PRESET:-standard};workers=${QUEUE_WORKERS:-2};worker_cpus=${QUEUE_CPUS:-0};worker_memory=${QUEUE_MEMORY:-0};worker_nice=${QUEUE_NICE:-10};search_cpus=${MEILI_CPUS:-0};search_memory=${MEILI_MEMORY:-0};search_threads=${MEILI_MAX_INDEXING_THREADS:-};db_cpus=${DB_CPUS:-0};db_memory=${DB_MEMORY:-0};db_buffer_pool=${DB_BUFFER_POOL:-256M};web_workers=${GUNICORN_WORKERS:-2}
+        preset=${RESOURCES_PRESET:-standard};workers=${QUEUE_WORKERS:-2};worker_cpus=${QUEUE_CPUS:-0};worker_memory=${QUEUE_MEMORY:-0};worker_nice=${WORKER_NICE:-19};search_cpus=${MEILI_CPUS:-0};search_memory=${MEILI_MEMORY:-0};search_threads=${MEILI_MAX_INDEXING_THREADS:-};db_cpus=${DB_CPUS:-0};db_memory=${DB_MEMORY:-0};db_buffer_pool=${DB_BUFFER_POOL:-256M};web_workers=${GUNICORN_WORKERS:-2}
 
   websocket:
     <<: *backend
@@ -162,10 +163,11 @@ services:
 
   # Background workers. Each one processes one ingest batch at a time, so
   # QUEUE_WORKERS=4 ingests about four books at once. 2 to 4 is polite to archive.org.
-  # They run at low CPU and disk priority (QUEUE_NICE) so the portal stays quick.
+  # They run at the lowest CPU priority (WORKER_NICE, 19) and low disk priority so the portal
+  # stays quick; give them more with ./resdesk.sh resources set WORKER_NICE=10 (0 = normal).
   queue:
     <<: *backend
-    command: ["nice", "-n", "${QUEUE_NICE:-10}", "ionice", "-c", "2", "-n", "7",
+    command: ["nice", "-n", "${WORKER_NICE:-19}", "ionice", "-c", "2", "-n", "7",
               "bench", "worker", "--queue", "long,default,short"]
     deploy:
       replicas: ${QUEUE_WORKERS:-2}

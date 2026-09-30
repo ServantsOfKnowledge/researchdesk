@@ -352,7 +352,7 @@ class ResDeskJobs {
 		const limits = m.native
 			? `<p class="text-muted small">${__("Native install: workers {0}; CPU and memory caps are a Docker feature.", [L.workers || "?"])}</p>`
 			: `<table class="table table-sm rdj-table small"><tbody>
-				<tr><td>${__("Background workers")}</td><td>${esc(L.workers || "2")} × (${cap(L.worker_cpus, " CPU")}, ${cap(L.worker_memory)}) · ${__("low priority")} (nice ${esc(L.worker_nice || "10")})</td></tr>
+				<tr><td>${__("Background workers")}</td><td>${esc(L.workers || "2")} × (${cap(L.worker_cpus, " CPU")}, ${cap(L.worker_memory)}) · ${__("low priority")} (nice ${esc(L.worker_nice || "19")})</td></tr>
 				<tr><td>${__("Search engine")}</td><td>${cap(L.search_cpus, " CPU")}, ${cap(L.search_memory)} · ${__("indexing threads")}: ${esc(L.search_threads || __("automatic"))}</td></tr>
 				<tr><td>${__("Database")}</td><td>${cap(L.db_cpus, " CPU")}, ${cap(L.db_memory)} · ${__("buffer pool")} ${esc(L.db_buffer_pool || "")}</td></tr>
 				<tr><td>${__("Web server")}</td><td>${esc(L.web_workers || "2")} ${__("workers")}</td></tr>

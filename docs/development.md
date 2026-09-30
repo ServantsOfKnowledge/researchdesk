@@ -47,7 +47,7 @@ researchdesk/
     ├── www/library/        portal pages (index = search, item = book page, collections, collection, help)
     ├── public/             css/resdesk.css, js/library.js, js/item.js, js/basket.js, js/tips.js,
     │                       js/desk_help.js, images/guide/ (screenshots used in docs/)
-    └── tests/              test_core.py, test_push.py, test_docs.py, unit_folder.py (pytest), test_integration.py (Frappe)
+    └── tests/              test_core.py, test_push.py, test_docs.py, unit_folder.py (pytest), test_integration.py, test_operations.py (Frappe)
 ```
 
 ## Workflow
@@ -78,22 +78,25 @@ Without dev mode, the Docker setup needs a rebuild after code changes: `docker c
 # fast, no Frappe needed (normalisation, citations, MARC, OAI-PMH, push clients, docs checks)
 pip install pytest requests && pytest      # test_core.py, test_push.py, test_docs.py, unit_folder.py
 
-# integration, inside a site
+# integration, inside a site: catalogue and access (test_integration.py); pushing, pause and
+# resume, Pause All, quiet hours, the checklist, portable folders (test_operations.py)
 bench --site resdesk.localhost set-config allow_tests true
 bench --site resdesk.localhost run-tests --app sok_resdesk
 #   Docker: docker compose exec backend bench --site resdesk.localhost run-tests --app sok_resdesk
 
-# lint
+# lint and formatting
 ruff check sok_resdesk scripts
+ruff format sok_resdesk scripts          # CI checks this with --check
 ```
 
 CI (`.github/workflows/ci.yml`) runs lint and unit tests, then a **real Docker install using
-`install.sh`**, the integration tests, a 3-book live ingest and endpoint smoke tests. If the
+`install.sh`**, the integration tests, a check that the workers run at low priority, a 3-book
+live ingest, endpoint smoke tests, and a move (export, then import the archive back). If the
 installer breaks for librarians, CI breaks too.
 
 ## Conventions
 
-- Python formatted with tabs (Frappe style); `ruff` config in `pyproject.toml`.
+- Python formatted with `ruff format` (tabs, Frappe style); config in `pyproject.toml`.
 - Keep protocol and format logic in `core/` with unit tests; keep Frappe glue thin.
 - Public endpoints: `allow_guest=True`, published records only, rate-limited.
 - No new Python dependencies without a good reason (the app currently needs none beyond Frappe).

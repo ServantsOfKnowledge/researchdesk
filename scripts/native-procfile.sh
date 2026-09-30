@@ -22,8 +22,10 @@ sed -i.bak '/^watch:/d' Procfile && rm -f Procfile.bak
 MEILI_EXTRA=""
 [ -n "${MEILI_MAX_INDEXING_THREADS:-}" ] && MEILI_EXTRA="$MEILI_EXTRA --max-indexing-threads $MEILI_MAX_INDEXING_THREADS"
 [ -n "${MEILI_MAX_INDEXING_MEMORY:-}" ] && MEILI_EXTRA="$MEILI_EXTRA --max-indexing-memory $MEILI_MAX_INDEXING_MEMORY"
-NICE="nice -n ${QUEUE_NICE:-10}"
-# background workers run at low priority so the portal stays responsive
+NICE="nice -n ${WORKER_NICE:-19}"
+# background workers run at low priority so the portal stays responsive. The level is exactly
+# WORKER_NICE: Frappe's own +10 for workers is turned off so the two don't add up.
+bench set-config -gp background_process_niceness 0 >/dev/null
 sed -i.bak -E "s#^(worker[^:]*): (nice -n [0-9]+ )?bench worker#\1: $NICE bench worker#" Procfile && rm -f Procfile.bak
 {
   echo "meilisearch: meilisearch --db-path $BENCH_DIR/meili-data --http-addr 127.0.0.1:$MEILI_PORT --master-key $MEILI_KEY --no-analytics --env production$MEILI_EXTRA 1>> logs/meilisearch.log 2>&1"

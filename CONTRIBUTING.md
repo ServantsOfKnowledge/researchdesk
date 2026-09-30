@@ -7,7 +7,8 @@ Thank you for helping build an open research portal for digitised books.
 - **Developers:** read [docs/development.md](docs/development.md). In short:
   1. Fork and create a branch.
   2. Keep format/protocol logic in `sok_resdesk/core/` with tests in `tests/test_core.py` or `tests/unit_*.py`.
-  3. `ruff check sok_resdesk scripts && pytest` must pass. `tests/test_docs.py` fails when
+  3. `ruff check sok_resdesk scripts && ruff format --check sok_resdesk scripts && pytest` must pass
+     (and `bench run-tests --app sok_resdesk` for anything touching the database). `tests/test_docs.py` fails when
      something you added isn't documented, and says where it goes.
   4. Update `docs/` and `CHANGELOG.md` for anything user-visible, run `./resdesk.sh docs`,
      and retake changed screens with `./resdesk.sh screenshots`

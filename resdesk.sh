@@ -5,7 +5,6 @@ cd "$(dirname "$0")"
 [ -f .env ] || { echo "No .env found. Run ./install.sh first."; exit 1; }
 set -a; . ./.env; set +a
 SITE="${SITE_NAME:-resdesk.localhost}"
-APP_DIR="$(pwd)"
 MODE="${INSTALL_MODE:-docker}"
 
 if [ "$MODE" = native ]; then
@@ -83,19 +82,19 @@ case "$cmd" in
 
   resources)
     # Caps for the background workers, search engine and database (docs/operations.md#resources)
-    RES_KEYS="QUEUE_WORKERS QUEUE_CPUS QUEUE_MEMORY QUEUE_NICE MEILI_CPUS MEILI_MEMORY MEILI_MAX_INDEXING_THREADS MEILI_MAX_INDEXING_MEMORY DB_CPUS DB_MEMORY DB_BUFFER_POOL GUNICORN_WORKERS"
+    RES_KEYS="QUEUE_WORKERS QUEUE_CPUS QUEUE_MEMORY WORKER_NICE MEILI_CPUS MEILI_MEMORY MEILI_MAX_INDEXING_THREADS MEILI_MAX_INDEXING_MEMORY DB_CPUS DB_MEMORY DB_BUFFER_POOL GUNICORN_WORKERS"
     preset_values() {
       case "$1" in
-        light)    echo "QUEUE_WORKERS=1 QUEUE_CPUS=1 QUEUE_MEMORY=1g QUEUE_NICE=15 MEILI_CPUS=1 MEILI_MEMORY=1g MEILI_MAX_INDEXING_THREADS=1 MEILI_MAX_INDEXING_MEMORY=256Mb DB_CPUS=1 DB_MEMORY=1g DB_BUFFER_POOL=256M GUNICORN_WORKERS=2" ;;
-        standard) echo "QUEUE_WORKERS=2 QUEUE_CPUS=1 QUEUE_MEMORY=1536m QUEUE_NICE=10 MEILI_CPUS=2 MEILI_MEMORY=2g MEILI_MAX_INDEXING_THREADS=2 MEILI_MAX_INDEXING_MEMORY=1Gb DB_CPUS=1 DB_MEMORY=1536m DB_BUFFER_POOL=512M GUNICORN_WORKERS=2" ;;
-        server)   echo "QUEUE_WORKERS=4 QUEUE_CPUS=2 QUEUE_MEMORY=2g QUEUE_NICE=5 MEILI_CPUS=0 MEILI_MEMORY=0 MEILI_MAX_INDEXING_THREADS= MEILI_MAX_INDEXING_MEMORY= DB_CPUS=0 DB_MEMORY=0 DB_BUFFER_POOL=2G GUNICORN_WORKERS=4" ;;
+        light)    echo "QUEUE_WORKERS=1 QUEUE_CPUS=1 QUEUE_MEMORY=1g MEILI_CPUS=1 MEILI_MEMORY=1g MEILI_MAX_INDEXING_THREADS=1 MEILI_MAX_INDEXING_MEMORY=256Mb DB_CPUS=1 DB_MEMORY=1g DB_BUFFER_POOL=256M GUNICORN_WORKERS=2" ;;
+        standard) echo "QUEUE_WORKERS=2 QUEUE_CPUS=1 QUEUE_MEMORY=1536m MEILI_CPUS=2 MEILI_MEMORY=2g MEILI_MAX_INDEXING_THREADS=2 MEILI_MAX_INDEXING_MEMORY=1Gb DB_CPUS=1 DB_MEMORY=1536m DB_BUFFER_POOL=512M GUNICORN_WORKERS=2" ;;
+        server)   echo "QUEUE_WORKERS=4 QUEUE_CPUS=2 QUEUE_MEMORY=2g MEILI_CPUS=0 MEILI_MEMORY=0 MEILI_MAX_INDEXING_THREADS= MEILI_MAX_INDEXING_MEMORY= DB_CPUS=0 DB_MEMORY=0 DB_BUFFER_POOL=2G GUNICORN_WORKERS=4" ;;
         *) return 1 ;;
       esac
     }
     show_resources() {
       set -a; . ./.env; set +a
       echo "Preset: ${RESOURCES_PRESET:-standard (default)}"
-      printf "  %-28s %s\n" "Background workers" "${QUEUE_WORKERS:-2} (each up to ${QUEUE_CPUS:-0} CPU, ${QUEUE_MEMORY:-0} memory; priority nice ${QUEUE_NICE:-10})"
+      printf "  %-28s %s\n" "Background workers" "${QUEUE_WORKERS:-2} (each up to ${QUEUE_CPUS:-0} CPU, ${QUEUE_MEMORY:-0} memory; priority nice ${WORKER_NICE:-19})"
       printf "  %-28s %s\n" "Search engine (Meilisearch)" "${MEILI_CPUS:-0} CPU, ${MEILI_MEMORY:-0} memory; indexing threads ${MEILI_MAX_INDEXING_THREADS:-auto}, indexing memory ${MEILI_MAX_INDEXING_MEMORY:-auto}"
       printf "  %-28s %s\n" "Database (MariaDB)" "${DB_CPUS:-0} CPU, ${DB_MEMORY:-0} memory; buffer pool ${DB_BUFFER_POOL:-256M}"
       printf "  %-28s %s\n" "Web server" "${GUNICORN_WORKERS:-2} gunicorn workers"
@@ -105,7 +104,9 @@ case "$cmd" in
         echo; ps -eo pcpu,pmem,rss,comm --sort=-pcpu 2>/dev/null | head -8 || ps -Ao pcpu,pmem,rss,comm | head -8
       else
         echo; echo "This machine (as Docker sees it): $(docker info --format '{{.NCPU}} {{.MemTotal}}' 2>/dev/null | awk '{printf "%s CPUs, %.1f GB memory", $1, $2/1073741824}')"
-        echo; docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}" $(docker compose ps -q 2>/dev/null) 2>/dev/null || true
+        echo
+        # shellcheck disable=SC2046 # one argument per container id
+        docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}" $(docker compose ps -q 2>/dev/null) 2>/dev/null || true
       fi
       REQ=$(bench resdesk resource-preset 2>/dev/null | tail -1 || true)
       if [ -n "$REQ" ] && [ "$REQ" != "${RESOURCES_PRESET:-}" ]; then
@@ -131,7 +132,7 @@ PY
         bash scripts/native-procfile.sh "$BENCH_DIR" "${QUEUE_WORKERS:-2}" "${MEILI_PORT:-7700}" "$MEILI_MASTER_KEY"
         native_stop; native_start
       else
-        docker compose up -d --scale queue="${QUEUE_WORKERS:-2}" db meilisearch backend queue scheduler websocket
+        docker compose up -d --scale queue="${QUEUE_WORKERS:-2}" configurator db meilisearch backend queue scheduler websocket
         docker compose restart frontend >/dev/null   # it looks the web server up again
       fi
       check_fit
