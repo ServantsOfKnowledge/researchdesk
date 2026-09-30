@@ -1,5 +1,10 @@
 # Research Desk documentation
 
+- [Using the library](reader-guide.md): for readers: finding, reading and citing books, My list, members-only books
+- [Staff guide: a tour of the Desk](staff-guide.md): for library staff: the workspace, help and tours, the getting-started checklist, every part of the Desk
+
+The same pages are inside the app: **Help** on the portal (for readers) and **Help** in the Desk (everything).
+
 1. [Getting started](getting-started.md): install, load sample books, search and cite (for everyone)
 2. [Installation](installation.md): Docker or native install (macOS, Ubuntu/Debian), prebuilt images, a server with a domain and HTTPS, Coolify, developer mode, upgrading
 3. [Choosing & ingesting books](ingesting.md): profiles, archive.org search syntax, the Servants of Knowledge sub-collections, schedules

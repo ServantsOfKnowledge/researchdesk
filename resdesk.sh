@@ -78,6 +78,8 @@ case "$cmd" in
   access)   bench resdesk access "$@" ;;
   add-reader) bench resdesk add-reader "$@" ;;
   jobs)     bench resdesk jobs "$@" ;;
+  screenshots) python3 scripts/screenshots.py --url "http://localhost:${HTTP_PORT:-8080}" "$@" ;;
+  docs)     python3 scripts/gen_docs.py "$@" ;;
 
   workers)
     N="${1:-}"; [[ "$N" =~ ^[0-9]+$ ]] && [ "$N" -ge 1 ] || { echo "Usage: ./resdesk.sh workers <number>   (now: ${QUEUE_WORKERS:-2})"; exit 1; }
@@ -221,6 +223,8 @@ Maintenance
   ./resdesk.sh jobs --stop RUN | --pause | --resume      (schedules)
   ./resdesk.sh jobs --pause-run RUN | --resume-run RUN  pause a run where it is, carry on later
   ./resdesk.sh jobs --pause-all | --resume-all          pause everything, then carry on
+  ./resdesk.sh screenshots [--query WORDS]  retake the pictures used in the guides (needs Playwright)
+  ./resdesk.sh docs [--check]           refresh the settings and command reference in docs/
   ./resdesk.sh progress [RUN]           watch an ingest run
   ./resdesk.sh workers <n>              number of parallel ingest workers (default 2)
   ./resdesk.sh reindex [--background] [--no-pages] [--reset]

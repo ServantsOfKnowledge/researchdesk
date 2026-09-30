@@ -118,6 +118,9 @@ def _workers() -> int:
 @frappe.whitelist()
 def overview() -> dict:
 	frappe.only_for(MANAGERS)
+	from sok_resdesk.guide import mark_visited
+
+	mark_visited("jobs")  # ticks "Watch the ingest" on the getting-started checklist
 	fields = ["name", "profile", "status", "triggered_by", "total_found", "processed", "created_count",
 			  "updated_count", "skipped_count", "failed_count", "chunks_total", "pending_chunks",
 			  "started_on", "finished_on", "creation", "modified"]

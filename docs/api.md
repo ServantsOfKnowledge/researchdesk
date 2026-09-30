@@ -60,6 +60,10 @@ may read it; when false, `pdf_url` is empty.
 `sok_resdesk.api.stats` returns counts of items, creators, full-text items, languages,
 indexed pages and search-engine health.
 
+`sok_resdesk.api.file?item_id=<id>&name=<file name>` streams the PDF or cover of a book that
+lives in your own folders or on your book server (HTTP range requests supported). Only those
+two files are ever served, and the PDF only when the caller may read the book.
+
 ## Citations (plain-text responses)
 
 | Endpoint | Returns |
@@ -106,6 +110,10 @@ indexed pages and search-engine health.
 | `sok_resdesk.outbound.test_connection` (`target`) | check a push target's address and login |
 | `sok_resdesk.outbound.start` (`target`, `dry_run`, `force`, `items`) | start a push run, returns its name |
 | `sok_resdesk.outbound.cancel` (`run_name`) | stop a push run |
+| `sok_resdesk.ingest.cancel_run` (`run`) | same as `jobs.stop_run` (kept for older scripts) |
+| `sok_resdesk.transfer.rerun_export` (`name`) | rebuild an export's file with current data |
+| `sok_resdesk.help.get_page` (`slug`) | a help page (docs/*.md) as HTML with its table of contents, for the Desk |
+| `sok_resdesk.guide.checklist` · `checklist_mark` (`key`, `what`=`done`/`skipped`/`hide`) · `restart_checklist` | the getting-started checklist on the workspace |
 
 See [Collections, metadata & pushing](collections-and-metadata.md) for what these do.
 

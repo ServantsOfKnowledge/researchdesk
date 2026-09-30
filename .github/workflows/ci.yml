@@ -19,8 +19,10 @@ jobs:
         with:
           python-version: "3.14"
       - run: pip install ruff pytest requests
-      - run: ruff check sok_resdesk
-      - run: pytest -q sok_resdesk/tests/test_core.py sok_resdesk/tests/unit_folder.py
+      - run: ruff check sok_resdesk scripts
+      - run: pytest -q sok_resdesk/tests/test_core.py sok_resdesk/tests/test_push.py sok_resdesk/tests/unit_folder.py
+      - name: Docs match the code (see docs/development.md → Keeping the docs current)
+        run: pytest -q sok_resdesk/tests/test_docs.py
       - run: bash -n install.sh resdesk.sh upgrade.sh scripts/*.sh docker/create-site.sh
 
   docker-install:

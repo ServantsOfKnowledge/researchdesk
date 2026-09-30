@@ -34,6 +34,11 @@ class ResDeskJobs {
 		page.add_menu_item(__("All Ingest Runs"), () => frappe.set_route("List", "RD Ingest Run"));
 		page.add_menu_item(__("All Push Runs"), () => frappe.set_route("List", "RD Push Run"));
 		page.add_menu_item(__("Frappe job queue (all apps)"), () => frappe.set_route("List", "RQ Job"));
+		page.add_menu_item(__("Help for this screen"), () =>
+			window.rd_open_help
+				? window.rd_open_help("/app/resdesk-help/operations#background-jobs-see-pause-and-stop-what-is-running")
+				: frappe.set_route("resdesk-help", "operations")
+		);
 
 		this.$body.on("click", "[data-stop-run]", (e) => this.stop_run($(e.currentTarget).data("stop-run"), 0));
 		this.$body.on("click", "[data-kill-run]", (e) => this.stop_run($(e.currentTarget).data("kill-run"), 1));

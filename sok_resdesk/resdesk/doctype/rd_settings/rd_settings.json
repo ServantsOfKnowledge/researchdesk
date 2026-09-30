@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-01 10:00:00.000000",
+ "modified": "2026-10-01 11:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -61,13 +61,15 @@
    "fieldtype": "Data",
    "label": "Portal Title",
    "default": "SoK Research Desk",
-   "reqd": 1
+   "reqd": 1,
+   "description": "The library's name on the portal, in the browser tab, in the Desk and in citations."
   },
   {
    "fieldname": "portal_tagline",
    "fieldtype": "Small Text",
    "label": "Tagline",
-   "default": "Find, read and cite digitised books from Servants of Knowledge and the Internet Archive."
+   "default": "Find, read and cite digitised books from Servants of Knowledge and the Internet Archive.",
+   "description": "One line under the name on the portal home page."
   },
   {
    "fieldname": "base_url",
@@ -109,13 +111,15 @@
    "fieldname": "logo_on_home",
    "fieldtype": "Check",
    "label": "Show Logo on the Home Page",
-   "default": "1"
+   "default": "1",
+   "description": "Show the logo above the name on the portal home page."
   },
   {
    "fieldname": "show_title_in_navbar",
    "fieldtype": "Check",
    "label": "Show Portal Name Next to the Logo in the Top Bar",
-   "default": "1"
+   "default": "1",
+   "description": "Turn off when the logo already contains the library's name."
   },
   {
    "fieldname": "column_break_brand",
@@ -144,12 +148,14 @@
    "fieldname": "meili_url",
    "fieldtype": "Data",
    "label": "Meilisearch URL",
-   "default": "http://meilisearch:7700"
+   "default": "http://meilisearch:7700",
+   "description": "Where the search engine runs. The installer sets this; change it only if you move Meilisearch."
   },
   {
    "fieldname": "meili_api_key",
    "fieldtype": "Password",
-   "label": "Meilisearch API Key"
+   "label": "Meilisearch API Key",
+   "description": "The key the installer created for the search engine. Keep it secret."
   },
   {
    "fieldname": "index_prefix",
@@ -173,13 +179,15 @@
    "fieldname": "max_page_chars",
    "fieldtype": "Int",
    "label": "Max Characters per Page",
-   "default": "6000"
+   "default": "6000",
+   "description": "Longer pages are cut to this length in the index, which keeps it smaller."
   },
   {
    "fieldname": "search_status",
    "fieldtype": "Small Text",
    "label": "Search Status",
-   "read_only": 1
+   "read_only": 1,
+   "description": "Filled in by Test Search Engine: whether it connected and how many books and pages the index holds."
   },
   {
    "fieldname": "ia_section",
@@ -196,7 +204,8 @@
    "fieldname": "ia_delay",
    "fieldtype": "Float",
    "label": "Delay Between Requests (seconds)",
-   "default": "0.5"
+   "default": "0.5",
+   "description": "Pause between requests to archive.org. Raise it if archive.org asks you to slow down."
   },
   {
    "fieldname": "column_break_ia",
@@ -291,7 +300,8 @@
    "fieldname": "access_rules",
    "fieldtype": "Table",
    "label": "Rules",
-   "options": "RD Access Rule"
+   "options": "RD Access Rule",
+   "description": "Give books a visibility by collection, subject, language, creator, source or profile. Press Apply Access Rules to use them on books already in the catalogue."
   }
  ],
  "links": [],

@@ -10,6 +10,7 @@
 		{% if tagline %}<p class="rd-hero__tagline">{{ tagline }}</p>{% endif %}
 
 		{% include "templates/includes/rd_search_form.html" %}
+		{% include "templates/includes/rd_tips.html" %}
 		{% if viewer.pending %}
 		<p class="rd-access-note">{{ _("Your account is waiting for approval. Until then you see what visitors see.") }}</p>
 		{% elif not viewer.logged_in and viewer.guest_mode == "Records only" %}
@@ -41,4 +42,5 @@
 <script>window.RD_LABELS = {{ facet_labels | tojson }};</script>
 <script src="/assets/sok_resdesk/js/basket.js"></script>
 <script src="/assets/sok_resdesk/js/library.js"></script>
+<script src="/assets/sok_resdesk/js/tips.js"></script>
 {% endblock %}

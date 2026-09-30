@@ -60,6 +60,18 @@ def set_website_home():
 		ws.top_bar_items = []
 		ws.append("top_bar_items", {"label": "Library", "url": "/library"})
 		ws.save(ignore_permissions=True)
+	add_help_to_top_bar()
+
+
+def add_help_to_top_bar():
+	"""A Help link next to Library in the portal's top bar (once; staff can remove it)."""
+	if frappe.db.get_default("resdesk_help_link_added"):
+		return
+	ws = frappe.get_single("Website Settings")
+	if not any((i.url or "").startswith("/library/help") for i in ws.top_bar_items):
+		ws.append("top_bar_items", {"label": "Help", "url": "/library/help"})
+		ws.save(ignore_permissions=True)
+	frappe.db.set_default("resdesk_help_link_added", "1")
 
 
 def after_migrate():
@@ -71,6 +83,16 @@ def after_migrate():
 	except Exception:
 		frappe.log_error("Research Desk: could not apply branding")
 	create_workspace()
+	try:
+		add_help_to_top_bar()
+	except Exception:
+		frappe.log_error("Research Desk: could not add the Help link to the top bar")
+	try:
+		from sok_resdesk import guide
+
+		guide.sync()  # form tours and the getting-started checklist
+	except Exception:
+		frappe.log_error("Research Desk: could not set up the on-screen guide")
 	try:
 		from sok_resdesk.search import MeiliClient
 

@@ -179,3 +179,35 @@
 .rd-coll-head__desc { max-width: 70ch; }
 .rd-coll-search { margin-bottom: 8px; }
 @media (max-width: 640px) { .rd-coll-head { flex-direction: column; } .rd-coll-head__cover { width: 100%; } }
+
+/* help pages */
+.rd-help__layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 32px; margin-top: 12px; }
+.rd-help__nav { position: sticky; top: 72px; align-self: start; max-height: calc(100vh - 90px); overflow: auto; font-size: 14px; }
+.rd-help__nav h3 { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: var(--rd-muted); margin: 18px 0 6px; }
+.rd-help__nav ul { list-style: none; padding: 0; margin: 0; }
+.rd-help__nav li { margin: 2px 0; }
+.rd-help__nav a[aria-current="page"] { font-weight: 600; color: var(--rd-accent); }
+.rd-help__toc--3 { padding-left: 12px; }
+.rd-help__body { max-width: 78ch; }
+.rd-help__body h1 { font-size: 1.9rem; margin: 0 0 12px; }
+.rd-help__body h2 { font-size: 1.35rem; margin: 32px 0 10px; padding-top: 8px; border-top: 1px solid var(--rd-border); }
+.rd-help__body h3 { font-size: 1.1rem; margin: 22px 0 8px; }
+.rd-help__body h2, .rd-help__body h3 { scroll-margin-top: 72px; }
+.rd-help__body table { border-collapse: collapse; margin: 12px 0; width: 100%; font-size: 14px; }
+.rd-help__body th, .rd-help__body td { border: 1px solid var(--rd-border); padding: 6px 10px; vertical-align: top; text-align: left; }
+.rd-help__body pre { background: var(--rd-soft); padding: 12px; border-radius: 8px; overflow: auto; font-size: 13px; }
+.rd-help__body code { font-size: .92em; }
+.rd-help-img, .rd-help__body img { max-width: 100%; height: auto; border: 1px solid var(--rd-border); border-radius: 8px; margin: 8px 0; }
+@media (max-width: 800px) {
+	.rd-help__layout { grid-template-columns: 1fr; }
+	.rd-help__nav { position: static; max-height: none; }
+}
+
+/* first-visit tips */
+.rd-tips { margin: 14px 0 0; padding: 12px 14px; border: 1px solid var(--rd-border); border-left: 4px solid var(--rd-accent);
+	border-radius: 8px; background: var(--rd-bg); color: var(--text-color, inherit); max-width: 760px; }
+.rd-tips__list { list-style: none; margin: 0 0 8px; padding: 0; }
+.rd-tips__bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 14px; }
+.rd-tips__bar .rd-btn { padding: 4px 12px; }
+.rd-tips__count { margin-right: auto; }
+.rd-hero--banner .rd-tips, .rd-hero--banner .rd-tips .rd-muted { color: var(--text-color, #1f272e); }

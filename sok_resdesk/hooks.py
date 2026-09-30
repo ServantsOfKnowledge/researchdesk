@@ -10,10 +10,14 @@ app_license = "MIT"
 website_route_rules = [
 	{"from_route": "/library/item/<item_id>", "to_route": "library/item"},
 	{"from_route": "/library/collection/<collection>", "to_route": "library/collection"},
+	{"from_route": "/library/help/<slug>", "to_route": "library/help"},
 ]
 
 
 app_include_css = []
+# Help and Take-the-tour buttons on Research Desk screens
+app_include_js = ["/assets/sok_resdesk/js/desk_help.js"]
+boot_session = "sok_resdesk.help.boot_session"
 web_include_css = ["/assets/sok_resdesk/css/resdesk.css"]
 
 # Install / migrate -----------------------------------------------------------

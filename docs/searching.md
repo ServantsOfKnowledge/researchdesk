@@ -8,7 +8,9 @@ Searches each book's **title, romanised title, authors (both scripts), subjects,
 publisher, description** and the first few pages of text. Results show cover, author, year,
 language and page count, with matches highlighted.
 
-- **Filters (left):** Language, Decade, Subject, Author, Collection, plus a Year range.
+- **Filters (left):** Collection (the library's own collections), Type (book, periodical,
+  thesis…), Language, Decade, Subject, Author and Source collection (the archive.org
+  collection), plus a Year range.
   Filters combine: pick *Kannada* and *1950s* to get Kannada books from the 1950s.
 - **Sort:** relevance, oldest, newest, title A–Z.
 - **Empty search** lists everything, which is useful for browsing by filter.

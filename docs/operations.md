@@ -146,17 +146,71 @@ first. Releases that change the search index say so at the end. Then run
 
 ## Changing settings
 
-Desk → Research Desk → **Settings**:
+Desk → Research Desk → **Settings**. Changes apply as soon as you save. **Test Search Engine**
+checks the connection and (re)applies index settings; **Rebuild Search Index** queues a full
+rebuild; **Apply Access Rules** re-applies the access rules to books already in the catalogue.
 
-- Portal title and tagline, **Public Base URL**, OAI repository identifier, admin email
-- **Logo & Branding**: upload a **Logo** (shown on the home page, in the top bar of every
-  portal page and in the Desk), an optional browser-tab icon and an optional home-page
-  background image. Changes apply as soon as you save.
-- Meilisearch URL and key, index prefix, page-level indexing on/off, max characters per page
-- Internet Archive contact and request delay
+Every setting:
 
-**Test Search Engine** checks the connection and (re)applies index settings. **Rebuild
-Search Index** queues a full rebuild.
+<!-- generated:settings -->
+<!-- made by scripts/gen_docs.py from the code: edit the code, then run ./resdesk.sh docs -->
+**Portal**
+
+| Setting | What it does |
+|---|---|
+| Portal Title | The library's name on the portal, in the browser tab, in the Desk and in citations. |
+| Tagline | One line under the name on the portal home page. |
+| Public Base URL | e.g. https://library.example.org. Used in citations, OAI-PMH and MARC 856 links. Leave empty to use this site's URL. |
+| OAI Repository Identifier | Domain-style identifier used in OAI identifiers, e.g. library.example.org |
+| Admin Email | Shown to OAI-PMH harvesters. |
+
+**Logo & Branding**
+
+| Setting | What it does |
+|---|---|
+| Logo | PNG, SVG or JPG. Shown on the portal home page, in the top bar of every portal page and in the Desk. A wide logo about 400×120 px works well. |
+| Show Logo on the Home Page | Show the logo above the name on the portal home page. |
+| Show Portal Name Next to the Logo in the Top Bar | Turn off when the logo already contains the library's name. |
+| Browser Tab Icon (optional) | Square image (PNG/ICO, 64×64 or larger). Leave empty to use the logo. |
+| Home Page Background Image (optional) | A wide photo behind the search box on the home page, e.g. a manuscript or library shelf. |
+
+**Search Engine (Meilisearch)**
+
+| Setting | What it does |
+|---|---|
+| Meilisearch URL | Where the search engine runs. The installer sets this; change it only if you move Meilisearch. |
+| Meilisearch API Key | The key the installer created for the search engine. Keep it secret. |
+| Index Prefix | Lets several sites share one Meilisearch. |
+| Index Page-Level Full Text | Enables deep search inside books. Uses more disk. |
+| Max Characters per Page | Longer pages are cut to this length in the index, which keeps it smaller. |
+| Search Status | Filled in by Test Search Engine: whether it connected and how many books and pages the index holds. |
+
+**Internet Archive**
+
+| Setting | What it does |
+|---|---|
+| Contact (sent in User-Agent) | An email or URL so IA can reach you if your harvesting causes problems. |
+| Delay Between Requests (seconds) | Pause between requests to archive.org. Raise it if archive.org asks you to slow down. |
+| Books per Background Batch | Large ingests are split into batches that run in parallel, one per queue worker. Add workers with QUEUE_WORKERS in .env. |
+| Keep a Local Copy of Page Text | Stores compressed OCR text on disk (about 20–60 KB per book) so re-indexing never needs to download from archive.org again. |
+| Pause Scheduled Ingests | Stops Hourly/Daily/Weekly profiles from starting new runs. Manual runs still work. Also on the Background Jobs page. |
+| Pause All Background Work | Set from the Background Jobs page: runs are paused and queued jobs held until you press Resume All there. |
+
+**Access & Sign-up**
+
+| Setting | What it does |
+|---|---|
+| Visitors Who Are Not Logged In | Each item's setting: follow each book's “Who can see it”. Records only: visitors can search the catalogue and cite, but reading and search inside the text need a login. Login required: the whole portal is for logged-in readers (an internal library). Choices: *Each item's setting*, *Records only*, *Login required*. |
+| Default for New Books | Used when neither the ingest profile nor a rule below decides. Choices: *Public*, *Login to read*, *Login to find*. |
+| Reader Accounts | Admins add readers: no sign-up page; add people in User with the ResDesk Reader role, or ./resdesk.sh add-reader. Anyone can sign up: every account can read. Sign up, admin approves: new accounts wait in Reader Requests. Choices: *Admins add readers*, *Anyone can sign up*, *Sign up, admin approves*. |
+| OAI-PMH Shares | What harvesters such as Koha receive. “All published records” suits a library system on an internal network. Choices: *Records guests can find*, *All published records*, *Off*. |
+
+**Access Rules**
+
+| Setting | What it does |
+|---|---|
+| Rules | Give books a visibility by collection, subject, language, creator, source or profile. Press Apply Access Rules to use them on books already in the catalogue. |
+<!-- /generated:settings -->
 
 ## Users and roles
 
@@ -197,3 +251,69 @@ workspace after login. Readers can also sign up themselves, or be added with
 | Native: "Research Desk" workspace missing from the Desk | `./resdesk.sh migrate` |
 
 Errors from background jobs also appear in Desk → *Error Log*.
+
+## Command reference
+
+<!-- generated:commands -->
+<!-- made by scripts/gen_docs.py from the code: edit the code, then run ./resdesk.sh docs -->
+`./resdesk.sh help` prints:
+
+```text
+SoK Research Desk — everyday commands
+
+  ./resdesk.sh start | stop | restart | status
+  ./resdesk.sh logs [name]              follow logs (Docker: backend, queue…; native: bench-start, worker, web…)
+  ./resdesk.sh url                      print the portal address
+
+Choosing and ingesting books
+  ./resdesk.sh count  --collection ServantsOfKnowledge --filter "language:kan"
+  ./resdesk.sh ingest --collection ServantsOfKnowledge --filter "language:kan" --limit 100
+  ./resdesk.sh ingest --query 'creator:(Kuvempu) AND mediatype:texts' --limit 50 --name "Kuvempu"
+  ./resdesk.sh ingest --ids "id1,id2,id3"
+  ./resdesk.sh ingest --folder /library-source            (IA-style item folders in LIBRARY_DIR)
+  ./resdesk.sh ingest --server https://books.example.org/items/
+  ./resdesk.sh ingest --profile "SoK Kannada sample"
+  ./resdesk.sh ingest --folder /library-source/staff --visibility members   (who can see the new books)
+      options: --no-fulltext  --update  --limit 0 (= everything)  --background
+
+Who can see what (details: docs/access.md)
+  ./resdesk.sh access                   who can see what (settings + counts)
+  ./resdesk.sh access login-to-read --collection X
+        (visibility: public | login-to-read | members; --profile, --language, --ids, --all)
+  ./resdesk.sh access --guests "Login required"      (or "Records only", "Each item's setting")
+  ./resdesk.sh add-reader EMAIL [--name "Full Name"]  create a reader account
+
+Maintenance
+  ./resdesk.sh jobs                     what is running in the background (Desk: /app/resdesk-jobs)
+  ./resdesk.sh jobs --stop-all [--now]  stop all ingests and queued jobs, pause schedules
+  ./resdesk.sh jobs --stop RUN | --pause | --resume      (schedules)
+  ./resdesk.sh jobs --pause-run RUN | --resume-run RUN  pause a run where it is, carry on later
+  ./resdesk.sh jobs --pause-all | --resume-all          pause everything, then carry on
+  ./resdesk.sh screenshots [--query WORDS]  retake the pictures used in the guides (needs Playwright)
+  ./resdesk.sh docs [--check]           refresh the settings and command reference in docs/
+  ./resdesk.sh progress [RUN]           watch an ingest run
+  ./resdesk.sh workers <n>              number of parallel ingest workers (default 2)
+  ./resdesk.sh reindex [--background] [--no-pages] [--reset]
+  ./resdesk.sh backup                   database + files into ./site-backups
+  ./resdesk.sh restore <file.sql.gz>    restore a database backup, then re-index
+  ./resdesk.sh update [v0.4.0]          upgrade (same as ./upgrade.sh; --check to just look)
+  ./resdesk.sh password [new]           reset the Administrator password
+  ./resdesk.sh dev on|off               developer mode (Docker); native is always live
+  ./resdesk.sh console | shell | bench …  for developers
+  ./resdesk.sh uninstall                remove everything (asks first)
+```
+
+The Research Desk commands behind it (`./resdesk.sh <command>` runs `bench --site <site> resdesk <command>`):
+
+| Command | What it does | Options |
+|---|---|---|
+| `count` | How many IA items match (before you ingest). | `--collection` IA collection id, e.g. ServantsOfKnowledge<br>`--filter` Extra IA query to narrow a collection, e.g. "language:kan"<br>`--query` A full IA advanced-search query instead of a collection<br>`--ids` Comma-separated IA identifiers<br>`--ids-file` File with one IA identifier per line<br>`--folder` Folder of IA-style item folders, e.g. /library-source or /library-source/2026<br>`--server` Web server with IA-style item folders, e.g. https://books.example.org/items/<br>`--manifest` With --server: URL of a list of item folders (one per line) |
+| `ingest` | Bring books in from the Internet Archive or from IA-style item folders. | `--profile` Run an existing RD Ingest Profile by name<br>`--collection` IA collection id, e.g. ServantsOfKnowledge<br>`--filter` Extra IA query to narrow a collection, e.g. "language:kan"<br>`--query` A full IA advanced-search query instead of a collection<br>`--ids` Comma-separated IA identifiers<br>`--ids-file` File with one IA identifier per line<br>`--folder` Folder of IA-style item folders, e.g. /library-source or /library-source/2026<br>`--server` Web server with IA-style item folders, e.g. https://books.example.org/items/<br>`--manifest` With --server: URL of a list of item folders (one per line)<br>`--limit` Max items (0 = all). Default 50, or the profile's own limit<br>`--no-fulltext` Metadata only; skip OCR text<br>`--update` Refresh items already in the catalogue<br>`--name` Save the scope as a profile with this name<br>`--visibility` Who can see the new books: public, login-to-read or members (default: rules in Settings)<br>`--background` Hand the work to the queue workers (parallel; best for large runs) and watch progress |
+| `progress` | Watch an ingest run (default: the latest). | `RUN` |
+| `reindex` | Rebuild the search index from the catalogue (page text comes from the local cache when present). | `--no-pages` Only book-level records (fast)<br>`--background` Split across the queue workers (parallel)<br>`--reset` Drop and recreate the page index first |
+| `configure` | Set Research Desk settings from the command line. | `--meili-url` Search engine address, e.g. http://127.0.0.1:7700<br>`--meili-key` Search engine API key<br>`--title` Portal title<br>`--base-url` Public URL, e.g. https://library.example.org<br>`--contact` Email/URL sent to the Internet Archive in the User-Agent |
+| `status` | Catalogue and search-engine health. |  |
+| `access` | Who can see what: public, login-to-read or login-to-find (members only). | `VISIBILITY`<br>`--collection` Books in this collection, e.g. ServantsOfKnowledge<br>`--profile` Books ingested by this RD Ingest Profile<br>`--language` Books in this language, e.g. Kannada or kan<br>`--ids` Comma-separated item identifiers<br>`--ids-file` File with one identifier per line<br>`--all` Every book in the catalogue<br>`--apply-rules` Re-apply profiles, rules and the default (Settings → Access)<br>`--include-manual` With --apply-rules: also change books set by hand or in bulk<br>`--guests` What visitors who are not logged in may do<br>`--signup` How people get reader accounts<br>`--default` Visibility for new books when no profile or rule decides |
+| `add-reader` | Create a reader account (or give an existing account the Reader role). | `EMAIL`<br>`--name` Full name<br>`--no-email` Don't send the welcome email (set a password in the Desk instead) |
+| `jobs` | What is running in the background; pause, resume or stop it. | `--stop` Stop this ingest run (e.g. RUN-00042)<br>`--stop-all` Cancel all runs and queued Research Desk jobs, pause schedules<br>`--now` With --stop/--stop-all: kill running jobs instead of letting them finish the current book<br>`--pause` Pause scheduled ingests<br>`--resume` Resume scheduled ingests<br>`--pause-run` Pause this ingest or push run (it keeps its place)<br>`--resume-run` Resume a paused run<br>`--pause-all` Pause all runs, hold waiting jobs, pause schedules<br>`--resume-all` Undo --pause-all: everything carries on |
+<!-- /generated:commands -->

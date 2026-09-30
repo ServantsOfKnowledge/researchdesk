@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.9.0 (2026-09-30): help on every screen, and docs that keep up
+
+- **Help inside the app**, made from the same `docs/*.md` files as on GitHub, with pictures:
+  - Portal: **Help** in the top bar (`/library/help`) with a new reader guide, searching and citing
+  - Desk: **Help** page (`/app/resdesk-help`) with every guide, and a **Help** menu on every
+    Research Desk screen that opens the right section
+- **Take the tour** on the main forms (ingest profile, collection, book, settings, export,
+  spreadsheet import, push target): Frappe form tours, one field at a time
+- **Getting-started checklist** at the top of the Research Desk workspace for managers: six steps
+  from an empty install to a working portal; steps tick themselves as the library does them
+- **First-visit tips** for readers on the portal home page
+- New guides: [Using the library](docs/reader-guide.md) and
+  [Staff guide: a tour of the Desk](docs/staff-guide.md); every setting and command now has a
+  reference in [Operations](docs/operations.md)
+- Docs are checked on every change (`sok_resdesk/tests/test_docs.py`, in CI): APIs, DocTypes,
+  settings, commands, links, help buttons, tours and pictures must all match the code
+- `./resdesk.sh docs` refreshes the generated settings and command reference;
+  `./resdesk.sh screenshots` retakes the pictures; `scripts/release.sh X.Y.Z` refuses to tag
+  without a changelog entry
+
 ## 0.8.0 (2026-09-30): pause and resume background work
 
 - **Pause / Resume** for ingest runs and metadata push runs, on Background Jobs and on each run's

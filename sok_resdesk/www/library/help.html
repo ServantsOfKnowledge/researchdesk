@@ -1,0 +1,30 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="rd rd-help">
+	<nav class="rd-crumbs"><a href="/library">← {{ portal_title }}</a> · <a href="/library/help">{{ _("Help") }}</a></nav>
+	<div class="rd-help__layout">
+		<aside class="rd-help__nav" aria-label="{{ _('Help pages') }}">
+			{% for g in page.index %}
+			<h3>{{ g.group }}</h3>
+			<ul>
+				{% for p in g.pages %}
+				<li><a href="/library/help/{{ p.slug }}"{% if p.slug == page.slug %} aria-current="page"{% endif %}>{{ p.title }}</a></li>
+				{% endfor %}
+			</ul>
+			{% endfor %}
+			{% if page.toc %}
+			<h3>{{ _("On this page") }}</h3>
+			<ul class="rd-help__toc">
+				{% for h in page.toc %}<li class="rd-help__toc--{{ h.level }}"><a href="#{{ h.anchor }}">{{ h.text | striptags }}</a></li>{% endfor %}
+			</ul>
+			{% endif %}
+			<p class="rd-muted rd-help__tips"><a href="/library?tips=1">{{ _("Show the tips again") }}</a></p>
+			{% if viewer.staff %}<p class="rd-muted"><a href="/app/resdesk-help">{{ _("Staff help (in the Desk)") }} →</a></p>{% endif %}
+		</aside>
+		<article class="rd-help__body">{{ page.html }}</article>
+	</div>
+</div>
+{% endblock %}

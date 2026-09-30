@@ -27,6 +27,9 @@ Choose a collection, a search or a list of items on archive.org, and Research De
   Internet Archive upload files, and **edit many books at once** by importing an edited spreadsheet
 - **push metadata** to the Internet Archive, Koha, Wikidata or any web service (webhook), with a
   dry run first and automatic updates when a book is edited
+- **help on every screen**: the documentation is built into the portal (for readers) and the
+  Desk (for staff), with step-by-step tours of the main forms, a getting-started checklist for
+  a new library, and first-visit tips for readers
 - **see, pause and stop background work** from the Desk: every ingest run, metadata push, queued
   job and schedule on one page; pause a run or everything and carry on later, hold single jobs,
   or stop them
@@ -37,7 +40,7 @@ It's built to install with one command, for librarians, educators, archivists an
 anyone else who can open a terminal. It scales to tens of thousands of books on one server
 ([measured](docs/scaling.md)).
 
-> Status: **proof of concept (v0.7)**. It works end to end and is tested against live
+> Status: **proof of concept (v0.9)**. It works end to end and is tested against live
 > Servants of Knowledge data, but expect changes before 1.0. See [the roadmap](docs/roadmap.md).
 
 ---
@@ -97,8 +100,9 @@ Click **Check Count** to see how many items match, set **Maximum Items**, then *
 
 | For | Read |
 |---|---|
+| Readers | [Using the library](docs/reader-guide.md) · [Searching](docs/searching.md) · [Citations & reading lists](docs/citations.md) |
+| Library staff | [Staff guide: a tour of the Desk](docs/staff-guide.md) |
 | Librarians & educators | [Getting started](docs/getting-started.md) · [Choosing & ingesting books](docs/ingesting.md) · [Your own folders & servers](docs/local-folders.md) |
-| Researchers | [Searching](docs/searching.md) · [Citations & reading lists](docs/citations.md) |
 | Library managers | [Who can see what: members-only books & reader accounts](docs/access.md) · [Collections, metadata, exports & pushing](docs/collections-and-metadata.md) |
 | Library systems staff | [Koha & interoperability](docs/koha.md) · [API](docs/api.md) |
 | System administrators | [Installation](docs/installation.md) · [Operations](docs/operations.md) · [Scaling to 50k books](docs/scaling.md) |

@@ -1,0 +1,16 @@
+{# First-visit tips for readers (public/js/tips.js shows one at a time; hidden until then) #}
+<aside class="rd-tips" id="rd-tips" hidden aria-live="polite" aria-label="{{ _('Tips') }}">
+	<ol class="rd-tips__list">
+		<li>{{ _("Type in Kannada or any script, or in Latin letters: <b>hampi</b> also finds ಹಂಪಿ when the book has a romanised title.") }}</li>
+		<li>{{ _("Choose <b>Inside the text</b> to search every page of every book. Click a result to open the book at that page.") }}</li>
+		<li>{{ _("Use the filters on the left (collection, type, language, decade, subject, author) to narrow the results.") }}</li>
+		<li>{{ _("On a book's page, <b>Cite this book</b> gives the reference in APA, MLA or Chicago, or as BibTeX and RIS for Zotero.") }}</li>
+		<li>{{ _("Click <b>＋</b> on a result to keep it in <b>My list</b>, then export the whole list as a bibliography or share it as a link.") }}</li>
+	</ol>
+	<div class="rd-tips__bar">
+		<span class="rd-muted rd-tips__count"></span>
+		<button type="button" class="rd-btn rd-tips__next">{{ _("Next tip") }}</button>
+		<button type="button" class="rd-btn rd-btn--primary rd-tips__done">{{ _("Got it") }}</button>
+		<a href="/library/help">{{ _("Help") }}</a>
+	</div>
+</aside>

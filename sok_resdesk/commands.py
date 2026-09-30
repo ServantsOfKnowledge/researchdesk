@@ -103,7 +103,7 @@ def count(context, collection, filter_, query, ids, ids_file, folder, server, ma
 @pass_context
 def ingest(context, profile, collection, filter_, query, ids, ids_file, folder, server, manifest, limit, no_fulltext,
 		   update, name, visibility, background):
-	"""Ingest items from the Internet Archive.
+	"""Bring books in from the Internet Archive or from IA-style item folders.
 
 	By default runs here in the foreground, one book at a time. With --background the
 	books are split into batches processed in parallel by the queue workers.
@@ -202,8 +202,8 @@ def reindex(context, no_pages, background, reset):
 
 
 @resdesk.command("configure")
-@click.option("--meili-url")
-@click.option("--meili-key")
+@click.option("--meili-url", help="Search engine address, e.g. http://127.0.0.1:7700")
+@click.option("--meili-key", help="Search engine API key")
 @click.option("--title", help="Portal title")
 @click.option("--base-url", help="Public URL, e.g. https://library.example.org")
 @click.option("--contact", help="Email/URL sent to the Internet Archive in the User-Agent")
@@ -342,7 +342,7 @@ def add_reader_cmd(context, email, full_name, no_email):
 
 
 @resdesk.command("jobs")
-@click.option("--stop", "stop_run", help="Stop this ingest run (e.g. RD-RUN-00042)")
+@click.option("--stop", "stop_run", help="Stop this ingest run (e.g. RUN-00042)")
 @click.option("--stop-all", is_flag=True, help="Cancel all runs and queued Research Desk jobs, pause schedules")
 @click.option("--now", is_flag=True, help="With --stop/--stop-all: kill running jobs instead of letting them finish the current book")
 @click.option("--pause", is_flag=True, help="Pause scheduled ingests")
