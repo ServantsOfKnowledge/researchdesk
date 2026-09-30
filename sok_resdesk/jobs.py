@@ -33,6 +33,7 @@ KINDS = {
 
 # -- reading ----------------------------------------------------------------------------------
 
+
 def _local(value) -> str:
 	"""RQ stores UTC; show times in the site's time zone like the rest of the Desk."""
 	if not value:
@@ -69,20 +70,22 @@ def _rq_jobs() -> list[dict]:
 			if "sok_resdesk" not in method:
 				continue
 			args = kw.get("kwargs") or {}
-			out.append({
-				"id": job_id,
-				"short_id": job_id.split("||", 1)[-1],
-				"timeout": job.timeout if isinstance(job.timeout, int) else None,
-				"args": args,
-				"state": state,
-				"queue": queue.name.split(":")[-1],
-				"kind": KINDS.get(method, method.rsplit(".", 1)[-1]),
-				"method": method,
-				"run": args.get("run_name"),
-				"items": len(args.get("item_ids") or args.get("names") or []) or None,
-				"enqueued_at": _local(job.enqueued_at),
-				"started_at": _local(job.started_at),
-			})
+			out.append(
+				{
+					"id": job_id,
+					"short_id": job_id.split("||", 1)[-1],
+					"timeout": job.timeout if isinstance(job.timeout, int) else None,
+					"args": args,
+					"state": state,
+					"queue": queue.name.split(":")[-1],
+					"kind": KINDS.get(method, method.rsplit(".", 1)[-1]),
+					"method": method,
+					"run": args.get("run_name"),
+					"items": len(args.get("item_ids") or args.get("names") or []) or None,
+					"enqueued_at": _local(job.enqueued_at),
+					"started_at": _local(job.started_at),
+				}
+			)
 	out.sort(key=lambda j: (j["state"] != "running", j["enqueued_at"]))
 	return out
 
@@ -98,9 +101,16 @@ def _search_tasks() -> dict:
 			"ok": True,
 			"pending": res.get("total", len(tasks)),
 			"processing": sum(1 for t in tasks if t.get("status") == "processing"),
-			"tasks": [{"uid": t.get("uid"), "index": t.get("indexUid"), "type": t.get("type"),
-					   "status": t.get("status"), "enqueued_at": (t.get("enqueuedAt") or "")[:19]}
-					  for t in tasks[:10]],
+			"tasks": [
+				{
+					"uid": t.get("uid"),
+					"index": t.get("indexUid"),
+					"type": t.get("type"),
+					"status": t.get("status"),
+					"enqueued_at": (t.get("enqueuedAt") or "")[:19],
+				}
+				for t in tasks[:10]
+			],
 		}
 	except SearchError as e:
 		return {"ok": False, "error": str(e)[:200], "pending": 0, "tasks": []}
@@ -121,14 +131,40 @@ def overview() -> dict:
 	from sok_resdesk.guide import mark_visited
 
 	mark_visited("jobs")  # ticks "Watch the ingest" on the getting-started checklist
-	fields = ["name", "profile", "status", "triggered_by", "total_found", "processed", "created_count",
-			  "updated_count", "skipped_count", "failed_count", "chunks_total", "pending_chunks",
-			  "started_on", "finished_on", "creation", "modified"]
-	active = frappe.get_all("RD Ingest Run", filters={"status": ("in", ACTIVE)}, fields=fields, order_by="creation desc")
-	recent = frappe.get_all("RD Ingest Run", filters={"status": ("not in", ACTIVE)}, fields=fields,
-							order_by="creation desc", limit=10)
-	schedules = frappe.get_all("RD Ingest Profile", filters={"enabled": 1, "schedule": ("in", ["Hourly", "Daily", "Weekly"])},
-							   fields=["name", "schedule", "last_run_on", "last_status"], order_by="name")
+	fields = [
+		"name",
+		"profile",
+		"status",
+		"triggered_by",
+		"total_found",
+		"processed",
+		"created_count",
+		"updated_count",
+		"skipped_count",
+		"failed_count",
+		"chunks_total",
+		"pending_chunks",
+		"started_on",
+		"finished_on",
+		"creation",
+		"modified",
+	]
+	active = frappe.get_all(
+		"RD Ingest Run", filters={"status": ("in", ACTIVE)}, fields=fields, order_by="creation desc"
+	)
+	recent = frappe.get_all(
+		"RD Ingest Run",
+		filters={"status": ("not in", ACTIVE)},
+		fields=fields,
+		order_by="creation desc",
+		limit=10,
+	)
+	schedules = frappe.get_all(
+		"RD Ingest Profile",
+		filters={"enabled": 1, "schedule": ("in", ["Hourly", "Daily", "Weekly"])},
+		fields=["name", "schedule", "last_run_on", "last_status"],
+		order_by="name",
+	)
 	try:
 		jobs = _rq_jobs()
 		for j in jobs:
@@ -136,19 +172,39 @@ def overview() -> dict:
 		jobs_error = None
 	except Exception as e:
 		jobs, jobs_error = [], str(e)[:200]
-	push_fields = ["name", "target", "status", "dry_run", "triggered_by", "total", "sent", "unchanged", "skipped",
-				   "failed", "creation", "modified"]
+	push_fields = [
+		"name",
+		"target",
+		"status",
+		"dry_run",
+		"triggered_by",
+		"total",
+		"sent",
+		"unchanged",
+		"skipped",
+		"failed",
+		"creation",
+		"modified",
+	]
 	return {
 		"now": str(now_datetime())[:19],
 		"paused": cint(frappe.db.get_single_value("RD Settings", "pause_scheduled_ingest")),
 		"paused_all": int(holding.is_paused()),
 		"quiet": quiet_status(),
 		"machine": machine(),
-		"held": [{"key": h.get("key"), "kind": h.get("kind") or KINDS.get(h["method"], h["method"]),
-				  "held_on": h.get("held_on"), "job_id": h.get("job_id"),
-				  "run": (h.get("kwargs") or {}).get("run_name")} for h in holding.held_jobs()],
-		"push_runs": frappe.get_all("RD Push Run", filters={"status": ("in", ACTIVE)}, fields=push_fields,
-									order_by="creation desc"),
+		"held": [
+			{
+				"key": h.get("key"),
+				"kind": h.get("kind") or KINDS.get(h["method"], h["method"]),
+				"held_on": h.get("held_on"),
+				"job_id": h.get("job_id"),
+				"run": (h.get("kwargs") or {}).get("run_name"),
+			}
+			for h in holding.held_jobs()
+		],
+		"push_runs": frappe.get_all(
+			"RD Push Run", filters={"status": ("in", ACTIVE)}, fields=push_fields, order_by="creation desc"
+		),
 		"workers": _workers(),
 		"active_runs": active,
 		"recent_runs": recent,
@@ -160,6 +216,7 @@ def overview() -> dict:
 
 
 # -- controlling --------------------------------------------------------------------------------
+
 
 def _stop_rq(job_id: str, force: bool) -> str:
 	"""Cancel a queued job, or (force) stop a running one. Returns what happened."""
@@ -212,12 +269,20 @@ def stop_run(run: str, force: int = 0) -> dict:
 	frappe.db.commit()
 	done = {"cancelled": 0, "stopped": 0}
 	for job in _rq_jobs():
-		if job["run"] == run or job["short_id"] in (f"resdesk-plan-{run}",) or job["short_id"].startswith(f"resdesk-{run}-"):
+		if (
+			job["run"] == run
+			or job["short_id"] in (f"resdesk-plan-{run}",)
+			or job["short_id"].startswith(f"resdesk-{run}-")
+		):
 			result = _stop_rq(job["id"], bool(cint(force)))
 			if result in done:
 				done[result] += 1
-	return {"message": _("Run {0} stopped: {1} queued batches removed, {2} running batches stopped.")
-			.format(run, done["cancelled"], done["stopped"]), **done}
+	return {
+		"message": _("Run {0} stopped: {1} queued batches removed, {2} running batches stopped.").format(
+			run, done["cancelled"], done["stopped"]
+		),
+		**done,
+	}
 
 
 @frappe.whitelist()
@@ -236,8 +301,10 @@ def set_paused(paused: int = 1) -> dict:
 	frappe.only_for(MANAGERS)
 	frappe.db.set_single_value("RD Settings", "pause_scheduled_ingest", 1 if cint(paused) else 0)
 	frappe.db.commit()
-	return {"paused": cint(paused), "message": _("Scheduled ingests paused.") if cint(paused)
-			else _("Scheduled ingests resumed.")}
+	return {
+		"paused": cint(paused),
+		"message": _("Scheduled ingests paused.") if cint(paused) else _("Scheduled ingests resumed."),
+	}
 
 
 @frappe.whitelist()
@@ -249,7 +316,11 @@ def cancel_search_tasks() -> dict:
 
 	client = MeiliClient.from_settings()
 	client._req("POST", "/tasks/cancel", params={"statuses": "enqueued,processing"})
-	return {"message": _("Pending search-engine tasks cancelled. Run Rebuild Search Index later if search results look incomplete.")}
+	return {
+		"message": _(
+			"Pending search-engine tasks cancelled. Run Rebuild Search Index later if search results look incomplete."
+		)
+	}
 
 
 @frappe.whitelist()
@@ -264,8 +335,11 @@ def stop_all(force: int = 0, pause: int = 1, search: int = 0) -> dict:
 	runs = frappe.get_all("RD Ingest Run", filters={"status": ("in", ACTIVE)}, pluck="name")
 	for run in runs:
 		_cancel_run_row(run, f"Stopped by {frappe.session.user} (stop everything)")
-	frappe.db.sql("update `tabRD Push Run` set status='Cancelled', held_items=null, finished_on=%s "
-				  "where status in ('Queued','Running','Paused')", now_datetime())
+	frappe.db.sql(
+		"update `tabRD Push Run` set status='Cancelled', held_items=null, finished_on=%s "
+		"where status in ('Queued','Running','Paused')",
+		now_datetime(),
+	)
 	dropped = holding.release(discard=True)  # held jobs are dropped too, and Pause All ends
 	frappe.db.set_single_value("RD Settings", "pause_background", 0)
 	if cint(pause):
@@ -283,7 +357,10 @@ def stop_all(force: int = 0, pause: int = 1, search: int = 0) -> dict:
 			cancel_search_tasks()
 		except Exception:
 			frappe.log_error(title="Research Desk: could not cancel search-engine tasks")
-	parts = [_("{0} runs cancelled").format(len(runs)), _("{0} queued jobs removed").format(counts["cancelled"] + dropped)]
+	parts = [
+		_("{0} runs cancelled").format(len(runs)),
+		_("{0} queued jobs removed").format(counts["cancelled"] + dropped),
+	]
 	if cint(force):
 		parts.append(_("{0} running jobs stopped").format(counts["stopped"]))
 	if cint(pause):
@@ -297,9 +374,15 @@ def stop_all(force: int = 0, pause: int = 1, search: int = 0) -> dict:
 # the run (held_work) and Resume queues them again; running batches stop after their current
 # book. Other jobs are held in RD Settings (see holding.py) and put back in the queue on Resume.
 
+
 def _run_jobs(run: str) -> list[dict]:
-	return [j for j in _rq_jobs() if j["run"] == run or j["short_id"] == f"resdesk-plan-{run}"
-			or j["short_id"].startswith(f"resdesk-{run}-")]
+	return [
+		j
+		for j in _rq_jobs()
+		if j["run"] == run
+		or j["short_id"] == f"resdesk-plan-{run}"
+		or j["short_id"].startswith(f"resdesk-{run}-")
+	]
 
 
 def _pause_ingest(run: str, who: str) -> bool:
@@ -321,12 +404,22 @@ def _pause_ingest(run: str, who: str) -> bool:
 			batches += 1
 	_status(run, lock=True)
 	hold_work(run, items, plan=plan)
-	frappe.db.sql("update `tabRD Ingest Run` set pending_chunks=greatest(ifnull(pending_chunks,0)-%s,0) where name=%s",
-				  (batches, run))
+	frappe.db.sql(
+		"update `tabRD Ingest Run` set pending_chunks=greatest(ifnull(pending_chunks,0)-%s,0) where name=%s",
+		(batches, run),
+	)
 	frappe.db.commit()
-	_log(run, f"Paused by {who}: {len(items)} queued books kept" + (", listing not started yet" if plan else ""))
-	frappe.db.set_value("RD Ingest Profile", frappe.db.get_value("RD Ingest Run", run, "profile"), "last_status", "Paused",
-						update_modified=False)
+	_log(
+		run,
+		f"Paused by {who}: {len(items)} queued books kept" + (", listing not started yet" if plan else ""),
+	)
+	frappe.db.set_value(
+		"RD Ingest Profile",
+		frappe.db.get_value("RD Ingest Run", run, "profile"),
+		"last_status",
+		"Paused",
+		update_modified=False,
+	)
 	frappe.db.commit()
 	return True
 
@@ -344,22 +437,44 @@ def _resume_ingest(run: str, who: str) -> int:
 	held = json.loads(raw) if raw else {}
 	items = held.get("items") or []
 	size = max(1, cint(settings().get("batch_size")) or 50)
-	batches = [items[i:i + size] for i in range(0, len(items), size)]
-	frappe.db.sql("update `tabRD Ingest Run` set status=%s, held_work=null, pending_chunks=ifnull(pending_chunks,0)+%s, "
-				  "chunks_total=ifnull(chunks_total,0)+%s where name=%s",
-				  ("Queued" if held.get("plan") else "Running", len(batches), len(batches), run))
+	batches = [items[i : i + size] for i in range(0, len(items), size)]
+	frappe.db.sql(
+		"update `tabRD Ingest Run` set status=%s, held_work=null, pending_chunks=ifnull(pending_chunks,0)+%s, "
+		"chunks_total=ifnull(chunks_total,0)+%s where name=%s",
+		("Queued" if held.get("plan") else "Running", len(batches), len(batches), run),
+	)
 	frappe.db.commit()
-	_log(run, f"Resumed by {who}: {len(items)} books queued again" + (", listing restarted" if held.get("plan") else ""))
-	frappe.db.set_value("RD Ingest Profile", frappe.db.get_value("RD Ingest Run", run, "profile"), "last_status",
-						"Running", update_modified=False)
+	_log(
+		run,
+		f"Resumed by {who}: {len(items)} books queued again"
+		+ (", listing restarted" if held.get("plan") else ""),
+	)
+	frappe.db.set_value(
+		"RD Ingest Profile",
+		frappe.db.get_value("RD Ingest Run", run, "profile"),
+		"last_status",
+		"Running",
+		update_modified=False,
+	)
 	frappe.db.commit()
 	if held.get("plan"):
 		enqueue_plan(run)
 	tag = now_datetime().strftime("%H%M%S")
 	for n, batch in enumerate(batches, 1):
-		frappe.enqueue("sok_resdesk.ingest.run_batch", queue="long", timeout=JOB_TIMEOUT, run_name=run,
-					   item_ids=batch, batch_no=n, job_id=f"resdesk-{run}-r{tag}-{n}")
-	if not held.get("plan") and not batches and not cint(frappe.db.get_value("RD Ingest Run", run, "pending_chunks")):
+		frappe.enqueue(
+			"sok_resdesk.ingest.run_batch",
+			queue="long",
+			timeout=JOB_TIMEOUT,
+			run_name=run,
+			item_ids=batch,
+			batch_no=n,
+			job_id=f"resdesk-{run}-r{tag}-{n}",
+		)
+	if (
+		not held.get("plan")
+		and not batches
+		and not cint(frappe.db.get_value("RD Ingest Run", run, "pending_chunks"))
+	):
 		_finish(run)
 	frappe.db.commit()
 	return len(items)
@@ -378,7 +493,11 @@ def pause_run(run: str) -> dict:
 		ok = _pause_ingest(run, who)
 	if not ok:
 		frappe.throw(_("Run {0} is not running or queued, so it can't be paused.").format(run))
-	return {"message": _("Run {0} paused. Running batches stop after the book they are on; press Resume to carry on.").format(run)}
+	return {
+		"message": _(
+			"Run {0} paused. Running batches stop after the book they are on; press Resume to carry on."
+		).format(run)
+	}
 
 
 @frappe.whitelist()
@@ -409,8 +528,14 @@ def hold_job(job_id: str) -> dict:
 		frappe.throw(_("Only waiting jobs can be held. Pause its run instead, or stop the job."))
 	if _stop_rq(job_id, False) != "cancelled":
 		frappe.throw(_("The job started just now; it can't be held any more."))
-	holding.hold(job["method"], job["args"], queue=job["queue"], timeout=job["timeout"], job_id=job["short_id"],
-				 kind=job["kind"])
+	holding.hold(
+		job["method"],
+		job["args"],
+		queue=job["queue"],
+		timeout=job["timeout"],
+		job_id=job["short_id"],
+		kind=job["kind"],
+	)
 	return {"message": _("Job held. Release it from Held jobs when you want it to run.")}
 
 
@@ -422,7 +547,11 @@ def release_held(keys=None, discard: int = 0) -> dict:
 	if not cint(discard) and holding.is_paused():
 		frappe.throw(_("Pause All is on. Press Resume All to carry on with everything."))
 	n = holding.release(list(keys) if keys else None, discard=bool(cint(discard)))
-	return {"message": (_("{0} held jobs discarded.") if cint(discard) else _("{0} held jobs queued again.")).format(n)}
+	return {
+		"message": (
+			_("{0} held jobs discarded.") if cint(discard) else _("{0} held jobs queued again.")
+		).format(n)
+	}
 
 
 @frappe.whitelist()
@@ -430,8 +559,12 @@ def pause_all() -> dict:
 	"""Pause everything: runs are paused, waiting jobs held, schedules paused, and new jobs wait."""
 	frappe.only_for(MANAGERS)
 	runs, held = _pause_all(frappe.session.user)
-	return {"message": _("Paused: {0} runs, {1} waiting jobs held, schedules paused. Jobs already running finish "
-						 "their current step (a few seconds). Press Resume All to carry on.").format(runs, held)}
+	return {
+		"message": _(
+			"Paused: {0} runs, {1} waiting jobs held, schedules paused. Jobs already running finish "
+			"their current step (a few seconds). Press Resume All to carry on."
+		).format(runs, held)
+	}
 
 
 @frappe.whitelist()
@@ -447,14 +580,31 @@ def _pause_all(who: str) -> tuple[int, int]:
 	frappe.db.set_single_value("RD Settings", "pause_scheduled_ingest", 1)
 	frappe.db.set_default("resdesk_schedules_were_paused", str(schedules_were))
 	frappe.db.commit()
-	runs = sum(_pause_ingest(r, who) for r in frappe.get_all("RD Ingest Run", filters={"status": ("in", ["Queued", "Running"])}, pluck="name"))
+	runs = sum(
+		_pause_ingest(r, who)
+		for r in frappe.get_all(
+			"RD Ingest Run", filters={"status": ("in", ["Queued", "Running"])}, pluck="name"
+		)
+	)
 	from sok_resdesk.outbound import pause_push
 
-	runs += sum(pause_push(r, who) for r in frappe.get_all("RD Push Run", filters={"status": ("in", ["Queued", "Running"])}, pluck="name"))
+	runs += sum(
+		pause_push(r, who)
+		for r in frappe.get_all(
+			"RD Push Run", filters={"status": ("in", ["Queued", "Running"])}, pluck="name"
+		)
+	)
 	held = 0
 	for j in _rq_jobs():
 		if j["state"] == "queued" and _stop_rq(j["id"], False) == "cancelled":
-			holding.hold(j["method"], j["args"], queue=j["queue"], timeout=j["timeout"], job_id=j["short_id"], kind=j["kind"])
+			holding.hold(
+				j["method"],
+				j["args"],
+				queue=j["queue"],
+				timeout=j["timeout"],
+				job_id=j["short_id"],
+				kind=j["kind"],
+			)
 			held += 1
 	return runs, held
 
@@ -462,7 +612,9 @@ def _pause_all(who: str) -> tuple[int, int]:
 def _resume_all(who: str) -> tuple[int, int]:
 	frappe.db.set_single_value("RD Settings", "pause_background", 0)
 	was = frappe.db.get_default("resdesk_schedules_were_paused")
-	frappe.db.set_single_value("RD Settings", "pause_scheduled_ingest", cint(was) if was not in (None, "") else 0)
+	frappe.db.set_single_value(
+		"RD Settings", "pause_scheduled_ingest", cint(was) if was not in (None, "") else 0
+	)
 	frappe.db.set_default("resdesk_schedules_were_paused", "")
 	frappe.db.commit()
 	from sok_resdesk.outbound import resume_push
@@ -477,6 +629,7 @@ def _resume_all(who: str) -> tuple[int, int]:
 
 
 # -- the machine: how busy it is, and the caps Research Desk runs under ---------------------------
+
 
 def _limits() -> dict:
 	import os
@@ -538,8 +691,9 @@ def _containers() -> list[dict] | None:
 	def one(c):
 		# one-shot = a single fast sample; CPU % comes from the difference with the last one
 		try:
-			st = requests.get(f"{api}/containers/{c['Id']}/stats", params={"stream": "false", "one-shot": "true"},
-							  timeout=4).json()
+			st = requests.get(
+				f"{api}/containers/{c['Id']}/stats", params={"stream": "false", "one-shot": "true"}, timeout=4
+			).json()
 			cpu = st["cpu_stats"]
 			total, system = cpu["cpu_usage"]["total_usage"], cpu.get("system_cpu_usage", 0)
 			ncpu = cpu.get("online_cpus") or len(cpu["cpu_usage"].get("percpu_usage") or [1])
@@ -550,9 +704,13 @@ def _containers() -> list[dict] | None:
 				pct = round((total - before[0]) / (system - before[1]) * ncpu * 100, 1)
 			mem = st.get("memory_stats", {})
 			used = mem.get("usage", 0) - (mem.get("stats", {}).get("inactive_file") or 0)
-			return {"name": c["Labels"].get("com.docker.compose.service", c["Names"][0].strip("/")),
-					"number": c["Labels"].get("com.docker.compose.container-number", "1"),
-					"cpu": max(pct, 0.0), "mem": used, "mem_limit": mem.get("limit", 0)}
+			return {
+				"name": c["Labels"].get("com.docker.compose.service", c["Names"][0].strip("/")),
+				"number": c["Labels"].get("com.docker.compose.container-number", "1"),
+				"cpu": max(pct, 0.0),
+				"mem": used,
+				"mem_limit": mem.get("limit", 0),
+			}
 		except Exception:
 			return None
 
@@ -591,10 +749,13 @@ def choose_preset(preset: str) -> dict:
 	if preset not in ("light", "standard", "server"):
 		frappe.throw(_("Choose light, standard or server."))
 	frappe.db.set_single_value("RD Settings", "resource_preset", preset)
-	return {"message": _("Preset {0} chosen. On the server, run: ./resdesk.sh resources apply").format(preset)}
+	return {
+		"message": _("Preset {0} chosen. On the server, run: ./resdesk.sh resources apply").format(preset)
+	}
 
 
 # -- quiet hours ---------------------------------------------------------------------------------
+
 
 def quiet_status() -> dict:
 	from frappe.utils import now_datetime as now
@@ -603,9 +764,19 @@ def quiet_status() -> dict:
 
 	s = frappe.db.get_singles_dict("RD Settings")
 	on = cint(s.get("quiet_hours"))
-	inside = bool(on and in_quiet_hours(now(), s.get("quiet_from"), s.get("quiet_to"), bool(cint(s.get("quiet_weekdays_only")))))
-	return {"enabled": on, "inside": inside, "from": str(s.get("quiet_from") or "")[:5],
-			"to": str(s.get("quiet_to") or "")[:5], "weekdays_only": cint(s.get("quiet_weekdays_only"))}
+	inside = bool(
+		on
+		and in_quiet_hours(
+			now(), s.get("quiet_from"), s.get("quiet_to"), bool(cint(s.get("quiet_weekdays_only")))
+		)
+	)
+	return {
+		"enabled": on,
+		"inside": inside,
+		"from": str(s.get("quiet_from") or "")[:5],
+		"to": str(s.get("quiet_to") or "")[:5],
+		"weekdays_only": cint(s.get("quiet_weekdays_only")),
+	}
 
 
 def apply_quiet_hours() -> None:

@@ -6,7 +6,9 @@ import frappe
 def execute():
 	# the new column is created with its default (Public) already filled in
 	frappe.db.sql("update `tabRD Item` set visibility='Public' where ifnull(visibility, '') = ''")
-	frappe.db.sql("update `tabRD Item` set visibility_set_by='Default' where ifnull(visibility_set_by, '') = ''")
+	frappe.db.sql(
+		"update `tabRD Item` set visibility_set_by='Default' where ifnull(visibility_set_by, '') = ''"
+	)
 	for field, value in (
 		("guest_access", "Each item's setting"),
 		("default_visibility", "Public"),

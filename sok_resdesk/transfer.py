@@ -41,6 +41,7 @@ FORMATS = {
 
 # -- choosing books ------------------------------------------------------------------------------
 
+
 def select_for_export(doc) -> list[str]:
 	from sok_resdesk.access import select_items
 
@@ -58,13 +59,21 @@ def select_for_export(doc) -> list[str]:
 		names = select_items(search={"q": doc.search_query or "", "mode": "books", "filters": {}})
 	elif scope in ("Filters", "Selected Books"):
 		spec = json.loads(doc.filters_json or "[]")
-		names = select_items(names=spec) if scope == "Selected Books" else select_items(filters=spec or None, everything=not spec)
+		names = (
+			select_items(names=spec)
+			if scope == "Selected Books"
+			else select_items(filters=spec or None, everything=not spec)
+		)
 	else:
 		names = select_items(everything=True)
 	if not cint(doc.include_unpublished) and names:
 		published = set()
 		for i in range(0, len(names), 1000):
-			published.update(frappe.get_all("RD Item", filters={"name": ("in", names[i:i + 1000]), "published": 1}, pluck="name"))
+			published.update(
+				frappe.get_all(
+					"RD Item", filters={"name": ("in", names[i : i + 1000]), "published": 1}, pluck="name"
+				)
+			)
 		names = [n for n in names if n in published]
 	return names
 
@@ -75,6 +84,7 @@ def _records(names: list[str]):
 
 
 # -- building files ------------------------------------------------------------------------------
+
 
 def build(fmt: str, names: list[str], stem: str = "export") -> tuple[str, bytes]:
 	root = base_url()
@@ -90,9 +100,13 @@ def build(fmt: str, names: list[str], stem: str = "export") -> tuple[str, bytes]
 		rows = [header] + [[metaio.record_to_row(r, root)[c] for c in header] for r in records]
 		return name, make_xlsx(rows, "Books").getvalue()
 	if fmt == "JSON (everything)":
-		return name, json.dumps([metaio.json_record(r, root) for r in records], ensure_ascii=False, indent=1).encode()
+		return name, json.dumps(
+			[metaio.json_record(r, root) for r in records], ensure_ascii=False, indent=1
+		).encode()
 	if fmt == "JSON Lines":
-		return name, "".join(json.dumps(metaio.json_record(r, root), ensure_ascii=False) + "\n" for r in records).encode()
+		return name, "".join(
+			json.dumps(metaio.json_record(r, root), ensure_ascii=False) + "\n" for r in records
+		).encode()
 	if fmt == "Dublin Core XML":
 		return name, metaio.dublin_core_collection(records, root).encode()
 	if fmt == "MODS XML":
@@ -102,7 +116,9 @@ def build(fmt: str, names: list[str], stem: str = "export") -> tuple[str, bytes]
 	if fmt == "JSON-LD (schema.org)":
 		return name, metaio.jsonld_graph(records, root).encode()
 	if fmt == "CSL-JSON":
-		return name, json.dumps([citations.to_csl(r, root) for r in records], ensure_ascii=False, indent=1).encode()
+		return name, json.dumps(
+			[citations.to_csl(r, root) for r in records], ensure_ascii=False, indent=1
+		).encode()
 	if fmt == "BibTeX":
 		return name, "\n".join(citations.to_bibtex(r, root) for r in records).encode()
 	if fmt == "RIS":
@@ -120,6 +136,7 @@ def build(fmt: str, names: list[str], stem: str = "export") -> tuple[str, bytes]
 
 # -- export runs ---------------------------------------------------------------------------------
 
+
 def _set(name: str, **values):
 	frappe.db.set_value("RD Export", name, values, update_modified=False)
 	frappe.db.commit()
@@ -130,8 +147,14 @@ def start_export(name: str) -> None:
 	names = select_for_export(doc)
 	if len(names) > BACKGROUND_OVER:
 		_set(name, status="Queued", item_count=len(names))
-		frappe.enqueue("sok_resdesk.transfer.run_export", queue="long", timeout=6 * 3600, name=name,
-					   enqueue_after_commit=True, job_id=f"resdesk-export-{name}")
+		frappe.enqueue(
+			"sok_resdesk.transfer.run_export",
+			queue="long",
+			timeout=6 * 3600,
+			name=name,
+			enqueue_after_commit=True,
+			job_id=f"resdesk-export-{name}",
+		)
 	else:
 		run_export(name, names)
 
@@ -144,12 +167,24 @@ def run_export(name: str, names: list[str] | None = None) -> None:
 		names = names if names is not None else select_for_export(doc)
 		stem = frappe.scrub(doc.collection or doc.profile or doc.source_collection or doc.scope or "export")
 		fname, content = build(doc.export_format, names, f"{stem}-{name.lower()}")
-		f = frappe.get_doc({
-			"doctype": "File", "file_name": fname, "attached_to_doctype": "RD Export", "attached_to_name": name,
-			"is_private": 1, "content": content,
-		}).insert(ignore_permissions=True)
-		_set(name, status="Done", item_count=len(names), file_url=f.file_url, finished_on=now_datetime(),
-			 log=f"{len(names)} books, {len(content):,} bytes")
+		f = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": fname,
+				"attached_to_doctype": "RD Export",
+				"attached_to_name": name,
+				"is_private": 1,
+				"content": content,
+			}
+		).insert(ignore_permissions=True)
+		_set(
+			name,
+			status="Done",
+			item_count=len(names),
+			file_url=f.file_url,
+			finished_on=now_datetime(),
+			log=f"{len(names)} books, {len(content):,} bytes",
+		)
 	except Exception:
 		frappe.db.rollback()
 		_set(name, status="Failed", finished_on=now_datetime(), log=frappe.get_traceback()[-4000:])
@@ -170,11 +205,17 @@ def quick_export(export_format: str, search=None, collection=None, filters=None)
 	from sok_resdesk.access import select_items
 
 	if collection:
-		names = frappe.db.sql_list("select distinct parent from `tabRD Item Collection` where collection=%s", collection)
+		names = frappe.db.sql_list(
+			"select distinct parent from `tabRD Item Collection` where collection=%s", collection
+		)
 	else:
 		names = select_items(search=search, filters=filters, everything=not (search or filters))
 	if len(names) > 2000:
-		frappe.throw(_("{0} books is a lot for a direct download: use Desk → Research Desk → Exports.").format(len(names)))
+		frappe.throw(
+			_("{0} books is a lot for a direct download: use Desk → Research Desk → Exports.").format(
+				len(names)
+			)
+		)
 	fname, content = build(export_format, names, "books")
 	frappe.local.response.filename = fname
 	frappe.local.response.filecontent = content
@@ -182,6 +223,7 @@ def quick_export(export_format: str, search=None, collection=None, filters=None)
 
 
 # -- spreadsheet import --------------------------------------------------------------------------
+
 
 def _read_rows(file_url: str) -> list[dict]:
 	f = frappe.get_doc("File", {"file_url": file_url})
@@ -193,8 +235,11 @@ def _read_rows(file_url: str) -> list[dict]:
 		if not table:
 			return []
 		header = [str(h or "").strip() for h in table[0]]
-		return [{header[i]: ("" if v is None else str(v).strip()) for i, v in enumerate(r) if i < len(header)}
-				for r in table[1:] if any(v not in (None, "") for v in r)]
+		return [
+			{header[i]: ("" if v is None else str(v).strip()) for i, v in enumerate(r) if i < len(header)}
+			for r in table[1:]
+			if any(v not in (None, "") for v in r)
+		]
 	return metaio.csv_to_rows(content)
 
 
@@ -202,7 +247,9 @@ def _collection_names(values: list[str]) -> tuple[list[str], list[str]]:
 	"""Map collection names or titles to collection ids; unknown ones are created."""
 	out, created = [], []
 	for v in values:
-		name = frappe.db.get_value("RD Collection", v, "name") or frappe.db.get_value("RD Collection", {"title": v}, "name")
+		name = frappe.db.get_value("RD Collection", v, "name") or frappe.db.get_value(
+			"RD Collection", {"title": v}, "name"
+		)
 		if not name:
 			name = frappe.get_doc({"doctype": "RD Collection", "title": v}).insert().name
 			created.append(v)
@@ -248,12 +295,23 @@ def plan_import(name: str) -> dict:
 def preview_import(name: str) -> dict:
 	frappe.only_for(STAFF)
 	p = plan_import(name)
-	frappe.db.set_value("RD Metadata Import", name, {
-		"status": "Previewed", "rows": p["rows"], "changed": len(p["plan"]), "created": p["new"],
-		"problems": p["problems"], "preview": "\n".join(p["lines"][:3000]) or _("Nothing to change."),
-	})
-	return {"message": _("{0} rows read: {1} books would change ({2} new), {3} problems.").format(
-		p["rows"], len(p["plan"]), p["new"], p["problems"])}
+	frappe.db.set_value(
+		"RD Metadata Import",
+		name,
+		{
+			"status": "Previewed",
+			"rows": p["rows"],
+			"changed": len(p["plan"]),
+			"created": p["new"],
+			"problems": p["problems"],
+			"preview": "\n".join(p["lines"][:3000]) or _("Nothing to change."),
+		},
+	)
+	return {
+		"message": _("{0} rows read: {1} books would change ({2} new), {3} problems.").format(
+			p["rows"], len(p["plan"]), p["new"], p["problems"]
+		)
+	}
 
 
 @frappe.whitelist()
@@ -262,8 +320,14 @@ def apply_import(name: str) -> dict:
 	p = plan_import(name)
 	if len(p["plan"]) > 200:
 		frappe.db.set_value("RD Metadata Import", name, "status", "Queued")
-		frappe.enqueue("sok_resdesk.transfer.apply_plan", queue="long", timeout=6 * 3600, name=name,
-					   enqueue_after_commit=True, job_id=f"resdesk-import-{name}")
+		frappe.enqueue(
+			"sok_resdesk.transfer.apply_plan",
+			queue="long",
+			timeout=6 * 3600,
+			name=name,
+			enqueue_after_commit=True,
+			job_id=f"resdesk-import-{name}",
+		)
 		return {"message": _("Applying changes to {0} books in the background.").format(len(p["plan"]))}
 	return apply_plan(name, p)
 
@@ -291,8 +355,14 @@ def apply_plan(name: str, p: dict | None = None) -> dict:
 				alts = alts or []
 				doc.set("creators", [])
 				for i, n in enumerate(names):
-					doc.append("creators", {"creator": _ensure_creator(n, alts[i] if i < len(alts) else ""),
-											"role": "Author", "name_as_given": n[:255]})
+					doc.append(
+						"creators",
+						{
+							"creator": _ensure_creator(n, alts[i] if i < len(alts) else ""),
+							"role": "Author",
+							"name_as_given": n[:255],
+						},
+					)
 			if "subjects" in changes:
 				doc.set("subjects", [{"subject": _ensure_subject(s)} for s in changes.pop("subjects")])
 			if "curated_collections" in changes:
@@ -322,13 +392,20 @@ def apply_plan(name: str, p: dict | None = None) -> dict:
 			log.append(f"FAILED {item_id}: {str(e)[:300]}")
 	try:
 		for i in range(0, len(done), 200):
-			update_item_fields(done[i:i + 200], wait=len(done) <= 200)
+			update_item_fields(done[i : i + 200], wait=len(done) <= 200)
 	except SearchError as e:
 		log.append(f"search index not updated: {e}")
-	frappe.db.set_value("RD Metadata Import", name, {
-		"status": "Done" if not any(line.startswith("FAILED") for line in log) else "Failed",
-		"changed": len(done),
-		"preview": "\n".join((log + p["lines"])[:3000]),
-	})
+	frappe.db.set_value(
+		"RD Metadata Import",
+		name,
+		{
+			"status": "Done" if not any(line.startswith("FAILED") for line in log) else "Failed",
+			"changed": len(done),
+			"preview": "\n".join((log + p["lines"])[:3000]),
+		},
+	)
 	frappe.db.commit()
-	return {"message": _("{0} books updated.").format(len(done)) + (f" {len(log)} notes in the log." if log else "")}
+	return {
+		"message": _("{0} books updated.").format(len(done))
+		+ (f" {len(log)} notes in the log." if log else "")
+	}

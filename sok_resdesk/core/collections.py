@@ -7,7 +7,15 @@ import unicodedata
 
 from sok_resdesk.core.access import _values
 
-RULE_FIELDS = ("Source Collection", "Subject", "Language", "Creator", "Source", "Ingest Profile", "Document Type")
+RULE_FIELDS = (
+	"Source Collection",
+	"Subject",
+	"Language",
+	"Creator",
+	"Source",
+	"Ingest Profile",
+	"Document Type",
+)
 _FIELD_MAP = {"Source Collection": "Collection", "Document Type": "Item Type"}
 
 

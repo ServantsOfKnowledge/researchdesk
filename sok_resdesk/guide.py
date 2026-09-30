@@ -18,20 +18,42 @@ MANAGERS = ("System Manager", "ResDesk Manager")
 # doctype -> [(fieldname, title, description)]. Only fields that are visible on a new form.
 TOURS: dict[str, list[tuple[str, str, str]]] = {
 	"RD Ingest Profile": [
-		("profile_name", "Name the selection", "A name you'll recognise, e.g. <i>Kannada literature 1900–1950</i>."),
-		("source", "Where the books are", "<b>Internet Archive</b> for archive.org, or <b>Folder or Server</b> for "
-		 "IA-style item folders on this computer, a NAS or a web server."),
-		("scope_type", "How to choose them", "By <b>collection</b> (e.g. ServantsOfKnowledge), by an archive.org "
-		 "<b>search query</b>, or by a list of <b>identifiers</b>."),
+		(
+			"profile_name",
+			"Name the selection",
+			"A name you'll recognise, e.g. <i>Kannada literature 1900–1950</i>.",
+		),
+		(
+			"source",
+			"Where the books are",
+			"<b>Internet Archive</b> for archive.org, or <b>Folder or Server</b> for "
+			"IA-style item folders on this computer, a NAS or a web server.",
+		),
+		(
+			"scope_type",
+			"How to choose them",
+			"By <b>collection</b> (e.g. ServantsOfKnowledge), by an archive.org "
+			"<b>search query</b>, or by a list of <b>identifiers</b>.",
+		),
 		("ia_collection", "The collection", "The archive.org collection name, as in its web address."),
-		("extra_filter", "Narrow it down", "Optional archive.org search terms, e.g. <code>language:kan AND "
-		 "year:[1900 TO 1950]</code>. <b>Check Count</b> shows how many books match."),
+		(
+			"extra_filter",
+			"Narrow it down",
+			"Optional archive.org search terms, e.g. <code>language:kan AND "
+			"year:[1900 TO 1950]</code>. <b>Check Count</b> shows how many books match.",
+		),
 		("max_items", "How many", "Start small (50–100) to check the result, then raise it. 0 means all."),
 		("fetch_fulltext", "Full text", "Keep this on: it makes the text of every page searchable."),
-		("visibility", "Who can see these books", "Leave empty to use the site default, or keep this selection for "
-		 "logged-in readers."),
-		("schedule", "Keep it up to date", "Daily or Weekly picks up new books automatically. Save, then press "
-		 "<b>Run Ingest</b> to start."),
+		(
+			"visibility",
+			"Who can see these books",
+			"Leave empty to use the site default, or keep this selection for logged-in readers.",
+		),
+		(
+			"schedule",
+			"Keep it up to date",
+			"Daily or Weekly picks up new books automatically. Save, then press <b>Run Ingest</b> to start.",
+		),
 	],
 	"RD Collection": [
 		("title", "Name the collection", "Readers see this title. The web address is made from it."),
@@ -39,49 +61,90 @@ TOURS: dict[str, list[tuple[str, str, str]]] = {
 		("published", "Show it on the portal", "Untick to keep it as a staff-only working set."),
 		("featured", "Feature it", "Featured collections appear as cards on the portal home page."),
 		("cover_image", "Cover", "An image for the collection card."),
-		("rules", "Fill it automatically", "Optional rules like <i>Subject contains Vachana</i>. Press "
-		 "<b>Apply Rules</b> after saving; new books that match are added as they arrive."),
+		(
+			"rules",
+			"Fill it automatically",
+			"Optional rules like <i>Subject contains Vachana</i>. Press "
+			"<b>Apply Rules</b> after saving; new books that match are added as they arrive.",
+		),
 	],
 	"RD Push Target": [
 		("target_name", "Name the target", "E.g. <i>Our Koha catalogue</i>."),
-		("target_type", "Where to send metadata", "Internet Archive, Koha, Wikidata, or any web service (webhook)."),
-		("dry_run", "Dry run first", "While this is on, runs only log what they would send. Untick when the log "
-		 "looks right."),
+		(
+			"target_type",
+			"Where to send metadata",
+			"Internet Archive, Koha, Wikidata, or any web service (webhook).",
+		),
+		(
+			"dry_run",
+			"Dry run first",
+			"While this is on, runs only log what they would send. Untick when the log looks right.",
+		),
 		("scope", "Which books", "One collection, or everything."),
 		("auto_push", "Keep it in sync", "Send a book again whenever it is edited."),
 	],
 	"RD Export": [
-		("export_format", "Choose a format", "Spreadsheet to edit and import back, MARCXML for Koha, MODS or Dublin "
-		 "Core for repositories, BibTeX/RIS for reference managers, or files for archive.org."),
+		(
+			"export_format",
+			"Choose a format",
+			"Spreadsheet to edit and import back, MARCXML for Koha, MODS or Dublin "
+			"Core for repositories, BibTeX/RIS for reference managers, or files for archive.org.",
+		),
 		("scope", "Which books", "Everything, a collection, a profile, a search or a filter."),
-		("include_unpublished", "Unpublished books", "Tick to include books hidden from the portal. Then Save: the "
-		 "file is made straight away."),
+		(
+			"include_unpublished",
+			"Unpublished books",
+			"Tick to include books hidden from the portal. Then Save: the file is made straight away.",
+		),
 	],
 	"RD Metadata Import": [
-		("import_file", "Attach the edited spreadsheet", "Export a spreadsheet first, change it, and attach it "
-		 "here. Only the columns in the file are changed."),
-		("create_missing", "New records", "Tick to add rows whose ID isn't in the catalogue yet. Save, then "
-		 "press <b>Preview Changes</b>: nothing changes until you press <b>Apply Changes</b>."),
+		(
+			"import_file",
+			"Attach the edited spreadsheet",
+			"Export a spreadsheet first, change it, and attach it "
+			"here. Only the columns in the file are changed.",
+		),
+		(
+			"create_missing",
+			"New records",
+			"Tick to add rows whose ID isn't in the catalogue yet. Save, then "
+			"press <b>Preview Changes</b>: nothing changes until you press <b>Apply Changes</b>.",
+		),
 	],
 	"RD Item": [
 		("title", "Title", "Titles stay in their original script; add a romanised form below."),
 		("alt_title", "Romanised title", "Helps searches typed in Latin letters and goes into citations."),
 		("item_type", "Document type", "Book, periodical, thesis… It sets the citation type too."),
-		("visibility", "Who can see it", "Public, <i>Login to read</i> (anyone finds it, members read it) or "
-		 "<i>Login to find</i> (members only)."),
+		(
+			"visibility",
+			"Who can see it",
+			"Public, <i>Login to read</i> (anyone finds it, members read it) or "
+			"<i>Login to find</i> (members only).",
+		),
 		("subjects", "Subjects", "Used by the Subject filter on the portal and in exports."),
 		("curated_collections", "Collections", "Your own collections this book belongs to."),
-		("lock_metadata", "Keep My Edits", "Ticked for you when you edit: re-ingesting won't overwrite your "
-		 "corrections."),
+		(
+			"lock_metadata",
+			"Keep My Edits",
+			"Ticked for you when you edit: re-ingesting won't overwrite your corrections.",
+		),
 	],
 	"RD Settings": [
 		("portal_title", "Your library's name", "Shown on the portal, in the browser tab and in citations."),
 		("portal_tagline", "Tagline", "One line under the name on the portal home page."),
 		("portal_logo", "Logo", "Shown in the top bar and on the home page."),
 		("home_banner", "Home page picture", "Optional background for the search box on the home page."),
-		("guest_access", "Visitors", "What people who are not logged in can do: everything each book allows, "
-		 "only see records, or nothing."),
-		("reader_signup", "Reader accounts", "Staff add readers, anyone can sign up, or sign-ups wait for approval."),
+		(
+			"guest_access",
+			"Visitors",
+			"What people who are not logged in can do: everything each book allows, "
+			"only see records, or nothing.",
+		),
+		(
+			"reader_signup",
+			"Reader accounts",
+			"Staff add readers, anyone can sign up, or sign-ups wait for approval.",
+		),
 	],
 }
 
@@ -89,27 +152,53 @@ TOURS: dict[str, list[tuple[str, str, str]]] = {
 # public/js/desk_help.js). Frappe's own onboarding widget is not shown on v16 workspaces.
 # key: (title, description, action, done-when)
 STEPS = [
-	("brand", "Name your library and add a logo",
-	 "Your library's name, logo and tagline appear on the portal, in the Desk and in citations.",
-	 {"label": "Open Settings", "tour": "RD Settings", "route": ["Form", "RD Settings"]}, "logo"),
-	("ingest", "Bring in your first books",
-	 "An ingest profile says which books to bring in: an archive.org collection or search, or your own "
-	 "folders. Save it and press Run Ingest.",
-	 {"label": "Make a profile", "tour": "RD Ingest Profile", "route": ["Form", "RD Ingest Profile", "new"]},
-	 "ingest_done"),
-	("jobs", "Watch the ingest",
-	 "Books arrive in batches in the background. Background Jobs shows progress; pause, resume or stop from there.",
-	 {"label": "Open Background Jobs", "route": ["resdesk-jobs"]}, "visited"),
-	("access", "Decide who can see what",
-	 "Everything public, a public catalogue with reading for members, or an internal library.",
-	 {"label": "Open access settings", "route": ["Form", "RD Settings"], "field": "guest_access"}, "visited"),
-	("collection", "Make a collection",
-	 "Group books your way, by hand or with rules. Each collection gets its own page on the portal.",
-	 {"label": "Make a collection", "tour": "RD Collection", "route": ["Form", "RD Collection", "new"]},
-	 "collection"),
-	("guide", "Read the staff guide",
-	 "A short tour of the Desk with pictures. Every screen's Help menu opens the right section.",
-	 {"label": "Open Help", "route": ["resdesk-help", "staff-guide"]}, "visited"),
+	(
+		"brand",
+		"Name your library and add a logo",
+		"Your library's name, logo and tagline appear on the portal, in the Desk and in citations.",
+		{"label": "Open Settings", "tour": "RD Settings", "route": ["Form", "RD Settings"]},
+		"logo",
+	),
+	(
+		"ingest",
+		"Bring in your first books",
+		"An ingest profile says which books to bring in: an archive.org collection or search, or your own "
+		"folders. Save it and press Run Ingest.",
+		{
+			"label": "Make a profile",
+			"tour": "RD Ingest Profile",
+			"route": ["Form", "RD Ingest Profile", "new"],
+		},
+		"ingest_done",
+	),
+	(
+		"jobs",
+		"Watch the ingest",
+		"Books arrive in batches in the background. Background Jobs shows progress; pause, resume or stop from there.",
+		{"label": "Open Background Jobs", "route": ["resdesk-jobs"]},
+		"visited",
+	),
+	(
+		"access",
+		"Decide who can see what",
+		"Everything public, a public catalogue with reading for members, or an internal library.",
+		{"label": "Open access settings", "route": ["Form", "RD Settings"], "field": "guest_access"},
+		"visited",
+	),
+	(
+		"collection",
+		"Make a collection",
+		"Group books your way, by hand or with rules. Each collection gets its own page on the portal.",
+		{"label": "Make a collection", "tour": "RD Collection", "route": ["Form", "RD Collection", "new"]},
+		"collection",
+	),
+	(
+		"guide",
+		"Read the staff guide",
+		"A short tour of the Desk with pictures. Every screen's Help menu opens the right section.",
+		{"label": "Open Help", "route": ["resdesk-help", "staff-guide"]},
+		"visited",
+	),
 ]
 BLOCK = "Research Desk Checklist"
 STATE_KEY = "resdesk_checklist"
@@ -124,16 +213,39 @@ def sync() -> None:
 
 def _sync_tour(doctype: str, steps) -> None:
 	meta = frappe.get_meta(doctype)
-	doc = frappe.get_doc("Form Tour", doctype) if frappe.db.exists("Form Tour", doctype) else frappe.new_doc("Form Tour")
-	doc.update({"title": doctype, "reference_doctype": doctype, "module": MODULE, "is_standard": 0,
-				"view_name": "Form", "save_on_complete": 0, "first_document": 0, "ui_tour": 0})
+	doc = (
+		frappe.get_doc("Form Tour", doctype)
+		if frappe.db.exists("Form Tour", doctype)
+		else frappe.new_doc("Form Tour")
+	)
+	doc.update(
+		{
+			"title": doctype,
+			"reference_doctype": doctype,
+			"module": MODULE,
+			"is_standard": 0,
+			"view_name": "Form",
+			"save_on_complete": 0,
+			"first_document": 0,
+			"ui_tour": 0,
+		}
+	)
 	doc.set("steps", [])
 	for fieldname, title, description in steps:
 		df = meta.get_field(fieldname)
 		if not df:
 			continue
-		doc.append("steps", {"fieldname": fieldname, "label": df.label, "fieldtype": df.fieldtype,
-							 "title": title, "description": description, "position": "Bottom"})
+		doc.append(
+			"steps",
+			{
+				"fieldname": fieldname,
+				"label": df.label,
+				"fieldtype": df.fieldtype,
+				"title": title,
+				"description": description,
+				"position": "Bottom",
+			},
+		)
 	doc.flags.ignore_permissions = True
 	doc.save() if not doc.is_new() else doc.insert()
 
@@ -176,7 +288,9 @@ def _save_state(state: dict) -> None:
 def _auto_done() -> dict:
 	return {
 		"logo": bool(frappe.db.get_single_value("RD Settings", "portal_logo")),
-		"ingest_done": bool(frappe.db.exists("RD Ingest Run", {"status": ("in", ["Completed", "Completed with Errors"])})),
+		"ingest_done": bool(
+			frappe.db.exists("RD Ingest Run", {"status": ("in", ["Completed", "Completed with Errors"])})
+		),
 		"collection": bool(frappe.db.count("RD Collection")),
 	}
 
@@ -189,9 +303,17 @@ def checklist() -> dict:
 	steps = []
 	for key, title, description, action, when in STEPS:
 		done = key in state.get("done", []) or bool(auto.get(when))
-		steps.append({"key": key, "title": _(title), "description": _(description),
-					  "action": {**action, "label": _(action["label"])}, "mark_on_click": when == "visited",
-					  "done": done, "skipped": key in state.get("skipped", [])})
+		steps.append(
+			{
+				"key": key,
+				"title": _(title),
+				"description": _(description),
+				"action": {**action, "label": _(action["label"])},
+				"mark_on_click": when == "visited",
+				"done": done,
+				"skipped": key in state.get("skipped", []),
+			}
+		)
 	finished = all(s["done"] or s["skipped"] for s in steps)
 	return {"steps": steps, "hidden": bool(state.get("hidden")), "finished": finished}
 

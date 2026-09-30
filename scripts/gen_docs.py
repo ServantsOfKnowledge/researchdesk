@@ -52,7 +52,9 @@ def _options(call_list) -> list[tuple[str, str]]:
 		names = [a.value for a in c.args if isinstance(a, ast.Constant) and str(a.value).startswith("-")]
 		if getattr(c.func, "attr", "") == "argument":
 			names = [str(c.args[0].value).upper()]
-		helptext = next((k.value.value for k in c.keywords if k.arg == "help" and isinstance(k.value, ast.Constant)), "")
+		helptext = next(
+			(k.value.value for k in c.keywords if k.arg == "help" and isinstance(k.value, ast.Constant)), ""
+		)
 		if names:
 			opts.append((" ".join(names), helptext))
 	return opts
@@ -63,14 +65,23 @@ def commands_block() -> str:
 	m = re.search(r"help\|\*\)\s*\n\s*cat <<EOF\n(.*?)\nEOF", sh, re.S)
 	usage = m.group(1).replace("  (this install: $MODE)", "") if m else ""
 	tree = ast.parse(COMMANDS_PY.read_text())
-	scope = next(n.value.elts for n in tree.body if isinstance(n, ast.Assign)
-				 and getattr(n.targets[0], "id", "") == "_scope_options")
+	scope = next(
+		n.value.elts
+		for n in tree.body
+		if isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "") == "_scope_options"
+	)
 	rows = []
 	for fn in tree.body:
 		if not isinstance(fn, ast.FunctionDef):
 			continue
-		cmd = next((d.args[0].value for d in fn.decorator_list if isinstance(d, ast.Call)
-					and getattr(d.func, "attr", "") == "command" and d.args), None)
+		cmd = next(
+			(
+				d.args[0].value
+				for d in fn.decorator_list
+				if isinstance(d, ast.Call) and getattr(d.func, "attr", "") == "command" and d.args
+			),
+			None,
+		)
 		if not cmd:
 			continue
 		decos = list(fn.decorator_list)
@@ -81,21 +92,25 @@ def commands_block() -> str:
 			elif isinstance(d, ast.Call):
 				opts += _options([d])
 		doc = (ast.get_docstring(fn) or "").split("\n")[0]
-		rows.append(f"| `{cmd}` | {_cell(doc)} | " + "<br>".join(f"`{n}` {_cell(h)}".strip() for n, h in opts) + " |")
-	return "\n".join([
-		"`./resdesk.sh help` prints:",
-		"",
-		"```text",
-		usage.rstrip(),
-		"```",
-		"",
-		"The Research Desk commands behind it (`./resdesk.sh <command>` runs "
-		"`bench --site <site> resdesk <command>`):",
-		"",
-		"| Command | What it does | Options |",
-		"|---|---|---|",
-		*rows,
-	])
+		rows.append(
+			f"| `{cmd}` | {_cell(doc)} | " + "<br>".join(f"`{n}` {_cell(h)}".strip() for n, h in opts) + " |"
+		)
+	return "\n".join(
+		[
+			"`./resdesk.sh help` prints:",
+			"",
+			"```text",
+			usage.rstrip(),
+			"```",
+			"",
+			"The Research Desk commands behind it (`./resdesk.sh <command>` runs "
+			"`bench --site <site> resdesk <command>`):",
+			"",
+			"| Command | What it does | Options |",
+			"|---|---|---|",
+			*rows,
+		]
+	)
 
 
 BLOCKS = {"settings": settings_block, "commands": commands_block}

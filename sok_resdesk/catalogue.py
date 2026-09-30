@@ -24,6 +24,7 @@ def portal_title() -> str:
 
 # -- read ---------------------------------------------------------------------
 
+
 def item_to_record(doc) -> dict:
 	"""RD Item document -> plain dict (the shape the core/ modules expect)."""
 	creators, alt_creators = [], []
@@ -103,6 +104,7 @@ def get_record(item_id: str, published_only: bool = True, check_access: bool = T
 
 # -- write --------------------------------------------------------------------
 
+
 def _ensure_creator(name: str, alt: str = "") -> str:
 	name = name.strip()[:140]
 	if not frappe.db.exists("RD Creator", name):
@@ -123,8 +125,20 @@ def _ensure_subject(name: str) -> str:
 
 # What a cataloguer edits. When an item has "Keep My Edits" on, re-ingesting leaves these alone.
 DESCRIPTIVE = (
-	"title", "alt_title", "date_raw", "year", "language", "language_label", "publisher", "place", "series",
-	"isbn", "description", "licence_url", "rights", "item_type",
+	"title",
+	"alt_title",
+	"date_raw",
+	"year",
+	"language",
+	"language_label",
+	"publisher",
+	"place",
+	"series",
+	"isbn",
+	"description",
+	"licence_url",
+	"rights",
+	"item_type",
 )
 
 
@@ -136,11 +150,37 @@ def upsert_item(record: dict, raw: dict | None = None, profile: str | None = Non
 	doc.flags.from_ingest = True
 
 	simple = (
-		"item_id", "source", "title", "alt_title", "date_raw", "year", "language", "language_label",
-		"publisher", "place", "series", "isbn", "page_count", "description", "licence_url", "rights",
-		"access_status", "source_url", "thumbnail_url", "ark", "ocr_engine", "ocr_language",
-		"scanning_centre", "added_on_source",
-		"local_store", "local_path", "local_pdf", "local_thumb", "text_source", "source_signature", "item_type",
+		"item_id",
+		"source",
+		"title",
+		"alt_title",
+		"date_raw",
+		"year",
+		"language",
+		"language_label",
+		"publisher",
+		"place",
+		"series",
+		"isbn",
+		"page_count",
+		"description",
+		"licence_url",
+		"rights",
+		"access_status",
+		"source_url",
+		"thumbnail_url",
+		"ark",
+		"ocr_engine",
+		"ocr_language",
+		"scanning_centre",
+		"added_on_source",
+		"local_store",
+		"local_path",
+		"local_pdf",
+		"local_thumb",
+		"text_source",
+		"source_signature",
+		"item_type",
 	)
 	for field in simple:
 		if locked and field in DESCRIPTIVE:
@@ -149,7 +189,13 @@ def upsert_item(record: dict, raw: dict | None = None, profile: str | None = Non
 			continue
 		value = record.get(field)
 		if isinstance(value, str):
-			limit = 1000 if field in ("title", "alt_title") else 500 if field in ("publisher", "licence_url", "series", "source_url") else None
+			limit = (
+				1000
+				if field in ("title", "alt_title")
+				else 500
+				if field in ("publisher", "licence_url", "series", "source_url")
+				else None
+			)
 			if limit:
 				value = value[:limit]
 		doc.set(field, value)

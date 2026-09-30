@@ -25,12 +25,32 @@ from sok_resdesk.holding import hold_when_paused
 
 BOOK_SETTINGS = {
 	"searchableAttributes": [
-		"title", "alt_title", "creators", "alt_creators", "subjects", "series", "publisher",
-		"description", "item_id", "text_excerpt",
+		"title",
+		"alt_title",
+		"creators",
+		"alt_creators",
+		"subjects",
+		"series",
+		"publisher",
+		"description",
+		"item_id",
+		"text_excerpt",
 	],
 	"filterableAttributes": [
-		"item_id", "language", "language_label", "year", "decade", "creators", "subjects", "collections",
-		"access_status", "has_fulltext", "source", "visibility", "curated", "item_type",
+		"item_id",
+		"language",
+		"language_label",
+		"year",
+		"decade",
+		"creators",
+		"subjects",
+		"collections",
+		"access_status",
+		"has_fulltext",
+		"source",
+		"visibility",
+		"curated",
+		"item_type",
 	],
 	"sortableAttributes": ["year", "title_sort", "indexed_at"],
 	"displayedAttributes": ["*"],
@@ -51,8 +71,18 @@ PAGE_SETTINGS = {
 	"prefixSearch": "indexingTime",
 	"facetSearch": False,
 	"searchCutoffMs": 1500,
-	"filterableAttributes": ["item_id", "language_label", "year", "decade", "collections", "creators", "visibility",
-							 "curated", "item_type", "subjects"],
+	"filterableAttributes": [
+		"item_id",
+		"language_label",
+		"year",
+		"decade",
+		"collections",
+		"creators",
+		"visibility",
+		"curated",
+		"item_type",
+		"subjects",
+	],
 	"sortableAttributes": ["leaf"],
 	"displayedAttributes": ["*"],
 	"pagination": {"maxTotalHits": 10000},
@@ -158,6 +188,7 @@ def _quote(value: str) -> str:
 
 # -- documents ------------------------------------------------------------------
 
+
 def book_document(record: dict, excerpt: str = "") -> dict:
 	title = record.get("alt_title") or record.get("title") or ""
 	return {
@@ -193,29 +224,36 @@ def book_document(record: dict, excerpt: str = "") -> dict:
 def page_documents(record: dict, pages: list[dict], max_chars: int = 6000) -> list[dict]:
 	docs = []
 	for page in pages:
-		docs.append({
-			"id": doc_id(record["item_id"], f"__p{page['leaf']}"),
-			"item_id": record["item_id"],
-			"leaf": page["leaf"],
-			"label": page.get("label") or "",
-			"text": page["text"][:max_chars],
-			"creators": record.get("creators") or [],
-			"year": record.get("year"),
-			"decade": record.get("decade") or decade_of(record.get("year")),
-			"language_label": record.get("language_label") or "Unknown",
-			"collections": record.get("collections") or [],
-			"visibility": record.get("visibility") or "Public",
-			"curated": record.get("curated_collections") or [],
-			"item_type": record.get("item_type") or "Book",
-			"subjects": record.get("subjects") or [],
-		})
+		docs.append(
+			{
+				"id": doc_id(record["item_id"], f"__p{page['leaf']}"),
+				"item_id": record["item_id"],
+				"leaf": page["leaf"],
+				"label": page.get("label") or "",
+				"text": page["text"][:max_chars],
+				"creators": record.get("creators") or [],
+				"year": record.get("year"),
+				"decade": record.get("decade") or decade_of(record.get("year")),
+				"language_label": record.get("language_label") or "Unknown",
+				"collections": record.get("collections") or [],
+				"visibility": record.get("visibility") or "Public",
+				"curated": record.get("curated_collections") or [],
+				"item_type": record.get("item_type") or "Book",
+				"subjects": record.get("subjects") or [],
+			}
+		)
 	return docs
 
 
 # -- indexing -------------------------------------------------------------------
 
-def index_record(record: dict, pages: list[dict] | None = None, client: MeiliClient | None = None,
-				 replace_pages: bool = True) -> int:
+
+def index_record(
+	record: dict,
+	pages: list[dict] | None = None,
+	client: MeiliClient | None = None,
+	replace_pages: bool = True,
+) -> int:
 	"""Index one book and (optionally) its pages. Returns number of pages indexed."""
 	client = client or MeiliClient.from_settings()
 	s = settings()
@@ -228,18 +266,28 @@ def index_record(record: dict, pages: list[dict] | None = None, client: MeiliCli
 			client.delete_by_filter(client.pages, f"item_id = {_quote(record['item_id'])}")
 		docs = page_documents(record, pages, cint(s.max_page_chars) or 6000)
 		for i in range(0, len(docs), 500):
-			client.add(client.pages, docs[i:i + 500])
+			client.add(client.pages, docs[i : i + 500])
 		count = len(docs)
 	frappe.db.set_value(
-		"RD Item", record["item_id"],
+		"RD Item",
+		record["item_id"],
 		{"indexed_on": now_datetime(), **({"indexed_pages": count} if pages else {})},
 		update_modified=False,
 	)
 	return count
 
 
-PAGE_FIELDS = ("creators", "year", "decade", "language_label", "collections", "visibility", "curated",
-			   "item_type", "subjects")
+PAGE_FIELDS = (
+	"creators",
+	"year",
+	"decade",
+	"language_label",
+	"collections",
+	"visibility",
+	"curated",
+	"item_type",
+	"subjects",
+)
 
 
 def update_item_fields(names: list[str], client: MeiliClient | None = None, wait: bool = False) -> None:
@@ -250,7 +298,9 @@ def update_item_fields(names: list[str], client: MeiliClient | None = None, wait
 	names = [n for n in dict.fromkeys(names) if n]
 	last = None
 	for i in range(0, len(names), 200):
-		chunk = frappe.get_all("RD Item", filters={"name": ("in", names[i:i + 200]), "published": 1}, pluck="name")
+		chunk = frappe.get_all(
+			"RD Item", filters={"name": ("in", names[i : i + 200]), "published": 1}, pluck="name"
+		)
 		if not chunk:
 			continue
 		books = {}
@@ -259,18 +309,29 @@ def update_item_fields(names: list[str], client: MeiliClient | None = None, wait
 			doc.pop("indexed_at", None)
 			books[name] = doc
 		flt = f"item_id IN [{', '.join(_quote(n) for n in chunk)}]"
-		indexed = {d["item_id"] for d in client._req("POST", f"/indexes/{client.books}/documents/fetch",
-													 json={"filter": flt, "fields": ["item_id"], "limit": 1000}).get("results", [])}
+		indexed = {
+			d["item_id"]
+			for d in client._req(
+				"POST",
+				f"/indexes/{client.books}/documents/fetch",
+				json={"filter": flt, "fields": ["item_id"], "limit": 1000},
+			).get("results", [])
+		}
 		new = [dict(b, text_excerpt="") for n, b in books.items() if n not in indexed]
 		if new:
 			last = client.add(client.books, new)
-		partial = [{k: v for k, v in b.items() if k != "text_excerpt"} for n, b in books.items() if n in indexed]
+		partial = [
+			{k: v for k, v in b.items() if k != "text_excerpt"} for n, b in books.items() if n in indexed
+		]
 		if partial:
 			last = client._req("PUT", f"/indexes/{client.books}/documents", json=partial)
 		updates, offset = [], 0
 		while True:
-			res = client._req("POST", f"/indexes/{client.pages}/documents/fetch",
-							  json={"filter": flt, "fields": ["id", "item_id"], "limit": 10000, "offset": offset})
+			res = client._req(
+				"POST",
+				f"/indexes/{client.pages}/documents/fetch",
+				json={"filter": flt, "fields": ["id", "item_id"], "limit": 10000, "offset": offset},
+			)
 			rows = res.get("results", [])
 			for r in rows:
 				b = books.get(r["item_id"])
@@ -295,6 +356,7 @@ def remove_record(item_id: str, client: MeiliClient | None = None) -> None:
 
 # -- doc_events -----------------------------------------------------------------
 
+
 def on_item_update(doc, method=None):
 	"""Keep the book index in step with manual edits in the Desk."""
 	if doc.flags.skip_search_index or frappe.flags.in_install or frappe.flags.in_migrate:
@@ -318,6 +380,7 @@ def on_item_trash(doc, method=None):
 
 # -- whitelisted admin actions ------------------------------------------------------
 
+
 @frappe.whitelist()
 def setup_indexes() -> str:
 	frappe.only_for(("System Manager", "ResDesk Manager"))
@@ -331,7 +394,9 @@ def setup_indexes() -> str:
 		frappe.throw(str(e))
 	books = stats.get(client.books, {}).get("numberOfDocuments", 0)
 	pages = stats.get(client.pages, {}).get("numberOfDocuments", 0)
-	msg = _("Connected ({0}). Indexes ready: {1} books, {2} pages.").format(health.get("status"), books, pages)
+	msg = _("Connected ({0}). Indexes ready: {1} books, {2} pages.").format(
+		health.get("status"), books, pages
+	)
 	frappe.db.set_single_value("RD Settings", "search_status", msg)
 	return msg
 
@@ -355,13 +420,19 @@ def enqueue_rebuild(with_pages: int = 1):
 
 def queue_rebuild(with_pages: int = 1, batch_size: int = 50) -> int:
 	"""Split a full re-index into batches that the queue workers run in parallel."""
-	frappe.cache.delete_value("resdesk:stop-background")  # a new rebuild overrides an earlier "stop everything"
+	frappe.cache.delete_value(
+		"resdesk:stop-background"
+	)  # a new rebuild overrides an earlier "stop everything"
 	MeiliClient.from_settings().setup()
 	names = frappe.get_all("RD Item", filters={"published": 1}, pluck="name", order_by="creation asc")
 	for n, i in enumerate(range(0, len(names), batch_size), 1):
 		frappe.enqueue(
-			"sok_resdesk.search.rebuild_batch", queue="long", timeout=6 * 3600,
-			names=names[i:i + batch_size], with_pages=with_pages, job_id=f"resdesk-reindex-{n}",
+			"sok_resdesk.search.rebuild_batch",
+			queue="long",
+			timeout=6 * 3600,
+			names=names[i : i + batch_size],
+			with_pages=with_pages,
+			job_id=f"resdesk-reindex-{n}",
 		)
 	return len(names)
 
@@ -410,15 +481,21 @@ def reset_pages_index() -> None:
 
 # -- public search ----------------------------------------------------------------
 
+
 def _attach_book_fields(client: MeiliClient, hits: list[dict]) -> None:
 	"""Add title/authors to page hits from the (small) books index: one extra query per page of results."""
 	ids = list(dict.fromkeys(h["item_id"] for h in hits))
 	if not ids:
 		return
-	books = client.search(client.books, {
-		"q": "", "limit": len(ids), "filter": f"item_id IN [{', '.join(_quote(i) for i in ids)}]",
-		"attributesToRetrieve": ["item_id", "title", "alt_title", "creators"],
-	}).get("hits", [])
+	books = client.search(
+		client.books,
+		{
+			"q": "",
+			"limit": len(ids),
+			"filter": f"item_id IN [{', '.join(_quote(i) for i in ids)}]",
+			"attributesToRetrieve": ["item_id", "title", "alt_title", "creators"],
+		},
+	).get("hits", [])
 	by_id = {b["item_id"]: b for b in books}
 	for h in hits:
 		b = by_id.get(h["item_id"], {})
@@ -446,23 +523,42 @@ def build_filter(filters: dict | None) -> list:
 	return parts
 
 
-def search(q: str = "", mode: str = "books", filters: dict | None = None, page: int = 1,
-		   per_page: int = 20, sort: str = "", access: dict | None = None) -> dict:
+def search(
+	q: str = "",
+	mode: str = "books",
+	filters: dict | None = None,
+	page: int = 1,
+	per_page: int = 20,
+	sort: str = "",
+	access: dict | None = None,
+) -> dict:
 	"""access: {"books": filter, "pages": filter} from access.search_filter; None = no limit, "" = nothing."""
 	access = access or {}
 	if access.get(mode) == "":
-		return {"hits": [], "totalHits": 0, "totalPages": 0, "page": 1, "facetDistribution": {}, "restricted": True}
+		return {
+			"hits": [],
+			"totalHits": 0,
+			"totalPages": 0,
+			"page": 1,
+			"facetDistribution": {},
+			"restricted": True,
+		}
 	client = MeiliClient.from_settings()
 	page, per_page = max(1, cint(page)), min(max(1, cint(per_page)), 100)
 	body: dict = {"q": q or "", "page": page, "hitsPerPage": per_page, "filter": build_filter(filters)}
 	if access.get(mode):
 		body["filter"].append(access[mode])
 	if mode == "pages":
-		body.update({
-			"attributesToCrop": ["text"], "cropLength": 40,
-			"attributesToHighlight": ["text"], "highlightPreTag": "<mark>", "highlightPostTag": "</mark>",
-			"attributesToRetrieve": ["item_id", "leaf", "label", "year", "language_label", "visibility"],
-		})
+		body.update(
+			{
+				"attributesToCrop": ["text"],
+				"cropLength": 40,
+				"attributesToHighlight": ["text"],
+				"highlightPreTag": "<mark>",
+				"highlightPostTag": "</mark>",
+				"attributesToRetrieve": ["item_id", "leaf", "label", "year", "language_label", "visibility"],
+			}
+		)
 		result = client.search(client.pages, body)
 		_attach_book_fields(client, result.get("hits", []))
 		# facet counts always come from the books index so the sidebar stays useful
@@ -470,12 +566,16 @@ def search(q: str = "", mode: str = "books", filters: dict | None = None, page: 
 		facets = client.search(client.books, {"q": "", "limit": 0, "facets": FACETS, "filter": book_filter})
 		result["facetDistribution"] = facets.get("facetDistribution", {})
 	else:
-		body.update({
-			"facets": FACETS,
-			"attributesToCrop": ["description", "text_excerpt"], "cropLength": 30,
-			"attributesToHighlight": ["title", "alt_title", "creators", "description", "text_excerpt"],
-			"highlightPreTag": "<mark>", "highlightPostTag": "</mark>",
-		})
+		body.update(
+			{
+				"facets": FACETS,
+				"attributesToCrop": ["description", "text_excerpt"],
+				"cropLength": 30,
+				"attributesToHighlight": ["title", "alt_title", "creators", "description", "text_excerpt"],
+				"highlightPreTag": "<mark>",
+				"highlightPostTag": "</mark>",
+			}
+		)
 		if sort in ("year:asc", "year:desc", "title_sort:asc"):
 			body["sort"] = [sort]
 		result = client.search(client.books, body)

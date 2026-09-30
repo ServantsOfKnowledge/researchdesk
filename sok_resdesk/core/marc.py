@@ -108,10 +108,25 @@ def to_marcxml_record(item: dict, base_url: str = "", with_namespace: bool = Fal
 	if item.get("description"):
 		fields.append(_df("520", " ", " ", _sf("a", item["description"][:4000])))
 	if item.get("licence_url") or item.get("rights"):
-		fields.append(_df("540", " ", " ", _sf("a", item.get("rights") or "See licence"),
-						  _sf("u", item["licence_url"]) if item.get("licence_url") else ""))
-	fields.append(_df("533", " ", " ", _sf("a", "Electronic reproduction."),
-					  _sf("b", "Bengaluru :"), _sf("c", "Servants of Knowledge / Internet Archive.")))
+		fields.append(
+			_df(
+				"540",
+				" ",
+				" ",
+				_sf("a", item.get("rights") or "See licence"),
+				_sf("u", item["licence_url"]) if item.get("licence_url") else "",
+			)
+		)
+	fields.append(
+		_df(
+			"533",
+			" ",
+			" ",
+			_sf("a", "Electronic reproduction."),
+			_sf("b", "Bengaluru :"),
+			_sf("c", "Servants of Knowledge / Internet Archive."),
+		)
+	)
 	for s in item.get("subjects") or []:
 		fields.append(_df("653", " ", " ", _sf("a", s)))
 	for name in creators[1:]:
@@ -119,7 +134,9 @@ def to_marcxml_record(item: dict, base_url: str = "", with_namespace: bool = Fal
 	for alt in alt_creators:
 		if alt not in creators:
 			fields.append(_df("700", "1", " ", _sf("a", _heading(alt)), _sf("e", "romanized form")))
-	fields.append(_df("856", "4", "0", _sf("u", url_for(item, base_url)), _sf("y", "Read online (Research Desk)")))
+	fields.append(
+		_df("856", "4", "0", _sf("u", url_for(item, base_url)), _sf("y", "Read online (Research Desk)"))
+	)
 	if item.get("source_url"):
 		fields.append(_df("856", "4", "1", _sf("u", item["source_url"]), _sf("y", "Internet Archive")))
 	ns = f' xmlns="{MARC_NS}"' if with_namespace else ""

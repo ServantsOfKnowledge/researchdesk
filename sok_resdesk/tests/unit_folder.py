@@ -67,8 +67,12 @@ def make_item(root, rel, ident, kind):
 	if kind == "searchtext":
 		text = "ಮೊದಲ ಪುಟ\nಎರಡನೇ ಪುಟ"
 		(d / f"{ident}_hocr_searchtext.txt.gz").write_bytes(gzip.compress(text.encode()))
-		(d / f"{ident}_hocr_pageindex.json.gz").write_bytes(gzip.compress(json.dumps([[0, 0, 0, 0], [0, 8, 0, 0], [9, 19, 0, 0]]).encode()))
-		(d / f"{ident}_page_numbers.json").write_text(json.dumps({"pages": [{"pageNumber": ""}, {"pageNumber": "1"}, {"pageNumber": "2"}]}))
+		(d / f"{ident}_hocr_pageindex.json.gz").write_bytes(
+			gzip.compress(json.dumps([[0, 0, 0, 0], [0, 8, 0, 0], [9, 19, 0, 0]]).encode())
+		)
+		(d / f"{ident}_page_numbers.json").write_text(
+			json.dumps({"pages": [{"pageNumber": ""}, {"pageNumber": "1"}, {"pageNumber": "2"}]})
+		)
 		(d / "__ia_thumb.jpg").write_bytes(b"\xff\xd8thumb")
 	elif kind == "hocr":
 		(d / f"{ident}_hocr.html").write_text(HOCR, encoding="utf-8")
@@ -115,7 +119,11 @@ def test_folder_store_finds_nested_items(library):
 	store = FolderStore(str(library))
 	items = dict(store.iter_items())
 	assert items == {
-		"a0001": "a0001", "b0002": "2026/sep/b0002", "c0003": "c0003", "d0004": "deep/x/y/d0004", "e0005": "e0005",
+		"a0001": "a0001",
+		"b0002": "2026/sep/b0002",
+		"c0003": "c0003",
+		"d0004": "deep/x/y/d0004",
+		"e0005": "e0005",
 	}
 	assert len(list(store.iter_items(limit=2))) == 2
 
@@ -140,6 +148,7 @@ def test_folder_store_signature_changes_and_blocks_traversal(library):
 	meta = library / "a0001" / "a0001_meta.xml"
 	meta.write_text(META.format(id="a0001").replace("1935", "1936"), encoding="utf-8")
 	import os
+
 	os.utime(meta, (1, 2_000_000_000))
 	assert store.signature("a0001", "a0001") != before
 	with pytest.raises(StoreError):

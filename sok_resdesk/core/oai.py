@@ -153,7 +153,7 @@ class Repository:
 		except OAIError as err:
 			attrs = "" if err.code in ("badVerb", "badArgument") else self._request_attrs(args)
 			return self._wrap_raw(
-				f'<request{attrs}>{escape(self.endpoint)}</request>'
+				f"<request{attrs}>{escape(self.endpoint)}</request>"
 				f'<error code="{err.code}">{escape(err.message)}</error>'
 			)
 
@@ -192,10 +192,10 @@ class Repository:
 			f"<earliestDatestamp>{earliest}</earliestDatestamp>"
 			"<deletedRecord>no</deletedRecord>"
 			"<granularity>YYYY-MM-DDThh:mm:ssZ</granularity>"
-			"<description><oai-identifier xmlns=\"http://www.openarchives.org/OAI/2.0/oai-identifier\" "
-			"xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
-			"xsi:schemaLocation=\"http://www.openarchives.org/OAI/2.0/oai-identifier "
-			"http://www.openarchives.org/OAI/2.0/oai-identifier.xsd\">"
+			'<description><oai-identifier xmlns="http://www.openarchives.org/OAI/2.0/oai-identifier" '
+			'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+			'xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai-identifier '
+			'http://www.openarchives.org/OAI/2.0/oai-identifier.xsd">'
 			f"<scheme>oai</scheme><repositoryIdentifier>{escape(self.repo_id)}</repositoryIdentifier>"
 			"<delimiter>:</delimiter>"
 			f"<sampleIdentifier>{oai_identifier(self.repo_id, 'sampleitem0000')}</sampleIdentifier>"
@@ -220,7 +220,8 @@ class Repository:
 		if not sets:
 			raise OAIError("noSetHierarchy", "This repository does not support sets")
 		rows = "".join(
-			f"<set><setSpec>{escape(spec)}</setSpec><setName>{escape(name)}</setName></set>" for spec, name in sets
+			f"<set><setSpec>{escape(spec)}</setSpec><setName>{escape(name)}</setName></set>"
+			for spec, name in sets
 		)
 		return f"<ListSets>{rows}</ListSets>"
 
@@ -228,7 +229,7 @@ class Repository:
 		prefix = f"oai:{self.repo_id}:"
 		if not identifier.startswith(prefix):
 			raise OAIError("idDoesNotExist", "Unknown identifier")
-		item = self.store.get(identifier[len(prefix):])
+		item = self.store.get(identifier[len(prefix) :])
 		if not item:
 			raise OAIError("idDoesNotExist", "Unknown identifier")
 		return item
@@ -267,8 +268,11 @@ class Repository:
 			if "metadataPrefix" not in args:
 				raise OAIError("badArgument", "metadataPrefix is required")
 			state = {
-				"p": args["metadataPrefix"], "f": args.get("from"), "u": args.get("until"),
-				"s": args.get("set"), "o": 0,
+				"p": args["metadataPrefix"],
+				"f": args.get("from"),
+				"u": args.get("until"),
+				"s": args.get("set"),
+				"o": 0,
 			}
 		if state["p"] not in FORMATS:
 			raise OAIError("cannotDisseminateFormat", f"Unsupported metadataPrefix: {state['p']}")
@@ -284,7 +288,9 @@ class Repository:
 		token = ""
 		if next_offset < total:
 			tok = _encode_token({**state, "o": next_offset})
-			token = f'<resumptionToken completeListSize="{total}" cursor="{state["o"]}">{tok}</resumptionToken>'
+			token = (
+				f'<resumptionToken completeListSize="{total}" cursor="{state["o"]}">{tok}</resumptionToken>'
+			)
 		elif state["o"] > 0:
 			token = f'<resumptionToken completeListSize="{total}" cursor="{state["o"]}"/>'
 		return f"<{tag}>{rows}{token}</{tag}>"

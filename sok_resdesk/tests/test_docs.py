@@ -56,8 +56,10 @@ def test_every_api_is_documented():
 			if not isinstance(node, ast.FunctionDef):
 				continue
 			whitelisted = any("whitelist" in ast.unparse(d) for d in node.decorator_list)
-			if whitelisted and f"{module}.{node.name}" not in api and not (
-				f"`{node.name}`" in api and f"{module}." in api
+			if (
+				whitelisted
+				and f"{module}.{node.name}" not in api
+				and not (f"`{node.name}`" in api and f"{module}." in api)
 			):
 				missing.append(f"{module}.{node.name}")
 	assert not missing, f"Add these to docs/api.md: {missing}"
@@ -77,8 +79,13 @@ def test_every_doctype_is_in_the_data_model():
 def test_every_setting_explains_itself():
 	"""Settings fields need a description: it shows under the field and in docs/operations.md."""
 	fields = _doctype("RD Settings")["fields"]
-	missing = [f["fieldname"] for f in fields if f["fieldtype"] not in ("Section Break", "Column Break", "Tab Break")
-			   and not f.get("hidden") and not f.get("description")]
+	missing = [
+		f["fieldname"]
+		for f in fields
+		if f["fieldtype"] not in ("Section Break", "Column Break", "Tab Break")
+		and not f.get("hidden")
+		and not f.get("description")
+	]
 	assert not missing, f"Give these RD Settings fields a description: {missing}"
 
 
@@ -94,7 +101,9 @@ def test_every_shell_command_is_documented():
 	docs = "\n".join(_read(p) for p in DOCS.glob("*.md")) + _read(ROOT / "README.md")
 	cases = re.findall(r"^  ([a-z][a-z-]*)\)", _read(ROOT / "resdesk.sh"), re.M)
 	lines = [line for line in docs.splitlines() if "resdesk.sh" in line]
-	missing = [c for c in cases if not any(re.search(rf"(resdesk\.sh |\| ){re.escape(c)}\b", line) for line in lines)]
+	missing = [
+		c for c in cases if not any(re.search(rf"(resdesk\.sh |\| ){re.escape(c)}\b", line) for line in lines)
+	]
 	assert not missing, f"Document ./resdesk.sh {missing} (add them to its help text, then ./resdesk.sh docs)"
 
 
@@ -140,9 +149,14 @@ def test_help_buttons_point_at_real_sections():
 	for slug, anchor, where in links:
 		page = helpdocs.BY_SLUG.get(slug)
 		assert page, f"{where}: no help page {slug}"
-		assert anchor in helpdocs.anchors(_read(DOCS / page.file)), f"{where}: {page.file} has no heading #{anchor}"
-	doctypes = {json.loads(_read(f / f"{f.name}.json"))["name"] for f in DOCTYPES.iterdir()
-				if (f / f"{f.name}.json").exists() and not json.loads(_read(f / f"{f.name}.json")).get("istable")}
+		assert anchor in helpdocs.anchors(_read(DOCS / page.file)), (
+			f"{where}: {page.file} has no heading #{anchor}"
+		)
+	doctypes = {
+		json.loads(_read(f / f"{f.name}.json"))["name"]
+		for f in DOCTYPES.iterdir()
+		if (f / f"{f.name}.json").exists() and not json.loads(_read(f / f"{f.name}.json")).get("istable")
+	}
 	missing = sorted(doctypes - set(screen_help))
 	assert not missing, f"Give these screens a Help section in help.py SCREEN_HELP: {missing}"
 

@@ -56,10 +56,18 @@ def _render(page: helpdocs.Page, where: str) -> dict:
 		return f"{DESK}/{target.slug}{frag}"
 
 	body = helpdocs.rewrite(md, page_url)
-	html = markdown2.markdown(body, extras={"fenced-code-blocks": None, "tables": None,
-											 "html-classes": {"table": "table table-bordered", "img": "rd-help-img"}})
+	html = markdown2.markdown(
+		body,
+		extras={
+			"fenced-code-blocks": None,
+			"tables": None,
+			"html-classes": {"table": "table table-bordered", "img": "rd-help-img"},
+		},
+	)
 	html = helpdocs.add_heading_ids(html, body)
-	toc = [{"level": lvl, "text": text, "anchor": a} for lvl, text, a in helpdocs.headings(md) if lvl in (2, 3)]
+	toc = [
+		{"level": lvl, "text": text, "anchor": a} for lvl, text, a in helpdocs.headings(md) if lvl in (2, 3)
+	]
 	return {"slug": page.slug, "title": _(page.title), "html": html, "toc": toc}
 
 
@@ -98,9 +106,15 @@ def boot_session(bootinfo):
 	from sok_resdesk.resdesk.doctype.rd_settings.rd_settings import DEFAULT_LOGO
 
 	# a square picture suits the Desk's small icons best: the browser-tab icon, then the logo
-	logo = (frappe.db.get_single_value("RD Settings", "favicon")
-			or frappe.db.get_single_value("RD Settings", "portal_logo") or DEFAULT_LOGO)
-	bootinfo.resdesk_brand = {"logo": logo, "title": frappe.db.get_single_value("RD Settings", "portal_title") or ""}
+	logo = (
+		frappe.db.get_single_value("RD Settings", "favicon")
+		or frappe.db.get_single_value("RD Settings", "portal_logo")
+		or DEFAULT_LOGO
+	)
+	bootinfo.resdesk_brand = {
+		"logo": logo,
+		"title": frappe.db.get_single_value("RD Settings", "portal_title") or "",
+	}
 	if not any(r in frappe.get_roles() for r in STAFF):
 		return
 	from sok_resdesk.guide import TOURS

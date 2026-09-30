@@ -12,8 +12,16 @@ no_cache = 1
 def get_context(context):
 	access.require_login_for_portal()
 	name = frappe.form_dict.get("collection")
-	doc = frappe.db.get_value("RD Collection", name, ["name", "title", "description", "cover_image", "curator",
-													  "published"], as_dict=True) if name else None
+	doc = (
+		frappe.db.get_value(
+			"RD Collection",
+			name,
+			["name", "title", "description", "cover_image", "curator", "published"],
+			as_dict=True,
+		)
+		if name
+		else None
+	)
 	viewer = access.viewer()
 	if not doc or (not doc.published and not viewer["staff"]):
 		raise frappe.PageDoesNotExistError

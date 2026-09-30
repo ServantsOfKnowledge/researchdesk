@@ -42,6 +42,7 @@ def client() -> IAClient:
 
 # -- page-text cache ----------------------------------------------------------------------
 
+
 def _cache_path(item_id: str) -> str:
 	safe = item_id.replace("/", "_")
 	return frappe.get_site_path("private", "resdesk-pages", safe[:2].lower(), f"{safe}.json.gz")
@@ -72,8 +73,9 @@ def write_cached_pages(item_id: str, pages: list[dict]) -> None:
 	os.replace(tmp, path)
 
 
-def fetch_pages(item_id: str, ia: IAClient | None = None, page_numbers: dict | None = None,
-				refresh: bool = False) -> list[dict]:
+def fetch_pages(
+	item_id: str, ia: IAClient | None = None, page_numbers: dict | None = None, refresh: bool = False
+) -> list[dict]:
 	"""Page texts for one book: local cache first, then the Internet Archive."""
 	use_cache = cache_enabled()
 	if use_cache and not refresh:
@@ -107,6 +109,7 @@ def fetch_pages(item_id: str, ia: IAClient | None = None, page_numbers: dict | N
 
 
 # -- whitelisted UI actions ---------------------------------------------------------
+
 
 @frappe.whitelist()
 def count_profile(profile: str) -> dict:
@@ -150,8 +153,11 @@ def refresh_item(item_id: str) -> str:
 		store = store_for_item(doc)
 		if not store:
 			frappe.throw(frappe._("The folder or server for this item is not reachable."))
-		profile = frappe.get_doc("RD Ingest Profile", doc.ingest_profile) if doc.ingest_profile else frappe._dict(
-			name=None, check_archive_org=1)
+		profile = (
+			frappe.get_doc("RD Ingest Profile", doc.ingest_profile)
+			if doc.ingest_profile
+			else frappe._dict(name=None, check_archive_org=1)
+		)
 		ingest_local_one(store, item_id, doc.local_path, profile, fetch_text=True, force=True)
 	else:
 		_ingest_one(client(), item_id, doc.ingest_profile, fetch_text=True, refresh=True)
@@ -161,8 +167,10 @@ def refresh_item(item_id: str) -> str:
 
 # -- one item -----------------------------------------------------------------------------
 
-def _ingest_one(ia: IAClient, item_id: str, profile: str | None, fetch_text: bool,
-				refresh: bool = False) -> tuple[bool, int]:
+
+def _ingest_one(
+	ia: IAClient, item_id: str, profile: str | None, fetch_text: bool, refresh: bool = False
+) -> tuple[bool, int]:
 	"""Fetch, store and index one item. Returns (created, pages_indexed)."""
 	from sok_resdesk.search import SearchError, index_record
 
@@ -175,7 +183,9 @@ def _ingest_one(ia: IAClient, item_id: str, profile: str | None, fetch_text: boo
 	if fetch_text and record["has_page_text"]:
 		pages = fetch_pages(item_id, ia, data.get("page_numbers"), refresh=refresh)
 	try:
-		count = index_record(item_to_record(frappe.get_doc("RD Item", name)), pages, replace_pages=not created)
+		count = index_record(
+			item_to_record(frappe.get_doc("RD Item", name)), pages, replace_pages=not created
+		)
 	except SearchError as e:
 		frappe.log_error("Research Desk: indexing failed", f"{item_id}: {e}")
 		count = 0
@@ -184,25 +194,39 @@ def _ingest_one(ia: IAClient, item_id: str, profile: str | None, fetch_text: boo
 
 # -- runs -----------------------------------------------------------------------------------
 
+
 def create_run(profile_doc, triggered_by: str = "Manual"):
-	run = frappe.get_doc({
-		"doctype": "RD Ingest Run",
-		"profile": profile_doc.name,
-		"status": "Queued",
-		"query": profile_doc.build_query(),
-		"triggered_by": triggered_by,
-	}).insert(ignore_permissions=True)
-	frappe.db.set_value("RD Ingest Profile", profile_doc.name, {
-		"last_run": run.name, "last_run_on": now_datetime(), "last_status": "Queued",
-	})
+	run = frappe.get_doc(
+		{
+			"doctype": "RD Ingest Run",
+			"profile": profile_doc.name,
+			"status": "Queued",
+			"query": profile_doc.build_query(),
+			"triggered_by": triggered_by,
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.set_value(
+		"RD Ingest Profile",
+		profile_doc.name,
+		{
+			"last_run": run.name,
+			"last_run_on": now_datetime(),
+			"last_status": "Queued",
+		},
+	)
 	frappe.db.commit()
 	return run
 
 
 def enqueue_plan(run_name: str, limit_override: int | None = None) -> None:
 	frappe.enqueue(
-		"sok_resdesk.ingest.plan_run", queue="long", timeout=JOB_TIMEOUT, run_name=run_name,
-		limit_override=limit_override, enqueue_after_commit=True, job_id=f"resdesk-plan-{run_name}",
+		"sok_resdesk.ingest.plan_run",
+		queue="long",
+		timeout=JOB_TIMEOUT,
+		run_name=run_name,
+		limit_override=limit_override,
+		enqueue_after_commit=True,
+		job_id=f"resdesk-plan-{run_name}",
 	)
 
 
@@ -235,7 +259,9 @@ def _is_cancelled(run_name: str) -> bool:
 
 
 def _status(run_name: str, lock: bool = False) -> str:
-	return frappe.db.sql(f"select status from `{RUN}` where name=%s{' for update' if lock else ''}", run_name)[0][0]
+	return frappe.db.sql(
+		f"select status from `{RUN}` where name=%s{' for update' if lock else ''}", run_name
+	)[0][0]
 
 
 def hold_work(run_name: str, items: list | None = None, plan: bool = False) -> None:
@@ -265,8 +291,9 @@ def _paused_here(run_name: str, remaining: list, batch_no: int, verbose: bool = 
 
 
 @hold_when_paused("long")
-def plan_run(run_name: str, limit_override: int | None = None, foreground: bool = False,
-			 verbose: bool = False) -> list[list[str]]:
+def plan_run(
+	run_name: str, limit_override: int | None = None, foreground: bool = False, verbose: bool = False
+) -> list[list[str]]:
 	"""List what to ingest, split it into batches and queue them (or return them)."""
 	from sok_resdesk.search import MeiliClient, SearchError
 
@@ -275,14 +302,20 @@ def plan_run(run_name: str, limit_override: int | None = None, foreground: bool 
 		return []  # stopped or paused before this job started (a paused plan is kept on the run)
 	profile = frappe.get_doc("RD Ingest Profile", run.profile)
 	ia = client()
-	frappe.db.sql(f"update `{RUN}` set status='Running', started_on=ifnull(started_on, %s) where name=%s",
-				  (now_datetime(), run_name))
+	frappe.db.sql(
+		f"update `{RUN}` set status='Running', started_on=ifnull(started_on, %s) where name=%s",
+		(now_datetime(), run_name),
+	)
 	frappe.db.commit()
 	try:
 		try:
 			MeiliClient.from_settings().setup()
 		except SearchError as e:
-			_log(run_name, f"WARNING search engine unavailable; items will be catalogued but not searchable: {e}", verbose)
+			_log(
+				run_name,
+				f"WARNING search engine unavailable; items will be catalogued but not searchable: {e}",
+				verbose,
+			)
 
 		query = profile.build_query()
 		limit = cint(profile.max_items) if limit_override is None else cint(limit_override)
@@ -309,23 +342,33 @@ def plan_run(run_name: str, limit_override: int | None = None, foreground: bool 
 		else:
 			matching = ia.count(query)
 			_log(run_name, f"Query: {query}", verbose)
-			_log(run_name, f"{matching:,} items match on IA; taking {'all' if not limit else f'up to {limit:,}'}", verbose)
+			_log(
+				run_name,
+				f"{matching:,} items match on IA; taking {'all' if not limit else f'up to {limit:,}'}",
+				verbose,
+			)
 			ids = list(dict.fromkeys(ia.iter_identifiers(query, limit=limit)))
 		if only_new and ids:
 			existing: set[str] = set()
 			for i in range(0, len(ids), 1000):
-				existing.update(frappe.get_all("RD Item", filters={"name": ("in", ids[i:i + 1000])}, pluck="name"))
+				existing.update(
+					frappe.get_all("RD Item", filters={"name": ("in", ids[i : i + 1000])}, pluck="name")
+				)
 			skipped = len(existing)
 			ids = [i for i in ids if i not in existing]
 
 		size = max(1, cint(settings().get("batch_size")) or 50)
-		batches = [ids[i:i + size] for i in range(0, len(ids), size)]
+		batches = [ids[i : i + size] for i in range(0, len(ids), size)]
 		frappe.db.sql(
 			f"update `{RUN}` set total_found=%s, skipped_count=%s, processed=%s, chunks_total=%s, pending_chunks=%s "
 			"where name=%s",
 			(len(ids) + skipped, skipped, skipped, len(batches), len(batches), run_name),
 		)
-		_log(run_name, f"{len(ids):,} to process, {skipped:,} already in the catalogue; {len(batches)} batch(es) of up to {size}", verbose)
+		_log(
+			run_name,
+			f"{len(ids):,} to process, {skipped:,} already in the catalogue; {len(batches)} batch(es) of up to {size}",
+			verbose,
+		)
 		frappe.db.commit()
 
 		if not batches:
@@ -341,14 +384,21 @@ def plan_run(run_name: str, limit_override: int | None = None, foreground: bool 
 			frappe.db.commit()
 			for n, batch in enumerate(batches, 1):
 				frappe.enqueue(
-					"sok_resdesk.ingest.run_batch", queue="long", timeout=JOB_TIMEOUT, run_name=run_name,
-					item_ids=batch, batch_no=n, job_id=f"resdesk-{run_name}-{n}",
+					"sok_resdesk.ingest.run_batch",
+					queue="long",
+					timeout=JOB_TIMEOUT,
+					run_name=run_name,
+					item_ids=batch,
+					batch_no=n,
+					job_id=f"resdesk-{run_name}-{n}",
 				)
 		return batches
 	except Exception as e:
 		frappe.db.rollback()
 		_log(run_name, f"FAILED while planning: {e}\n{traceback.format_exc()}", verbose)
-		frappe.db.sql(f"update `{RUN}` set status='Failed', finished_on=%s where name=%s", (now_datetime(), run_name))
+		frappe.db.sql(
+			f"update `{RUN}` set status='Failed', finished_on=%s where name=%s", (now_datetime(), run_name)
+		)
 		frappe.db.commit()
 		frappe.log_error("Research Desk: ingest planning failed", traceback.format_exc())
 		return []
@@ -395,8 +445,13 @@ def run_batch(run_name: str, item_ids: list, batch_no: int = 0, verbose: bool = 
 				time.sleep(1 + attempt * 2)  # another worker touched the same creator/subject; retry
 		# Counters/log go in their own short transaction so parallel batches never conflict.
 		if error is None:
-			_bump(run_name, processed=1, created_count=int(outcome == "created"),
-				  updated_count=int(outcome == "updated"), skipped_count=int(outcome == "unchanged"))
+			_bump(
+				run_name,
+				processed=1,
+				created_count=int(outcome == "created"),
+				updated_count=int(outcome == "updated"),
+				skipped_count=int(outcome == "unchanged"),
+			)
 			if verbose and outcome != "unchanged":
 				print(f"{'NEW' if outcome == 'created' else 'UPD'} {item_id} ({pages} pages)")
 		else:
@@ -410,7 +465,8 @@ def _is_transient(e: Exception) -> bool:
 	"""Lock waits, deadlocks, snapshot conflicts and duplicate inserts from parallel workers."""
 	text = str(e)
 	return (
-		frappe.db.is_deadlocked(e) or frappe.db.is_timedout(e)
+		frappe.db.is_deadlocked(e)
+		or frappe.db.is_timedout(e)
 		or any(code in text for code in ("1020", "1205", "1213", "1062"))
 		or isinstance(e, frappe.DuplicateEntryError)
 	)
@@ -420,7 +476,10 @@ def _close_batch(run_name: str, verbose: bool = False) -> None:
 	# Row lock so two batches finishing together can't both miss (or both do) the close.
 	frappe.db.commit()
 	frappe.db.sql(f"select pending_chunks from `{RUN}` where name=%s for update", run_name)
-	frappe.db.sql(f"update `{RUN}` set pending_chunks = greatest(ifnull(pending_chunks,0) - 1, 0) where name=%s", run_name)
+	frappe.db.sql(
+		f"update `{RUN}` set pending_chunks = greatest(ifnull(pending_chunks,0) - 1, 0) where name=%s",
+		run_name,
+	)
 	remaining = frappe.db.sql(f"select pending_chunks from `{RUN}` where name=%s", run_name)[0][0]
 	frappe.db.commit()
 	if remaining == 0:
@@ -430,20 +489,30 @@ def _close_batch(run_name: str, verbose: bool = False) -> None:
 def _finish(run_name: str, verbose: bool = False) -> None:
 	row = frappe.db.sql(
 		f"select status, created_count, updated_count, skipped_count, failed_count from `{RUN}` where name=%s",
-		run_name, as_dict=True,
+		run_name,
+		as_dict=True,
 	)[0]
 	if row.status == "Paused":
 		return  # the last running batch has stopped; the rest waits on the run for Resume
-	status = row.status if row.status == "Cancelled" else ("Completed with Errors" if row.failed_count else "Completed")
-	_log(run_name, f"Done: {row.created_count or 0} new, {row.updated_count or 0} updated, "
-		 f"{row.skipped_count or 0} skipped, {row.failed_count or 0} failed", verbose)
+	status = (
+		row.status
+		if row.status == "Cancelled"
+		else ("Completed with Errors" if row.failed_count else "Completed")
+	)
+	_log(
+		run_name,
+		f"Done: {row.created_count or 0} new, {row.updated_count or 0} updated, "
+		f"{row.skipped_count or 0} skipped, {row.failed_count or 0} failed",
+		verbose,
+	)
 	frappe.db.sql(f"update `{RUN}` set finished_on=%s where name=%s", (now_datetime(), run_name))
 	_set_status(run_name, status)
 	frappe.db.commit()
 
 
-def run_ingest(run_name: str, verbose: bool = False, limit_override: int | None = None,
-			   foreground: bool = True) -> None:
+def run_ingest(
+	run_name: str, verbose: bool = False, limit_override: int | None = None, foreground: bool = True
+) -> None:
 	"""Command-line entry point: plan, then either process here or hand batches to the workers."""
 	batches = plan_run(run_name, limit_override=limit_override, foreground=foreground, verbose=verbose)
 	if foreground:
@@ -453,11 +522,16 @@ def run_ingest(run_name: str, verbose: bool = False, limit_override: int | None 
 
 # -- scheduler --------------------------------------------------------------------------
 
+
 def _run_scheduled(schedule: str):
 	if cint(frappe.db.get_single_value("RD Settings", "pause_scheduled_ingest")):
 		return  # paused from Background Jobs (or Settings)
-	for name in frappe.get_all("RD Ingest Profile", filters={"enabled": 1, "schedule": schedule}, pluck="name"):
-		running = frappe.db.exists("RD Ingest Run", {"profile": name, "status": ("in", ["Queued", "Running", "Paused"])})
+	for name in frappe.get_all(
+		"RD Ingest Profile", filters={"enabled": 1, "schedule": schedule}, pluck="name"
+	):
+		running = frappe.db.exists(
+			"RD Ingest Run", {"profile": name, "status": ("in", ["Queued", "Running", "Paused"])}
+		)
 		if running:
 			continue
 		run = create_run(frappe.get_doc("RD Ingest Profile", name), "Scheduler")
@@ -472,8 +546,11 @@ def mark_interrupted_runs(idle_hours: int = 2) -> None:
 	for name in frappe.get_all(
 		"RD Ingest Run", filters={"status": "Running", "modified": ("<", cutoff)}, pluck="name"
 	):
-		_log(name, f"No progress for {idle_hours} h, so the workers were probably restarted. "
-			 "Run the profile again: books already ingested are skipped.")
+		_log(
+			name,
+			f"No progress for {idle_hours} h, so the workers were probably restarted. "
+			"Run the profile again: books already ingested are skipped.",
+		)
 		frappe.db.sql(f"update `{RUN}` set finished_on=%s where name=%s", (now_datetime(), name))
 		_set_status(name, "Interrupted")
 	frappe.db.commit()

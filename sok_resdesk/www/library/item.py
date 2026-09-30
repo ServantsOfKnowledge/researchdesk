@@ -16,7 +16,11 @@ def get_context(context):
 	record = get_record(item_id) if item_id else None
 	if not record:
 		# a members-only book: guests are asked to log in rather than told it doesn't exist
-		if frappe.session.user == "Guest" and item_id and frappe.db.exists("RD Item", {"name": item_id, "published": 1}):
+		if (
+			frappe.session.user == "Guest"
+			and item_id
+			and frappe.db.exists("RD Item", {"name": item_id, "published": 1})
+		):
 			frappe.local.flags.redirect_location = access.login_url(f"/library/item/{item_id}")
 			raise frappe.Redirect
 		raise frappe.PageDoesNotExistError
@@ -33,8 +37,16 @@ def get_context(context):
 	context.item = record
 	context.viewer = access.viewer()
 	names = record.get("curated_collections") or []
-	context.curated = frappe.get_all("RD Collection", filters={"name": ("in", names), "published": 1},
-									 fields=["name", "title"], order_by="title") if names else []
+	context.curated = (
+		frappe.get_all(
+			"RD Collection",
+			filters={"name": ("in", names), "published": 1},
+			fields=["name", "title"],
+			order_by="title",
+		)
+		if names
+		else []
+	)
 	context.login_url = access.login_url(f"/library/item/{item_id}")
 	context.title = citations.display_title(record)
 	context.start_leaf = max(0, cint(frappe.form_dict.get("page")))

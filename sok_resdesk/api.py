@@ -52,8 +52,15 @@ def search(q: str = "", mode: str = "books", filters=None, page: int = 1, per_pa
 	filters: JSON object, e.g. {"language_label": ["Kannada"], "decade": ["1950s"], "year_from": 1900}
 	"""
 	try:
-		result = _search(q, "pages" if mode == "pages" else "books", _loads(filters, {}), page, per_page, sort,
-						 access={"books": access.search_filter("books"), "pages": access.search_filter("pages")})
+		result = _search(
+			q,
+			"pages" if mode == "pages" else "books",
+			_loads(filters, {}),
+			page,
+			per_page,
+			sort,
+			access={"books": access.search_filter("books"), "pages": access.search_filter("pages")},
+		)
 	except SearchError as e:
 		frappe.log_error("Research Desk: search failed", str(e))
 		frappe.throw(_("Search is temporarily unavailable."), title=_("Search"))
@@ -86,21 +93,27 @@ def _hit(hit: dict, mode: str) -> dict:
 	}
 	if mode == "pages":
 		leaf = hit.get("leaf", 0)
-		out.update({
-			"leaf": leaf,
-			"page_label": hit.get("label") or "",
-			"snippet": f.get("text", ""),
-			"url": f"/library/item/{hit['item_id']}?page={leaf}",
-		})
+		out.update(
+			{
+				"leaf": leaf,
+				"page_label": hit.get("label") or "",
+				"snippet": f.get("text", ""),
+				"url": f"/library/item/{hit['item_id']}?page={leaf}",
+			}
+		)
 	else:
-		out.update({
-			"thumbnail": hit.get("thumbnail_url"),
-			"page_count": hit.get("page_count"),
-			"subjects": (hit.get("subjects") or [])[:5],
-			"access": hit.get("access_status"),
-			"has_fulltext": hit.get("has_fulltext"),
-			"snippet": f.get("text_excerpt") if "<mark>" in (f.get("text_excerpt") or "") else f.get("description", ""),
-		})
+		out.update(
+			{
+				"thumbnail": hit.get("thumbnail_url"),
+				"page_count": hit.get("page_count"),
+				"subjects": (hit.get("subjects") or [])[:5],
+				"access": hit.get("access_status"),
+				"has_fulltext": hit.get("has_fulltext"),
+				"snippet": f.get("text_excerpt")
+				if "<mark>" in (f.get("text_excerpt") or "")
+				else f.get("description", ""),
+			}
+		)
 	return out
 
 
@@ -116,16 +129,29 @@ def search_inside(item_id: str, q: str, limit: int = 50):
 	if not access.can_read(row.visibility):
 		return {"total": 0, "hits": [], "login_needed": True}
 	client = MeiliClient.from_settings()
-	result = client.search(client.pages, {
-		"q": q, "filter": f"item_id = {_quote(item_id)}", "limit": min(cint(limit) or 50, 200),
-		"sort": ["leaf:asc"], "attributesToCrop": ["text"], "cropLength": 30,
-		"attributesToHighlight": ["text"], "highlightPreTag": "<mark>", "highlightPostTag": "</mark>",
-		"attributesToRetrieve": ["leaf", "label"],
-	})
+	result = client.search(
+		client.pages,
+		{
+			"q": q,
+			"filter": f"item_id = {_quote(item_id)}",
+			"limit": min(cint(limit) or 50, 200),
+			"sort": ["leaf:asc"],
+			"attributesToCrop": ["text"],
+			"cropLength": 30,
+			"attributesToHighlight": ["text"],
+			"highlightPreTag": "<mark>",
+			"highlightPostTag": "</mark>",
+			"attributesToRetrieve": ["leaf", "label"],
+		},
+	)
 	return {
 		"total": result.get("estimatedTotalHits", 0),
 		"hits": [
-			{"leaf": h["leaf"], "page_label": h.get("label"), "snippet": h.get("_formatted", {}).get("text", "")}
+			{
+				"leaf": h["leaf"],
+				"page_label": h.get("label"),
+				"snippet": h.get("_formatted", {}).get("text", ""),
+			}
 			for h in result.get("hits", [])
 		],
 	}
@@ -190,7 +216,9 @@ def marcxml(item_ids):
 	if isinstance(ids, str):
 		ids = [ids]
 	records = [r for r in (get_record(i) for i in list(dict.fromkeys(ids))[:MAX_BATCH]) if r]
-	return _text_response(marc.to_marcxml_collection(records, base_url()), "application/marcxml+xml", "records.xml")
+	return _text_response(
+		marc.to_marcxml_collection(records, base_url()), "application/marcxml+xml", "records.xml"
+	)
 
 
 @frappe.whitelist()
@@ -202,8 +230,11 @@ def marcxml_all(profile: str | None = None):
 		filters["ingest_profile"] = profile
 	names = frappe.get_all("RD Item", filters=filters, pluck="name")
 	records = [get_record(n, check_access=False) for n in names]
-	return _text_response(marc.to_marcxml_collection([r for r in records if r], base_url()),
-						  "application/marcxml+xml", f"resdesk-{profile or 'all'}.xml")
+	return _text_response(
+		marc.to_marcxml_collection([r for r in records if r], base_url()),
+		"application/marcxml+xml",
+		f"resdesk-{profile or 'all'}.xml",
+	)
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET", "HEAD"])
@@ -220,10 +251,17 @@ def file(item_id: str, name: str):
 	from sok_resdesk.local_source import store_for_item
 
 	doc = frappe.db.get_value(
-		"RD Item", item_id, ["name", "published", "source", "access_status", "local_pdf", "local_thumb", "visibility"],
+		"RD Item",
+		item_id,
+		["name", "published", "source", "access_status", "local_pdf", "local_thumb", "visibility"],
 		as_dict=True,
 	)
-	if not doc or not doc.published or doc.source != "Local" or name not in {doc.local_pdf, doc.local_thumb} - {"", None}:
+	if (
+		not doc
+		or not doc.published
+		or doc.source != "Local"
+		or name not in {doc.local_pdf, doc.local_thumb} - {"", None}
+	):
 		raise frappe.PageDoesNotExistError
 	if not access.can_find(doc.visibility):
 		raise frappe.PageDoesNotExistError
@@ -241,8 +279,12 @@ def file(item_id: str, name: str):
 		upstream = store.session.get(store.public_url(loc, name), headers=headers, stream=True, timeout=60)
 		if upstream.status_code not in (200, 206):
 			raise frappe.PageDoesNotExistError
-		passthrough = {k: v for k, v in upstream.headers.items()
-					   if k.lower() in ("content-type", "content-length", "content-range", "accept-ranges", "last-modified", "etag")}
+		passthrough = {
+			k: v
+			for k, v in upstream.headers.items()
+			if k.lower()
+			in ("content-type", "content-length", "content-range", "accept-ranges", "last-modified", "etag")
+		}
 		passthrough["Cache-Control"] = "public, max-age=86400"
 		return Response(upstream.iter_content(64 * 1024), status=upstream.status_code, headers=passthrough)
 	path = store.file_path(loc, name)
@@ -257,7 +299,9 @@ def stats():
 	counts = {
 		"items": frappe.db.sql(f"select count(*) from `tabRD Item` where {seen}")[0][0],
 		"creators": frappe.db.count("RD Creator"),
-		"with_fulltext": frappe.db.sql(f"select count(*) from `tabRD Item` where {seen} and has_fulltext=1")[0][0],
+		"with_fulltext": frappe.db.sql(f"select count(*) from `tabRD Item` where {seen} and has_fulltext=1")[
+			0
+		][0],
 		"languages": frappe.db.sql(
 			f"select language_label, count(*) from `tabRD Item` where {seen} group by language_label order by 2 desc"
 		),

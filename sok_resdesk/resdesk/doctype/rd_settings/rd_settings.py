@@ -52,8 +52,12 @@ def apply_branding(settings=None):
 		nav.save()
 	# Desk (v16): the Research Desk icon on the apps/desktop screen and the sidebar header
 	if frappe.db.exists("DocType", "Desktop Icon"):
-		for name in frappe.get_all("Desktop Icon", filters={"label": ("in", ["Research Desk", "ResDesk"])}, pluck="name"):
-			frappe.db.set_value("Desktop Icon", name, "logo_url", s.favicon or logo or DEFAULT_LOGO, update_modified=False)
+		for name in frappe.get_all(
+			"Desktop Icon", filters={"label": ("in", ["Research Desk", "ResDesk"])}, pluck="name"
+		):
+			frappe.db.set_value(
+				"Desktop Icon", name, "logo_url", s.favicon or logo or DEFAULT_LOGO, update_modified=False
+			)
 		try:
 			from frappe.desk.doctype.desktop_icon.desktop_icon import clear_desktop_icons_cache
 

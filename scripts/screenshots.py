@@ -84,7 +84,9 @@ async def take(args) -> list[str]:
 				await page.wait_for_timeout(2500)
 				if action == "results":
 					await page.wait_for_selector(".rd-hit", timeout=15000)
-					await page.evaluate("window.scrollTo(0, document.querySelector('.rd-layout').offsetTop - 70)")
+					await page.evaluate(
+						"window.scrollTo(0, document.querySelector('.rd-layout').offsetTop - 70)"
+					)
 				elif action.startswith("click:"):
 					await page.wait_for_selector(action[6:], timeout=15000)
 					await page.click(action[6:])
@@ -98,14 +100,20 @@ async def take(args) -> list[str]:
 					await page.evaluate("""[...document.querySelectorAll('.rdj-card h4')].find(h => h.textContent.trim() === 'Machine')
 						.closest('.rdj-card').scrollIntoView({block: 'end'})""")
 				elif action == "tour":
-					await page.wait_for_function("window.cur_frm && cur_frm.doctype === 'RD Ingest Profile'", timeout=15000)
-					await page.evaluate("cur_frm.tour.init({tour_name: cur_frm.doctype}).then(() => cur_frm.tour.start())")
+					await page.wait_for_function(
+						"window.cur_frm && cur_frm.doctype === 'RD Ingest Profile'", timeout=15000
+					)
+					await page.evaluate(
+						"cur_frm.tour.init({tour_name: cur_frm.doctype}).then(() => cur_frm.tour.start())"
+					)
 					await page.wait_for_timeout(1500)
 				elif action == "mylist":
 					await page.wait_for_selector(".rd-save", timeout=15000)
 					for button in (await page.query_selector_all(".rd-save"))[:3]:
 						await button.click()
-					await page.evaluate("window.scrollTo(0, document.querySelector('.rd-layout').offsetTop - 70)")
+					await page.evaluate(
+						"window.scrollTo(0, document.querySelector('.rd-layout').offsetTop - 70)"
+					)
 					await page.click("#rd-basket-btn")
 					await page.wait_for_timeout(800)
 				await page.wait_for_timeout(1000)
@@ -129,24 +137,34 @@ def shrink(path: Path) -> None:
 	except ImportError:
 		return
 	img = Image.open(path).convert("RGB")
-	img.quantize(colors=256, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).save(path, optimize=True)
+	img.quantize(colors=256, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).save(
+		path, optimize=True
+	)
 
 
 def main() -> int:
 	env = env_file()
 	ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-	ap.add_argument("--url", default=os.environ.get("RD_URL") or f"http://localhost:{env.get('HTTP_PORT', '8080')}")
+	ap.add_argument(
+		"--url", default=os.environ.get("RD_URL") or f"http://localhost:{env.get('HTTP_PORT', '8080')}"
+	)
 	ap.add_argument("--user", default=os.environ.get("RD_USER", "Administrator"))
 	ap.add_argument("--password", default=os.environ.get("RD_PASSWORD") or env.get("ADMIN_PASSWORD", "admin"))
-	ap.add_argument("--query", default=os.environ.get("RD_QUERY", "history"),
-					help="a search that finds books in your catalogue (default: history)")
+	ap.add_argument(
+		"--query",
+		default=os.environ.get("RD_QUERY", "history"),
+		help="a search that finds books in your catalogue (default: history)",
+	)
 	ap.add_argument("--theme", choices=["light", "dark"], default="light")
 	ap.add_argument("only", nargs="*", help=f"only these pictures: {', '.join(SHOTS)}")
 	args = ap.parse_args()
 	try:
 		import playwright  # noqa: F401
 	except ImportError:
-		print("Needs Playwright: pip install playwright && python3 -m playwright install chromium", file=sys.stderr)
+		print(
+			"Needs Playwright: pip install playwright && python3 -m playwright install chromium",
+			file=sys.stderr,
+		)
 		return 1
 	print(f"Taking screenshots of {args.url} into {OUT.relative_to(ROOT)}/")
 	done = asyncio.run(take(args))

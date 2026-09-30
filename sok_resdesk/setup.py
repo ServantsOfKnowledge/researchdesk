@@ -108,14 +108,18 @@ def create_roles():
 	for role, desc in ROLES.items():
 		desk = 1 if role in DESK_ROLES else 0
 		if not frappe.db.exists("Role", role):
-			frappe.get_doc({"doctype": "Role", "role_name": role, "desk_access": desk}).insert(ignore_permissions=True)
+			frappe.get_doc({"doctype": "Role", "role_name": role, "desk_access": desk}).insert(
+				ignore_permissions=True
+			)
 		doc = frappe.get_doc("Role", role)
 		changed = False
 		# staff land in the Desk after login, readers in the library
 		home = "/app/research-desk" if desk else "/library"
 		for field, value in (("home_page", home), ("description", desc), ("desk_access", desk)):
 			current = doc.get(field)
-			if doc.meta.has_field(field) and (int(current or 0) != value if field == "desk_access" else not current):
+			if doc.meta.has_field(field) and (
+				int(current or 0) != value if field == "desk_access" else not current
+			):
 				doc.set(field, value)
 				changed = True
 		if changed:
@@ -138,7 +142,9 @@ def apply_default_settings():
 	s.index_prefix = s.index_prefix or "rd"
 	s.repository_id = conf.get("resdesk_repository_id") or s.repository_id or frappe.local.site
 	s.ia_contact = conf.get("resdesk_contact") or s.ia_contact
-	s.admin_email = conf.get("resdesk_contact") if "@" in (conf.get("resdesk_contact") or "") else s.admin_email
+	s.admin_email = (
+		conf.get("resdesk_contact") if "@" in (conf.get("resdesk_contact") or "") else s.admin_email
+	)
 	s.flags.ignore_mandatory = True
 	s.save(ignore_permissions=True)
 
@@ -164,7 +170,11 @@ def create_workspace():
 		("Link", "Settings", "RD Settings"),
 	]
 	content = [
-		{"id": "rd-h", "type": "header", "data": {"text": '<span class="h4"><b>Research Desk</b></span>', "col": 12}},
+		{
+			"id": "rd-h",
+			"type": "header",
+			"data": {"text": '<span class="h4"><b>Research Desk</b></span>', "col": 12},
+		},
 		{"id": "rd-s1", "type": "shortcut", "data": {"shortcut_name": "Ingest Profiles", "col": 3}},
 		{"id": "rd-s2", "type": "shortcut", "data": {"shortcut_name": "Items", "col": 3}},
 		{"id": "rd-s3", "type": "shortcut", "data": {"shortcut_name": "Open Portal", "col": 3}},
@@ -173,27 +183,40 @@ def create_workspace():
 		{"id": "rd-c2", "type": "card", "data": {"card_name": "Ingest", "col": 4}},
 		{"id": "rd-c3", "type": "card", "data": {"card_name": "Setup", "col": 4}},
 	]
-	ws = frappe.get_doc({
-		"doctype": "Workspace",
-		"name": "Research Desk",
-		"label": "Research Desk",
-		"title": "Research Desk",
-		"module": "ResDesk",
-		"icon": "book",
-		"public": 1,
-		"sequence_id": 1,
-		"content": frappe.as_json(content),
-		"shortcuts": [
-			{"label": "Ingest Profiles", "type": "DocType", "link_to": "RD Ingest Profile", "color": "Blue"},
-			{"label": "Items", "type": "DocType", "link_to": "RD Item", "color": "Green"},
-			{"label": "Open Portal", "type": "URL", "url": "/library", "color": "Orange"},
-			{"label": "Settings", "type": "DocType", "link_to": "RD Settings", "color": "Grey"},
-		],
-		"links": [
-			{"type": t, "label": label, "link_type": "DocType" if dt else None, "link_to": dt, "onboard": 0}
-			for t, label, dt in links
-		],
-	})
+	ws = frappe.get_doc(
+		{
+			"doctype": "Workspace",
+			"name": "Research Desk",
+			"label": "Research Desk",
+			"title": "Research Desk",
+			"module": "ResDesk",
+			"icon": "book",
+			"public": 1,
+			"sequence_id": 1,
+			"content": frappe.as_json(content),
+			"shortcuts": [
+				{
+					"label": "Ingest Profiles",
+					"type": "DocType",
+					"link_to": "RD Ingest Profile",
+					"color": "Blue",
+				},
+				{"label": "Items", "type": "DocType", "link_to": "RD Item", "color": "Green"},
+				{"label": "Open Portal", "type": "URL", "url": "/library", "color": "Orange"},
+				{"label": "Settings", "type": "DocType", "link_to": "RD Settings", "color": "Grey"},
+			],
+			"links": [
+				{
+					"type": t,
+					"label": label,
+					"link_type": "DocType" if dt else None,
+					"link_to": dt,
+					"onboard": 0,
+				}
+				for t, label, dt in links
+			],
+		}
+	)
 	try:
 		ws.insert(ignore_permissions=True)
 	except Exception:
@@ -210,11 +233,13 @@ def complete_setup_wizard(timezone: str = "Asia/Kolkata", country: str = "India"
 		return "already complete"
 	from frappe.desk.page.setup_wizard.setup_wizard import setup_complete
 
-	result = setup_complete({
-		"language": "English",
-		"country": country,
-		"timezone": timezone,
-		"currency": currency,
-	})
+	result = setup_complete(
+		{
+			"language": "English",
+			"country": country,
+			"timezone": timezone,
+			"currency": currency,
+		}
+	)
 	frappe.db.commit()
 	return result

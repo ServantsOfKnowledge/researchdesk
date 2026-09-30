@@ -68,10 +68,19 @@ class FakeSession:
 
 
 RECORD = {
-	"item_id": "in.ernet.dli.2015.1234", "title": "ಕನ್ನಡ ಸಾಹಿತ್ಯ ಚರಿತ್ರೆ", "alt_title": "Kannada Sahitya Charitre",
-	"creators": ["Mugali, R. S.", "Someone Else"], "year": 1953, "language": "kan", "language_label": "Kannada",
-	"item_type": "Book", "on_archive_org": 1, "ark": "ark:/13960/t0abc", "page_count": 412,
-	"source_url": "https://archive.org/details/in.ernet.dli.2015.1234", "isbn": "",
+	"item_id": "in.ernet.dli.2015.1234",
+	"title": "ಕನ್ನಡ ಸಾಹಿತ್ಯ ಚರಿತ್ರೆ",
+	"alt_title": "Kannada Sahitya Charitre",
+	"creators": ["Mugali, R. S.", "Someone Else"],
+	"year": 1953,
+	"language": "kan",
+	"language_label": "Kannada",
+	"item_type": "Book",
+	"on_archive_org": 1,
+	"ark": "ark:/13960/t0abc",
+	"page_count": 412,
+	"source_url": "https://archive.org/details/in.ernet.dli.2015.1234",
+	"isbn": "",
 }
 
 
@@ -87,11 +96,13 @@ def test_ia_patch_only_adds_or_replaces():
 
 
 def test_ia_writer():
-	s = FakeSession([
-		("GET", "check_auth", Resp(200, {"authorized": True, "username": "om@example.org"})),
-		("GET", "/metadata/abc", Resp(200, {"metadata": {"identifier": "abc", "title": "x"}})),
-		("POST", "/metadata/abc", Resp(200, {"success": True, "task_id": 42})),
-	])
+	s = FakeSession(
+		[
+			("GET", "check_auth", Resp(200, {"authorized": True, "username": "om@example.org"})),
+			("GET", "/metadata/abc", Resp(200, {"metadata": {"identifier": "abc", "title": "x"}})),
+			("POST", "/metadata/abc", Resp(200, {"success": True, "task_id": 42})),
+		]
+	)
 	w = IAWriter("KEY", "SECRET", session=s)
 	assert w.check() == "om@example.org"
 	assert w.current("abc")["title"] == "x"
@@ -101,18 +112,24 @@ def test_ia_writer():
 	assert kw["data"]["-target"] == "metadata"
 	assert json.loads(kw["data"]["-patch"])[0]["value"] == "y"
 
-	bad = IAWriter("K", "S", session=FakeSession([("GET", "check_auth", Resp(403, {"authorized": False, "error": "bad keys"}))]))
+	bad = IAWriter(
+		"K",
+		"S",
+		session=FakeSession([("GET", "check_auth", Resp(403, {"authorized": False, "error": "bad keys"}))]),
+	)
 	with raises(PushError):
 		bad.check()
 
 
 def test_koha_basic_and_oauth():
-	s = FakeSession([
-		("GET", "/libraries", Resp(200, [])),
-		("POST", "/biblios", Resp(201, {"id": 77})),
-		("PUT", "/biblios/77", Resp(200, {})),
-		("PUT", "/biblios/78", Resp(404, {"error": "not found"})),
-	])
+	s = FakeSession(
+		[
+			("GET", "/libraries", Resp(200, [])),
+			("POST", "/biblios", Resp(201, {"id": 77})),
+			("PUT", "/biblios/77", Resp(200, {})),
+			("PUT", "/biblios/78", Resp(404, {"error": "not found"})),
+		]
+	)
 	k = KohaClient("https://koha.example.org/", ("basic", "u", "p"), framework="FA", session=s)
 	assert k.check() == "ok"
 	assert k.create("<record/>") == "77"
@@ -125,10 +142,12 @@ def test_koha_basic_and_oauth():
 	with raises(PushError, match="gone"):
 		k.update("78", "<record/>")
 
-	s2 = FakeSession([
-		("POST", "/oauth/token", Resp(200, {"access_token": "T0K"})),
-		("POST", "/biblios", Resp(200, {"biblio_id": 5})),
-	])
+	s2 = FakeSession(
+		[
+			("POST", "/oauth/token", Resp(200, {"access_token": "T0K"})),
+			("POST", "/biblios", Resp(200, {"biblio_id": 5})),
+		]
+	)
 	k2 = KohaClient("https://koha.example.org", ("oauth", "cid", "csecret"), session=s2)
 	assert k2.create("<record/>") == "5"
 	assert s2.calls[0][2]["data"]["client_id"] == "cid"
@@ -194,7 +213,9 @@ def test_wikidata_client_flow():
 		assert c.find_by_ia("in.ernet.dli.2015.1234") == "Q123"
 		data = wikidata_entity(RECORD)
 		added = c.add_missing("Q123", data, "test")
-		assert added == len([x for x in data["claims"] if x["mainsnak"]["property"] not in ("P31", "P1476", "P724")])
+		assert added == len(
+			[x for x in data["claims"] if x["mainsnak"]["property"] not in ("P31", "P1476", "P724")]
+		)
 		sent = json.loads(edits[-1]["data"])["claims"]
 		assert {x["mainsnak"]["property"] for x in sent}.isdisjoint({"P31", "P1476", "P724"})
 		assert edits[-1]["token"] == "tok+\\" and edits[-1]["maxlag"] == 5
@@ -205,7 +226,9 @@ def test_wikidata_client_flow():
 
 def test_webhook_signature():
 	s = FakeSession([("POST", "hooks.example.org", Resp(202, {}))])
-	assert Webhook("https://hooks.example.org/x", "s3cret", session=s).send("record.updated", {"id": "a"}) == 202
+	assert (
+		Webhook("https://hooks.example.org/x", "s3cret", session=s).send("record.updated", {"id": "a"}) == 202
+	)
 	_, _, kw = s.calls[0]
 	body = kw["data"]
 	sig = kw["headers"]["X-ResDesk-Signature"]

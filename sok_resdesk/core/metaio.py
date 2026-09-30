@@ -75,7 +75,10 @@ def rows_to_csv(rows: list[dict]) -> str:
 
 def csv_to_rows(data: bytes | str) -> list[dict]:
 	text = data.decode("utf-8-sig") if isinstance(data, bytes) else data.lstrip("﻿")
-	return [{(k or "").strip(): (v or "").strip() for k, v in row.items()} for row in csv.DictReader(io.StringIO(text))]
+	return [
+		{(k or "").strip(): (v or "").strip() for k, v in row.items()}
+		for row in csv.DictReader(io.StringIO(text))
+	]
 
 
 def _split(value: str) -> list[str]:
@@ -127,6 +130,7 @@ def row_changes(row: dict, current: dict) -> tuple[dict, list[str]]:
 
 # -- library and web formats ----------------------------------------------------------------------
 
+
 def _x(tag: str, value, attrs: str = "") -> str:
 	return f"<{tag}{attrs}>{escape(str(value))}</{tag}>" if value not in (None, "", []) else ""
 
@@ -152,8 +156,10 @@ def dublin_core(record: dict, base_url: str = "") -> str:
 		_x("dc:rights", record.get("licence_url") or record.get("rights")),
 		_x("dc:source", record.get("source_url")),
 	]
-	return ('<oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" '
-			'xmlns:dc="http://purl.org/dc/elements/1.1/">' + "".join(p for p in parts if p) + "</oai_dc:dc>")
+	return (
+		'<oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" '
+		'xmlns:dc="http://purl.org/dc/elements/1.1/">' + "".join(p for p in parts if p) + "</oai_dc:dc>"
+	)
 
 
 def dublin_core_collection(records: list[dict], base_url: str = "") -> str:
@@ -161,8 +167,16 @@ def dublin_core_collection(records: list[dict], base_url: str = "") -> str:
 	return f'<?xml version="1.0" encoding="UTF-8"?>\n<records count="{len(records)}">\n{body}\n</records>\n'
 
 
-_MODS_GENRE = {"Book": "book", "Periodical": "periodical", "Article": "article", "Thesis": "thesis",
-			   "Report": "technical report", "Manuscript": "manuscript", "Map": "map", "Other": "text"}
+_MODS_GENRE = {
+	"Book": "book",
+	"Periodical": "periodical",
+	"Article": "article",
+	"Thesis": "thesis",
+	"Report": "technical report",
+	"Manuscript": "manuscript",
+	"Map": "map",
+	"Other": "text",
+}
 
 
 def mods(record: dict, base_url: str = "") -> str:
@@ -171,40 +185,65 @@ def mods(record: dict, base_url: str = "") -> str:
 	if record.get("alt_title") and record["alt_title"] != record.get("title"):
 		p.append(f'<titleInfo type="alternative">{_x("title", record["alt_title"])}</titleInfo>')
 	for c in record.get("creators") or []:
-		p.append(f'<name type="personal">{_x("namePart", c)}<role><roleTerm type="text" authority="marcrelator">author</roleTerm></role></name>')
+		p.append(
+			f'<name type="personal">{_x("namePart", c)}<role><roleTerm type="text" authority="marcrelator">author</roleTerm></role></name>'
+		)
 	p.append(_x("typeOfResource", "text"))
 	p.append(_x("genre", _MODS_GENRE.get(record.get("item_type") or "Book", "book"), ' authority="local"'))
-	origin = "".join([
-		f'<place><placeTerm type="text">{escape(record["place"])}</placeTerm></place>' if record.get("place") else "",
-		_x("publisher", record.get("publisher")),
-		_x("dateIssued", record.get("date_raw") or record.get("year")),
-	])
+	origin = "".join(
+		[
+			f'<place><placeTerm type="text">{escape(record["place"])}</placeTerm></place>'
+			if record.get("place")
+			else "",
+			_x("publisher", record.get("publisher")),
+			_x("dateIssued", record.get("date_raw") or record.get("year")),
+		]
+	)
 	if origin:
 		p.append(f"<originInfo>{origin}</originInfo>")
 	if record.get("language"):
-		p.append(f'<language><languageTerm type="code" authority="iso639-2b">{escape(record["language"])}</languageTerm></language>')
+		p.append(
+			f'<language><languageTerm type="code" authority="iso639-2b">{escape(record["language"])}</languageTerm></language>'
+		)
 	if record.get("page_count"):
-		p.append(f"<physicalDescription>{_x('extent', str(record['page_count']) + ' pages')}"
-				 f"{_x('digitalOrigin', 'reformatted digital')}</physicalDescription>")
+		p.append(
+			f"<physicalDescription>{_x('extent', str(record['page_count']) + ' pages')}"
+			f"{_x('digitalOrigin', 'reformatted digital')}</physicalDescription>"
+		)
 	p.append(_x("abstract", record.get("description")))
 	p += [f"<subject>{_x('topic', s)}</subject>" for s in record.get("subjects") or []]
 	if record.get("series"):
-		p.append(f'<relatedItem type="series"><titleInfo>{_x("title", record["series"])}</titleInfo></relatedItem>')
+		p.append(
+			f'<relatedItem type="series"><titleInfo>{_x("title", record["series"])}</titleInfo></relatedItem>'
+		)
 	p.append(_x("identifier", record.get("isbn"), ' type="isbn"'))
 	p.append(_x("identifier", record.get("ark"), ' type="ark"'))
 	p.append(_x("identifier", record["item_id"], ' type="local"'))
 	usage = ' usage="primary display"'
-	p.append("<location>" + _x("url", url_for(record, base_url), usage) + _x("url", record.get("source_url")) + "</location>")
-	p.append(_x("accessCondition", record.get("licence_url") or record.get("rights"), ' type="use and reproduction"'))
+	p.append(
+		"<location>"
+		+ _x("url", url_for(record, base_url), usage)
+		+ _x("url", record.get("source_url"))
+		+ "</location>"
+	)
+	p.append(
+		_x(
+			"accessCondition",
+			record.get("licence_url") or record.get("rights"),
+			' type="use and reproduction"',
+		)
+	)
 	return "<mods>" + "".join(x for x in p if x) + "</mods>"
 
 
 def mods_collection(records: list[dict], base_url: str = "") -> str:
 	body = "\n".join(mods(r, base_url) for r in records)
-	return ('<?xml version="1.0" encoding="UTF-8"?>\n<modsCollection xmlns="http://www.loc.gov/mods/v3" '
-			'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
-			'xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-7.xsd">\n'
-			f"{body}\n</modsCollection>\n")
+	return (
+		'<?xml version="1.0" encoding="UTF-8"?>\n<modsCollection xmlns="http://www.loc.gov/mods/v3" '
+		'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+		'xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-7.xsd">\n'
+		f"{body}\n</modsCollection>\n"
+	)
 
 
 def jsonld_graph(records: list[dict], base_url: str = "") -> str:
@@ -217,6 +256,7 @@ def jsonld_graph(records: list[dict], base_url: str = "") -> str:
 
 
 # -- Internet Archive -----------------------------------------------------------------------------
+
 
 def ia_metadata(record: dict) -> dict:
 	"""The item's metadata as the Internet Archive names it (for meta.xml, bulk upload and pushes)."""
@@ -254,7 +294,9 @@ def ia_bulk_csv(records: list[dict], collection: str = "", file_for=None) -> str
 	"""The CSV the Internet Archive's bulk uploader (ia upload --spreadsheet) reads.
 	Repeated fields become subject[0], subject[1], ...; `file_for(record)` names the file to upload."""
 	metas = [ia_metadata(r) for r in records]
-	width = {k: max((len(m.get(k) or []) for m in metas), default=0) for k in ("creator", "subject", "alt_creator")}
+	width = {
+		k: max((len(m.get(k) or []) for m in metas), default=0) for k in ("creator", "subject", "alt_creator")
+	}
 	header = ["identifier", "file", "mediatype", "collection", "title", "alt_title"]
 	header += [f"creator[{i}]" for i in range(width["creator"])]
 	header += [f"alt_creator[{i}]" for i in range(width["alt_creator"])]
@@ -265,8 +307,13 @@ def ia_bulk_csv(records: list[dict], collection: str = "", file_for=None) -> str
 	w.writeheader()
 	for r, m in zip(records, metas, strict=True):
 		row = {k: v for k, v in m.items() if not isinstance(v, list)}
-		row.update({"identifier": r["item_id"], "file": file_for(r) if file_for else r.get("local_pdf") or "",
-					"collection": collection or (r.get("collections") or [""])[0]})
+		row.update(
+			{
+				"identifier": r["item_id"],
+				"file": file_for(r) if file_for else r.get("local_pdf") or "",
+				"collection": collection or (r.get("collections") or [""])[0],
+			}
+		)
 		for key in ("creator", "subject", "alt_creator"):
 			for i, v in enumerate(m.get(key) or []):
 				row[f"{key}[{i}]"] = v
@@ -277,10 +324,37 @@ def ia_bulk_csv(records: list[dict], collection: str = "", file_for=None) -> str
 # -- full JSON ------------------------------------------------------------------------------------
 
 EXPORT_KEYS = (
-	"item_id", "item_type", "title", "alt_title", "creators", "alt_creators", "year", "date_raw", "publisher",
-	"place", "language", "language_label", "series", "isbn", "page_count", "description", "subjects",
-	"collections", "curated_collections", "licence_url", "rights", "access_status", "visibility", "source",
-	"source_url", "thumbnail_url", "ark", "has_fulltext", "has_page_text", "on_archive_org", "pdf_url",
+	"item_id",
+	"item_type",
+	"title",
+	"alt_title",
+	"creators",
+	"alt_creators",
+	"year",
+	"date_raw",
+	"publisher",
+	"place",
+	"language",
+	"language_label",
+	"series",
+	"isbn",
+	"page_count",
+	"description",
+	"subjects",
+	"collections",
+	"curated_collections",
+	"licence_url",
+	"rights",
+	"access_status",
+	"visibility",
+	"source",
+	"source_url",
+	"thumbnail_url",
+	"ark",
+	"has_fulltext",
+	"has_page_text",
+	"on_archive_org",
+	"pdf_url",
 )
 
 
@@ -291,4 +365,3 @@ def json_record(record: dict, base_url: str = "") -> dict:
 	if record.get("modified"):
 		out["modified"] = str(record["modified"])
 	return out
-

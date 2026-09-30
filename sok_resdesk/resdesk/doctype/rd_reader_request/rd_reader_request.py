@@ -42,10 +42,14 @@ def _tell(user, approved: bool):
 
 	if approved:
 		subject = frappe._("Your {0} account is ready").format(portal_title())
-		body = frappe._("You can now read every book on {0}. Log in at {1}").format(portal_title(), f"{base_url()}/login")
+		body = frappe._("You can now read every book on {0}. Log in at {1}").format(
+			portal_title(), f"{base_url()}/login"
+		)
 	else:
 		subject = frappe._("Your {0} account request").format(portal_title())
-		body = frappe._("The library could not approve your reader account. Reply to this email if you have questions.")
+		body = frappe._(
+			"The library could not approve your reader account. Reply to this email if you have questions."
+		)
 	try:
 		frappe.sendmail(recipients=[user.email], subject=subject, message=body, delayed=True)
 	except Exception:

@@ -108,8 +108,9 @@ def match_rule(record: dict, rules: list[dict]) -> dict | None:
 	return None
 
 
-def initial_visibility(record: dict, profile_visibility: str | None, rules: list[dict],
-					   default: str | None) -> tuple[str, str]:
+def initial_visibility(
+	record: dict, profile_visibility: str | None, rules: list[dict], default: str | None
+) -> tuple[str, str]:
 	"""Visibility for a newly ingested book, and what set it.
 
 	The ingest profile's own setting wins, then the first matching rule, then the site default.

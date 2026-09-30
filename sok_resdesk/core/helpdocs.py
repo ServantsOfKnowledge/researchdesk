@@ -34,12 +34,25 @@ PAGES = [
 	Page("citations", "citations.md", "Citations & reading lists", "reader", "For readers"),
 	Page("staff-guide", "staff-guide.md", "Staff guide: a tour of the Desk", "staff", "For library staff"),
 	Page("ingesting", "ingesting.md", "Choosing & ingesting books", "staff", "For library staff"),
-	Page("local-folders", "local-folders.md", "Books from your own folders or servers", "staff", "For library staff"),
-	Page("collections-and-metadata", "collections-and-metadata.md", "Collections, metadata & pushing", "staff",
-		 "For library staff"),
+	Page(
+		"local-folders",
+		"local-folders.md",
+		"Books from your own folders or servers",
+		"staff",
+		"For library staff",
+	),
+	Page(
+		"collections-and-metadata",
+		"collections-and-metadata.md",
+		"Collections, metadata & pushing",
+		"staff",
+		"For library staff",
+	),
 	Page("access", "access.md", "Who can see what", "staff", "For library staff"),
 	Page("koha", "koha.md", "Koha & interoperability", "staff", "For library staff"),
-	Page("getting-started", "getting-started.md", "Getting started (installing)", "staff", "For administrators"),
+	Page(
+		"getting-started", "getting-started.md", "Getting started (installing)", "staff", "For administrators"
+	),
 	Page("installation", "installation.md", "Installation", "staff", "For administrators"),
 	Page("operations", "operations.md", "Operations", "staff", "For administrators"),
 	Page("moving", "moving.md", "Moving to another server", "staff", "For administrators"),
@@ -59,7 +72,11 @@ _LINK = re.compile(r"(!?)\[((?:[^\[\]]|\[[^\]]*\])*)\]\(([^)\s]+)(\s+\"[^\"]*\")
 
 def github_slug(text: str) -> str:
 	"""The anchor GitHub gives a heading: lower case, punctuation dropped, spaces to hyphens."""
-	text = re.sub(r"`|\*\*|__|\*|_(?=\W)|\[([^\]]*)\]\([^)]*\)", lambda m: m.group(1) or "", text).strip().lower()
+	text = (
+		re.sub(r"`|\*\*|__|\*|_(?=\W)|\[([^\]]*)\]\([^)]*\)", lambda m: m.group(1) or "", text)
+		.strip()
+		.lower()
+	)
 	out = []
 	for ch in text:
 		cat = unicodedata.category(ch)

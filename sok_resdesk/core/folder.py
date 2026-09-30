@@ -50,6 +50,7 @@ class StoreError(Exception):
 
 # -- metadata ------------------------------------------------------------------------------
 
+
 def parse_meta_xml(data: bytes) -> dict:
 	"""IA ``_meta.xml`` → dict. Repeated tags become lists (as in the metadata API)."""
 	try:
@@ -72,13 +73,14 @@ def parse_meta_xml(data: bytes) -> dict:
 
 # -- page text ------------------------------------------------------------------------------
 
+
 def pages_from_searchtext(text_gz: bytes, index_gz: bytes, page_numbers: dict | None = None) -> list[dict]:
 	text = gzip.decompress(text_gz).decode("utf-8", errors="replace")
 	index = json.loads(gzip.decompress(index_gz))
 	labels = _labels(page_numbers)
 	pages = []
 	for leaf, entry in enumerate(index):
-		page_text = text[entry[0]:entry[1]].strip()
+		page_text = text[entry[0] : entry[1]].strip()
 		if page_text:
 			pages.append({"leaf": leaf, "label": labels.get(leaf, ""), "text": page_text})
 	return pages
@@ -131,12 +133,13 @@ def pages_from_hocr(html: bytes, page_numbers: dict | None = None) -> list[dict]
 	chunk = 1 << 20
 	text = html.decode("utf-8", errors="replace")
 	for i in range(0, len(text), chunk):
-		parser.feed(text[i:i + chunk])
+		parser.feed(text[i : i + chunk])
 	parser.close()
 	labels = _labels(page_numbers)
 	return [
 		{"leaf": leaf, "label": labels.get(leaf, ""), "text": "\n".join(lines)}
-		for leaf, lines in enumerate(parser.pages) if lines
+		for leaf, lines in enumerate(parser.pages)
+		if lines
 	]
 
 
@@ -184,6 +187,7 @@ def _labels(page_numbers: dict | None) -> dict[int, str]:
 
 # -- stores ---------------------------------------------------------------------------------
 
+
 class ItemStore:
 	"""Common interface. ``loc`` is the item's location relative to the store root."""
 
@@ -230,20 +234,31 @@ class ItemStore:
 				page_numbers = None
 		return {"metadata": meta, "files": [{"name": f} for f in files], "page_numbers": page_numbers}
 
-	def page_texts(self, identifier: str, loc: str, page_numbers: dict | None = None) -> tuple[list[dict], str]:
+	def page_texts(
+		self, identifier: str, loc: str, page_numbers: dict | None = None
+	) -> tuple[list[dict], str]:
 		"""Best available page text. Returns (pages, source-file-used)."""
 		files = set(self.list_files(loc))
 		i = identifier
 		if f"{i}_hocr_searchtext.txt.gz" in files and f"{i}_hocr_pageindex.json.gz" in files:
-			text, index = self.read(loc, f"{i}_hocr_searchtext.txt.gz"), self.read(loc, f"{i}_hocr_pageindex.json.gz")
+			text, index = (
+				self.read(loc, f"{i}_hocr_searchtext.txt.gz"),
+				self.read(loc, f"{i}_hocr_pageindex.json.gz"),
+			)
 			if text and index:
 				return pages_from_searchtext(text, index, page_numbers), "hocr_searchtext"
-		for name, gz in ((f"{i}_hocr.html", False), (f"{i}_hocr.html.gz", True),
-						 (f"{i}_chocr.html.gz", True), (f"{i}_chocr.html", False)):
+		for name, gz in (
+			(f"{i}_hocr.html", False),
+			(f"{i}_hocr.html.gz", True),
+			(f"{i}_chocr.html.gz", True),
+			(f"{i}_chocr.html", False),
+		):
 			if name in files:
 				data = self.read(loc, name)
 				if data:
-					return pages_from_hocr(gzip.decompress(data) if gz else data, page_numbers), name.split("_")[-1]
+					return pages_from_hocr(gzip.decompress(data) if gz else data, page_numbers), name.split(
+						"_"
+					)[-1]
 		if f"{i}_djvu.xml" in files:
 			data = self.read(loc, f"{i}_djvu.xml")
 			if data:
@@ -361,13 +376,13 @@ class HttpStore(ItemStore):
 			try:
 				resp = self.session.get(url, timeout=self.timeout)
 				if resp.status_code in (429, 502, 503, 504):
-					time.sleep(2 ** attempt)
+					time.sleep(2**attempt)
 					continue
 				return resp
 			except requests.RequestException as exc:
 				if attempt == 2:
 					raise StoreError(f"{url}: {exc}") from exc
-				time.sleep(2 ** attempt)
+				time.sleep(2**attempt)
 		raise StoreError(f"{url}: gave up")
 
 	def _url(self, loc: str, name: str = "") -> str:
@@ -389,7 +404,7 @@ class HttpStore(ItemStore):
 					full = urljoin(url, href)
 					if not full.startswith(url) or full == url:
 						continue
-					href = full[len(url):]
+					href = full[len(url) :]
 				else:
 					continue
 			out.append(unquote(href))
@@ -439,9 +454,20 @@ class HttpStore(ItemStore):
 			if not files:
 				# no directory listing: probe the conventional IA file names
 				ident = loc.split("/")[-1]
-				candidates = [f"{ident}{s}" for s in (
-					META_SUFFIX, "_hocr_searchtext.txt.gz", "_hocr_pageindex.json.gz", "_page_numbers.json",
-					"_hocr.html", "_chocr.html.gz", "_djvu.xml", "_djvu.txt", ".pdf")] + ["__ia_thumb.jpg"]
+				candidates = [
+					f"{ident}{s}"
+					for s in (
+						META_SUFFIX,
+						"_hocr_searchtext.txt.gz",
+						"_hocr_pageindex.json.gz",
+						"_page_numbers.json",
+						"_hocr.html",
+						"_chocr.html.gz",
+						"_djvu.xml",
+						"_djvu.txt",
+						".pdf",
+					)
+				] + ["__ia_thumb.jpg"]
 				files = [c for c in candidates if self._exists(loc, c)]
 			self._listing[loc] = files
 		return self._listing[loc]
@@ -466,7 +492,9 @@ class HttpStore(ItemStore):
 			if name.endswith((META_SUFFIX, ".gz", ".html", ".xml", ".txt")):
 				try:
 					resp = self.session.head(self._url(loc, name), timeout=self.timeout, allow_redirects=True)
-					parts.append(f"{name}:{resp.headers.get('Content-Length', '')}:{resp.headers.get('Last-Modified', resp.headers.get('ETag', ''))}")
+					parts.append(
+						f"{name}:{resp.headers.get('Content-Length', '')}:{resp.headers.get('Last-Modified', resp.headers.get('ETag', ''))}"
+					)
 				except requests.RequestException:
 					parts.append(name)
 		return hashlib.sha1("|".join(parts).encode()).hexdigest()[:16]

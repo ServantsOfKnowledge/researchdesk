@@ -22,6 +22,7 @@ BACKGROUND_OVER = 200  # bulk changes bigger than this run in a queue worker
 
 # -- who is looking ------------------------------------------------------------------
 
+
 def _roles(user: str | None = None) -> set[str]:
 	return set(frappe.get_roles(user or frappe.session.user))
 
@@ -90,11 +91,14 @@ def login_url(path: str) -> str:
 def require_login_for_portal() -> None:
 	"""Send guests to the login page when the site is set to 'Login required'."""
 	if frappe.session.user == "Guest" and guest_mode() == core.GUEST_NONE:
-		frappe.local.flags.redirect_location = login_url(frappe.local.request.full_path.rstrip("?") if frappe.local.request else "/library")
+		frappe.local.flags.redirect_location = login_url(
+			frappe.local.request.full_path.rstrip("?") if frappe.local.request else "/library"
+		)
 		raise frappe.Redirect
 
 
 # -- new books -------------------------------------------------------------------------
+
 
 def rules() -> list[dict]:
 	return [
@@ -111,6 +115,7 @@ def initial_visibility(record: dict, profile: str | None) -> tuple[str, str]:
 
 # -- bulk changes ------------------------------------------------------------------------
 
+
 def _check_visibility(visibility: str) -> str:
 	if visibility not in VISIBILITIES:
 		frappe.throw(_("Visibility must be one of: {0}").format(", ".join(VISIBILITIES)))
@@ -123,7 +128,7 @@ def apply_visibility(names: list[str], visibility: str, set_by: str = "Bulk", wa
 	_check_visibility(visibility)
 	names = list(dict.fromkeys(n for n in names if n))
 	for i in range(0, len(names), 500):
-		chunk = names[i:i + 500]
+		chunk = names[i : i + 500]
 		frappe.db.sql(
 			"""update `tabRD Item` set visibility=%(v)s, visibility_set_by=%(by)s, modified=now()
 			where name in %(names)s""",
@@ -146,23 +151,35 @@ def update_index_visibility(names: list[str], visibility: str, wait: bool = Fals
 		# books: PUT is a partial update, but it would also create a stub for an unindexed id,
 		# so only touch documents that are already in the index
 		for i in range(0, len(names), 500):
-			chunk = names[i:i + 500]
-			res = client._req("POST", f"/indexes/{client.books}/documents/fetch", json={
-				"filter": f"item_id IN [{', '.join(_quote(n) for n in chunk)}]", "fields": ["id"], "limit": 1000,
-			})
+			chunk = names[i : i + 500]
+			res = client._req(
+				"POST",
+				f"/indexes/{client.books}/documents/fetch",
+				json={
+					"filter": f"item_id IN [{', '.join(_quote(n) for n in chunk)}]",
+					"fields": ["id"],
+					"limit": 1000,
+				},
+			)
 			todo = [{"id": d["id"], "visibility": visibility} for d in res.get("results", [])]
 			if todo:
 				last = client._req("PUT", f"/indexes/{client.books}/documents", json=todo)
 		for i in range(0, len(names), 50):
-			flt = f"item_id IN [{', '.join(_quote(n) for n in names[i:i + 50])}]"
+			flt = f"item_id IN [{', '.join(_quote(n) for n in names[i : i + 50])}]"
 			offset = 0
 			while True:
-				res = client._req("POST", f"/indexes/{client.pages}/documents/fetch",
-								  json={"filter": flt, "fields": ["id"], "limit": 10000, "offset": offset})
+				res = client._req(
+					"POST",
+					f"/indexes/{client.pages}/documents/fetch",
+					json={"filter": flt, "fields": ["id"], "limit": 10000, "offset": offset},
+				)
 				ids = [d["id"] for d in res.get("results", [])]
 				if ids:
-					last = client._req("PUT", f"/indexes/{client.pages}/documents",
-									   json=[{"id": x, "visibility": visibility} for x in ids])
+					last = client._req(
+						"PUT",
+						f"/indexes/{client.pages}/documents",
+						json=[{"id": x, "visibility": visibility} for x in ids],
+					)
 				offset += len(ids)
 				if not ids or offset >= res.get("total", 0):
 					break
@@ -172,16 +189,31 @@ def update_index_visibility(names: list[str], visibility: str, wait: bool = Fals
 		frappe.log_error("Research Desk: could not update visibility in the search index", str(e))
 
 
-def select_items(names=None, filters=None, collection=None, profile=None, language=None,
-				 search=None, everything: bool = False) -> list[str]:
+def select_items(
+	names=None,
+	filters=None,
+	collection=None,
+	profile=None,
+	language=None,
+	search=None,
+	everything: bool = False,
+) -> list[str]:
 	"""Resolve one of several ways of choosing items into a list of item names."""
 	if names:
 		if isinstance(names, str):
-			names = frappe.parse_json(names) if names.strip().startswith("[") else [n.strip() for n in names.split(",")]
+			names = (
+				frappe.parse_json(names)
+				if names.strip().startswith("[")
+				else [n.strip() for n in names.split(",")]
+			)
 		return [n for n in names if n]
 	if filters not in (None, "", "[]", "{}", []):
-		return frappe.get_list("RD Item", filters=frappe.parse_json(filters) if isinstance(filters, str) else filters,
-							   pluck="name", limit_page_length=0)
+		return frappe.get_list(
+			"RD Item",
+			filters=frappe.parse_json(filters) if isinstance(filters, str) else filters,
+			pluck="name",
+			limit_page_length=0,
+		)
 	if search:
 		return _names_from_search(frappe.parse_json(search) if isinstance(search, str) else search)
 	conditions, values = [], {}
@@ -195,7 +227,9 @@ def select_items(names=None, filters=None, collection=None, profile=None, langua
 		conditions.append("(language_label = %(lang)s or language = %(lang)s)")
 		values["lang"] = language
 	if not conditions and not everything:
-		frappe.throw(_("Choose the items: selected rows, a filter, a collection, a profile, a language or a search."))
+		frappe.throw(
+			_("Choose the items: selected rows, a filter, a collection, a profile, a language or a search.")
+		)
 	where = " and ".join(conditions) or "1=1"
 	return frappe.db.sql_list(f"select name from `tabRD Item` where {where}", values)
 
@@ -211,8 +245,10 @@ def _names_from_search(spec: dict) -> list[str]:
 	if spec.get("mode") == "pages" and q:
 		# books that have a matching page
 		for offset in range(0, 10000, 1000):
-			res = client.search(client.pages, {"q": q, "filter": flt, "limit": 1000, "offset": offset,
-											   "attributesToRetrieve": ["item_id"]})
+			res = client.search(
+				client.pages,
+				{"q": q, "filter": flt, "limit": 1000, "offset": offset, "attributesToRetrieve": ["item_id"]},
+			)
 			hits = res.get("hits", [])
 			names.extend(h["item_id"] for h in hits)
 			if len(hits) < 1000:
@@ -223,16 +259,21 @@ def _names_from_search(spec: dict) -> list[str]:
 		expr = " AND ".join("(" + " OR ".join(p) + ")" if isinstance(p, list) else p for p in flt) or None
 		offset = 0
 		while True:
-			res = client._req("POST", f"/indexes/{client.books}/documents/fetch",
-							  json={"filter": expr, "fields": ["item_id"], "limit": 10000, "offset": offset})
+			res = client._req(
+				"POST",
+				f"/indexes/{client.books}/documents/fetch",
+				json={"filter": expr, "fields": ["item_id"], "limit": 10000, "offset": offset},
+			)
 			batch = [d["item_id"] for d in res.get("results", [])]
 			names.extend(batch)
 			offset += len(batch)
 			if not batch or offset >= res.get("total", 0):
 				return names
 	for page in range(1, 11):
-		res = client.search(client.books, {"q": q, "filter": flt, "hitsPerPage": 1000, "page": page,
-										   "attributesToRetrieve": ["item_id"]})
+		res = client.search(
+			client.books,
+			{"q": q, "filter": flt, "hitsPerPage": 1000, "page": page, "attributesToRetrieve": ["item_id"]},
+		)
 		names.extend(h["item_id"] for h in res.get("hits", []))
 		if page >= res.get("totalPages", 0):
 			break
@@ -240,8 +281,16 @@ def _names_from_search(spec: dict) -> list[str]:
 
 
 @frappe.whitelist()
-def bulk_set_visibility(visibility: str, names=None, filters=None, collection=None, profile=None,
-						language=None, search=None, everything: int = 0) -> dict:
+def bulk_set_visibility(
+	visibility: str,
+	names=None,
+	filters=None,
+	collection=None,
+	profile=None,
+	language=None,
+	search=None,
+	everything: int = 0,
+) -> dict:
 	"""Set who can see a group of books. Staff only.
 
 	Choose the books with exactly one of: names (list), filters (Desk list filters),
@@ -254,28 +303,48 @@ def bulk_set_visibility(visibility: str, names=None, filters=None, collection=No
 	if not selected:
 		return {"count": 0, "queued": False, "message": _("No books matched.")}
 	if len(selected) > BACKGROUND_OVER:
-		frappe.enqueue("sok_resdesk.access.apply_visibility", queue="long", timeout=6 * 3600,
-					   names=selected, visibility=visibility, set_by="Bulk")
-		return {"count": len(selected), "queued": True,
-				"message": _("Changing {0} books to “{1}” in the background. It takes about a minute per few thousand books.")
-				.format(len(selected), _(visibility))}
+		frappe.enqueue(
+			"sok_resdesk.access.apply_visibility",
+			queue="long",
+			timeout=6 * 3600,
+			names=selected,
+			visibility=visibility,
+			set_by="Bulk",
+		)
+		return {
+			"count": len(selected),
+			"queued": True,
+			"message": _(
+				"Changing {0} books to “{1}” in the background. It takes about a minute per few thousand books."
+			).format(len(selected), _(visibility)),
+		}
 	apply_visibility(selected, visibility, "Bulk", wait=True)
-	return {"count": len(selected), "queued": False,
-			"message": _("{0} books are now “{1}”.").format(len(selected), _(visibility))}
+	return {
+		"count": len(selected),
+		"queued": False,
+		"message": _("{0} books are now “{1}”.").format(len(selected), _(visibility)),
+	}
 
 
 def _rule_records() -> dict[str, dict]:
 	"""Just the fields rules look at, for every item, in a few queries (fast on 50,000+ books)."""
 	records: dict[str, dict] = {}
 	for row in frappe.db.sql(
-		"select name, collections, language, language_label, source, ingest_profile from `tabRD Item`", as_dict=True
+		"select name, collections, language, language_label, source, ingest_profile from `tabRD Item`",
+		as_dict=True,
 	):
 		records[row.name] = {
 			"collections": [c for c in (row.collections or "").splitlines() if c.strip()],
-			"language": row.language, "language_label": row.language_label, "source": row.source,
-			"ingest_profile": row.ingest_profile or "", "subjects": [], "creators": [],
+			"language": row.language,
+			"language_label": row.language_label,
+			"source": row.source,
+			"ingest_profile": row.ingest_profile or "",
+			"subjects": [],
+			"creators": [],
 		}
-	for parent, subject in frappe.db.sql("select parent, subject from `tabRD Item Subject` where parenttype='RD Item'"):
+	for parent, subject in frappe.db.sql(
+		"select parent, subject from `tabRD Item Subject` where parenttype='RD Item'"
+	):
 		if parent in records:
 			records[parent]["subjects"].append(subject)
 	for parent, given, creator in frappe.db.sql(
@@ -302,14 +371,19 @@ def recompute(include_manual: bool = False) -> dict:
 		if not include_manual and row.set_by in ("Manual", "Bulk"):
 			continue
 		record = records.get(row.name, {})
-		vis, by = core.initial_visibility(record, profiles.get(record.get("ingest_profile")), site_rules, default)
+		vis, by = core.initial_visibility(
+			record, profiles.get(record.get("ingest_profile")), site_rules, default
+		)
 		if vis != row.visibility:
 			moved.setdefault((vis, by), []).append(row.name)
 		elif by != row.set_by:
 			relabel.setdefault(by, []).append(row.name)
 	for by, names in relabel.items():  # same visibility, only the reason changed: no search update needed
 		for i in range(0, len(names), 500):
-			frappe.db.sql("update `tabRD Item` set visibility_set_by=%s where name in %s", (by[:140], tuple(names[i:i + 500])))
+			frappe.db.sql(
+				"update `tabRD Item` set visibility_set_by=%s where name in %s",
+				(by[:140], tuple(names[i : i + 500])),
+			)
 	frappe.db.commit()
 	changed = sum(apply_visibility(names, vis, by) for (vis, by), names in moved.items())
 	return {"changed": changed}
@@ -319,8 +393,12 @@ def recompute(include_manual: bool = False) -> dict:
 def apply_rules(include_manual: int = 0) -> dict:
 	"""Settings button: apply profiles, rules and the default to existing books."""
 	frappe.only_for(MANAGER_ROLES)
-	frappe.enqueue("sok_resdesk.access.recompute", queue="long", timeout=6 * 3600,
-				   include_manual=bool(cint(include_manual)))
+	frappe.enqueue(
+		"sok_resdesk.access.recompute",
+		queue="long",
+		timeout=6 * 3600,
+		include_manual=bool(cint(include_manual)),
+	)
 	return {"message": _("Applying access rules to existing books in the background.")}
 
 
@@ -333,14 +411,21 @@ def apply_profile(profile: str) -> dict:
 		frappe.throw(_("Set “Access for its books” on this profile first."))
 	names = frappe.get_all("RD Item", filters={"ingest_profile": profile}, pluck="name")
 	if len(names) > BACKGROUND_OVER:
-		frappe.enqueue("sok_resdesk.access.apply_visibility", queue="long", timeout=6 * 3600,
-					   names=names, visibility=vis, set_by="Profile")
+		frappe.enqueue(
+			"sok_resdesk.access.apply_visibility",
+			queue="long",
+			timeout=6 * 3600,
+			names=names,
+			visibility=vis,
+			set_by="Profile",
+		)
 		return {"count": len(names), "message": _("Updating {0} books in the background.").format(len(names))}
 	apply_visibility(names, vis, "Profile", wait=True)
 	return {"count": len(names), "message": _("{0} books are now “{1}”.").format(len(names), _(vis))}
 
 
 # -- readers and sign-up --------------------------------------------------------------------
+
 
 def on_user_insert(doc, method=None):
 	"""A new account from the portal's sign-up page: make it a reader, or ask staff to approve."""
@@ -351,24 +436,37 @@ def on_user_insert(doc, method=None):
 	# open sign-up gives the Reader role through Portal Settings → Default Role (see apply_signup_setting)
 	mode = settings().reader_signup or core.SIGNUP_CLOSED
 	if mode == core.SIGNUP_APPROVE and not frappe.db.exists("RD Reader Request", {"user": doc.name}):
-		frappe.get_doc({
-			"doctype": "RD Reader Request", "user": doc.name, "full_name": doc.full_name,
-			"email": doc.email, "status": "Pending",
-		}).insert(ignore_permissions=True)
+		frappe.get_doc(
+			{
+				"doctype": "RD Reader Request",
+				"user": doc.name,
+				"full_name": doc.full_name,
+				"email": doc.email,
+				"status": "Pending",
+			}
+		).insert(ignore_permissions=True)
 
 
 def notify_managers(request) -> None:
 	managers = {
-		u for u in frappe.get_all("Has Role", filters={"role": ("in", MANAGER_ROLES), "parenttype": "User"}, pluck="parent")
+		u
+		for u in frappe.get_all(
+			"Has Role", filters={"role": ("in", MANAGER_ROLES), "parenttype": "User"}, pluck="parent"
+		)
 		if u not in ("Guest",) and frappe.db.get_value("User", u, "enabled")
 	}
 	for user in managers:
 		try:
-			frappe.get_doc({
-				"doctype": "Notification Log", "for_user": user, "type": "Alert",
-				"document_type": "RD Reader Request", "document_name": request.name,
-				"subject": _("{0} asked for a reader account").format(request.full_name or request.email),
-			}).insert(ignore_permissions=True)
+			frappe.get_doc(
+				{
+					"doctype": "Notification Log",
+					"for_user": user,
+					"type": "Alert",
+					"document_type": "RD Reader Request",
+					"document_name": request.name,
+					"subject": _("{0} asked for a reader account").format(request.full_name or request.email),
+				}
+			).insert(ignore_permissions=True)
 		except Exception:  # a missing alert must not stop the sign-up
 			frappe.log_error(title="Research Desk: could not alert a manager about a reader request")
 
@@ -380,10 +478,16 @@ def add_reader(email: str, full_name: str = "", send_welcome: bool = True) -> st
 		user = frappe.get_doc("User", email)
 	else:
 		first, _sep, last = (full_name or email.split("@")[0]).partition(" ")
-		user = frappe.get_doc({
-			"doctype": "User", "email": email, "first_name": first, "last_name": last,
-			"user_type": "Website User", "send_welcome_email": 1 if send_welcome else 0,
-		})
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": first,
+				"last_name": last,
+				"user_type": "Website User",
+				"send_welcome_email": 1 if send_welcome else 0,
+			}
+		)
 		user.flags.ignore_permissions = True
 		user.insert()
 	if READER_ROLE not in {r.role for r in user.roles}:
@@ -420,7 +524,11 @@ def apply_signup_setting(s=None) -> None:
 	# Frappe gives new sign-ups Portal Settings' default role
 	ps = frappe.get_single("Portal Settings")
 	role = READER_ROLE if mode == core.SIGNUP_OPEN else None
-	if ps.meta.has_field("default_role") and (ps.default_role or None) != role and (role or ps.default_role == READER_ROLE):
+	if (
+		ps.meta.has_field("default_role")
+		and (ps.default_role or None) != role
+		and (role or ps.default_role == READER_ROLE)
+	):
 		ps.default_role = role
 		ps.flags.ignore_permissions = True
 		ps.save()

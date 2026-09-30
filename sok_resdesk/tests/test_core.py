@@ -32,6 +32,7 @@ def sample_item():
 
 # -- normalisation ---------------------------------------------------------------
 
+
 def test_language_variants():
 	for raw in ("Kan", "kan", "Kannada", "KAN", "kn"):
 		assert normalize.normalize_language(raw) == ("kan", "Kannada")
@@ -69,6 +70,7 @@ def test_restricted_items_have_no_fulltext():
 
 # -- IA query building --------------------------------------------------------
 
+
 def test_build_query():
 	q = IAClient.build_query("Collection", "ServantsOfKnowledge", "language:kan")
 	assert q == "collection:(ServantsOfKnowledge) AND (language:kan) AND mediatype:(texts)"
@@ -79,6 +81,7 @@ def test_build_query():
 
 
 # -- citations ----------------------------------------------------------------
+
 
 def test_bibtex():
 	bib = citations.render(sample_item(), "bibtex")
@@ -123,6 +126,7 @@ def test_json_ld_and_highwire():
 
 # -- MARC ----------------------------------------------------------------------
 
+
 def test_marcxml_is_valid_xml():
 	xml_text = marc.to_marcxml_collection([sample_item()], "https://library.example.org")
 	doc = xml.dom.minidom.parseString(xml_text.encode())
@@ -134,6 +138,7 @@ def test_marcxml_is_valid_xml():
 
 
 # -- OAI-PMH ------------------------------------------------------------------
+
 
 class FakeStore:
 	def __init__(self, n=250):
@@ -155,12 +160,18 @@ class FakeStore:
 		return next((i for i in self.items if i["item_id"] == item_id), None)
 
 	def list(self, start, limit, from_, until, set_spec):
-		rows = [i for i in self.items if (not from_ or i["modified"] >= from_) and (not until or i["modified"] <= until)]
-		return rows[start:start + limit], len(rows)
+		rows = [
+			i
+			for i in self.items
+			if (not from_ or i["modified"] >= from_) and (not until or i["modified"] <= until)
+		]
+		return rows[start : start + limit], len(rows)
 
 
 def repo():
-	return oai.Repository(FakeStore(), "resdesk.example.org", "Test", "https://resdesk.example.org", "a@b.org")
+	return oai.Repository(
+		FakeStore(), "resdesk.example.org", "Test", "https://resdesk.example.org", "a@b.org"
+	)
 
 
 def parse(xml_text):
@@ -192,15 +203,36 @@ def test_oai_paging_with_resumption_token():
 
 def test_oai_get_record_formats():
 	r = repo()
-	doc = parse(r.handle({"verb": "GetRecord", "identifier": "oai:resdesk.example.org:item0001", "metadataPrefix": "oai_dc"}))
+	doc = parse(
+		r.handle(
+			{
+				"verb": "GetRecord",
+				"identifier": "oai:resdesk.example.org:item0001",
+				"metadataPrefix": "oai_dc",
+			}
+		)
+	)
 	assert doc.getElementsByTagName("dc:title")
-	doc = parse(r.handle({"verb": "GetRecord", "identifier": "oai:resdesk.example.org:item0001", "metadataPrefix": "marc21"}))
+	doc = parse(
+		r.handle(
+			{
+				"verb": "GetRecord",
+				"identifier": "oai:resdesk.example.org:item0001",
+				"metadataPrefix": "marc21",
+			}
+		)
+	)
 	assert doc.getElementsByTagName("datafield")
-	doc = parse(r.handle({"verb": "GetRecord", "identifier": "oai:resdesk.example.org:nope", "metadataPrefix": "oai_dc"}))
+	doc = parse(
+		r.handle(
+			{"verb": "GetRecord", "identifier": "oai:resdesk.example.org:nope", "metadataPrefix": "oai_dc"}
+		)
+	)
 	assert doc.getElementsByTagName("error")[0].getAttribute("code") == "idDoesNotExist"
 
 
 # -- access control -------------------------------------------------------------------
+
 
 def test_access_matrix():
 	from sok_resdesk.core import access as a
@@ -228,7 +260,10 @@ def test_access_search_filters():
 
 	assert a.search_filter("books", a.GUEST_ITEM, True) is None
 	assert a.search_filter("books", a.GUEST_ITEM, False) == 'NOT visibility = "Login to find"'
-	assert a.search_filter("pages", a.GUEST_ITEM, False) == 'NOT visibility IN ["Login to read", "Login to find"]'
+	assert (
+		a.search_filter("pages", a.GUEST_ITEM, False)
+		== 'NOT visibility IN ["Login to read", "Login to find"]'
+	)
 	assert a.search_filter("pages", a.GUEST_RECORDS, False) == ""
 	assert a.search_filter("books", a.GUEST_RECORDS, False) == 'NOT visibility = "Login to find"'
 	assert a.search_filter("books", a.GUEST_NONE, False) == ""
@@ -246,7 +281,10 @@ def test_access_initial_visibility():
 		{"match_on": "Language", "value": "Kannada", "visibility": a.LOGIN_TO_FIND},
 	]
 	# first matching rule wins, case-insensitively
-	assert a.initial_visibility(record, None, rules, a.PUBLIC) == (a.LOGIN_TO_READ, "Rule: Collection = jaigyan")
+	assert a.initial_visibility(record, None, rules, a.PUBLIC) == (
+		a.LOGIN_TO_READ,
+		"Rule: Collection = jaigyan",
+	)
 	# the profile's own setting beats rules
 	assert a.initial_visibility(record, a.PUBLIC, rules, a.LOGIN_TO_FIND) == (a.PUBLIC, "Profile")
 	# no rule matches: site default; a bad default falls back to Public
@@ -255,7 +293,10 @@ def test_access_initial_visibility():
 	lang = [{"match_on": "Language", "value": "kan", "visibility": a.LOGIN_TO_FIND}]
 	assert a.initial_visibility(record, None, lang, a.PUBLIC)[0] == a.LOGIN_TO_FIND
 	prof = [{"match_on": "Ingest Profile", "value": "Staff scans", "visibility": a.LOGIN_TO_FIND}]
-	assert a.initial_visibility({**record, "ingest_profile": "Staff scans"}, None, prof, a.PUBLIC)[0] == a.LOGIN_TO_FIND
+	assert (
+		a.initial_visibility({**record, "ingest_profile": "Staff scans"}, None, prof, a.PUBLIC)[0]
+		== a.LOGIN_TO_FIND
+	)
 
 
 def test_collections_core():
@@ -264,8 +305,13 @@ def test_collections_core():
 	assert c.slugify("Kannada Literature: Vachanas & more") == "kannada-literature-vachanas-more"
 	assert c.slugify("ಕನ್ನಡ ಸಾಹಿತ್ಯ") == "ಕನ್ನಡ-ಸಾಹಿತ್ಯ"
 	assert c.slugify("  !! ") == "collection"
-	rec = {"subjects": ["Archaeology -- Karnataka"], "collections": ["JaiGyan"], "item_type": "Periodical",
-		   "language_label": "Kannada", "language": "kan"}
+	rec = {
+		"subjects": ["Archaeology -- Karnataka"],
+		"collections": ["JaiGyan"],
+		"item_type": "Periodical",
+		"language_label": "Kannada",
+		"language": "kan",
+	}
 	assert c.matches(rec, [{"match_on": "Subject", "how": "contains", "value": "archaeology"}])
 	assert not c.matches(rec, [{"match_on": "Subject", "value": "archaeology"}])
 	assert c.matches(rec, [{"match_on": "Source Collection", "value": "jaigyan"}])
@@ -277,7 +323,10 @@ def test_collections_core():
 def test_item_types_and_citations():
 	from sok_resdesk.core.citations import to_bibtex, to_csl, to_ris
 
-	assert normalize.guess_item_type({"title": "Kannada Sahitya Patrike", "subject": "Periodicals"}) == "Periodical"
+	assert (
+		normalize.guess_item_type({"title": "Kannada Sahitya Patrike", "subject": "Periodicals"})
+		== "Periodical"
+	)
 	assert normalize.guess_item_type({"title": "A study", "subject": "Thesis (Ph.D.)"}) == "Thesis"
 	assert normalize.guess_item_type({"title": "Ivaru Kanda Vijayanagara"}) == "Book"
 	item = {**sample_item(), "item_type": "Thesis"}
@@ -288,7 +337,14 @@ def test_item_types_and_citations():
 
 def _rec():
 	r = sample_item()
-	r.update({"item_type": "Book", "curated_collections": ["kannada-lit"], "visibility": "Public", "published": True})
+	r.update(
+		{
+			"item_type": "Book",
+			"curated_collections": ["kannada-lit"],
+			"visibility": "Public",
+			"published": True,
+		}
+	)
 	return r
 
 
@@ -297,19 +353,36 @@ def test_spreadsheet_round_trip():
 
 	rec = _rec()
 	row = metaio.record_to_row(rec, "https://lib.example.org")
-	assert row["creators"] == "ಶ್ರೀ ಕೆ ಸುಭಾಶ್ಚಂದ್ರ ಶೆಣೈ" and row["year"] == "1955" and row["collections"] == "kannada-lit"
+	assert (
+		row["creators"] == "ಶ್ರೀ ಕೆ ಸುಭಾಶ್ಚಂದ್ರ ಶೆಣೈ"
+		and row["year"] == "1955"
+		and row["collections"] == "kannada-lit"
+	)
 	csv_text = metaio.rows_to_csv([row])
 	back = metaio.csv_to_rows(csv_text.encode("utf-8"))[0]
 	assert back == row
 	# nothing edited -> no changes
 	assert metaio.row_changes(back, rec) == ({}, [])
 	# edit a few cells, drop most columns
-	edited = {"item_id": rec["item_id"], "title": "New title", "subjects": "A; B", "year": "1956",
-			  "item_type": "periodical", "visibility": "login to read", "published": "0"}
+	edited = {
+		"item_id": rec["item_id"],
+		"title": "New title",
+		"subjects": "A; B",
+		"year": "1956",
+		"item_type": "periodical",
+		"visibility": "login to read",
+		"published": "0",
+	}
 	changes, problems = metaio.row_changes(edited, rec)
 	assert problems == []
-	assert changes == {"title": "New title", "subjects": ["A", "B"], "year": 1956, "item_type": "Periodical",
-					   "visibility": "Login to read", "published": False}
+	assert changes == {
+		"title": "New title",
+		"subjects": ["A", "B"],
+		"year": 1956,
+		"item_type": "Periodical",
+		"visibility": "Login to read",
+		"published": False,
+	}
 	_, problems = metaio.row_changes({"item_id": "x", "year": "c. 1950", "item_type": "Poster"}, rec)
 	assert len(problems) == 2
 
@@ -325,7 +398,7 @@ def test_export_formats():
 	md.parseString(metaio.dublin_core_collection([rec], "https://x.org"))
 	mods = metaio.mods_collection([rec], "https://x.org")
 	md.parseString(mods)
-	assert "<genre authority=\"local\">book</genre>" in mods
+	assert '<genre authority="local">book</genre>' in mods
 	graph = json.loads(metaio.jsonld_graph([rec], "https://x.org"))
 	assert graph["@graph"][0]["@type"] and "@context" not in graph["@graph"][0]
 	meta = metaio.meta_xml(rec)

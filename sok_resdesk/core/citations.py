@@ -37,6 +37,7 @@ HONORIFICS = re.compile(
 
 # -- helpers -------------------------------------------------------------------
 
+
 def _is_latin(text: str) -> bool:
 	letters = [c for c in text if c.isalpha()]
 	if not letters:
@@ -139,6 +140,7 @@ def _bib_escape(text: str) -> str:
 
 # -- machine formats -----------------------------------------------------------
 
+
 def to_bibtex(item: dict, base_url: str = "", biblatex: bool = False) -> str:
 	people = _people(item)
 	fields: list[tuple[str, str]] = []
@@ -228,8 +230,13 @@ def to_csl(item: dict, base_url: str = "") -> dict:
 		csl["title-short"] = item["alt_title"]
 	if item.get("year"):
 		csl["issued"] = {"date-parts": [[item["year"]]]}
-	for src, dst in (("publisher", "publisher"), ("place", "publisher-place"), ("language", "language"),
-					 ("isbn", "ISBN"), ("series", "collection-title")):
+	for src, dst in (
+		("publisher", "publisher"),
+		("place", "publisher-place"),
+		("language", "language"),
+		("isbn", "ISBN"),
+		("series", "collection-title"),
+	):
 		if item.get(src):
 			csl[dst] = item[src]
 	if item.get("page_count"):
@@ -238,6 +245,7 @@ def to_csl(item: dict, base_url: str = "") -> dict:
 
 
 # -- formatted styles ------------------------------------------------------------
+
 
 def _apa_name(p: dict) -> str:
 	family, given = split_name(p["alt"] or p["name"])

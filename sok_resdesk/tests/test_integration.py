@@ -96,8 +96,10 @@ class TestLocalFolderSource(IntegrationTestCase):
 		d = os.path.join(self.root, "shelf", "rdtest.local0001")
 		os.makedirs(d)
 		with open(os.path.join(d, "rdtest.local0001_meta.xml"), "w", encoding="utf-8") as f:
-			f.write("<metadata><identifier>rdtest.local0001</identifier><title>ಸ್ಥಳೀಯ ಪುಸ್ತಕ</title>"
-					"<creator>ಲೇಖಕ</creator><language>kan</language><date>1950</date></metadata>")
+			f.write(
+				"<metadata><identifier>rdtest.local0001</identifier><title>ಸ್ಥಳೀಯ ಪುಸ್ತಕ</title>"
+				"<creator>ಲೇಖಕ</creator><language>kan</language><date>1950</date></metadata>"
+			)
 		with open(os.path.join(d, "rdtest.local0001.pdf"), "wb") as f:
 			f.write(b"%PDF-1.4\n%test")
 		text = "ಮೊದಲ ಪುಟ\nಎರಡನೇ ಪುಟ"
@@ -125,8 +127,10 @@ class TestLocalFolderSource(IntegrationTestCase):
 		outcome, _ = ingest_local_one(store, *items[0], self.profile, fetch_text=True)
 		self.assertEqual(outcome, "created")
 		doc = frappe.get_doc("RD Item", "rdtest.local0001")
-		self.assertEqual((doc.source, doc.on_archive_org, doc.local_pdf, doc.text_source),
-						 ("Local", 0, "rdtest.local0001.pdf", "hocr_searchtext"))
+		self.assertEqual(
+			(doc.source, doc.on_archive_org, doc.local_pdf, doc.text_source),
+			("Local", 0, "rdtest.local0001.pdf", "hocr_searchtext"),
+		)
 		record = get_record("rdtest.local0001")
 		self.assertIn("sok_resdesk.api.file", record["pdf_url"])
 		self.assertEqual(ingest_local_one(store, *items[0], self.profile, fetch_text=True)[0], "unchanged")
@@ -147,7 +151,11 @@ class TestAccess(IntegrationTestCase):
 		frappe.clear_document_cache("RD Settings", "RD Settings")
 
 	def setUp(self):
-		self._set(guest_access="Each item's setting", default_visibility="Public", reader_signup="Admins add readers")
+		self._set(
+			guest_access="Each item's setting",
+			default_visibility="Public",
+			reader_signup="Admins add readers",
+		)
 		frappe.db.delete("RD Access Rule", {"parent": "RD Settings"})
 		frappe.clear_document_cache("RD Settings", "RD Settings")
 
@@ -162,14 +170,24 @@ class TestAccess(IntegrationTestCase):
 		return frappe.get_doc("RD Item", identifier)
 
 	def test_new_books_follow_rules_then_default(self):
-		frappe.get_doc({
-			"doctype": "RD Access Rule", "parent": "RD Settings", "parenttype": "RD Settings",
-			"parentfield": "access_rules", "idx": 1,
-			"match_on": "Collection", "value": "servantsofknowledge", "visibility": "Login to find",
-		}).db_insert()
+		frappe.get_doc(
+			{
+				"doctype": "RD Access Rule",
+				"parent": "RD Settings",
+				"parenttype": "RD Settings",
+				"parentfield": "access_rules",
+				"idx": 1,
+				"match_on": "Collection",
+				"value": "servantsofknowledge",
+				"visibility": "Login to find",
+			}
+		).db_insert()
 		frappe.clear_document_cache("RD Settings", "RD Settings")
 		doc = self._new_item("rdtest.access0001")
-		self.assertEqual((doc.visibility, doc.visibility_set_by), ("Login to find", "Rule: Collection = servantsofknowledge"))
+		self.assertEqual(
+			(doc.visibility, doc.visibility_set_by),
+			("Login to find", "Rule: Collection = servantsofknowledge"),
+		)
 		self._set(default_visibility="Login to read")
 		doc = self._new_item("rdtest.access0002", collection=["Other"])
 		self.assertEqual((doc.visibility, doc.visibility_set_by), ("Login to read", "Default"))
@@ -205,8 +223,15 @@ class TestAccess(IntegrationTestCase):
 
 		email = "rdtest.reader@example.org"
 		if not frappe.db.exists("User", email):
-			frappe.get_doc({"doctype": "User", "email": email, "first_name": "Reader",
-							"user_type": "Website User", "send_welcome_email": 0}).insert(ignore_permissions=True)
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": "Reader",
+					"user_type": "Website User",
+					"send_welcome_email": 0,
+				}
+			).insert(ignore_permissions=True)
 		req = frappe.get_doc({"doctype": "RD Reader Request", "user": email, "status": "Pending"}).insert()
 		self.assertNotIn(READER_ROLE, frappe.get_roles(email))
 		req.status = "Approved"

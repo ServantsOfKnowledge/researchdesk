@@ -1,16 +1,16 @@
 """bench commands:  bench --site <site> resdesk <subcommand>
 
-  resdesk count    --collection ServantsOfKnowledge --filter "language:kan"
-  resdesk ingest   --collection ServantsOfKnowledge --filter "language:kan" --limit 50
-  resdesk ingest   --profile "SoK Kannada sample"
-  resdesk ingest   --ids "id1,id2"   |  --ids-file ids.txt
-  resdesk reindex  [--no-pages]
-  resdesk configure --meili-url http://meilisearch:7700 --meili-key KEY --title "My Library"
-  resdesk status
-  resdesk access   login-to-read --collection ServantsOfKnowledge     (or --profile, --language, --ids, --all)
-  resdesk access   --apply-rules  |  --guests "Records only"  |  --signup "Sign up, admin approves"
-  resdesk add-reader reader@example.org --name "A Reader"
-  resdesk jobs     [--stop RUN] [--stop-all] [--now] [--pause | --resume]
+resdesk count    --collection ServantsOfKnowledge --filter "language:kan"
+resdesk ingest   --collection ServantsOfKnowledge --filter "language:kan" --limit 50
+resdesk ingest   --profile "SoK Kannada sample"
+resdesk ingest   --ids "id1,id2"   |  --ids-file ids.txt
+resdesk reindex  [--no-pages]
+resdesk configure --meili-url http://meilisearch:7700 --meili-key KEY --title "My Library"
+resdesk status
+resdesk access   login-to-read --collection ServantsOfKnowledge     (or --profile, --language, --ids, --all)
+resdesk access   --apply-rules  |  --guests "Records only"  |  --signup "Sign up, admin approves"
+resdesk add-reader reader@example.org --name "A Reader"
+resdesk jobs     [--stop RUN] [--stop-all] [--now] [--pause | --resume]
 """
 
 import click
@@ -33,16 +33,27 @@ def resdesk():
 
 def _scope(collection, filter_, query, ids, ids_file, folder=None, server=None, manifest=None):
 	if folder or server:
-		return {"source": "Folder or Server", "location": folder or server, "manifest_url": manifest or "",
-				"check_archive_org": 1}
+		return {
+			"source": "Folder or Server",
+			"location": folder or server,
+			"manifest_url": manifest or "",
+			"check_archive_org": 1,
+		}
 	if ids_file:
 		with open(ids_file) as f:
 			ids = ",".join(line.strip() for line in f if line.strip())
 	if ids:
-		return {"scope_type": "Identifier List", "identifiers": "\n".join(i.strip() for i in ids.split(",") if i.strip())}
+		return {
+			"scope_type": "Identifier List",
+			"identifiers": "\n".join(i.strip() for i in ids.split(",") if i.strip()),
+		}
 	if query:
 		return {"scope_type": "Search Query", "ia_query": query}
-	return {"scope_type": "Collection", "ia_collection": collection or "ServantsOfKnowledge", "extra_filter": filter_ or ""}
+	return {
+		"scope_type": "Collection",
+		"ia_collection": collection or "ServantsOfKnowledge",
+		"extra_filter": filter_ or "",
+	}
 
 
 _scope_options = [
@@ -51,8 +62,12 @@ _scope_options = [
 	click.option("--query", help="A full IA advanced-search query instead of a collection"),
 	click.option("--ids", help="Comma-separated IA identifiers"),
 	click.option("--ids-file", type=click.Path(exists=True), help="File with one IA identifier per line"),
-	click.option("--folder", help="Folder of IA-style item folders, e.g. /library-source or /library-source/2026"),
-	click.option("--server", help="Web server with IA-style item folders, e.g. https://books.example.org/items/"),
+	click.option(
+		"--folder", help="Folder of IA-style item folders, e.g. /library-source or /library-source/2026"
+	),
+	click.option(
+		"--server", help="Web server with IA-style item folders, e.g. https://books.example.org/items/"
+	),
 	click.option("--manifest", help="With --server: URL of a list of item folders (one per line)"),
 ]
 
@@ -81,7 +96,10 @@ def count(context, collection, filter_, query, ids, ids_file, folder, server, ma
 			click.echo(f"Item folders under {s['location']}: {n:,}")
 			return
 		q = IAClient.build_query(
-			s["scope_type"], s.get("ia_collection", ""), s.get("extra_filter", ""), s.get("ia_query", ""),
+			s["scope_type"],
+			s.get("ia_collection", ""),
+			s.get("extra_filter", ""),
+			s.get("ia_query", ""),
 			(s.get("identifiers") or "").splitlines(),
 		)
 		click.echo(f"Query: {q}")
@@ -93,16 +111,40 @@ def count(context, collection, filter_, query, ids, ids_file, folder, server, ma
 @resdesk.command("ingest")
 @click.option("--profile", help="Run an existing RD Ingest Profile by name")
 @scope_options
-@click.option("--limit", type=int, default=None, help="Max items (0 = all). Default 50, or the profile's own limit")
+@click.option(
+	"--limit", type=int, default=None, help="Max items (0 = all). Default 50, or the profile's own limit"
+)
 @click.option("--no-fulltext", is_flag=True, help="Metadata only; skip OCR text")
 @click.option("--update", is_flag=True, help="Refresh items already in the catalogue")
 @click.option("--name", help="Save the scope as a profile with this name")
-@click.option("--visibility", help="Who can see the new books: public, login-to-read or members (default: rules in Settings)")
-@click.option("--background", is_flag=True,
-			  help="Hand the work to the queue workers (parallel; best for large runs) and watch progress")
+@click.option(
+	"--visibility",
+	help="Who can see the new books: public, login-to-read or members (default: rules in Settings)",
+)
+@click.option(
+	"--background",
+	is_flag=True,
+	help="Hand the work to the queue workers (parallel; best for large runs) and watch progress",
+)
 @pass_context
-def ingest(context, profile, collection, filter_, query, ids, ids_file, folder, server, manifest, limit, no_fulltext,
-		   update, name, visibility, background):
+def ingest(
+	context,
+	profile,
+	collection,
+	filter_,
+	query,
+	ids,
+	ids_file,
+	folder,
+	server,
+	manifest,
+	limit,
+	no_fulltext,
+	update,
+	name,
+	visibility,
+	background,
+):
 	"""Bring books in from the Internet Archive or from IA-style item folders.
 
 	By default runs here in the foreground, one book at a time. With --background the
@@ -115,8 +157,14 @@ def ingest(context, profile, collection, filter_, query, ids, ids_file, folder, 
 		profile_given = bool(profile)
 		if not profile:
 			values = _scope(collection, filter_, query, ids, ids_file, folder, server, manifest)
-			values.update({"max_items": 50 if limit is None else limit, "fetch_fulltext": 0 if no_fulltext else 1, "update_existing": 1 if update else 0,
-						   "visibility": _VIS_ALIASES.get((visibility or "").strip().lower(), visibility or "")})
+			values.update(
+				{
+					"max_items": 50 if limit is None else limit,
+					"fetch_fulltext": 0 if no_fulltext else 1,
+					"update_existing": 1 if update else 0,
+					"visibility": _VIS_ALIASES.get((visibility or "").strip().lower(), visibility or ""),
+				}
+			)
 			default_name = "Command line folder ingest" if values.get("source") else "Command line ingest"
 			profile = ensure_profile(name or default_name, **values)
 		run = create_run(frappe.get_doc("RD Ingest Profile", profile), "Command Line")
@@ -125,7 +173,9 @@ def ingest(context, profile, collection, filter_, query, ids, ids_file, folder, 
 		if background:
 			run_ingest(run.name, verbose=True, limit_override=limit_override, foreground=False)
 			if frappe.db.get_value("RD Ingest Run", run.name, "status") in ("Queued", "Running"):
-				click.echo("Batches queued for the workers. Following progress (Ctrl+C stops watching, not the run):")
+				click.echo(
+					"Batches queued for the workers. Following progress (Ctrl+C stops watching, not the run):"
+				)
 				_watch(frappe, run.name)
 		else:
 			run_ingest(run.name, verbose=True, limit_override=limit_override)
@@ -142,8 +192,10 @@ def _watch(frappe, run_name: str, interval: int = 10):
 	while True:
 		frappe.db.commit()  # end the read snapshot so we see the workers' updates
 		r = frappe.db.get_value(
-			"RD Ingest Run", run_name,
-			["status", "total_found", "processed", "created_count", "failed_count", "pending_chunks"], as_dict=True,
+			"RD Ingest Run",
+			run_name,
+			["status", "total_found", "processed", "created_count", "failed_count", "pending_chunks"],
+			as_dict=True,
 		)
 		elapsed = time.monotonic() - start
 		if first is None:
@@ -213,8 +265,13 @@ def configure(context, meili_url, meili_key, title, base_url, contact):
 	frappe = _connect(context)
 	try:
 		s = frappe.get_single("RD Settings")
-		for field, value in (("meili_url", meili_url), ("meili_api_key", meili_key), ("portal_title", title),
-							 ("base_url", base_url), ("ia_contact", contact)):
+		for field, value in (
+			("meili_url", meili_url),
+			("meili_api_key", meili_key),
+			("portal_title", title),
+			("base_url", base_url),
+			("ia_contact", contact),
+		):
 			if value:
 				s.set(field, value)
 		if contact and "@" in contact:
@@ -245,10 +302,17 @@ def status(context):
 
 
 _VIS_ALIASES = {
-	"public": "Public", "open": "Public",
-	"login-to-read": "Login to read", "login to read": "Login to read", "read": "Login to read",
-	"login-to-find": "Login to find", "login to find": "Login to find", "find": "Login to find",
-	"members": "Login to find", "members-only": "Login to find", "hidden": "Login to find",
+	"public": "Public",
+	"open": "Public",
+	"login-to-read": "Login to read",
+	"login to read": "Login to read",
+	"read": "Login to read",
+	"login-to-find": "Login to find",
+	"login to find": "Login to find",
+	"find": "Login to find",
+	"members": "Login to find",
+	"members-only": "Login to find",
+	"hidden": "Login to find",
 }
 
 
@@ -256,20 +320,43 @@ _VIS_ALIASES = {
 @click.argument("visibility", required=False)
 @click.option("--collection", help="Books in this collection, e.g. ServantsOfKnowledge")
 @click.option("--profile", help="Books ingested by this RD Ingest Profile")
-@click.option("--language", help='Books in this language, e.g. Kannada or kan')
+@click.option("--language", help="Books in this language, e.g. Kannada or kan")
 @click.option("--ids", help="Comma-separated item identifiers")
 @click.option("--ids-file", type=click.Path(exists=True), help="File with one identifier per line")
 @click.option("--all", "everything", is_flag=True, help="Every book in the catalogue")
-@click.option("--apply-rules", is_flag=True, help="Re-apply profiles, rules and the default (Settings → Access)")
-@click.option("--include-manual", is_flag=True, help="With --apply-rules: also change books set by hand or in bulk")
-@click.option("--guests", type=click.Choice(["Each item's setting", "Records only", "Login required"]),
-			  help="What visitors who are not logged in may do")
-@click.option("--signup", type=click.Choice(["Admins add readers", "Anyone can sign up", "Sign up, admin approves"]),
-			  help="How people get reader accounts")
+@click.option(
+	"--apply-rules", is_flag=True, help="Re-apply profiles, rules and the default (Settings → Access)"
+)
+@click.option(
+	"--include-manual", is_flag=True, help="With --apply-rules: also change books set by hand or in bulk"
+)
+@click.option(
+	"--guests",
+	type=click.Choice(["Each item's setting", "Records only", "Login required"]),
+	help="What visitors who are not logged in may do",
+)
+@click.option(
+	"--signup",
+	type=click.Choice(["Admins add readers", "Anyone can sign up", "Sign up, admin approves"]),
+	help="How people get reader accounts",
+)
 @click.option("--default", "default_vis", help="Visibility for new books when no profile or rule decides")
 @pass_context
-def access_cmd(context, visibility, collection, profile, language, ids, ids_file, everything, apply_rules,
-			   include_manual, guests, signup, default_vis):
+def access_cmd(
+	context,
+	visibility,
+	collection,
+	profile,
+	language,
+	ids,
+	ids_file,
+	everything,
+	apply_rules,
+	include_manual,
+	guests,
+	signup,
+	default_vis,
+):
 	"""Who can see what: public, login-to-read or login-to-find (members only).
 
 	\b
@@ -303,8 +390,13 @@ def access_cmd(context, visibility, collection, profile, language, ids, ids_file
 			if ids_file:
 				with open(ids_file) as f:
 					ids = ",".join(line.strip() for line in f if line.strip())
-			names = access.select_items(names=ids or None, collection=collection, profile=profile,
-										language=language, everything=everything)
+			names = access.select_items(
+				names=ids or None,
+				collection=collection,
+				profile=profile,
+				language=language,
+				everything=everything,
+			)
 			if not names:
 				click.echo("No books matched.")
 			else:
@@ -316,7 +408,9 @@ def access_cmd(context, visibility, collection, profile, language, ids, ids_file
 		click.echo(f"Reader accounts:         {s.reader_signup}")
 		click.echo(f"Default for new books:   {s.default_visibility}")
 		click.echo(f"OAI-PMH shares:          {s.oai_scope}")
-		for vis, n in frappe.db.sql("select ifnull(visibility,'Public'), count(*) from `tabRD Item` group by 1 order by 1"):
+		for vis, n in frappe.db.sql(
+			"select ifnull(visibility,'Public'), count(*) from `tabRD Item` group by 1 order by 1"
+		):
 			click.echo(f"  {vis:15} {n:>8} books")
 	finally:
 		frappe.destroy()
@@ -325,7 +419,9 @@ def access_cmd(context, visibility, collection, profile, language, ids, ids_file
 @resdesk.command("add-reader")
 @click.argument("email")
 @click.option("--name", "full_name", default="", help="Full name")
-@click.option("--no-email", is_flag=True, help="Don't send the welcome email (set a password in the Desk instead)")
+@click.option(
+	"--no-email", is_flag=True, help="Don't send the welcome email (set a password in the Desk instead)"
+)
 @pass_context
 def add_reader_cmd(context, email, full_name, no_email):
 	"""Create a reader account (or give an existing account the Reader role)."""
@@ -343,8 +439,14 @@ def add_reader_cmd(context, email, full_name, no_email):
 
 @resdesk.command("jobs")
 @click.option("--stop", "stop_run", help="Stop this ingest run (e.g. RUN-00042)")
-@click.option("--stop-all", is_flag=True, help="Cancel all runs and queued Research Desk jobs, pause schedules")
-@click.option("--now", is_flag=True, help="With --stop/--stop-all: kill running jobs instead of letting them finish the current book")
+@click.option(
+	"--stop-all", is_flag=True, help="Cancel all runs and queued Research Desk jobs, pause schedules"
+)
+@click.option(
+	"--now",
+	is_flag=True,
+	help="With --stop/--stop-all: kill running jobs instead of letting them finish the current book",
+)
 @click.option("--pause", is_flag=True, help="Pause scheduled ingests")
 @click.option("--resume", is_flag=True, help="Resume scheduled ingests")
 @click.option("--pause-run", help="Pause this ingest or push run (it keeps its place)")
@@ -376,19 +478,25 @@ def jobs_cmd(context, stop_run, stop_all, now, pause, resume, pause_run, resume_
 		o = jobs.overview()
 		if o["paused_all"]:
 			click.echo("EVERYTHING IS PAUSED (resume with --resume-all)")
-		click.echo(f"Workers: {o['workers']}   Schedules: {'PAUSED' if o['paused'] else 'on'}   "
-				   f"Search-engine tasks pending: {o['search'].get('pending', 0)}")
+		click.echo(
+			f"Workers: {o['workers']}   Schedules: {'PAUSED' if o['paused'] else 'on'}   "
+			f"Search-engine tasks pending: {o['search'].get('pending', 0)}"
+		)
 		click.echo("\nIngest runs in progress:" if o["active_runs"] else "\nNo ingest running.")
 		for r in o["active_runs"]:
-			click.echo(f"  {r.name}  {r.profile}  {r.status}  {r.processed or 0}/{r.total_found or '?'} books"
-					   f"  ({r.failed_count or 0} failed)  {r.triggered_by}")
+			click.echo(
+				f"  {r.name}  {r.profile}  {r.status}  {r.processed or 0}/{r.total_found or '?'} books"
+				f"  ({r.failed_count or 0} failed)  {r.triggered_by}"
+			)
 		for r in o["push_runs"]:
 			click.echo(f"  {r.name}  push to {r.target}  {r.status}  {r.total or '?'} books")
 		click.echo("\nQueued / running jobs:" if o["jobs"] else "\nNo Research Desk jobs queued.")
 		for j in o["jobs"]:
 			click.echo(f"  {j['state']:8} {j['kind']:32} {j['short_id']}")
 		if o["held"]:
-			click.echo(f"\nHeld jobs ({len(o['held'])}): released by --resume-all or on the Background Jobs page")
+			click.echo(
+				f"\nHeld jobs ({len(o['held'])}): released by --resume-all or on the Background Jobs page"
+			)
 			for h in o["held"]:
 				click.echo(f"  {h['kind']:32} {h['job_id'] or ''}")
 		if o["schedules"]:
@@ -400,8 +508,12 @@ def jobs_cmd(context, stop_run, stop_all, now, pause, resume, pause_run, resume_
 
 
 @resdesk.command("resource-preset")
-@click.option("--set", "preset", type=click.Choice(["light", "standard", "server"]),
-			  help="Record the preset in use (./resdesk.sh resources does this)")
+@click.option(
+	"--set",
+	"preset",
+	type=click.Choice(["light", "standard", "server"]),
+	help="Record the preset in use (./resdesk.sh resources does this)",
+)
 @pass_context
 def resource_preset_cmd(context, preset):
 	"""The resource preset chosen in the Desk (read by ./resdesk.sh resources apply)."""
@@ -417,7 +529,9 @@ def resource_preset_cmd(context, preset):
 
 @resdesk.command("relink-folders")
 @click.option("--from", "old_root", required=True, help="Where the book folders were, e.g. /Users/om/library")
-@click.option("--to", "new_root", default="/library-source", help="Where they are now (default: the library folder)")
+@click.option(
+	"--to", "new_root", default="/library-source", help="Where they are now (default: the library folder)"
+)
 @pass_context
 def relink_folders_cmd(context, old_root, new_root):
 	"""Point books and profiles at the book folders' new place (after moving; see docs/moving.md)."""
@@ -426,7 +540,9 @@ def relink_folders_cmd(context, old_root, new_root):
 		from sok_resdesk.local_source import relink
 
 		counts = relink(old_root, new_root)
-		click.echo(f"{counts['RD Item']} books and {counts['RD Ingest Profile']} profiles now use {new_root}.")
+		click.echo(
+			f"{counts['RD Item']} books and {counts['RD Ingest Profile']} profiles now use {new_root}."
+		)
 	finally:
 		frappe.destroy()
 

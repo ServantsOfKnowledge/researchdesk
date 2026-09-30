@@ -21,5 +21,8 @@ def get_context(context):
 	context.page = page
 	context.title = f"{page['title']} · {context.portal_title}"
 	context.viewer = access.viewer()
-	context.metatags = {"title": page["title"], "description": frappe._("Help for readers of {0}").format(context.portal_title)}
+	context.metatags = {
+		"title": page["title"],
+		"description": frappe._("Help for readers of {0}").format(context.portal_title),
+	}
 	return context

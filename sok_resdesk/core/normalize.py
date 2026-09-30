@@ -49,35 +49,69 @@ LANGUAGES: dict[str, str] = {
 
 # Variant spellings seen in the wild -> ISO 639-3
 _LANGUAGE_ALIASES: dict[str, str] = {
-	"en": "eng", "english": "eng",
-	"kn": "kan", "kannada": "kan", "kanada": "kan",
-	"hi": "hin", "hindi": "hin",
+	"en": "eng",
+	"english": "eng",
+	"kn": "kan",
+	"kannada": "kan",
+	"kanada": "kan",
+	"hi": "hin",
+	"hindi": "hin",
 	"konkani": "kok",
-	"or": "ory", "ori": "ory", "oriya": "ory", "odia": "ory",
-	"ta": "tam", "tamil": "tam",
-	"ml": "mal", "malayalam": "mal",
-	"te": "tel", "telugu": "tel",
-	"sa": "san", "sanskrit": "san",
-	"mr": "mar", "marathi": "mar",
-	"bn": "ben", "bengali": "ben", "bangla": "ben",
-	"gu": "guj", "gujarati": "guj",
-	"pa": "pan", "punjabi": "pan",
-	"ur": "urd", "urdu": "urd",
+	"or": "ory",
+	"ori": "ory",
+	"oriya": "ory",
+	"odia": "ory",
+	"ta": "tam",
+	"tamil": "tam",
+	"ml": "mal",
+	"malayalam": "mal",
+	"te": "tel",
+	"telugu": "tel",
+	"sa": "san",
+	"sanskrit": "san",
+	"mr": "mar",
+	"marathi": "mar",
+	"bn": "ben",
+	"bengali": "ben",
+	"bangla": "ben",
+	"gu": "guj",
+	"gujarati": "guj",
+	"pa": "pan",
+	"punjabi": "pan",
+	"ur": "urd",
+	"urdu": "urd",
 	"tulu": "tcy",
-	"kodava": "kfa", "coorgi": "kfa",
-	"as": "asm", "assamese": "asm",
-	"ne": "nep", "nepali": "nep",
+	"kodava": "kfa",
+	"coorgi": "kfa",
+	"as": "asm",
+	"assamese": "asm",
+	"ne": "nep",
+	"nepali": "nep",
 	"pali": "pli",
-	"ar": "ara", "arabic": "ara",
-	"fa": "per", "fas": "per", "persian": "per",
-	"fr": "fre", "fra": "fre", "french": "fre",
-	"de": "ger", "deu": "ger", "german": "ger",
-	"pt": "por", "portuguese": "por",
-	"la": "lat", "latin": "lat",
-	"ru": "rus", "russian": "rus",
-	"es": "spa", "spanish": "spa",
-	"ja": "jpn", "japanese": "jpn",
-	"zh": "chi", "zho": "chi", "chinese": "chi",
+	"ar": "ara",
+	"arabic": "ara",
+	"fa": "per",
+	"fas": "per",
+	"persian": "per",
+	"fr": "fre",
+	"fra": "fre",
+	"french": "fre",
+	"de": "ger",
+	"deu": "ger",
+	"german": "ger",
+	"pt": "por",
+	"portuguese": "por",
+	"la": "lat",
+	"latin": "lat",
+	"ru": "rus",
+	"russian": "rus",
+	"es": "spa",
+	"spanish": "spa",
+	"ja": "jpn",
+	"japanese": "jpn",
+	"zh": "chi",
+	"zho": "chi",
+	"chinese": "chi",
 }
 
 YEAR_RE = re.compile(r"(1[0-9]{3}|20[0-9]{2})")
@@ -155,7 +189,10 @@ def is_restricted(meta: dict) -> bool:
 ITEM_TYPES = ("Book", "Periodical", "Article", "Thesis", "Report", "Manuscript", "Map", "Other")
 
 _TYPE_HINTS = (
-	("Periodical", ("periodical", "magazine", "journal", "newspaper", "patrika", "ಪತ್ರಿಕೆ", "gazette", "bulletin")),
+	(
+		"Periodical",
+		("periodical", "magazine", "journal", "newspaper", "patrika", "ಪತ್ರಿಕೆ", "gazette", "bulletin"),
+	),
 	("Thesis", ("thesis", "dissertation", "ph.d", "phd")),
 	("Manuscript", ("manuscript", "palm leaf", "palm-leaf", "ಹಸ್ತಪ್ರತಿ", "ತಾಳೆಗರಿ")),
 	("Report", ("annual report", "report of", "proceedings")),
@@ -167,7 +204,9 @@ def guess_item_type(meta: dict) -> str:
 	"""Best guess of what kind of document this is. IA calls everything 'texts', so we look
 	at the title, subjects and collections for hints; anything unclear is a Book."""
 	haystack = " ".join(
-		as_list(meta.get("subject")) + as_list(meta.get("collection")) + [first(meta.get("title"))]
+		as_list(meta.get("subject"))
+		+ as_list(meta.get("collection"))
+		+ [first(meta.get("title"))]
 		+ as_list(meta.get("type"))
 	).lower()
 	for kind, words in _TYPE_HINTS:

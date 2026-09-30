@@ -39,7 +39,7 @@ def resolve_location(path: str) -> str:
 	path = path.strip()
 	real_dir = library_dir()
 	if real_dir != DEFAULT_ROOT and (path == DEFAULT_ROOT or path.startswith(DEFAULT_ROOT + "/")):
-		return real_dir.rstrip("/") + path[len(DEFAULT_ROOT):]
+		return real_dir.rstrip("/") + path[len(DEFAULT_ROOT) :]
 	return path
 
 
@@ -49,8 +49,10 @@ def check_folder_allowed(path: str) -> str:
 		if real == root or real.startswith(root + os.sep):
 			return real
 	frappe.throw(
-		frappe._("Folder {0} is outside the library folders ({1}). Set LIBRARY_DIR in .env, or add it to "
-				 "the site config key resdesk_library_roots.").format(path, ", ".join(library_roots()))
+		frappe._(
+			"Folder {0} is outside the library folders ({1}). Set LIBRARY_DIR in .env, or add it to "
+			"the site config key resdesk_library_roots."
+		).format(path, ", ".join(library_roots()))
 	)
 
 
@@ -83,7 +85,7 @@ def portable_path(path: str) -> str:
 		return path
 	real, lib = os.path.realpath(path), os.path.realpath(library_dir())
 	if real == lib or real.startswith(lib + os.sep):
-		return DEFAULT_ROOT + real[len(lib):]
+		return DEFAULT_ROOT + real[len(lib) :]
 	return path
 
 
@@ -98,7 +100,9 @@ def relink(old_root: str, new_root: str = DEFAULT_ROOT) -> dict:
 		counts[doctype] = frappe.db.sql(f"select count(*) from `tab{doctype}` where {where}", values)[0][0]
 		frappe.db.sql(
 			f"update `tab{doctype}` set `{field}` = concat(%(new)s, substring(`{field}`, char_length(%(old)s) + 1)) "
-			f"where {where}", values)
+			f"where {where}",
+			values,
+		)
 	frappe.db.commit()
 	return counts
 
@@ -136,8 +140,9 @@ def file_url(item_id: str, name: str) -> str:
 	return f"/api/method/sok_resdesk.api.file?item_id={quote(item_id, safe='')}&name={quote(name, safe='')}"
 
 
-def ingest_local_one(store: ItemStore, item_id: str, loc: str, profile, fetch_text: bool,
-					 force: bool = False) -> tuple[str, int]:
+def ingest_local_one(
+	store: ItemStore, item_id: str, loc: str, profile, fetch_text: bool, force: bool = False
+) -> tuple[str, int]:
 	"""Returns (outcome, pages_indexed); outcome is 'created', 'updated' or 'unchanged'."""
 	from sok_resdesk.ingest import cache_enabled, write_cached_pages
 	from sok_resdesk.search import SearchError, index_record
@@ -162,18 +167,20 @@ def ingest_local_one(store: ItemStore, item_id: str, loc: str, profile, fetch_te
 	on_ia = bool(profile.check_archive_org) and on_archive_org(item_id)
 	pdf, thumb = store.pdf_name(item_id, loc), store.thumb_name(loc)
 	restricted = record["access_status"] == "Restricted"
-	record.update({
-		"source": "Local",
-		"has_page_text": bool(pages) and not restricted,
-		"has_fulltext": bool(pages) and not restricted,
-		"on_archive_org": on_ia,
-		"local_store": portable_path(store_root(store)),
-		"local_path": loc,
-		"local_pdf": pdf or "",
-		"local_thumb": thumb or "",
-		"text_source": text_source,
-		"source_signature": signature,
-	})
+	record.update(
+		{
+			"source": "Local",
+			"has_page_text": bool(pages) and not restricted,
+			"has_fulltext": bool(pages) and not restricted,
+			"on_archive_org": on_ia,
+			"local_store": portable_path(store_root(store)),
+			"local_path": loc,
+			"local_pdf": pdf or "",
+			"local_thumb": thumb or "",
+			"text_source": text_source,
+			"source_signature": signature,
+		}
+	)
 	if not on_ia:
 		record["source_url"] = ""
 		record["thumbnail_url"] = file_url(item_id, thumb) if thumb else ""
@@ -183,8 +190,11 @@ def ingest_local_one(store: ItemStore, item_id: str, loc: str, profile, fetch_te
 	if pages and cache_enabled():
 		write_cached_pages(item_id, pages)
 	try:
-		count = index_record(item_to_record(frappe.get_doc("RD Item", name)), pages if not restricted else [],
-							 replace_pages=not created)
+		count = index_record(
+			item_to_record(frappe.get_doc("RD Item", name)),
+			pages if not restricted else [],
+			replace_pages=not created,
+		)
 	except SearchError as e:
 		frappe.log_error("Research Desk: indexing failed", f"{item_id}: {e}")
 		count = 0
