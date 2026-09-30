@@ -160,7 +160,8 @@ def apply_rules_now(collection: str) -> int:
 def collections_for_new_item(record: dict, profile: str | None) -> list[str]:
 	"""Collections whose rules match a newly ingested book."""
 	rows = frappe.db.sql(
-		"select parent, match_on, how, value from `tabRD Collection Rule` where parenttype='RD Collection'",
+		"""select r.parent, r.match_on, r.how, r.value from `tabRD Collection Rule` r
+		join `tabRD Collection` c on c.name = r.parent where r.parenttype='RD Collection'""",
 		as_dict=True,
 	)
 	by_collection: dict[str, list[dict]] = {}

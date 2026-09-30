@@ -36,6 +36,8 @@ fi
 if [ -n "${BASE_URL:-}" ]; then
   # host_name: used by Frappe for absolute URLs and the realtime (socket.io) origin check
   bench --site "${SITE_NAME}" set-config host_name "${BASE_URL}"
-  bench --site "${SITE_NAME}" resdesk configure --base-url "${BASE_URL}"
+  # not worth failing an upgrade over: it only records the address (Settings can set it too)
+  bench --site "${SITE_NAME}" resdesk configure --base-url "${BASE_URL}" \
+    || echo ">> WARNING: could not save the public address in Settings; set it there (Public Base URL)"
 fi
 echo ">> create-site finished"

@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-30 14:00:00.000000",
- "modified": "2026-09-30 14:00:00.000000",
+ "modified": "2026-10-02 12:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Collection",
@@ -19,6 +19,7 @@
   "curator",
   "sort_order",
   "item_count",
+  "mirror_of",
   "section_desc",
   "description",
   "section_rules",
@@ -81,6 +82,13 @@
    "label": "Books",
    "read_only": 1,
    "in_list_view": 1
+  },
+  {
+   "fieldname": "mirror_of",
+   "fieldtype": "Data",
+   "label": "Mirrors archive.org Collection",
+   "read_only": 1,
+   "description": "Kept up to date by an ingest profile: books join and leave as they do on archive.org. Books added by hand are removed at the next update; make your own collection for a hand-picked set."
   },
   {
    "fieldname": "section_desc",

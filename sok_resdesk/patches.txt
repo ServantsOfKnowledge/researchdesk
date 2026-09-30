@@ -9,3 +9,4 @@ sok_resdesk.patches.v0_5.access_defaults
 sok_resdesk.patches.v0_7.collections_and_types
 sok_resdesk.patches.v0_10.portable_folder_paths
 sok_resdesk.patches.v0_11.server_defaults
+sok_resdesk.patches.v0_11.sync_baseline

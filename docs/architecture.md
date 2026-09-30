@@ -55,12 +55,12 @@ cause. Details: [Server](server.md#how-the-updater-helper-works).
 
 | DocType | Purpose | Key fields |
 |---|---|---|
-| **RD Item** | one book/document | `item_id` (= IA identifier, the document name), title, alt_title, creators (table), year, language (ISO 639-3), publisher, subjects (multi-select), collections (source), curated_collections, item_type, lock_metadata ("Keep My Edits"), licence, access, visibility (Public / Login to read / Login to find) and visibility_set_by, page_count, has_page_text, ark, raw_metadata (JSON) |
+| **RD Item** | one book/document | `item_id` (= IA identifier, the document name), title, alt_title, creators (table), year, language (ISO 639-3), publisher, subjects (multi-select), collections (source), curated_collections, item_type, lock_metadata ("Keep My Edits"), removed_from_source, licence, access, visibility (Public / Login to read / Login to find) and visibility_set_by, page_count, has_page_text, ark, raw_metadata (JSON) |
 | RD Item Creator | child table | creator → RD Creator, role, name_as_given |
 | RD Item Subject | child table | subject → RD Subject |
 | **RD Creator** | authority-lite person record | full_name, alt_name (romanised), VIAF, Wikidata |
 | **RD Subject** | keyword / heading | subject_name, scheme |
-| **RD Ingest Profile** | *what* to ingest | scope (collection / query / identifiers), filter, max items, full text, schedule |
+| **RD Ingest Profile** | *what* to ingest | scope (collection / query / identifiers), filter, max items, full text, schedule, keeping in step with archive.org (new, changed, removed; `synced_on`), portal collection |
 | **RD Ingest Run** | one execution | status, counts, log |
 | **RD Settings** | single | portal, branding, OAI, Meilisearch, IA politeness, machine resources, server & updates (update checks, backups, alerts), guest access, reader sign-up, access rules |
 | RD Access Rule | child table of settings | match_on (collection, subject, language, creator, source, profile), value, visibility |

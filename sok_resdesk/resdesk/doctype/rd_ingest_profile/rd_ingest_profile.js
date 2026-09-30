@@ -64,6 +64,21 @@ frappe.ui.form.on("RD Ingest Profile", {
 				)
 			);
 		}
+		if (frm.doc.source === "Internet Archive" && frm.doc.keep_in_sync && frm.doc.synced_on) {
+			frm.add_custom_button(__("Sync with archive.org"), () =>
+				frappe.call({
+					method: "sok_resdesk.ia_sync.sync_now",
+					args: { profile: frm.doc.name },
+					callback: (r) => {
+						frappe.show_alert({ message: __("Bringing in what changed since {0}: {1}", [frappe.datetime.str_to_user(frm.doc.synced_on), r.message]), indicator: "green" });
+						frappe.set_route("Form", "RD Ingest Run", r.message);
+					},
+				})
+			);
+		}
+		if (frm.doc.portal_collection) {
+			frm.add_custom_button(__("Portal Collection"), () => frappe.set_route("Form", "RD Collection", frm.doc.portal_collection));
+		}
 		frm.add_custom_button(__("Items from this Profile"), () =>
 			frappe.set_route("List", "RD Item", { ingest_profile: frm.doc.name })
 		);

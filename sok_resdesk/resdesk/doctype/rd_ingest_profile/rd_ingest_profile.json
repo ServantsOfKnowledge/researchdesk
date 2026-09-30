@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-09-30 10:00:00.000000",
+ "modified": "2026-10-02 12:30:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Ingest Profile",
@@ -29,6 +29,14 @@
   "fetch_fulltext",
   "update_existing",
   "visibility",
+  "sync_section",
+  "keep_in_sync",
+  "sync_changes",
+  "sync_removals",
+  "column_break_sync",
+  "mirror_collection",
+  "portal_collection",
+  "synced_on",
   "matching_count",
   "status_section",
   "last_run",
@@ -61,7 +69,7 @@
    "label": "Schedule",
    "options": "Manual\nHourly\nDaily\nWeekly",
    "default": "Manual",
-   "description": "Scheduled runs pick up new items (and, for folders, changed ones). Hourly suits a drop folder."
+   "description": "When to run by itself. archive.org profiles kept in step pick up what changed (Manual ones: daily); folders pick up new and changed items. Hourly suits a drop folder."
   },
   {
    "fieldname": "source",
@@ -172,6 +180,63 @@
    "label": "Access for Its Books",
    "options": "\nPublic\nLogin to read\nLogin to find",
    "description": "Who can see books ingested by this profile. Leave empty to use the rules and default in Settings. Use “Apply Access to Its Books” to change books already ingested."
+  },
+  {
+   "fieldname": "sync_section",
+   "fieldtype": "Section Break",
+   "label": "Keep in Step with archive.org",
+   "depends_on": "eval:doc.source=='Internet Archive'",
+   "description": "After the first run, check archive.org every day (or on the profile's schedule) and bring the catalogue up to date: new books come in, changed ones are updated, removed ones are unpublished. Only what changed is fetched."
+  },
+  {
+   "fieldname": "keep_in_sync",
+   "fieldtype": "Check",
+   "label": "Keep in Step with archive.org",
+   "default": "1",
+   "description": "Bring in books added to archive.org since the last check (all of them: Maximum Items applies to the first run only)."
+  },
+  {
+   "fieldname": "sync_changes",
+   "fieldtype": "Check",
+   "label": "Update Changed Books",
+   "default": "1",
+   "depends_on": "keep_in_sync",
+   "description": "Refresh books whose details changed on archive.org. Books with Keep My Edits keep your corrections."
+  },
+  {
+   "fieldname": "sync_removals",
+   "fieldtype": "Check",
+   "label": "Unpublish Removed Books",
+   "default": "1",
+   "depends_on": "keep_in_sync",
+   "description": "Unpublish books taken out of the collection (or made dark) on archive.org; they come back if they return. Nothing is deleted, and if many books seem to vanish at once nothing is unpublished and managers are alerted."
+  },
+  {
+   "fieldname": "column_break_sync",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mirror_collection",
+   "fieldtype": "Check",
+   "label": "Portal Collection for It",
+   "default": "1",
+   "depends_on": "eval:doc.scope_type=='Collection'",
+   "description": "Keep a collection page on the portal with this archive.org collection's books, named after it, filled and kept up to date automatically."
+  },
+  {
+   "fieldname": "portal_collection",
+   "fieldtype": "Link",
+   "label": "Portal Collection",
+   "options": "RD Collection",
+   "read_only": 1,
+   "depends_on": "mirror_collection"
+  },
+  {
+   "fieldname": "synced_on",
+   "fieldtype": "Datetime",
+   "label": "In Step Up To",
+   "read_only": 1,
+   "description": "archive.org changes up to this time are in the catalogue. Set by each completed run."
   },
   {
    "fieldname": "matching_count",

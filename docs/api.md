@@ -94,6 +94,7 @@ two files are ever served, and the PDF only when the caller may read the book.
 |---|---|
 | `sok_resdesk.ingest.count_profile` (`profile`) | count matching IA items |
 | `sok_resdesk.ingest.start_ingest` (`profile`) | queue a run, returns the run name |
+| `sok_resdesk.ia_sync.sync_now` (`profile`) | bring in what changed on archive.org since the profile's last run; returns the run name |
 | `sok_resdesk.ingest.refresh_item` (`item_id`) | re-fetch one item from IA |
 | `sok_resdesk.search.reindex_item` (`item_id`) | re-index one item |
 | `sok_resdesk.search.enqueue_rebuild` | rebuild the whole index in the background |

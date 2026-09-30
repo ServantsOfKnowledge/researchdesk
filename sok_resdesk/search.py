@@ -390,15 +390,34 @@ def setup_indexes() -> str:
 		client.setup()
 		stats = client.stats().get("indexes", {})
 	except SearchError as e:
-		frappe.db.set_single_value("RD Settings", "search_status", f"Error: {e}")
+		_set_status(f"Error: {e}")
 		frappe.throw(str(e))
 	books = stats.get(client.books, {}).get("numberOfDocuments", 0)
 	pages = stats.get(client.pages, {}).get("numberOfDocuments", 0)
 	msg = _("Connected ({0}). Indexes ready: {1} books, {2} pages.").format(
 		health.get("status"), books, pages
 	)
-	frappe.db.set_single_value("RD Settings", "search_status", msg)
+	_set_status(msg)
 	return msg
+
+
+def _set_status(msg: str) -> None:
+	"""Record the search engine's state in Settings. Right after a migration the workers start
+	and write to Settings too; MariaDB then refuses a write from an older snapshot (error 1020),
+	so start from a fresh one and try again once."""
+	for attempt in range(3):
+		try:
+			frappe.db.commit()
+			frappe.db.set_single_value("RD Settings", "search_status", msg)
+			frappe.db.commit()
+			return
+		except frappe.QueryDeadlockError:
+			frappe.db.rollback()
+			if attempt == 2:
+				raise
+			import time
+
+			time.sleep(1 + attempt)
 
 
 @frappe.whitelist()

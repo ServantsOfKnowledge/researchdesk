@@ -62,6 +62,11 @@ scheduler_events = {
 		"30 2 * * *": ["sok_resdesk.server.scheduled_backup"],
 	},
 	"hourly": ["sok_resdesk.ingest.mark_interrupted_runs", "sok_resdesk.ingest.run_scheduled_hourly"],
-	"daily": ["sok_resdesk.ingest.run_scheduled_daily", "sok_resdesk.server.scheduled_update_check"],
+	"daily": [
+		"sok_resdesk.ingest.run_scheduled_daily",
+		# profiles set to Manual but kept in step with archive.org
+		"sok_resdesk.ia_sync.run_daily",
+		"sok_resdesk.server.scheduled_update_check",
+	],
 	"weekly": ["sok_resdesk.ingest.run_scheduled_weekly"],
 }

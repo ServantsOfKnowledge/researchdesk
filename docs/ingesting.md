@@ -21,10 +21,14 @@ Desk → Research Desk → **Ingest Profiles**.
 | **Maximum Items** | stop after this many items (`0` = no limit). Start with 50 to 500. |
 | **Fetch Full Text** | download page-level OCR text for full-text search (recommended) |
 | **Refresh Items Already in Catalogue** | re-fetch items you already have (to pick up corrected metadata) |
-| **Schedule** | *Manual*, *Daily* or *Weekly*. Scheduled runs only fetch items that are new. |
+| **Schedule** | *Manual*, *Hourly*, *Daily* or *Weekly*. Scheduled runs only fetch what changed ([below](#keeping-in-step-with-archiveorg)). |
+| **Keep in Step with archive.org** | after the first run, bring in new books, update changed ones and unpublish removed ones, every day or on the schedule (on by default) |
+| **Portal Collection for It** | keep a portal collection page with this archive.org collection's books (on by default for *Collection*) |
 
-Buttons: **Check Count** (how many items match right now), **Run Ingest** (starts a
-background job and opens its progress page), **Items from this Profile**, **Run History**.
+Buttons: **Check Count** (how many items match right now, and whether they fit under the
+[book limit](server.md#book-limit)), **Run Ingest** (starts a background job and opens its
+progress page), **Sync with archive.org** (bring in what changed since the last run),
+**Portal Collection**, **Items from this Profile**, **Run History**.
 
 Research Desk only asks for `mediatype:texts`, so audio, video and collection records are skipped.
 
@@ -144,8 +148,36 @@ busy. A book with page text takes 3 to 10 seconds per worker. We measured about 
 with one worker and 3,000 books/hour with four**. Keep it to 4 to 6 workers. For the full 88k
 collection, plan on a day or two, or ask the Internet Archive about bulk access.
 
+## Keeping in step with archive.org
+
+Collections on archive.org keep growing, and books in them get corrected, moved or taken down.
+With **Keep in Step with archive.org** ticked (the default), a profile that has run once is kept
+up to date by itself. Each day (or on the profile's *Schedule*, if it has one) Research Desk asks
+archive.org only what changed since the last run ("In Step Up To" on the profile):
+
+| On archive.org | In Research Desk |
+|---|---|
+| a book was **added** to the collection (or now matches the search) | it comes in, with its page text: all new books, whatever *Maximum Items* says (that limits the first run only), within the [book limit](server.md#book-limit) |
+| a book's details or files **changed** (*Update Changed Books*) | it is refreshed; books with *Keep My Edits* keep your corrections |
+| a book was **taken out** of the collection, or made dark (*Unpublish Removed Books*) | it is unpublished and marked *Removed from archive.org*; nothing is deleted, and it is published again if it comes back |
+
+Removals are checked carefully: a book counts as gone only when archive.org confirms it (dark,
+or no longer in the collection; for a *Search Query* profile, only dark books). If many of a
+profile's books seem to vanish at once (more than 20, and more than a tenth), that looks like a
+problem on archive.org's side: nothing is unpublished and managers get an alert.
+
+**Portal collection.** For a *Collection* profile, Research Desk also makes a collection page
+on the portal named after the archive.org collection (with its description) and keeps it
+exactly in step: books join and leave with archive.org. Profiles on the same archive.org
+collection share one page. Rename it or give it a cover as you like; for a hand-picked set,
+make your own collection, as books added by hand to a mirrored one are removed at the next update.
+
+**Sync with archive.org** on the profile does the same straight away. The run's log lists what
+was new, changed, removed or back.
+
 ## Scheduling
 
-Set a profile's **Schedule** to *Daily* or *Weekly*. The scheduler container then queues a
-run that only picks up items not yet in the catalogue. That keeps a portal in step with
-ongoing digitisation automatically.
+Set a profile's **Schedule** to *Hourly*, *Daily* or *Weekly* to choose when it is kept in step;
+profiles left on *Manual* are kept in step daily (untick *Keep in Step with archive.org* to only
+run them by hand). Scheduled runs of a profile that isn't kept in step only pick up items not yet
+in the catalogue.

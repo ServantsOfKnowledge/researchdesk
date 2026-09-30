@@ -324,7 +324,13 @@ def plan_run(
 		limit = cint(profile.max_items) if limit_override is None else cint(limit_override)
 		only_new = run.triggered_by == "Scheduler" or not cint(profile.update_existing)
 		skipped = 0
-		if profile.is_folder:
+		from sok_resdesk import ia_sync
+
+		if ia_sync.is_sync_run(run, profile):
+			# only what changed on archive.org since the last run (new, changed, back again)
+			ids = ia_sync.plan(run_name, profile, ia, lambda m: _log(run_name, m, verbose))
+			only_new = False
+		elif profile.is_folder:
 			# Every item goes to a batch: unchanged ones are skipped there by comparing
 			# file signatures, so new *and* changed books are picked up.
 			from sok_resdesk.local_source import open_profile_store
@@ -527,6 +533,13 @@ def _finish(run_name: str, verbose: bool = False) -> None:
 	frappe.db.sql(f"update `{RUN}` set finished_on=%s where name=%s", (now_datetime(), run_name))
 	_set_status(run_name, status)
 	frappe.db.commit()
+	try:
+		from sok_resdesk.ia_sync import after_run
+
+		after_run(run_name)  # "in step up to", and the profile's portal collection
+	except Exception:
+		frappe.db.rollback()
+		frappe.log_error(title=f"Research Desk: updating after run {run_name} failed")
 
 
 def run_ingest(

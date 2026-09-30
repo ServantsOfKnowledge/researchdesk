@@ -29,6 +29,7 @@ SETTINGS_FIELDS = (
 	"quiet_to",
 	"quiet_weekdays_only",
 	"resource_preset",
+	"book_limit",
 )
 DEFAULTS = (
 	"resdesk_schedules_were_paused",
@@ -90,6 +91,7 @@ class OpsTestCase(IntegrationTestCase):
 		for run in frappe.get_all("RD Push Run", filters={"target": ("like", "rdtest%")}, pluck="name"):
 			frappe.db.delete("RD Push Run", run)
 		frappe.db.delete("RD Push Target", {"name": ("like", "rdtest%")})
+		frappe.db.delete("RD Collection Rule", {"parent": ("like", "rdtest%")})
 		frappe.db.delete("RD Collection", {"name": ("like", "rdtest%")})
 		frappe.db.delete("RD Ingest Run", {"profile": ("like", "rdtest%")})
 		frappe.db.delete("RD Ingest Profile", {"name": ("like", "rdtest%")})
@@ -357,3 +359,148 @@ class TestSetupHelpers(OpsTestCase):
 		self.assertEqual(
 			frappe.db.get_value("RD Item", f"{PREFIX}0010", "local_store"), "/old/diskette/shelf"
 		)
+
+
+class FakeIA:
+	"""archive.org for the sync tests: a collection whose books come, change and go."""
+
+	def __init__(self):
+		self.books = {f"{PREFIX}{n:04d}": f"Sync book {n}" for n in range(1, 5)}
+		self.added: set[str] = set()
+		self.changed: set[str] = set()
+		self.dark: set[str] = set()
+		self.moved: set[str] = set()  # still on archive.org, but in another collection
+
+	def iter_identifiers(self, query, limit=0, page_size=1000):
+		if "addeddate" in query:
+			return iter(sorted(self.added))
+		if "oai_updatedate" in query:
+			return iter(sorted(self.changed | self.added))
+		return iter(sorted(set(self.books) - self.dark - self.moved))
+
+	def count(self, query):
+		return len(list(self.iter_identifiers(query)))
+
+	def metadata(self, identifier):
+		from sok_resdesk.core.ia import IAError
+
+		if identifier == "rdtestcoll":
+			return {"metadata": {"title": "RD Test Collection", "description": "From archive.org"}}
+		if identifier in self.dark or identifier not in self.books:
+			raise IAError("item not found or dark")
+		coll = ["othercoll"] if identifier in self.moved else ["rdtestcoll"]
+		meta = {
+			"identifier": identifier,
+			"title": self.books[identifier],
+			"language": "English",
+			"collection": coll,
+		}
+		return {"metadata": meta, "files": []}
+
+
+class TestIASync(OpsTestCase):
+	def setUp(self):
+		super().setUp()
+		frappe.db.set_single_value("RD Settings", "book_limit", "No limit")
+		self.ia = FakeIA()
+		for p in (
+			mock.patch("sok_resdesk.ingest.client", return_value=self.ia),
+			mock.patch("sok_resdesk.search.index_record", return_value=0),
+			mock.patch("sok_resdesk.search.update_item_fields"),
+			mock.patch("sok_resdesk.search.remove_record"),
+			mock.patch("sok_resdesk.search.MeiliClient.from_settings"),
+		):
+			p.start()
+			self.addCleanup(p.stop)
+		self.profile = frappe.get_doc(
+			{
+				"doctype": "RD Ingest Profile",
+				"profile_name": "rdtest sync",
+				"source": "Internet Archive",
+				"scope_type": "Collection",
+				"ia_collection": "rdtestcoll",
+				"max_items": 0,
+				"fetch_fulltext": 0,
+			}
+		).insert(ignore_permissions=True)
+		frappe.db.commit()
+
+	def run_profile(self, triggered_by):
+		from sok_resdesk.ingest import create_run, run_ingest
+
+		run = create_run(frappe.get_doc("RD Ingest Profile", self.profile.name), triggered_by)
+		frappe.db.commit()
+		run_ingest(run.name, foreground=True)
+		return frappe.get_doc("RD Ingest Run", run.name)
+
+	def test_first_run_then_syncs(self):
+		first = self.run_profile("Manual")
+		self.assertEqual((first.status, first.created_count), ("Completed", 4), first.log)
+		profile = frappe.get_doc("RD Ingest Profile", self.profile.name)
+		self.assertTrue(profile.synced_on)
+		# the portal collection mirrors the archive.org collection
+		coll = profile.portal_collection
+		self.assertEqual(
+			frappe.db.get_value("RD Collection", coll, ["title", "mirror_of"]),
+			("RD Test Collection", "rdtestcoll"),
+		)
+		self.assertEqual(frappe.db.count("RD Item Collection", {"collection": coll}), 4)
+
+		# on archive.org: one book added, one changed, one made dark, one moved elsewhere
+		self.ia.books[f"{PREFIX}0005"] = "Sync book 5"
+		self.ia.added = {f"{PREFIX}0005"}
+		self.ia.books[f"{PREFIX}0001"] = "Sync book 1, corrected"
+		self.ia.changed = {f"{PREFIX}0001"}
+		self.ia.dark = {f"{PREFIX}0002"}
+		self.ia.moved = {f"{PREFIX}0003"}
+		sync = self.run_profile("Sync")
+		self.assertEqual(sync.status, "Completed")
+		self.assertEqual((sync.created_count, sync.updated_count), (1, 1))
+		self.assertEqual(frappe.db.get_value("RD Item", f"{PREFIX}0001", "title"), "Sync book 1, corrected")
+		for gone in ("0002", "0003"):
+			self.assertEqual(
+				frappe.db.get_value("RD Item", f"{PREFIX}{gone}", ["published", "removed_from_source"]),
+				(0, 1),
+			)
+		self.assertEqual(frappe.db.get_value("RD Item", f"{PREFIX}0004", "published"), 1)
+		members = set(frappe.get_all("RD Item Collection", filters={"collection": coll}, pluck="parent"))
+		self.assertEqual(members, {f"{PREFIX}0001", f"{PREFIX}0004", f"{PREFIX}0005"})
+
+		# a book that comes back is published again
+		self.ia.dark, self.ia.added, self.ia.changed = set(), set(), set()
+		self.run_profile("Sync")
+		self.assertEqual(
+			frappe.db.get_value("RD Item", f"{PREFIX}0002", ["published", "removed_from_source"]), (1, 0)
+		)
+		self.assertIn(
+			f"{PREFIX}0002",
+			frappe.get_all("RD Item Collection", filters={"collection": coll}, pluck="parent"),
+		)
+
+	def test_mass_disappearance_unpublishes_nothing(self):
+		from sok_resdesk import ia_sync
+
+		self.run_profile("Manual")
+		self.ia.books.update({f"{PREFIX}{n:04d}": f"Sync book {n}" for n in range(5, 30)})
+		self.ia.added = {f"{PREFIX}{n:04d}" for n in range(5, 30)}
+		self.run_profile("Sync")
+		self.ia.added = set()
+		self.ia.dark = set(list(self.ia.books)[:25])  # 25 of 29 vanish at once
+		with mock.patch("sok_resdesk.server.send_alert") as alert:
+			self.run_profile("Sync")
+		self.assertEqual(frappe.db.count("RD Item", {"name": ("like", f"{PREFIX}%"), "published": 0}), 0)
+		self.assertEqual(alert.call_args.args[0], "sync_guard")
+		self.assertEqual(ia_sync.REMOVAL_GUARD, 0.1)
+
+	def test_manual_runs_and_unsynced_profiles_are_full_runs(self):
+		from sok_resdesk import ia_sync
+
+		run = frappe._dict(triggered_by="Manual")
+		profile = frappe.get_doc("RD Ingest Profile", self.profile.name)
+		self.assertFalse(ia_sync.is_sync_run(run, profile))  # never run yet
+		self.assertRaises(frappe.ValidationError, ia_sync.sync_now, profile.name)
+		profile.synced_on = frappe.utils.now_datetime()
+		self.assertTrue(ia_sync.is_sync_run(frappe._dict(triggered_by="Sync"), profile))
+		self.assertFalse(ia_sync.is_sync_run(run, profile))
+		profile.keep_in_sync = 0
+		self.assertFalse(ia_sync.is_sync_run(frappe._dict(triggered_by="Scheduler"), profile))

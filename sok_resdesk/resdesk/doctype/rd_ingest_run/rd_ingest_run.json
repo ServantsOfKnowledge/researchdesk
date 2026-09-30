@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-01 10:00:00.000000",
+ "modified": "2026-10-02 12:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Ingest Run",
@@ -79,7 +79,7 @@
    "fieldname": "triggered_by",
    "fieldtype": "Select",
    "label": "Triggered By",
-   "options": "Manual\nScheduler\nCommand Line",
+   "options": "Manual\nScheduler\nCommand Line\nSync",
    "default": "Manual",
    "read_only": 1
   },

@@ -23,12 +23,25 @@
   free disk (counted in pages, so thick books use more), or a number chosen in Settings, or no
   limit. At the limit, ingests keep updating existing books but add no new ones; managers get an
   alert at 90% and at 100%; the Server page and Check Count show the room left
+- **Keep in step with archive.org**: after its first run, a profile brings in the books added
+  to its archive.org collection (or search) since the last run, refreshes the ones that changed
+  and unpublishes the ones taken out or made dark (they come back if they return), daily or on
+  its schedule. It asks archive.org only for what changed. If many books seem to vanish at once,
+  nothing is unpublished and managers are alerted. On by default; existing profiles start from
+  their last completed run. **Sync with archive.org** on the profile does it now
+- **Portal collections that mirror archive.org**: a profile for an archive.org collection keeps a
+  portal collection of the same name (title and description from archive.org) with exactly its
+  books
 - Daily **update check** for new Research Desk releases and Frappe patches
 - Upgrades on Docker now really bring Frappe's newest v16 patch release (the Frappe part of the
   image is rebuilt when a new patch is out; `--no-frappe` keeps it). The first upgrade to
   0.11 rebuilds it, which takes 10 minutes or more
 - `./upgrade.sh` runs from a copy of itself (it replaces its own file), keeps going when
   GitHub can't be reached, and says so when going back to an earlier release
+- Upgrades no longer fail when the workers write to Settings at the moment the search-engine
+  status is saved (MariaDB "Record has changed", error 1020): it retries, and saving the public
+  address after migrating can't stop an upgrade any more
+- Collection rules left behind by a deleted collection no longer stop new books from coming in
 - Book folders and logs are no longer sent to Docker when the image is built
 - `COMPOSE_PROFILES` keeps both the monitor and the updater when either is turned on or off
 

@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-09-30 14:00:00.000000",
+ "modified": "2026-10-02 12:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Item",
@@ -65,6 +65,7 @@
   "section_system",
   "ingest_profile",
   "lock_metadata",
+  "removed_from_source",
   "last_ingested",
   "indexed_pages",
   "column_break_s",
@@ -416,6 +417,13 @@
    "label": "Keep My Edits",
    "default": "0",
    "description": "Re-ingesting from the source won't overwrite this book's catalogue details. Set automatically when you edit them here or import a spreadsheet; untick to let the source win again."
+  },
+  {
+   "fieldname": "removed_from_source",
+   "fieldtype": "Check",
+   "label": "Removed from archive.org",
+   "read_only": 1,
+   "description": "Unpublished because it was taken out of its archive.org collection or made dark; published again if it comes back."
   },
   {
    "fieldname": "last_ingested",
