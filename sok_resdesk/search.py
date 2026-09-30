@@ -304,6 +304,7 @@ def enqueue_rebuild(with_pages: int = 1):
 
 def queue_rebuild(with_pages: int = 1, batch_size: int = 50) -> int:
 	"""Split a full re-index into batches that the queue workers run in parallel."""
+	frappe.cache.delete_value("resdesk:stop-background")  # a new rebuild overrides an earlier "stop everything"
 	MeiliClient.from_settings().setup()
 	names = frappe.get_all("RD Item", filters={"published": 1}, pluck="name", order_by="creation asc")
 	for n, i in enumerate(range(0, len(names), batch_size), 1):
@@ -319,6 +320,8 @@ def rebuild_batch(names: list[str], with_pages: int = 1, verbose: bool = False) 
 
 	client = MeiliClient.from_settings()
 	for n, name in enumerate(names, 1):
+		if frappe.cache.get_value("resdesk:stop-background"):
+			break  # "Stop everything" on the Background Jobs page
 		frappe.db.commit()
 		doc = frappe.get_doc("RD Item", name)
 		pages = []
@@ -336,6 +339,7 @@ def rebuild_batch(names: list[str], with_pages: int = 1, verbose: bool = False) 
 
 def rebuild_all(with_pages: int = 1, verbose: bool = False) -> int:
 	"""Re-index everything in this process (used by `resdesk reindex`)."""
+	frappe.cache.delete_value("resdesk:stop-background")
 	client = MeiliClient.from_settings()
 	client.setup()
 	names = frappe.get_all("RD Item", filters={"published": 1}, pluck="name", order_by="creation asc")

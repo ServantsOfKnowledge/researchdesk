@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.6.0 (2026-09-30): take control of background work
+
+- New Desk page **Background Jobs** (`/app/resdesk-jobs`, on the Research Desk workspace):
+  active ingest runs with progress, every queued or running Research Desk job (ingest batches,
+  re-index batches, visibility changes), scheduled profiles, search-engine indexing tasks and
+  recent runs; refreshes every 5 seconds
+- Controls: **Stop** a run (after the current book) or **Stop now**, cancel single jobs,
+  **Pause / Resume Schedules**, cancel pending search indexing, and **Stop Everything**
+- Stopping a run now also removes its queued batches (before, they still started and exited)
+- Re-index batches stop when "Stop Everything" is used; a new rebuild clears that
+- *Pause Scheduled Ingests* setting; scheduled profiles don't start while it is on
+- `./resdesk.sh jobs` (`--stop RUN`, `--stop-all`, `--now`, `--pause`, `--resume`)
+
 ## 0.5.3 (2026-09-30): recover from a full Docker disk
 
 - The configurator recreates `common_site_config.json` when it is empty or damaged (a full

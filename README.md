@@ -21,6 +21,8 @@ Choose a collection, a search or a list of items on archive.org, and Research De
   catalogue with reading for members, or an internal library; readers sign up, are approved,
   or are added by staff, and books can be switched in bulk by collection, filter or search
 - carry **your library's logo and name** on the portal, the admin bar and the browser tab
+- **see and stop background work** from the Desk: every ingest run, queued job and schedule on one
+  page, with Stop, Stop now and Stop Everything
 - run **in Docker or directly on the computer** (macOS or Ubuntu/Debian), and **upgrade with one
   command** that backs up first and tells you how to roll back
 

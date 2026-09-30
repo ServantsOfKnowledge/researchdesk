@@ -77,6 +77,7 @@ case "$cmd" in
   configure) bench resdesk configure "$@" ;;
   access)   bench resdesk access "$@" ;;
   add-reader) bench resdesk add-reader "$@" ;;
+  jobs)     bench resdesk jobs "$@" ;;
 
   workers)
     N="${1:-}"; [[ "$N" =~ ^[0-9]+$ ]] && [ "$N" -ge 1 ] || { echo "Usage: ./resdesk.sh workers <number>   (now: ${QUEUE_WORKERS:-2})"; exit 1; }
@@ -215,6 +216,9 @@ Who can see what (details: docs/access.md)
   ./resdesk.sh add-reader EMAIL [--name "Full Name"]  create a reader account
 
 Maintenance
+  ./resdesk.sh jobs                     what is running in the background (Desk: /app/resdesk-jobs)
+  ./resdesk.sh jobs --stop-all [--now]  stop all ingests and queued jobs, pause schedules
+  ./resdesk.sh jobs --stop RUN | --pause | --resume
   ./resdesk.sh progress [RUN]           watch an ingest run
   ./resdesk.sh workers <n>              number of parallel ingest workers (default 2)
   ./resdesk.sh reindex [--background] [--no-pages] [--reset]

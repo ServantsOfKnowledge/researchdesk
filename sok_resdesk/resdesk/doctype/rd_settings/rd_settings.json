@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-09-30 10:00:00.000000",
+ "modified": "2026-09-30 12:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -38,6 +38,7 @@
   "column_break_ia",
   "batch_size",
   "cache_page_text",
+  "pause_scheduled_ingest",
   "access_section",
   "guest_access",
   "default_visibility",
@@ -212,6 +213,13 @@
    "label": "Keep a Local Copy of Page Text",
    "default": "1",
    "description": "Stores compressed OCR text on disk (about 20–60 KB per book) so re-indexing never needs to download from archive.org again."
+  },
+  {
+   "fieldname": "pause_scheduled_ingest",
+   "fieldtype": "Check",
+   "label": "Pause Scheduled Ingests",
+   "default": "0",
+   "description": "Stops Hourly/Daily/Weekly profiles from starting new runs. Manual runs still work. Also on the Background Jobs page."
   },
   {
    "fieldname": "access_section",

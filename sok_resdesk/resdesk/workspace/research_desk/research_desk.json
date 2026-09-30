@@ -1,7 +1,7 @@
 {
  "app": "sok_resdesk",
  "charts": [],
- "content": "[{\"data\": {\"col\": 12, \"text\": \"<span class=\\\"h4\\\"><b>Research Desk</b></span>\"}, \"id\": \"rd-h\", \"type\": \"header\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Ingest Profiles\"}, \"id\": \"rd-s1\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Items\"}, \"id\": \"rd-s2\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Open Portal\"}, \"id\": \"rd-s3\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Settings\"}, \"id\": \"rd-s4\", \"type\": \"shortcut\"}, {\"data\": {\"card_name\": \"Catalogue\", \"col\": 3}, \"id\": \"rd-c1\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Ingest\", \"col\": 3}, \"id\": \"rd-c2\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Setup\", \"col\": 3}, \"id\": \"rd-c3\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Readers\", \"col\": 3}, \"id\": \"rd-c4\", \"type\": \"card\"}]",
+ "content": "[{\"data\": {\"col\": 12, \"text\": \"<span class=\\\"h4\\\"><b>Research Desk</b></span>\"}, \"id\": \"rd-h\", \"type\": \"header\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Ingest Profiles\"}, \"id\": \"rd-s1\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Items\"}, \"id\": \"rd-s2\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Background Jobs\"}, \"id\": \"rd-s5\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Open Portal\"}, \"id\": \"rd-s3\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Settings\"}, \"id\": \"rd-s4\", \"type\": \"shortcut\"}, {\"data\": {\"card_name\": \"Catalogue\", \"col\": 3}, \"id\": \"rd-c1\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Ingest\", \"col\": 3}, \"id\": \"rd-c2\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Setup\", \"col\": 3}, \"id\": \"rd-c3\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Readers\", \"col\": 3}, \"id\": \"rd-c4\", \"type\": \"card\"}]",
  "creation": "2026-09-29 15:43:25.717447",
  "custom_blocks": [],
  "docstatus": 0,
@@ -85,6 +85,16 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "link_count": 0,
+   "onboard": 0,
+   "label": "Background Jobs",
+   "link_to": "resdesk-jobs",
+   "link_type": "Page",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Setup",
    "link_count": 0,
    "link_type": "DocType",
@@ -131,7 +141,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-09-30 10:00:00.000000",
+ "modified": "2026-09-30 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "ResDesk",
  "name": "Research Desk",
@@ -155,6 +165,13 @@
    "label": "Items",
    "link_to": "RD Item",
    "type": "DocType"
+  },
+  {
+   "color": "Red",
+   "doc_view": "",
+   "label": "Background Jobs",
+   "link_to": "resdesk-jobs",
+   "type": "Page"
   },
   {
    "color": "Orange",

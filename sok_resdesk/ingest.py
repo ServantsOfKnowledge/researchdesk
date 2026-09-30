@@ -133,12 +133,10 @@ def start_ingest(profile: str, triggered_by: str = "Manual") -> str:
 
 @frappe.whitelist()
 def cancel_run(run: str) -> None:
-	frappe.only_for(("System Manager", "ResDesk Manager"))
-	frappe.db.sql(
-		f"update `{RUN}` set status='Cancelled', finished_on=%s where name=%s and status in ('Queued','Running')",
-		(now_datetime(), run),
-	)
-	frappe.db.commit()
+	"""Kept for API compatibility: stops the run and removes its queued batches."""
+	from sok_resdesk.jobs import stop_run
+
+	stop_run(run)
 
 
 @frappe.whitelist()
@@ -409,6 +407,8 @@ def run_ingest(run_name: str, verbose: bool = False, limit_override: int | None 
 # -- scheduler --------------------------------------------------------------------------
 
 def _run_scheduled(schedule: str):
+	if cint(frappe.db.get_single_value("RD Settings", "pause_scheduled_ingest")):
+		return  # paused from Background Jobs (or Settings)
 	for name in frappe.get_all("RD Ingest Profile", filters={"enabled": 1, "schedule": schedule}, pluck="name"):
 		running = frappe.db.exists("RD Ingest Run", {"profile": name, "status": ("in", ["Queued", "Running"])})
 		if running:

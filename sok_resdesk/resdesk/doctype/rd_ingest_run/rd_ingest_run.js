@@ -17,16 +17,24 @@ frappe.ui.form.on("RD Ingest Run", {
 			frm._rd_timer = setTimeout(() => frm.reload_doc(), 4000);
 		}
 		if (running && frappe.user.has_role(["System Manager", "ResDesk Manager"])) {
-			frm.add_custom_button(__("Cancel Run"), () =>
-				frappe.confirm(__("Stop this run? Books already ingested stay in the catalogue."), () =>
-					frappe.call({
-						method: "sok_resdesk.ingest.cancel_run",
-						args: { run: frm.doc.name },
-						callback: () => frm.reload_doc(),
-					})
-				)
-			);
+			const stop = (force) =>
+				frappe.call({
+					method: "sok_resdesk.jobs.stop_run",
+					args: { run: frm.doc.name, force },
+					freeze: true,
+					callback: (r) => {
+						frappe.show_alert({ message: r.message.message, indicator: "green" }, 7);
+						frm.reload_doc();
+					},
+				});
+			frm.add_custom_button(__("Stop"), () =>
+				frappe.confirm(__("Stop this run? Running batches finish the book they are on, then stop. Books already ingested stay in the catalogue."), () => stop(0))
+			, __("Stop"));
+			frm.add_custom_button(__("Stop Now"), () =>
+				frappe.confirm(__("Stop this run immediately? The book being processed is rolled back and picked up next time."), () => stop(1))
+			, __("Stop"));
 		}
+		frm.add_custom_button(__("Background Jobs"), () => frappe.set_route("resdesk-jobs"));
 		if (!frm.is_new()) {
 			frm.add_custom_button(__("Items from this Profile"), () =>
 				frappe.set_route("List", "RD Item", { ingest_profile: frm.doc.profile })

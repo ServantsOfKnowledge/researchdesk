@@ -122,6 +122,12 @@ hours without progress; run the profile again and it picks up where it stopped.
 
 For tens of thousands of books, read [Scaling to 50,000 books](scaling.md).
 
+## Watching and stopping runs
+
+Each run's page shows progress and has **Stop** / **Stop Now**. Desk → Research Desk →
+**Background Jobs** shows every run, queued batch and scheduled profile in one place, with a
+**Stop Everything** button. See [Operations → Background jobs](operations.md#background-jobs-see-and-stop-what-is-running).
+
 ## Page-text cache
 
 Each book's page text is also saved, compressed (about 75 KB per book), under

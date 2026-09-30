@@ -10,6 +10,7 @@
   resdesk access   login-to-read --collection ServantsOfKnowledge     (or --profile, --language, --ids, --all)
   resdesk access   --apply-rules  |  --guests "Records only"  |  --signup "Sign up, admin approves"
   resdesk add-reader reader@example.org --name "A Reader"
+  resdesk jobs     [--stop RUN] [--stop-all] [--now] [--pause | --resume]
 """
 
 import click
@@ -336,6 +337,44 @@ def add_reader_cmd(context, email, full_name, no_email):
 		user = add_reader(email, full_name, send_welcome=not no_email)
 		frappe.db.commit()
 		click.echo(f"{user} can now log in and read members-only books.")
+	finally:
+		frappe.destroy()
+
+
+@resdesk.command("jobs")
+@click.option("--stop", "stop_run", help="Stop this ingest run (e.g. RD-RUN-00042)")
+@click.option("--stop-all", is_flag=True, help="Cancel all runs and queued Research Desk jobs, pause schedules")
+@click.option("--now", is_flag=True, help="With --stop/--stop-all: kill running jobs instead of letting them finish the current book")
+@click.option("--pause", is_flag=True, help="Pause scheduled ingests")
+@click.option("--resume", is_flag=True, help="Resume scheduled ingests")
+@pass_context
+def jobs_cmd(context, stop_run, stop_all, now, pause, resume):
+	"""What is running in the background, and stop it."""
+	frappe = _connect(context)
+	try:
+		frappe.set_user("Administrator")
+		from sok_resdesk import jobs
+
+		if stop_run:
+			click.echo(jobs.stop_run(stop_run, force=int(now))["message"])
+		if stop_all:
+			click.echo(jobs.stop_all(force=int(now), pause=1)["message"])
+		if pause or resume:
+			click.echo(jobs.set_paused(1 if pause else 0)["message"])
+		o = jobs.overview()
+		click.echo(f"Workers: {o['workers']}   Schedules: {'PAUSED' if o['paused'] else 'on'}   "
+				   f"Search-engine tasks pending: {o['search'].get('pending', 0)}")
+		click.echo("\nIngest runs in progress:" if o["active_runs"] else "\nNo ingest running.")
+		for r in o["active_runs"]:
+			click.echo(f"  {r.name}  {r.profile}  {r.status}  {r.processed or 0}/{r.total_found or '?'} books"
+					   f"  ({r.failed_count or 0} failed)  {r.triggered_by}")
+		click.echo("\nQueued / running jobs:" if o["jobs"] else "\nNo Research Desk jobs queued.")
+		for j in o["jobs"]:
+			click.echo(f"  {j['state']:8} {j['kind']:32} {j['short_id']}")
+		if o["schedules"]:
+			click.echo("\nScheduled profiles:")
+			for s in o["schedules"]:
+				click.echo(f"  {s.name}  ({s.schedule})  last run {s.last_run_on or 'never'}")
 	finally:
 		frappe.destroy()
 

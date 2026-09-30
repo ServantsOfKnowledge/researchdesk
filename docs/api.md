@@ -91,6 +91,10 @@ indexed pages and search-engine health.
 | `sok_resdesk.access.apply_rules` (`include_manual`) | re-apply profiles, access rules and the default |
 | `sok_resdesk.access.apply_profile` (`profile`) | give a profile's books its visibility |
 | `sok_resdesk.access.decide_requests` (`names`, `status`) | approve or reject reader requests |
+| `sok_resdesk.jobs.overview` | active runs, queued/running jobs, schedules, search-engine tasks |
+| `sok_resdesk.jobs.stop_run` (`run`, `force`) | stop one run and drop its queued batches |
+| `sok_resdesk.jobs.stop_all` (`force`, `pause`, `search`) | stop all Research Desk background work |
+| `sok_resdesk.jobs.cancel_job` (`job_id`) · `set_paused` (`paused`) · `cancel_search_tasks` | single job, schedules, search indexing |
 
 Frappe's standard REST API also works for staff: `/api/resource/RD Item`,
 `/api/resource/RD Ingest Profile`, … with token or session authentication.
