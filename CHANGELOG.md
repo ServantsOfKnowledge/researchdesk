@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.1 (2026-10-01): moving from a Mac
+
+- `./resdesk.sh move-to` works with the bash that comes with macOS (it stopped with
+  "HOST…: unbound variable"); a test keeps the scripts that way
+- README and guides cover keeping in step with archive.org, the book limit and the Server page
+
 ## 0.11.0 (2026-10-02): look after the server from the Desk
 
 - **Server page** in the Desk (Research Desk → Server): Research Desk and Frappe versions and

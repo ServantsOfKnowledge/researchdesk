@@ -204,3 +204,19 @@ def test_changelog_matches_version():
 	version = re.search(r'__version__ = "([^"]+)"', _read(APP / "__init__.py")).group(1)
 	top = re.search(r"^## (\S+)", _read(ROOT / "CHANGELOG.md"), re.M).group(1)
 	assert top == version, f"CHANGELOG.md starts with {top} but __version__ is {version}"
+
+
+def test_shell_scripts_run_on_macos_bash():
+	"""macOS ships bash 3.2, which reads a character like … straight after $NAME as part of the
+	name ("HOST…: unbound variable"). Write ${NAME}… instead."""
+	bad = []
+	for path in [
+		ROOT / "resdesk.sh",
+		ROOT / "upgrade.sh",
+		ROOT / "install.sh",
+		*(ROOT / "scripts").glob("*.sh"),
+	]:
+		for n, line in enumerate(_read(path).splitlines(), 1):
+			if re.search(r"\$[A-Za-z_][A-Za-z0-9_]*[^\x00-\x7F]", line):
+				bad.append(f"{path.name}:{n}")
+	assert not bad, f"Use ${{NAME}} before non-ASCII characters: {bad}"

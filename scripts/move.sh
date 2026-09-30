@@ -157,7 +157,7 @@ rd_move_to() {
   [ -n "$DEST" ] || { echo "Usage: ./resdesk.sh move-to USER@HOST[:DIR] [--base-url URL] [--with-library] [--port N]"; exit 1; }
   HOST="${DEST%%:*}"; RDIR="researchdesk"; [[ "$DEST" == *:* ]] && RDIR="${DEST#*:}"
   SSH=(ssh -p "$PORT" -o BatchMode=yes "$HOST")
-  echo "Checking $HOST…"
+  echo "Checking ${HOST}…"
   "${SSH[@]}" "test -x '$RDIR/resdesk.sh' && test -f '$RDIR/.env'" 2>/dev/null || {
     echo "Research Desk isn't installed in ~/$RDIR on $HOST (or SSH needs a key: ssh-copy-id $HOST)."
     echo "Install it there first:  git clone https://github.com/ServantsOfKnowledge/researchdesk.git $RDIR && cd $RDIR && ./install.sh"
@@ -165,7 +165,7 @@ rd_move_to() {
   }
   FILE="site-backups/resdesk-move-$(date +%Y%m%d-%H%M).tar.gz"
   rd_export "$FILE"
-  echo "Copying $(du -h "$FILE" | cut -f1) to $HOST…"
+  echo "Copying $(du -h "$FILE" | cut -f1) to ${HOST}…"
   scp -P "$PORT" -q "$FILE" "$HOST:$RDIR/$(basename "$FILE")"
   if [ "$LIB" = 1 ] && [ -n "${LIBRARY_DIR:-}" ] && [ -d "$LIBRARY_DIR" ]; then
     RLIB=$("${SSH[@]}" "cd '$RDIR' && sed -n 's/^LIBRARY_DIR=//p' .env | tr -d '\"'")
