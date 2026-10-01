@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.17.0 (2026-10-02): advice before installing
+
+- **`./install.sh --check`** (`scripts/preflight.sh`) looks at the machine and advises how best
+  to install, changing nothing: memory, disk and CPUs; whether Docker is installed, running and
+  usable, with Compose v2 and enough memory; Coolify; what has ports 80 and 443 (nginx,
+  Apache, Caddy, Traefik, a container, Research Desk's own proxy) and so how HTTPS will work;
+  the portal's port; an existing MySQL/MariaDB (prefer Docker then); the network to GitHub,
+  archive.org and Docker Hub; with `--domain`, whether the name points at the machine; an
+  earlier install. The installer runs it first on a new install and shows what needs
+  attention, and asks before going ahead on a Coolify server
+
 ## 0.16.1 (2026-10-02): the logo on the help pages, and SOK
 
 - **The help pages carry the library's logo**, on the portal (for readers) and in the Desk (for

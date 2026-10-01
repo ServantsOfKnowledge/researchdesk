@@ -66,6 +66,7 @@ anyone else who can open a terminal. It scales to tens of thousands of books on 
 ```bash
 git clone https://github.com/ServantsOfKnowledge/researchdesk.git
 cd researchdesk
+./install.sh --check      # optional: looks at this machine and advises how to install
 ./install.sh              # asks: Docker (recommended) or directly on this computer
 ./install.sh --native     # no Docker: macOS (Homebrew) or Ubuntu/Debian (apt)
 ./install.sh --domain library.example.org   # on a server: its address, with HTTPS from Let's Encrypt

@@ -8,6 +8,29 @@ There are three ways to run Research Desk:
 | **Docker on a server** | A public portal with a domain name and HTTPS | `./install.sh --domain NAME` ([below](#docker-on-a-server-with-a-domain-name-and-https); with nginx already on the server: [step by step](#step-by-step-a-new-linux-server-that-already-runs-nginx)) |
 | **bench (native)** | Developing Research Desk itself | `scripts/dev-setup.sh` |
 
+## Before you install: what's on this machine
+
+```bash
+./install.sh --check                                  # or: bash scripts/preflight.sh
+./install.sh --check --domain research.example.org    # also checks the DNS name
+```
+
+It looks at the machine and advises how best to install, changing nothing:
+
+| It checks | So that it can advise |
+|---|---|
+| system, CPUs, memory, free disk | whether it fits, and the light preset on small machines |
+| Docker: installed, running, usable by you, Compose v2, Docker Desktop's memory | Docker when it's ready, or how to get it (one command on Linux) |
+| Coolify | deploying through Coolify instead of `./install.sh` |
+| what has ports 80 and 443: nginx, Apache, Caddy, Traefik, a container, Research Desk's own proxy | how HTTPS will work: a site in your nginx, Research Desk's own nginx, or behind your web server with `--no-https` |
+| the portal's port (8080), MySQL/MariaDB on 3306, Redis, Homebrew, git, curl | another port; Docker rather than native when a database already runs here |
+| GitHub, archive.org, Docker Hub | whether the network lets the install through |
+| `--domain`: does the name point at this machine | fixing DNS before asking for a certificate |
+| an earlier Research Desk here | `./upgrade.sh` instead |
+
+`./install.sh` runs the same checks first on a new install and shows only what needs
+attention, with the advice. On a Coolify server it asks before carrying on.
+
 ## What gets installed
 
 `compose.yaml` runs these containers:

@@ -7,6 +7,7 @@
 #  ./install.sh --native     install directly on this computer (macOS / Ubuntu / Debian)
 #  ./install.sh --yes        accept all defaults (unattended; Docker unless --native)
 #  ./install.sh --sample     also ingest a small sample from Servants of Knowledge
+#  ./install.sh --check      look at this machine and advise how to install (changes nothing)
 #  ./install.sh --domain library.example.org [--email you@example.org]
 #                            a server with a DNS name: the portal's address, with HTTPS from
 #                            Let's Encrypt (Docker; --no-https if you have your own proxy)
@@ -24,6 +25,7 @@ MODE=""
 DOMAIN=""
 EMAIL=""
 WANT_HTTPS=""   # not HTTPS: that one, in .env, says whether it is on
+CHECK_ONLY=0
 while [ $# -gt 0 ]; do
   case "$1" in
     -y|--yes) YES=1 ;;
@@ -35,7 +37,8 @@ while [ $# -gt 0 ]; do
     --email) EMAIL="${2:-}"; shift ;;
     --https) WANT_HTTPS=1 ;;
     --no-https) WANT_HTTPS=0 ;;
-    -h|--help) sed -n '2,17p' "$0"; exit 0 ;;
+    --check) CHECK_ONLY=1 ;;
+    -h|--help) sed -n '2,18p' "$0"; exit 0 ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
   shift
@@ -62,6 +65,27 @@ secret() { # random URL-safe string
 echo
 bold "SOK Research Desk installer"
 echo
+
+# Look at the machine first: Docker, Coolify, a web server on 80/443, ports, memory, network
+if [ "$CHECK_ONLY" = 1 ]; then
+  bash scripts/preflight.sh ${DOMAIN:+--domain "$DOMAIN"}
+  exit 0
+fi
+if [ ! -f .env ]; then
+  PREFLIGHT_OUT=$(mktemp)
+  RESDESK_PREFLIGHT_OUT="$PREFLIGHT_OUT" bash scripts/preflight.sh --brief ${DOMAIN:+--domain "$DOMAIN"} || true
+  COOLIFY_HERE=$(sed -n 's/^COOLIFY=//p' "$PREFLIGHT_OUT"); DOCKER_STATE=$(sed -n 's/^DOCKER=//p' "$PREFLIGHT_OUT")
+  rm -f "$PREFLIGHT_OUT"
+  echo "  (./install.sh --check shows everything it looked at.)"
+  echo
+  if [ "${COOLIFY_HERE:-0}" = 1 ] && [ "$YES" != 1 ]; then
+    read -r -p "  Coolify runs this server. Install here with ./install.sh anyway? [y/N]: " a || true
+    [[ "${a:-N}" =~ ^[Yy] ]] || exit 0
+  fi
+  if [ -z "$MODE" ] && [ "$YES" != 1 ] && [ "${DOCKER_STATE:-}" != running ]; then
+    warn "Docker isn't ready on this machine: choose 2 below, or set Docker up first (see the advice above)."
+  fi
+fi
 
 # 0. Docker or native? ------------------------------------------------------------
 if [ -z "$MODE" ] && [ -f .env ] && grep -q '^INSTALL_MODE=native' .env; then MODE=native; fi
