@@ -90,7 +90,7 @@ class TestAboutPage(IntegrationTestCase):
 			frappe.set_user("Administrator")
 		self.assertIn("Our &lt;b&gt;library&lt;/b&gt;", html)
 		self.assertNotIn("<script>alert", html)
-		self.assertIn('href="/library"', html)
+		self.assertIn('href="/"', html)  # the library's search page, the site's front page
 
 	def test_switched_off_page_sends_visitors_to_the_library(self):
 		from frappe.website.serve import get_response
@@ -102,15 +102,54 @@ class TestAboutPage(IntegrationTestCase):
 		finally:
 			frappe.set_user("Administrator")
 		self.assertIn(response.status_code, (301, 302))
-		self.assertTrue(response.headers["Location"].endswith("/library"))
+		from urllib.parse import urlsplit
+
+		self.assertIn(urlsplit(response.headers["Location"]).path, ("/", "/library"))  # the library
 
 	def test_defaults_and_buttons(self):
-		self.page(primary_label="Open the library", primary_link="/library", secondary_label="", show_stats=1)
+		self.page(primary_label="Open the library", primary_link="/", secondary_label="", show_stats=1)
 		frappe.clear_document_cache("RD About Page", "RD About Page")
 		ctx = about.context()
 		self.assertEqual(
-			[(b.label, b.link, b.primary) for b in ctx.buttons], [("Open the library", "/library", True)]
+			[(b.label, b.link, b.primary) for b in ctx.buttons], [("Open the library", "/", True)]
 		)
 		self.assertTrue(ctx.numbers and ctx.numbers[0][1] == "books")
 		self.assertTrue(ctx.title.startswith("About "))
 		self.assertTrue(frappe.db.get_default("resdesk_about_set_up"))
+
+
+class TestPortalAtRoot(IntegrationTestCase):
+	def test_library_url_follows_the_home_page(self):
+		from sok_resdesk import portal
+
+		ws = frappe.get_single("Website Settings")
+		before = ws.home_page
+		try:
+			for home, url in (("library", "/"), ("about", "/library"), ("", "/library")):
+				frappe.db.set_single_value("Website Settings", "home_page", home)
+				frappe.local.resdesk_library_url = None
+				self.assertEqual(portal.library_url(), url, home)
+		finally:
+			frappe.db.set_single_value("Website Settings", "home_page", before)
+			frappe.local.resdesk_library_url = None
+
+	def test_bare_library_goes_to_the_front_page_with_its_search(self):
+		from frappe.website.serve import get_response
+
+		frappe.db.set_single_value("Website Settings", "home_page", "library")
+		frappe.local.resdesk_library_url = None
+		frappe.set_user("Guest")
+		try:
+			from werkzeug.test import EnvironBuilder
+			from werkzeug.wrappers import Request
+
+			frappe.local.request = Request(
+				EnvironBuilder(path="/library", query_string="q=hampi").get_environ()
+			)
+			response = get_response("library")
+		finally:
+			frappe.set_user("Administrator")
+			frappe.local.request = None
+			frappe.local.resdesk_library_url = None
+		self.assertEqual(response.status_code, 302)
+		self.assertTrue(response.headers["Location"].endswith("/?q=hampi"))

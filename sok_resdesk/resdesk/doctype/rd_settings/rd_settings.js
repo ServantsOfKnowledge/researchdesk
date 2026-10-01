@@ -53,6 +53,6 @@ frappe.ui.form.on("RD Settings", {
 		});
 		frm.add_custom_button(__("Background Jobs"), () => frappe.set_route("resdesk-jobs"));
 		frm.add_custom_button(__("Reader Requests"), () => frappe.set_route("List", "RD Reader Request", { status: "Pending" }));
-		frm.add_web_link("/library", __("Open Portal"));
+		frm.add_web_link("/", __("Open Portal"));
 	},
 });

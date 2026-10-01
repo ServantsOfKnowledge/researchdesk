@@ -295,7 +295,7 @@ nginx_https() {
       set_env HTTPS_DOMAIN "$domain"; export HTTPS_DOMAIN="$domain"
       apply_url "https://$domain"
       echo
-      echo "HTTPS is on: https://$domain/library"
+      echo "HTTPS is on: https://$domain/"
       echo "certbot renews the certificate by itself (its systemd timer). ./resdesk.sh https status"
       ;;
     status)
@@ -418,7 +418,7 @@ docker_https() {
       quiet_up certbot
       apply_url "https://$domain"
       echo
-      echo "HTTPS is on: https://$domain/library"
+      echo "HTTPS is on: https://$domain/"
       echo "The certificate renews by itself (certbot checks twice a day). ./resdesk.sh https status"
       ;;
     status)

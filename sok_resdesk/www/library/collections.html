@@ -4,7 +4,7 @@
 
 {% block page_content %}
 <div class="rd">
-	<nav class="rd-crumbs"><a href="/library">← {{ portal_title }}</a></nav>
+	<nav class="rd-crumbs"><a href="{{ library_url() }}">← {{ portal_title }}</a></nav>
 	<h1 class="rd-page-title">{{ _("Collections") }}</h1>
 	{% if collections %}
 	<div class="rd-coll-grid">

@@ -40,6 +40,7 @@
 
 {% block script %}
 <script>window.RD_LABELS = {{ facet_labels | tojson }};</script>
+<script>window.RD_HOME = {{ library_url() | tojson }};</script>
 <script src="/assets/sok_resdesk/js/basket.js"></script>
 <script src="/assets/sok_resdesk/js/library.js"></script>
 <script src="/assets/sok_resdesk/js/tips.js"></script>

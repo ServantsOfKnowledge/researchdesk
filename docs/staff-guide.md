@@ -5,7 +5,7 @@ catalogue, building collections and deciding who can read what. Installing and r
 server is covered in [Getting started](getting-started.md) and [Operations](operations.md).
 
 Log in, and you land on the **Research Desk** workspace (also at `/app/research-desk`). Readers
-never see the Desk; they use the portal at `/library`.
+never see the Desk; they use the portal at `/`, the site's front page (book pages are at `/library/item/…`).
 
 ## The Research Desk workspace
 
@@ -164,13 +164,24 @@ are left out:
 |---|---|
 | Page | **Show the About Page** (untick to hide it and its top-bar link; `/about` then goes to the library), the **label** in the top bar, the page title and description for search engines |
 | Introduction | headline (empty: the portal's name), tagline, the **introduction** in a rich-text editor (headings, bold, lists, links, pictures), an optional image beside it, and **live numbers**: books, pages of searchable text, collections and languages, counted as visitors see them |
-| Buttons | the main button (*Open the library* → `/library`) and an optional second one (*How to search* → `/library/help`). Links are a page of this site (`/library/collections`, `/library?q=hampi`) or a web address (`https://…`) |
+| Buttons | the main button (*Open the library* → `/`) and an optional second one (*How to search* → `/library/help`). Links are a page of this site (`/library/collections`, `/?q=hampi`) or a web address (`https://…`) |
 | How to Use It | numbered steps: title, a sentence or two (`**bold**` works), and an optional link |
 | Highlights | cards for what makes the library useful, and **Show Featured Collections** (the collections marked *Featured*) |
 | More | anything else, written freely in the rich-text editor: the story of the collection, partners and funders, contact, credits |
 
-**Save**, then **View Page**. Changes show straight away. To have visitors land on the About
-page instead of the library, set *Home Page* to `about` in Desk → Website Settings.
+**Save**, then **View Page**. Changes show straight away.
+
+## The portal's address
+
+The library's search page is the site's front page: **`/`**, e.g.
+`https://research.example.org/`. Searches are `/?q=hampi`, and the other pages keep their
+addresses: books at `/library/item/…` (the stable addresses in citations), collections at
+`/library/collections`, help at `/library/help`, the About page at `/about`. Old links to
+`/library` (and searches like `/library?q=hampi`) still work: they lead to `/`.
+
+To have visitors land on the **About page** instead, set *Home Page* to `about` in Desk →
+Website Settings. The library's search page then moves to `/library` by itself, and every link
+to it follows; set *Home Page* back to `library` to return.
 
 ![Editing the About page](../sok_resdesk/public/images/guide/desk-about.png)
 

@@ -16,7 +16,7 @@ DEFAULT_STEPS = [
 		"Search",
 		"Type a word, a title, an author or a subject. Choose **Inside the text** to search the words on "
 		"every page of every book, in Kannada, English and the other languages of the collection.",
-		"/library",
+		"/",
 		"Start searching",
 	),
 	(
@@ -111,7 +111,8 @@ def sync_top_bar(doc) -> None:
 				changed = True
 		else:
 			after = next(
-				(n for n, i in enumerate(items) if (i.url or "").rstrip("/") == "/library"), len(items) - 1
+				(n for n, i in enumerate(items) if (i.url or "").rstrip("/") in ("/library", "")),
+				len(items) - 1,
 			)
 			row = ws.append("top_bar_items", {"label": label, "url": ROUTE})
 			ws.top_bar_items.remove(row)
@@ -190,6 +191,7 @@ def numbers() -> list[tuple[int, str]]:
 def context() -> frappe._dict:
 	"""Everything www/about.html shows."""
 	from sok_resdesk.catalogue import settings
+	from sok_resdesk.portal import library_url
 
 	doc = frappe.get_cached_doc("RD About Page")
 	s = settings()
@@ -204,7 +206,7 @@ def context() -> frappe._dict:
 		buttons=[
 			frappe._dict(label=label, link=link, primary=primary)
 			for label, link, primary in (
-				(doc.primary_label, doc.primary_link or "/library", True),
+				(doc.primary_label, doc.primary_link or library_url(), True),
 				(doc.secondary_label, doc.secondary_link, False),
 			)
 			if label and link and safe_link(link)

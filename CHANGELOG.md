@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.16.0 (2026-10-02): the library at /
+
+- **The library's search page is the site's front page, `/`**, for everyone, logged-in staff
+  included (Frappe used to show them their role's home page there). Every link to it (the top
+  bar, crumbs, author, language and subject links, reading-list share links, the About page's
+  button, Open Portal in the Desk) now says `/`, and searches are `/?q=…`. `/library` and
+  `/library?q=…` lead to `/`, so links already shared keep working. Book pages stay at
+  `/library/item/…`, the addresses in citations
+- With the About page as the front page (Website Settings → Home Page = `about`), the search
+  page moves to `/library` and all links follow
+
 ## 0.15.0 (2026-10-01): an About page
 
 - **An introduction to the library at `/about`**, edited in the Desk (Research Desk → About

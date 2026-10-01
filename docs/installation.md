@@ -155,7 +155,7 @@ HTTPS for research.example.org through this server's nginx, with a Let's Encrypt
 3/4 Asking Let's Encrypt for a certificate…
   … Successfully deployed certificate for research.example.org …
 4/4 Switching to HTTPS…
-HTTPS is on: https://research.example.org/library
+HTTPS is on: https://research.example.org/
 ```
 
 (certbot and its nginx plugin are installed first if they are missing.)
@@ -167,7 +167,7 @@ HTTPS is on: https://research.example.org/library
 ./resdesk.sh https status   # name, expiry date, renewal timer
 ```
 
-Open `https://research.example.org/library` (the portal) and `/app/research-desk` (the Desk;
+Open `https://research.example.org/` (the portal) and `/app/research-desk` (the Desk;
 the Administrator password is printed at the end of the install and kept in `.env`).
 
 **What it changed on the server**

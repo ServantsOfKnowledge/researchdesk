@@ -15,7 +15,7 @@
 {% block page_content %}
 <div class="rd rd-item" id="rd-item" data-item="{{ item.item_id }}" data-leaf="{{ start_leaf }}" data-reader="{{ reader }}" data-pdf="{{ pdf_url }}">
 	<span class="Z3988" title="{{ coins }}"></span>
-	<nav class="rd-crumbs"><a href="/library">← {{ portal_title }}</a></nav>
+	<nav class="rd-crumbs"><a href="{{ library_url() }}">← {{ portal_title }}</a></nav>
 
 	<header class="rd-item__head">
 		{% if item.thumbnail_url %}
@@ -28,13 +28,13 @@
 			{% endif %}
 			<p class="rd-item__creators">
 				{% for c in item.creators %}
-				<a href="/library?creators={{ c | urlencode }}">{{ c }}</a>{% if item.alt_creators[loop.index0] %} <span class="rd-muted">({{ item.alt_creators[loop.index0] }})</span>{% endif %}{% if not loop.last %}; {% endif %}
+				<a href="{{ library_url() }}?creators={{ c | urlencode }}">{{ c }}</a>{% if item.alt_creators[loop.index0] %} <span class="rd-muted">({{ item.alt_creators[loop.index0] }})</span>{% endif %}{% if not loop.last %}; {% endif %}
 				{% endfor %}
 			</p>
 			<p class="rd-muted">
 				{{ item.year or _("Undated") }}
 				{% if item.publisher %} · {{ item.publisher }}{% endif %}
-				{% if item.language_label %} · <a href="/library?language_label={{ item.language_label | urlencode }}">{{ item.language_label }}</a>{% endif %}
+				{% if item.language_label %} · <a href="{{ library_url() }}?language_label={{ item.language_label | urlencode }}">{{ item.language_label }}</a>{% endif %}
 				{% if item.page_count %} · {{ item.page_count }} {{ _("pages") }}{% endif %}
 			</p>
 			<div class="rd-actions">
@@ -126,7 +126,7 @@
 					{% if item.series %}<dt>{{ _("Series") }}</dt><dd>{{ item.series }}</dd>{% endif %}
 					{% if item.isbn %}<dt>ISBN</dt><dd>{{ item.isbn }}</dd>{% endif %}
 					{% if item.subjects %}<dt>{{ _("Subjects") }}</dt><dd>
-						{% for s in item.subjects %}<a class="rd-chip" href="/library?subjects={{ s | urlencode }}">{{ s }}</a>{% endfor %}
+						{% for s in item.subjects %}<a class="rd-chip" href="{{ library_url() }}?subjects={{ s | urlencode }}">{{ s }}</a>{% endfor %}
 					</dd>{% endif %}
 					{% if curated %}<dt>{{ _("Collections") }}</dt><dd>
 						{% for c in curated %}<a class="rd-chip" href="/library/collection/{{ c.name | urlencode }}">{{ c.title }}</a>{% endfor %}
@@ -145,6 +145,7 @@
 {% endblock %}
 
 {% block script %}
+<script>window.RD_HOME = {{ library_url() | tojson }};</script>
 <script src="/assets/sok_resdesk/js/basket.js"></script>
 <script src="/assets/sok_resdesk/js/item.js"></script>
 {% endblock %}

@@ -246,8 +246,8 @@ echo
 bold "All done 🎉"
 cat <<EOF
 
-  Portal (public):   ${BASE_URL%/}/library
-  Admin (Desk):      ${BASE_URL%/}/app/research-desk$( [ "${BASE_URL%/}" != "http://localhost:${HTTP_PORT}" ] && printf "\n  On this server:    http://localhost:%s/library" "${HTTP_PORT}")
+  Portal (public):   ${BASE_URL%/}/
+  Admin (Desk):      ${BASE_URL%/}/app/research-desk$( [ "${BASE_URL%/}" != "http://localhost:${HTTP_PORT}" ] && printf "\n  On this server:    http://localhost:%s/" "${HTTP_PORT}")
   Login:             Administrator
   Password:          ${ADMIN_PASSWORD}      (also in the .env file)
   Running as:        ${MODE}$( [ "$MODE" = native ] && echo " (bench at ${BENCH_DIR:-~/researchdesk-bench})" )

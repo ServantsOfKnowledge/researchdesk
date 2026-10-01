@@ -7,6 +7,15 @@ no_cache = 1
 
 
 def get_context(context):
+	from sok_resdesk.portal import library_url
+
+	request = frappe.local.request
+	if request and request.path.rstrip("/") == "/library" and library_url() == "/":
+		# the search page lives at /: old /library links (and their searches) land there.
+		# 302, not 301: browsers don't remember it, in case the home page changes later
+		query = request.query_string.decode()
+		frappe.local.flags.redirect_location = "/" + (f"?{query}" if query else "")
+		raise frappe.Redirect(302)
 	access.require_login_for_portal()
 	s = settings()
 	context.no_cache = 1

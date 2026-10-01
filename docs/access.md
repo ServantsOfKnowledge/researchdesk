@@ -46,7 +46,7 @@ without re-indexing.
 **Everything matching a filter in the Desk.** Filter the Items list (by collection, language,
 ingest profile, source, year…), then **⋯ menu → Set Who Can See All Matching Books**.
 
-**From a portal search.** Log in as staff and search on `/library` as usual (words, facets,
+**From a portal search.** Log in as staff and search on the portal (`/`) as usual (words, facets,
 years, or *Inside the text*). A staff bar above the results says *set who can see N matching
 books*: pick a visibility → **Apply**. In *Inside the text* mode it changes the books that have
 a matching page.
@@ -114,7 +114,7 @@ Approving gives the ResDesk Reader role and emails the person; rejecting (or set
 Pending) removes it. Until approved, people can log in but see only what visitors see, with a
 note that their account is waiting.
 
-Readers land on `/library` after logging in, never in the Desk.
+Readers land on the portal (`/`) after logging in, never in the Desk.
 
 ## Koha, OAI-PMH and exports
 

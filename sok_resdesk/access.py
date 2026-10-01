@@ -92,7 +92,7 @@ def require_login_for_portal() -> None:
 	"""Send guests to the login page when the site is set to 'Login required'."""
 	if frappe.session.user == "Guest" and guest_mode() == core.GUEST_NONE:
 		frappe.local.flags.redirect_location = login_url(
-			frappe.local.request.full_path.rstrip("?") if frappe.local.request else "/library"
+			frappe.local.request.full_path.rstrip("?") if frappe.local.request else "/"
 		)
 		raise frappe.Redirect
 

@@ -47,7 +47,7 @@ record, including a link to the PDF when the book is openly available.
 - Click **＋** on any search result, or **Add to my list** on a book page.
 - **My list** (top right of the search page) exports the whole list as BibTeX, RIS, CSL-JSON,
   APA or MARCXML.
-- **Copy share link** makes a URL like `/library?list=id1,id2,id3`. Anyone who opens it gets
+- **Copy share link** makes a URL like `/?list=id1,id2,id3`. Anyone who opens it gets
   those books added to their own list, which is handy for course readings or a research group.
 
 The list is stored in your browser; nobody needs an account. (Accounts and saved, shared

@@ -10,7 +10,9 @@ def get_context(context):
 	page = about.context()
 	if not page.enabled:
 		# switched off in the Desk: visitors go to the library instead of a "not found" page
-		frappe.local.flags.redirect_location = "/library"
+		from sok_resdesk.portal import library_url
+
+		frappe.local.flags.redirect_location = library_url()
 		raise frappe.Redirect
 	context.update(page)
 	context.no_cache = 1

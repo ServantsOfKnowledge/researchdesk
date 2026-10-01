@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-10-01 18:00:00.000000",
- "modified": "2026-10-01 18:00:00.000000",
+ "modified": "2026-10-02 09:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD About Page",
@@ -132,7 +132,7 @@
    "fieldname": "primary_link",
    "fieldtype": "Data",
    "label": "Main Button Link",
-   "default": "/library"
+   "default": "/"
   },
   {
    "fieldname": "column_break_buttons",

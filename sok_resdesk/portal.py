@@ -7,6 +7,32 @@ import frappe
 from sok_resdesk import access
 
 
+def library_url() -> str:
+	"""The address of the library's search page: / while it is the site's home page (the default,
+	Website Settings → Home Page = library), else /library. Book pages stay at /library/item/…"""
+	cached = getattr(frappe.local, "resdesk_library_url", None)
+	if cached:
+		return cached
+	home = (frappe.db.get_single_value("Website Settings", "home_page") or "").strip("/")
+	url = "/" if home in ("library", "library/index") else "/library"
+	frappe.local.resdesk_library_url = url
+	return url
+
+
+def home_is_library() -> None:
+	"""before_request: the site's front page is the library for every visitor. Frappe would otherwise
+	show a logged-in user their role's home page at / (the Desk for staff; nothing for some roles).
+	Logging in still takes staff to the Desk."""
+	request = getattr(frappe.local, "request", None)
+	if request is None or request.path not in ("/", "/index"):
+		return
+	try:
+		if library_url() == "/":
+			frappe.local.flags.home_page = "library"
+	except Exception:
+		pass  # e.g. during install, before the tables exist
+
+
 def collection_cards() -> list[frappe._dict]:
 	"""Published collections with the number of books this visitor can find in each."""
 	rows = frappe.get_all(

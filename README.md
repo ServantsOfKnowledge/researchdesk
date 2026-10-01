@@ -77,7 +77,7 @@ each default). It then builds everything, creates the site and offers to load 20
 Kannada books. When it finishes it prints:
 
 ```
-Portal (public):   http://localhost:8080/library
+Portal (public):   http://localhost:8080/
 Admin (Desk):      http://localhost:8080/app/research-desk
 Login:             Administrator
 Password:          ••••••••    (also in the .env file)
@@ -148,7 +148,7 @@ day, changed ones are refreshed, removed ones are unpublished
                                                         │
                                                         └──────▶ Meilisearch       (books + pages)
                                                                         │
-  Readers ◀── /library  (search, read, cite) ◀── Frappe web + API ◀─────┘
+  Readers ◀── /        (search, read, cite) ◀── Frappe web + API ◀─────┘
   Koha, VuFind, aggregators ◀── OAI-PMH / MARCXML / exports (MODS, Dublin Core, JSON-LD)
   archive.org, Koha, Wikidata, webhooks ◀── push targets
   daily: new / changed / removed books from archive.org ──▶ Ingest jobs ──▶ mirrored collections

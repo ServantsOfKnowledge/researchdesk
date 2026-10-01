@@ -10,6 +10,6 @@ frappe.ui.form.on("RD About Page", {
 			"blue"
 		);
 		frm.add_custom_button(__("View Page"), () => window.open("/about", "_blank")).addClass("btn-primary");
-		frm.add_custom_button(__("Open the Library"), () => window.open("/library", "_blank"));
+		frm.add_custom_button(__("Open the Library"), () => window.open("/", "_blank"));
 	},
 });

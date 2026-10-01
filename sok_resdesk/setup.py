@@ -73,7 +73,7 @@ def set_website_home():
 		ws.home_page = "library"
 		ws.app_name = frappe.conf.get("resdesk_portal_title") or "SoK Research Desk"
 		ws.top_bar_items = []
-		ws.append("top_bar_items", {"label": "Library", "url": "/library"})
+		ws.append("top_bar_items", {"label": "Library", "url": "/"})
 		ws.save(ignore_permissions=True)
 	add_help_to_top_bar()
 
@@ -142,7 +142,7 @@ def create_roles():
 		doc = frappe.get_doc("Role", role)
 		changed = False
 		# staff land in the Desk after login, readers in the library
-		home = "/app/research-desk" if desk else "/library"
+		home = "/app/research-desk" if desk else "/library"  # /library leads to / (the library)
 		for field, value in (("home_page", home), ("description", desc), ("desk_access", desk)):
 			current = doc.get(field)
 			if doc.meta.has_field(field) and (
@@ -230,7 +230,7 @@ def create_workspace():
 					"color": "Blue",
 				},
 				{"label": "Items", "type": "DocType", "link_to": "RD Item", "color": "Green"},
-				{"label": "Open Portal", "type": "URL", "url": "/library", "color": "Orange"},
+				{"label": "Open Portal", "type": "URL", "url": "/", "color": "Orange"},
 				{"label": "Settings", "type": "DocType", "link_to": "RD Settings", "color": "Grey"},
 			],
 			"links": [

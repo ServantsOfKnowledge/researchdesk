@@ -11,3 +11,4 @@ sok_resdesk.patches.v0_10.portable_folder_paths
 sok_resdesk.patches.v0_11.server_defaults
 sok_resdesk.patches.v0_11.sync_baseline
 sok_resdesk.patches.v0_15.about_page
+sok_resdesk.patches.v0_16.portal_at_root

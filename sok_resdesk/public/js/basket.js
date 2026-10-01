@@ -47,7 +47,7 @@
 			return `/api/method/sok_resdesk.api.cite_many?format=${fmt}&item_ids=${ids}`;
 		},
 		shareUrl() {
-			return `${location.origin}/library?list=${read().map(encodeURIComponent).join(",")}`;
+			return `${location.origin}${window.RD_HOME || "/library"}?list=${read().map(encodeURIComponent).join(",")}`;
 		},
 	};
 

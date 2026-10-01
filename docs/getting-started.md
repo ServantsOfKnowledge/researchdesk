@@ -49,7 +49,7 @@ take seconds. At the end, answer **Y** to load 20 sample Kannada books.
 
 (On a server with a name, use `https://your.name` instead of `http://localhost:8080`.)
 
-- **Public portal:** <http://localhost:8080/library>. Try searching `ವಿಜಯನಗರ` or `hampi`,
+- **Public portal:** <http://localhost:8080/>. Try searching `ವಿಜಯನಗರ` or `hampi`,
   then switch to **Inside the text** to search the OCR of every page.
 - **Admin (the Desk):** <http://localhost:8080/app/research-desk>. Log in as `Administrator`
   with the password the installer printed (it's also in the `.env` file).

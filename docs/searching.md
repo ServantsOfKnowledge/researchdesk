@@ -1,6 +1,6 @@
 # Searching
 
-The portal at `/library` has two search modes.
+The portal's search page, the site's front page (`/`), has two search modes.
 
 ## Books
 
@@ -39,8 +39,8 @@ the reader there.
 The address bar always reflects the current search, so you can bookmark or share it:
 
 ```
-/library?q=ವಚನ&mode=pages&language_label=Kannada&decade=1950s
-/library?creators=Kuvempu
+/?q=ವಚನ&mode=pages&language_label=Kannada&decade=1950s
+/?creators=Kuvempu
 /library/item/<identifier>?page=12&q=ಹಂಪಿ
 ```
 
