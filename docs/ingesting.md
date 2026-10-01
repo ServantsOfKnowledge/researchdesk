@@ -120,9 +120,23 @@ Access-restricted (lending-library) items are catalogued, but their text is not 
 Every ingest is planned first: the list of identifiers is fetched, books already in the
 catalogue are skipped, and the rest are split into batches (**RD Settings → Books per
 Background Batch**, default 50). Each batch is a background job. With `QUEUE_WORKERS=4`, four
-batches run at once. The RD Ingest Run page shows batches remaining and has a **Cancel Run**
-button. A run whose workers disappear (reboot, restart, not enough memory) is marked
-**Interrupted** after two hours without progress.
+batches run at once. The batches wait on the run and go into the queue a few at a time (twice
+the number of workers), one more each time one finishes, so a run of 35,000 books doesn't fill
+the queue or hold up other work. The RD Ingest Run page shows batches remaining.
+
+Nothing is fetched twice:
+
+- a profile has **one run at a time**: starting it again while a run is going (or paused) is
+  refused and names that run
+- a batch skips a book that any run has brought in since this run started, and a run that only
+  takes new books skips those another run added meanwhile (*Skipped* on the run, and a line in
+  its log)
+
+**When the workers disappear** (an upgrade, a restart, a reboot, not enough memory), Research
+Desk notices within about 15 minutes that none of the run's batches is queued or running any
+more: the run is marked **Interrupted** and carries on by itself, listing its books again and
+taking only those not done yet. It does that up to three times; after that it waits for
+**Carry On**. A run with no progress for two hours is marked Interrupted too.
 
 ## When books or batches fail
 
@@ -131,9 +145,10 @@ Nothing is lost when something fails: try it again from the run, in the same run
 | The run says | What went wrong | Button on the run |
 |---|---|---|
 | **Completed with Errors** | some books failed one by one (the log says why: `FAIL <identifier>: …`); often archive.org was busy, or a book is dark or withdrawn | **Retry Failed Books**: takes exactly those books again |
-| **Interrupted** | the workers stopped in the middle (a restart, a reboot, not enough memory) | **Carry On**: the batches that were cut off go back in the queue, and books that failed are taken again |
-| **Failed** | it couldn't list the books (archive.org didn't answer, a folder was missing) | **Try Again**: lists the books again; those already in the catalogue are skipped |
-| **Cancelled** | someone stopped it | **Carry On**: lists the books again; those already in the catalogue are skipped |
+| **Interrupted** | the workers stopped in the middle (an upgrade, a restart, a reboot, not enough memory); it usually carries on by itself | **Carry On**: lists the books again and takes those not done yet |
+| **Failed** | it couldn't list the books (archive.org didn't answer, a folder was missing) | **Try Again**: lists the books again; those already done are skipped |
+| **Cancelled** | someone stopped it | **Carry On**: lists the books again; those already done are skipped |
+| *New Books Left Out* shown in red | the [book limit](server.md#book-limit) was reached, so new books were skipped | raise the limit in Settings → Machine Resources (or free disk space, or give Docker more), then **Carry On** |
 
 The same is on **Background Jobs** (*Retry failed* / *Carry on* next to each recent run) and on
 the **Server** page → Logs → **Failed jobs**, which lists every background job that failed

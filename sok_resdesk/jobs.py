@@ -247,7 +247,7 @@ def _stop_rq(job_id: str, force: bool) -> str:
 def _cancel_run_row(run: str, note: str) -> None:
 	frappe.db.sql(
 		"update `tabRD Ingest Run` set status='Cancelled', finished_on=%s, "
-		"held_work=null, log = right(concat(ifnull(log,''), %s), 200000) "
+		"held_work=null, waiting_work=null, log = right(concat(ifnull(log,''), %s), 200000) "
 		"where name=%s and status in ('Queued','Running','Paused')",
 		(now_datetime(), f"{now_datetime().strftime('%H:%M:%S')} {note}\n", run),
 	)
@@ -362,14 +362,14 @@ def _failed_books(run) -> list:
 def retry_run(run: str) -> dict:
 	"""Try again what went wrong in an ingest run, in the same run:
 
-	* batches that failed as a whole (a worker restarted or ran out of memory) are put back
-	  in the queue;
-	* books that failed one by one are taken again, in new batches;
-	* a run that failed while listing its books, or was interrupted without leaving anything
-	  to retry, lists them again (books already in the catalogue are skipped).
+	* a run that failed, was interrupted or stopped, or left books out at the book limit lists
+	  its books again and takes only those not done yet (books ingested since the run started,
+	  by it or by any other run, are skipped);
+	* otherwise (Completed with Errors) batches that failed as a whole are put back in the
+	  queue and books that failed one by one are taken again, in new batches.
 	"""
 	frappe.only_for(MANAGERS)
-	from sok_resdesk.ingest import JOB_TIMEOUT, RUN, enqueue_plan
+	from sok_resdesk.ingest import RUN, _feed, add_waiting, enqueue_plan, waiting_batches
 
 	doc = frappe.get_doc("RD Ingest Run", run)
 	if doc.status in ACTIVE:
@@ -390,18 +390,44 @@ def retry_run(run: str) -> dict:
 				frappe.db.set_value("RD Ingest Run", run, "status", "Interrupted", update_modified=False)
 				doc.status = "Interrupted"
 
+	left_out = cint(doc.get("limit_skipped")) and not failed_jobs and not books
+	if left_out:
+		from sok_resdesk.capacity import has_room
+
+		if not has_room():
+			frappe.throw(
+				_(
+					"The book limit is still reached, so the {0} books left out can't come in yet. Raise it in Settings → Machine Resources → Book Limit first."
+				).format(cint(doc.limit_skipped))
+			)
 	if (
 		doc.status == "Failed"
 		or plan_failed
-		or (doc.status in ("Interrupted", "Cancelled") and not failed_jobs and not books)
+		# cut off or stopped: list the books again and skip those already done (whatever was
+		# queued, cut off or never queued is picked up, and nothing is fetched twice)
+		or doc.status in ("Interrupted", "Cancelled")
+		or left_out
 	):
+		other = frappe.db.get_value(
+			"RD Ingest Run",
+			{
+				"profile": doc.profile,
+				"name": ("!=", run),
+				"status": ("in", ["Queued", "Running", "Paused"]),
+			},
+			"name",
+		)
+		if other:
+			frappe.throw(
+				_("Run {0} of the same profile is going: let it finish first, or stop it.").format(other)
+			)
 		for reg, jid, _job in failed_jobs:
 			reg.remove(jid, delete_job=True)
 		frappe.db.sql(
-			f"update `{RUN}` set status='Queued', finished_on=null, failed_items=null, pending_chunks=0, failed_count=0, "
+			f"update `{RUN}` set status='Queued', finished_on=null, failed_items=null, waiting_work=null, pending_chunks=0, failed_count=0, "
 			"log = right(concat(ifnull(log,''), %s), 200000) where name=%s",
 			(
-				f"{stamp} Started again by {who}: listing the books again (those already in the catalogue are skipped)\n",
+				f"{stamp} Started again by {who}: listing the books again (those already done are skipped)\n",
 				run,
 			),
 		)
@@ -409,7 +435,7 @@ def retry_run(run: str) -> dict:
 		enqueue_plan(run)
 		return {
 			"message": _(
-				"Run {0} starts again: it lists the books again and skips those already in the catalogue."
+				"Run {0} starts again: it lists the books again and skips those already done."
 			).format(run)
 		}
 
@@ -421,6 +447,7 @@ def retry_run(run: str) -> dict:
 	size = max(1, cint(frappe.db.get_single_value("RD Settings", "batch_size")) or 50)
 	batches = [books[i : i + size] for i in range(0, len(books), size)]
 	start = cint(doc.chunks_total)
+	waiting = len(waiting_batches(run))
 	frappe.db.sql(
 		f"""update `{RUN}` set status='Running', finished_on=null, failed_items=null,
 		failed_count = greatest(ifnull(failed_count,0) - %s, 0),
@@ -430,24 +457,18 @@ def retry_run(run: str) -> dict:
 		(
 			len(books),
 			len(books),
-			len(failed_jobs) + len(batches),
+			waiting + len(failed_jobs) + len(batches),
 			len(batches),
 			f"{stamp} Retry by {who}: {len(failed_jobs)} failed batch(es) back in the queue, "
 			f"{len(books)} book(s) that failed taken again\n",
 			run,
 		),
 	)
+	if batches:
+		add_waiting(run, batches, next_no=start + 1)
 	frappe.db.commit()
-	for n, batch in enumerate(batches, start + 1):
-		frappe.enqueue(
-			"sok_resdesk.ingest.run_batch",
-			queue="long",
-			timeout=JOB_TIMEOUT,
-			run_name=run,
-			item_ids=batch,
-			batch_no=n,
-			job_id=f"resdesk-{run}-{n}",
-		)
+	if batches:
+		_feed(run)
 	profile = doc.profile
 	if profile:
 		frappe.db.set_value("RD Ingest Profile", profile, "last_status", "Running", update_modified=False)
@@ -598,7 +619,7 @@ def _run_jobs(run: str) -> list[dict]:
 
 
 def _pause_ingest(run: str, who: str) -> bool:
-	from sok_resdesk.ingest import _log, _status, hold_work
+	from sok_resdesk.ingest import _log, _status, hold_work, take_waiting
 
 	if _status(run, lock=True) not in ("Queued", "Running"):
 		frappe.db.rollback()
@@ -615,6 +636,10 @@ def _pause_ingest(run: str, who: str) -> bool:
 			items += j["args"].get("item_ids") or []
 			batches += 1
 	_status(run, lock=True)
+	waiting = take_waiting(run)  # batches not yet queued are kept too
+	for batch in waiting:
+		items += batch
+	batches += len(waiting)
 	hold_work(run, items, plan=plan)
 	frappe.db.sql(
 		"update `tabRD Ingest Run` set pending_chunks=greatest(ifnull(pending_chunks,0)-%s,0) where name=%s",
@@ -640,7 +665,7 @@ def _resume_ingest(run: str, who: str) -> int:
 	import json
 
 	from sok_resdesk.catalogue import settings
-	from sok_resdesk.ingest import JOB_TIMEOUT, _finish, _log, _status, enqueue_plan
+	from sok_resdesk.ingest import _feed, _finish, _log, _status, add_waiting, enqueue_plan
 
 	if _status(run, lock=True) != "Paused":
 		frappe.db.rollback()
@@ -671,17 +696,10 @@ def _resume_ingest(run: str, who: str) -> int:
 	frappe.db.commit()
 	if held.get("plan"):
 		enqueue_plan(run)
-	tag = now_datetime().strftime("%H%M%S")
-	for n, batch in enumerate(batches, 1):
-		frappe.enqueue(
-			"sok_resdesk.ingest.run_batch",
-			queue="long",
-			timeout=JOB_TIMEOUT,
-			run_name=run,
-			item_ids=batch,
-			batch_no=n,
-			job_id=f"resdesk-{run}-r{tag}-{n}",
-		)
+	if batches:
+		add_waiting(run, batches)
+		frappe.db.commit()
+		_feed(run)
 	if (
 		not held.get("plan")
 		and not batches

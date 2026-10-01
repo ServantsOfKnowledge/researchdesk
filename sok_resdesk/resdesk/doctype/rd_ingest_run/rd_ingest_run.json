@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-03 09:00:00.000000",
+ "modified": "2026-10-04 09:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Ingest Run",
@@ -26,10 +26,12 @@
   "column_break_2",
   "skipped_count",
   "failed_count",
+  "limit_skipped",
   "parallel_section",
   "chunks_total",
   "column_break_3",
   "pending_chunks",
+  "waiting_work",
   "held_work",
   "failed_items",
   "log_section",
@@ -136,6 +138,14 @@
    "read_only": 1
   },
   {
+   "fieldname": "limit_skipped",
+   "fieldtype": "Int",
+   "label": "New Books Left Out (Book Limit)",
+   "read_only": 1,
+   "depends_on": "limit_skipped",
+   "description": "New books not added because the book limit was reached. Raise the limit in Settings → Machine Resources, then Carry On."
+  },
+  {
    "fieldname": "parallel_section",
    "fieldtype": "Section Break",
    "label": "Parallel Processing",
@@ -156,6 +166,15 @@
    "fieldtype": "Int",
    "label": "Batches Remaining",
    "read_only": 1
+  },
+  {
+   "fieldname": "waiting_work",
+   "fieldtype": "Long Text",
+   "label": "Batches Waiting",
+   "hidden": 1,
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "Batches not yet in the queue (JSON): they are queued a few at a time, as workers become free."
   },
   {
    "fieldname": "held_work",

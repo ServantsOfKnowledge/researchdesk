@@ -51,8 +51,8 @@ It asks for confirmation, restores the database, migrates, and rebuilds the sear
 ```
 
 Restarting workers (`./resdesk.sh restart`, `update`, a reboot) stops batches that were in
-progress. The run is marked *Interrupted* within a couple of hours. Run the profile again and
-already-ingested books are skipped.
+progress. Within about 15 minutes the run is marked *Interrupted* and carries on by itself,
+skipping the books already done ([more](ingesting.md#large-ingests-run-in-parallel)).
 
 ## Resources: how much of the machine Research Desk may use
 
@@ -389,7 +389,8 @@ workspace after login. Readers can also sign up themselves, or be added with
 | Port 8080 already in use | set `HTTP_PORT=8090` in `.env`, re-run `./install.sh` |
 | Portal shows "Search is temporarily unavailable" | `./resdesk.sh logs meilisearch`; then Desk → Settings → **Test Search Engine** |
 | An ingest run stays *Queued* | the worker isn't running: `./resdesk.sh restart`, check `./resdesk.sh logs queue` |
-| A run is *Interrupted* | workers restarted mid-run: run the profile again (existing books are skipped) |
+| A run is *Interrupted* | workers restarted mid-run: it carries on by itself; if not, **Carry On** on the run (books already done are skipped) |
+| A run's count stops moving | look at its log: *BOOK LIMIT* (raise the limit, then **Carry On**), *No space left on device* (free disk space, then **Retry Failed Books**), or nothing queued (it carries on by itself within 15 minutes) |
 | Page search slow or disk full on a big collection | see [Scaling](scaling.md) for sizing |
 | Some items *FAIL* in a run log | usually a temporary IA error: re-run the profile (existing items are skipped) |
 | Book has no "search inside" | IA has no page-level OCR for it yet, or it's access-restricted |

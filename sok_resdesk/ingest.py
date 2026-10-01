@@ -19,6 +19,7 @@ from __future__ import annotations
 import gzip
 import json
 import os
+import random
 import time
 import traceback
 
@@ -32,6 +33,7 @@ from sok_resdesk.holding import hold_when_paused
 
 RUN = "tabRD Ingest Run"
 JOB_TIMEOUT = 6 * 3600
+TRIES = 5  # attempts per book when parallel workers get in each other's way
 MAX_LOG_CHARS = 200_000
 
 
@@ -199,6 +201,19 @@ def _ingest_one(
 
 
 def create_run(profile_doc, triggered_by: str = "Manual"):
+	# one run per profile at a time: two would fetch the same books twice
+	active = frappe.db.get_value(
+		"RD Ingest Run",
+		{"profile": profile_doc.name, "status": ("in", ["Queued", "Running", "Paused"])},
+		"name",
+	)
+	if active:
+		frappe.throw(
+			frappe._(
+				"Run {0} of this profile is still going (or paused). Let it finish, Resume it, or stop it first: two runs would fetch the same books twice."
+			).format(active),
+			title=frappe._("Already running"),
+		)
 	run = frappe.get_doc(
 		{
 			"doctype": "RD Ingest Run",
@@ -303,6 +318,7 @@ def plan_run(
 	run = frappe.get_doc("RD Ingest Run", run_name)
 	if run.status in ("Cancelled", "Paused"):
 		return []  # stopped or paused before this job started (a paused plan is kept on the run)
+	carried_on_from = run.started_on  # set when this run is listed again (Carry On / Try Again)
 	profile = frappe.get_doc("RD Ingest Profile", run.profile)
 	ia = client()
 	frappe.db.sql(
@@ -365,11 +381,19 @@ def plan_run(
 				)
 			skipped = len(existing)
 			ids = [i for i in ids if i not in existing]
+		if carried_on_from and ids:
+			# listed again: books this run (or any other) already did since it started are not redone
+			done = _done_since([_entry_id(e) for e in ids], carried_on_from)
+			if done:
+				ids = [e for e in ids if _entry_id(e) not in done]
+				skipped += len(done)
+				_log(run_name, f"{len(done):,} books were already done since this run started", verbose)
 
 		size = max(1, cint(settings().get("batch_size")) or 50)
 		batches = [ids[i : i + size] for i in range(0, len(ids), size)]
 		frappe.db.sql(
-			f"update `{RUN}` set total_found=%s, skipped_count=%s, processed=%s, chunks_total=%s, pending_chunks=%s "
+			f"update `{RUN}` set total_found=%s, skipped_count=%s, processed=%s, chunks_total=%s, pending_chunks=%s, "
+			"limit_skipped=0, waiting_work=null "
 			"where name=%s",
 			(len(ids) + skipped, skipped, skipped, len(batches), len(batches), run_name),
 		)
@@ -390,17 +414,15 @@ def plan_run(
 				_log(run_name, f"paused: {len(ids):,} books kept for later", verbose)
 				frappe.db.commit()
 				return []
+			# Batches wait on the run and go into the queue a few at a time (see _feed): queueing
+			# hundreds at once fills the queue ("Too many queued background jobs") and holds up
+			# every other job and run.
+			frappe.db.sql(
+				f"update `{RUN}` set waiting_work=%s where name=%s",
+				(json.dumps({"batches": batches, "next_no": 1}), run_name),
+			)
 			frappe.db.commit()
-			for n, batch in enumerate(batches, 1):
-				frappe.enqueue(
-					"sok_resdesk.ingest.run_batch",
-					queue="long",
-					timeout=JOB_TIMEOUT,
-					run_name=run_name,
-					item_ids=batch,
-					batch_no=n,
-					job_id=f"resdesk-{run_name}-{n}",
-				)
+			_feed(run_name)
 		return batches
 	except Exception as e:
 		frappe.db.rollback()
@@ -413,13 +435,139 @@ def plan_run(
 		return []
 
 
+WINDOW_MIN, WINDOW_MAX = 4, 40  # batches of one run in the queue at a time
+
+
+def _window() -> int:
+	"""Twice the workers on the long queue, so they never wait, within WINDOW_MIN..WINDOW_MAX."""
+	try:
+		from frappe.utils.background_jobs import get_redis_conn
+		from rq import Worker
+
+		workers = sum(
+			1
+			for w in Worker.all(connection=get_redis_conn())
+			if any(q.name.rsplit(":", 1)[-1] == "long" for q in w.queues)
+		)
+	except Exception:
+		workers = 0
+	return min(WINDOW_MAX, max(WINDOW_MIN, 2 * workers))
+
+
+def _read_waiting(raw) -> dict:
+	try:
+		w = json.loads(raw) if raw else {}
+	except ValueError:
+		w = {}
+	return {"batches": w.get("batches") or [], "next_no": cint(w.get("next_no")) or 1}
+
+
+def waiting_batches(run_name: str) -> list:
+	return _read_waiting(frappe.db.get_value("RD Ingest Run", run_name, "waiting_work"))["batches"]
+
+
+def add_waiting(run_name: str, batches: list, next_no: int = 0) -> None:
+	"""Put batches in line on the run; next_no: the lowest number for the next one queued."""
+	row = frappe.db.sql(f"select waiting_work from `{RUN}` where name=%s for update", run_name)[0][0]
+	w = _read_waiting(row)
+	w["batches"] += batches
+	w["next_no"] = max(w["next_no"], cint(next_no))
+	frappe.db.sql(f"update `{RUN}` set waiting_work=%s where name=%s", (json.dumps(w), run_name))
+
+
+def take_waiting(run_name: str) -> list:
+	"""Take every waiting batch off the run (Pause keeps them as held books)."""
+	row = frappe.db.sql(f"select waiting_work from `{RUN}` where name=%s for update", run_name)[0][0]
+	w = _read_waiting(row)
+	if w["batches"]:
+		frappe.db.sql(
+			f"update `{RUN}` set waiting_work=%s where name=%s",
+			(json.dumps({"batches": [], "next_no": w["next_no"]}), run_name),
+		)
+	return w["batches"]
+
+
+def _feed(run_name: str, n: int | None = None) -> int:
+	"""Queue up to n (default: the window) of the run's waiting batches. Returns how many."""
+	n = _window() if n is None else n
+	frappe.db.commit()
+	row = frappe.db.sql(
+		f"select status, waiting_work from `{RUN}` where name=%s for update", run_name, as_dict=True
+	)
+	if not row or row[0].status not in ("Queued", "Running") or n <= 0:
+		frappe.db.commit()
+		return 0
+	w = _read_waiting(row[0].waiting_work)
+	sent = 0
+	for batch in w["batches"][:n]:
+		try:
+			frappe.enqueue(
+				"sok_resdesk.ingest.run_batch",
+				queue="long",
+				timeout=JOB_TIMEOUT,
+				run_name=run_name,
+				item_ids=batch,
+				batch_no=w["next_no"] + sent,
+				job_id=f"resdesk-{run_name}-{w['next_no'] + sent}",
+			)
+		except Exception as e:  # the queue is full of other work: the rest waits for the next turn
+			_log(run_name, f"queue busy, batches wait for the next turn: {str(e)[:200]}")
+			break
+		sent += 1
+	if sent:
+		w = {"batches": w["batches"][sent:], "next_no": w["next_no"] + sent}
+		frappe.db.sql(f"update `{RUN}` set waiting_work=%s where name=%s", (json.dumps(w), run_name))
+	frappe.db.commit()
+	return sent
+
+
+def _entry_id(entry) -> str:
+	return entry[0] if isinstance(entry, (list, tuple)) else entry
+
+
+def _done_since(item_ids: list[str], since) -> set[str]:
+	"""Books ingested (by any run) at or after `since`."""
+	done: set[str] = set()
+	for i in range(0, len(item_ids), 1000):
+		done.update(
+			frappe.get_all(
+				"RD Item",
+				filters={"name": ("in", item_ids[i : i + 1000]), "last_ingested": (">=", since)},
+				pluck="name",
+			)
+		)
+	return done
+
+
+def _already_done(item_id: str, since, only_new: bool) -> bool:
+	"""Another run (or an earlier try of this one) has already brought this book in, so it
+	isn't fetched again: it was ingested after this run started, or it is in the catalogue
+	and this run only takes new books."""
+	row = frappe.db.sql("select last_ingested from `tabRD Item` where name=%s", item_id)
+	if not row:
+		return False
+	return only_new or bool(since and row[0][0] and row[0][0] >= since)
+
+
 def run_batch(run_name: str, item_ids: list, batch_no: int = 0, verbose: bool = False) -> None:
 	"""Ingest one batch. Items are IA identifiers, or [identifier, folder] pairs for folder
 	sources. Safe to run many at once."""
-	profile_name = frappe.db.get_value("RD Ingest Run", run_name, "profile")
+	from sok_resdesk import ia_sync
+
+	run = frappe.db.get_value(
+		"RD Ingest Run", run_name, ["profile", "started_on", "triggered_by"], as_dict=True
+	)
+	profile_name = run.profile
 	profile = frappe.get_doc("RD Ingest Profile", profile_name)
 	fetch_text = bool(cint(profile.fetch_fulltext))
 	refresh = bool(cint(profile.update_existing))
+	# same rule as plan_run: books already in the catalogue are only fetched again when asked
+	only_new = (
+		not profile.is_folder
+		and not ia_sync.is_sync_run(run, profile)
+		and (run.triggered_by == "Scheduler" or not refresh)
+	)
+	already = 0
 	ia = client()
 	store = None
 	if profile.is_folder:
@@ -438,16 +586,21 @@ def run_batch(run_name: str, item_ids: list, batch_no: int = 0, verbose: bool = 
 			break
 		if status == "Paused" and _paused_here(run_name, item_ids[pos:], batch_no, verbose):
 			break
+		if _already_done(item_id, run.started_on, only_new):
+			already += 1
+			_bump(run_name, processed=1, skipped_count=1)
+			frappe.db.commit()
+			continue
 		# at the book limit, books already in the catalogue are still updated; new ones wait
 		if not frappe.db.exists("RD Item", item_id) and not has_room():
 			if not limit_told:
 				_log(run_name, f"batch {batch_no}: book limit reached: new books are skipped", verbose)
 				limit_told = True
-			_bump(run_name, processed=1, skipped_count=1)
+			_bump(run_name, processed=1, skipped_count=1, limit_skipped=1)
 			frappe.db.commit()
 			continue
 		error = None
-		for attempt in range(3):
+		for attempt in range(TRIES):
 			try:
 				if store is not None:
 					outcome, pages = ingest_local_one(store, item_id, loc, profile, fetch_text, force=refresh)
@@ -460,9 +613,10 @@ def run_batch(run_name: str, item_ids: list, batch_no: int = 0, verbose: bool = 
 			except Exception as e:
 				frappe.db.rollback()
 				error = e
-				if not _is_transient(e) or attempt == 2:
+				if not _is_transient(e) or attempt == TRIES - 1:
 					break
-				time.sleep(1 + attempt * 2)  # another worker touched the same creator/subject; retry
+				# another worker touched the same creator, subject or collection: wait and retry
+				time.sleep(1 + attempt * 2 + random.random() * 2)
 		# Counters/log go in their own short transaction so parallel batches never conflict.
 		if error is None:
 			_bump(
@@ -475,7 +629,7 @@ def run_batch(run_name: str, item_ids: list, batch_no: int = 0, verbose: bool = 
 			if verbose and outcome != "unchanged":
 				print(f"{'NEW' if outcome == 'created' else 'UPD'} {item_id} ({pages} pages)")
 		elif isinstance(error, BookLimitReached):  # another batch took the last room meanwhile
-			_bump(run_name, processed=1, skipped_count=1)
+			_bump(run_name, processed=1, skipped_count=1, limit_skipped=1)
 			if not limit_told:
 				_log(run_name, f"batch {batch_no}: book limit reached: new books are skipped", verbose)
 				limit_told = True
@@ -487,6 +641,13 @@ def run_batch(run_name: str, item_ids: list, batch_no: int = 0, verbose: bool = 
 				f"update `{RUN}` set failed_items = concat(ifnull(failed_items, ''), %s) where name=%s",
 				(json.dumps(entry) + "\n", run_name),
 			)
+		frappe.db.commit()
+	if already:
+		_log(
+			run_name,
+			f"batch {batch_no}: {already} books already done by another run (or earlier in this one), skipped",
+			verbose,
+		)
 		frappe.db.commit()
 	_close_batch(run_name, verbose)
 
@@ -514,11 +675,13 @@ def _close_batch(run_name: str, verbose: bool = False) -> None:
 	frappe.db.commit()
 	if remaining == 0:
 		_finish(run_name, verbose)
+	else:
+		_feed(run_name, 1)  # the next waiting batch takes this one's place in the queue
 
 
 def _finish(run_name: str, verbose: bool = False) -> None:
 	row = frappe.db.sql(
-		f"select status, created_count, updated_count, skipped_count, failed_count from `{RUN}` where name=%s",
+		f"select status, created_count, updated_count, skipped_count, failed_count, limit_skipped from `{RUN}` where name=%s",
 		run_name,
 		as_dict=True,
 	)[0]
@@ -535,6 +698,14 @@ def _finish(run_name: str, verbose: bool = False) -> None:
 		f"{row.skipped_count or 0} skipped, {row.failed_count or 0} failed",
 		verbose,
 	)
+	if row.limit_skipped:
+		_log(
+			run_name,
+			f"BOOK LIMIT: {row.limit_skipped:,} new books were left out because the book limit is reached. "
+			"Raise it in Settings → Machine Resources → Book Limit (or free disk space / give Docker more "
+			"memory), then Carry On on this run to bring them in.",
+			verbose,
+		)
 	frappe.db.sql(f"update `{RUN}` set finished_on=%s where name=%s", (now_datetime(), run_name))
 	_set_status(run_name, status)
 	frappe.db.commit()
@@ -575,11 +746,83 @@ def _run_scheduled(schedule: str):
 		enqueue_plan(run.name)
 
 
-def mark_interrupted_runs(idle_hours: int = 2) -> None:
-	"""Hourly: a run with no progress for a while lost its workers (restart, crash, reboot)."""
+AUTO_CARRY_ON = 3  # times a run whose batches vanished is carried on by itself
+LOST_MINUTES = 15
+
+
+def _runs_with_work() -> set[str]:
+	"""Runs that still have a job queued, running or held (Pause All / Hold)."""
+	from frappe.utils.background_jobs import get_queues, get_redis_conn
+	from rq.registry import StartedJobRegistry
+
+	from sok_resdesk.holding import held_jobs
+	from sok_resdesk.jobs import _rq_jobs
+
+	# a job whose worker was killed stays "started" until its heartbeat runs out: move those to
+	# the failed jobs (where Carry On finds and requeues them) before looking
+	for queue in get_queues(connection=get_redis_conn()):
+		StartedJobRegistry(queue=queue).cleanup()
+	live = {j["run"] for j in _rq_jobs() if j.get("run")}
+	live.update((h.get("kwargs") or {}).get("run_name") for h in held_jobs())
+	return live
+
+
+def mark_interrupted_runs(idle_hours: int = 2, lost_minutes: int = LOST_MINUTES) -> None:
+	"""Every 10 minutes: find runs that lost their workers (restart, upgrade, crash, reboot).
+
+	* A run none of whose batches is queued, running or held any more, with no progress for
+	  `lost_minutes`, lost them in a restart: it is marked Interrupted and carried on by itself
+	  (up to AUTO_CARRY_ON times), skipping the books already done.
+	* A run with no progress for `idle_hours` is marked Interrupted (Carry On picks it up).
+	"""
 	from frappe.utils import add_to_date
 
-	cutoff = add_to_date(now_datetime(), hours=-idle_hours)
+	from sok_resdesk.holding import is_paused
+
+	now = now_datetime()
+	lost: list[str] = []
+	if not is_paused():
+		try:
+			live = _runs_with_work()
+		except Exception:
+			live = None  # the queue isn't reachable: decide nothing from it
+		if live is not None:
+			cutoff = add_to_date(now, minutes=-lost_minutes)
+			lost = [
+				n
+				for n in frappe.get_all(
+					"RD Ingest Run",
+					filters={"status": ("in", ["Queued", "Running"]), "modified": ("<", cutoff)},
+					pluck="name",
+				)
+				if n not in live
+			]
+	for name in list(lost):
+		row = frappe.db.get_value("RD Ingest Run", name, ["pending_chunks", "waiting_work"], as_dict=True)
+		waiting = _read_waiting(row.waiting_work)["batches"]
+		if waiting and cint(row.pending_chunks) == len(waiting) and _feed(name):
+			lost.remove(name)  # nothing was lost: its next batches just hadn't been queued yet
+	for name in lost:
+		_log(
+			name,
+			"Its batches are no longer in the queue: the workers were restarted (an upgrade, a restart or not enough memory).",
+		)
+		frappe.db.sql(f"update `{RUN}` set finished_on=%s where name=%s", (now, name))
+		_set_status(name, "Interrupted")
+		frappe.db.commit()
+		log = frappe.db.get_value("RD Ingest Run", name, "log") or ""
+		if log.count("Carried on by itself") < AUTO_CARRY_ON:
+			from sok_resdesk.jobs import retry_run
+
+			try:
+				_log(name, "Carried on by itself; books already done are skipped.")
+				frappe.db.commit()
+				retry_run(name)
+			except Exception:
+				frappe.db.rollback()
+				frappe.log_error(title=f"Research Desk: carrying on run {name} failed")
+
+	cutoff = add_to_date(now, hours=-idle_hours)
 	for name in frappe.get_all(
 		"RD Ingest Run", filters={"status": "Running", "modified": ("<", cutoff)}, pluck="name"
 	):
@@ -588,7 +831,7 @@ def mark_interrupted_runs(idle_hours: int = 2) -> None:
 			f"No progress for {idle_hours} h, so the workers were probably restarted. "
 			"Retry on this run carries on where it stopped.",
 		)
-		frappe.db.sql(f"update `{RUN}` set finished_on=%s where name=%s", (now_datetime(), name))
+		frappe.db.sql(f"update `{RUN}` set finished_on=%s where name=%s", (now, name))
 		_set_status(name, "Interrupted")
 	frappe.db.commit()
 

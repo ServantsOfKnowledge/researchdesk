@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.18.0 (2026-10-04): big ingests that don't stall or do work twice
+
+- **A big run no longer stalls.** Every batch of a run used to go into the queue at once; a
+  run of 35,000 books (700 batches) hit Frappe's limit of queued jobs ("Too many queued
+  background jobs"), so the batches past the limit were never queued: the run sat at the
+  same count with nothing left to do it, and the other runs' jobs waited behind hundreds of
+  batches. Batches now wait on the run and go into the queue a few at a time (twice the
+  number of workers), one more each time one finishes
+- **Books already done aren't fetched again.** A batch skips a book that any run brought in
+  since this run started, and a run that only takes new books skips those another run added
+  meanwhile. *Carry On* and *Try Again* list the books again and take only those not done yet
+- **One run per profile at a time.** Starting a profile that already has a run going (or
+  paused) is refused, with the run's name: two would fetch the same books twice
+- **Runs that lose their workers carry on by themselves.** Every 10 minutes, a run none of
+  whose batches is queued, running or held any more (after an upgrade, a restart or not
+  enough memory) is marked *Interrupted* and carried on, skipping what is done (up to three
+  times; after that it waits for *Carry On*). Runs with no progress for two hours are still
+  marked *Interrupted*
+- **Books left out at the book limit are shown on the run** (*New Books Left Out*), with a
+  red note and the way out: raise the limit in Settings → Machine Resources, then *Carry On*
+  brings them in
+- Parallel workers that bump into each other on the same author, subject or collection try a
+  book up to five times (was three), waiting a little longer each time
+
 ## 0.17.1 (2026-10-03): trying failed ingests again
 
 - **Failed ingest work can be tried again, in the same run.** On the run: **Retry Failed

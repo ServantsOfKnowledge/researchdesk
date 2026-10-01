@@ -29,6 +29,12 @@ class TestRetry(IntegrationTestCase):
 				}
 			).insert(ignore_permissions=True)
 
+	def setUp(self):
+		# one active run per profile: runs left going by other tests would be in the way
+		frappe.db.delete(
+			"RD Ingest Run", {"profile": PROFILE, "status": ("in", ["Queued", "Running", "Paused"])}
+		)
+
 	def make_run(self, **values):
 		run = frappe.get_doc(
 			{"doctype": "RD Ingest Run", "profile": PROFILE, "status": "Completed", **values}
@@ -80,6 +86,7 @@ class TestRetry(IntegrationTestCase):
 				frappe.db.get_value("RD Ingest Run", run.name, ["status", "failed_count"]), ("Queued", 0)
 			)
 			enqueue_plan.assert_called_with(run.name)
+			frappe.db.delete("RD Ingest Run", run.name)  # one active run per profile
 
 	def test_running_runs_are_left_alone(self):
 		run = self.make_run(status="Running")

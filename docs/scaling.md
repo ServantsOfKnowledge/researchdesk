@@ -92,9 +92,10 @@ more of the index stays in memory and search is faster.
    progress bar and a **Cancel Run** button). The portal is usable throughout; books appear
    as they're indexed.
 
-5. **If something stops** (a reboot, a Docker restart), the hourly check marks the run
-   *Interrupted* after two hours without progress. Start the same profile again. Books already
-   in the catalogue are skipped, so it resumes where it left off.
+5. **If something stops** (a reboot, a Docker restart, an upgrade), the run is marked
+   *Interrupted* within about 15 minutes and carries on by itself, skipping the books already
+   done. **Carry On** on the run does the same at once. Batches go into the queue a few at a
+   time, so even a 50,000-book run never fills the queue.
 
 Tip: ingest in slices you can reason about (for example by language or partner collection:
 `KannadaUniversity`, `Vishwakonkani`, …). Each slice becomes its own profile you can re-run or

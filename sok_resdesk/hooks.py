@@ -63,12 +63,14 @@ scheduler_events = {
 	# quiet hours: pause all background work at set times (RD Settings → Machine Resources)
 	"cron": {
 		"*/5 * * * *": ["sok_resdesk.jobs.apply_quiet_hours"],
+		# runs that lost their workers: marked Interrupted and carried on by themselves
+		"*/10 * * * *": ["sok_resdesk.ingest.mark_interrupted_runs"],
 		# Server page: alerts when a part stops working (RD Settings → Server & Updates)
 		"*/10 * * * *": ["sok_resdesk.server.watch"],
 		# automatic backups, at night (server time zone)
 		"30 2 * * *": ["sok_resdesk.server.scheduled_backup"],
 	},
-	"hourly": ["sok_resdesk.ingest.mark_interrupted_runs", "sok_resdesk.ingest.run_scheduled_hourly"],
+	"hourly": ["sok_resdesk.ingest.run_scheduled_hourly"],
 	"daily": [
 		"sok_resdesk.ingest.run_scheduled_daily",
 		# profiles set to Manual but kept in step with archive.org

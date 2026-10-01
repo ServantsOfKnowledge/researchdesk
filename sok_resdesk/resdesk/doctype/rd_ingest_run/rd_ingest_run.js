@@ -54,15 +54,31 @@ frappe.ui.form.on("RD Ingest Run", {
 		if (manager && retryable[frm.doc.status]) {
 			const explain = {
 				"Completed with Errors": __("Take the {0} books that failed in this run again?", [frm.doc.failed_count || 0]),
-				Interrupted: __("Carry on with this run? Batches that were cut off go back in the queue, and books that failed are taken again."),
-				Failed: __("Start this run again? It lists the books again; those already in the catalogue are skipped."),
-				Cancelled: __("Carry on with this stopped run? Books already in the catalogue are skipped."),
+				Interrupted: __("Carry on with this run? It lists the books again and takes those not done yet: whatever was cut off, failed or never queued. Books already done are skipped."),
+				Failed: __("Start this run again? It lists the books again; those already done are skipped."),
+				Cancelled: __("Carry on with this stopped run? Books already done are skipped."),
 			}[frm.doc.status];
 			frm.add_custom_button(retryable[frm.doc.status], () =>
 				frappe.confirm(explain, () => act("retry_run", { run: frm.doc.name }))
 			).addClass("btn-primary");
 			if (frm.doc.status === "Interrupted") {
-				frm.dashboard.set_headline_alert(__("The workers stopped while this run was going (a restart, or not enough memory). Carry On picks it up again."), "orange");
+				frm.dashboard.set_headline_alert(__("The workers stopped while this run was going (a restart, an upgrade, or not enough memory). It carries on by itself within about 15 minutes; Carry On does it now."), "orange");
+			}
+		}
+		if (frm.doc.limit_skipped) {
+			frm.dashboard.set_headline_alert(
+				__("{0} new books were left out because the book limit is reached. Raise it in {1}, then Carry On to bring them in.", [
+					frm.doc.limit_skipped,
+					`<a href="/app/rd-settings">${__("Settings → Machine Resources → Book Limit")}</a>`,
+				]),
+				"red"
+			);
+			if (manager && ["Completed", "Completed with Errors"].includes(frm.doc.status) && !frm.doc.failed_count) {
+				frm.add_custom_button(__("Carry On"), () =>
+					frappe.confirm(__("Bring in the {0} books left out at the book limit? Books already done are skipped.", [frm.doc.limit_skipped]), () =>
+						act("retry_run", { run: frm.doc.name })
+					)
+				).addClass("btn-primary");
 			}
 		}
 		frm.add_custom_button(__("Background Jobs"), () => frappe.set_route("resdesk-jobs"));
