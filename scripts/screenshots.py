@@ -33,6 +33,7 @@ SHOTS: dict[str, tuple[str, str, str]] = {
 	"portal-book": ("guest", "/library?q={query}", "click:.rd-hit h3 a"),
 	"portal-mylist": ("guest", "/library?q={query}", "mylist"),
 	"portal-help": ("guest", "/library/help", ""),
+	"portal-about": ("guest", "/about", ""),
 	"desk-workspace": ("staff", "/app/research-desk", ""),
 	"desk-help": ("staff", "/app/resdesk-help/staff-guide", ""),
 	"desk-profile": ("staff", "/app/rd-ingest-profile", "open-first"),
@@ -43,6 +44,7 @@ SHOTS: dict[str, tuple[str, str, str]] = {
 	"desk-items": ("staff", "/app/rd-item", ""),
 	"desk-collection": ("staff", "/app/rd-collection", "open-first"),
 	"desk-settings": ("staff", "/app/rd-settings", ""),
+	"desk-about": ("staff", "/app/rd-about-page", "scroll:[data-fieldname=section_steps]"),
 }
 
 
@@ -96,6 +98,10 @@ async def take(args) -> list[str]:
 					await page.wait_for_selector(".list-row-container a.ellipsis", timeout=15000)
 					await page.click(".list-row-container a.ellipsis")
 					await page.wait_for_timeout(3000)
+				elif action.startswith("scroll:"):
+					await page.wait_for_selector(action[7:], timeout=15000)
+					await page.evaluate(f"document.querySelector({action[7:]!r}).scrollIntoView()")
+					await page.wait_for_timeout(800)
 				elif action == "machine":
 					await page.wait_for_timeout(4000)  # two samples, for CPU per part
 					await page.evaluate("""[...document.querySelectorAll('.rdj-card h4')].find(h => h.textContent.trim() === 'Machine')

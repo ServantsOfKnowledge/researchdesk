@@ -212,3 +212,34 @@
 .rd-tips__count { margin-right: auto; }
 .rd-hero--banner .rd-tips, .rd-hero--banner .rd-tips .rd-muted { color: var(--text-color, #1f272e); }
 .rd-coll-subhead { font-size: 1.1rem; margin: 18px 0 4px; }
+
+/* -- About page (/about, edited in the Desk: RD About Page) ------------------------------- */
+.rd-about { max-width: 1040px; margin: 0 auto; }
+.rd-about__hero { display: grid; grid-template-columns: 1fr; gap: 28px; align-items: center; padding: 40px 0 24px; }
+.rd-about__hero--image { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+.rd-about__title { font-size: 2.2rem; line-height: 1.2; margin: 0 0 8px; }
+.rd-about__tagline { color: var(--rd-muted); font-size: 1.15rem; margin: 0 0 16px; max-width: 60ch; }
+.rd-about__intro { font-size: 1.05rem; max-width: 65ch; }
+.rd-about__image { width: 100%; max-height: 360px; object-fit: cover; border-radius: 12px; border: 1px solid var(--rd-border); }
+.rd-about__buttons { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0 0; }
+.rd-btn--large { padding: 10px 22px; font-size: 1.05rem; }
+.rd-about__numbers { display: flex; flex-wrap: wrap; gap: 12px; margin: 8px 0 24px; }
+.rd-about__number { flex: 1 1 160px; padding: 14px 16px; border: 1px solid var(--rd-border); border-radius: 10px; background: var(--rd-soft); }
+.rd-about__number b { display: block; font-size: 1.5rem; }
+.rd-about__number span { color: var(--rd-muted); }
+.rd-about__section { margin: 32px 0; }
+.rd-about__section h2 { font-size: 1.35rem; margin: 0 0 14px; }
+.rd-about__steps { list-style: none; counter-reset: rd-step; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.rd-about__steps li { counter-increment: rd-step; position: relative; padding: 16px 16px 16px 58px; border: 1px solid var(--rd-border); border-radius: 10px; background: var(--rd-bg); }
+.rd-about__steps li::before { content: counter(rd-step); position: absolute; left: 16px; top: 14px; width: 30px; height: 30px; border-radius: 50%; background: var(--rd-accent); color: #fff; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.rd-about__steps h3, .rd-about__card h3 { font-size: 1.02rem; margin: 2px 0 6px; }
+.rd-about__steps p, .rd-about__card p { margin: 0 0 8px; color: var(--rd-muted); }
+.rd-about__cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.rd-about__card { padding: 18px; border: 1px solid var(--rd-border); border-top: 3px solid var(--rd-accent); border-radius: 10px; background: var(--rd-bg); }
+.rd-prose img { max-width: 100%; height: auto; border-radius: 8px; }
+.rd-prose p { margin: 0 0 .8em; }
+.rd-about__end { text-align: center; margin: 40px 0 24px; }
+@media (max-width: 720px) {
+	.rd-about__hero--image { grid-template-columns: 1fr; }
+	.rd-about__title { font-size: 1.7rem; }
+}

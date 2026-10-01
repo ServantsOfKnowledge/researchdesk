@@ -73,6 +73,8 @@ cause. Details: [Server](server.md#how-the-updater-helper-works).
 | **RD Push Run** | one push | status, counts, log |
 | **RD External Record** | what was sent where | item, target, external id (Koha biblionumber, Wikidata QID), url, last hash |
 | **RD Reader Request** | a sign-up waiting for approval | user, status (Pending / Approved / Rejected); approving adds the ResDesk Reader role |
+| **RD About Page** | single | the introduction page at `/about`: on/off and its top-bar label, page title and search description, headline, tagline, introduction (rich text), image, live numbers, two buttons, steps, highlight cards, featured collections, a free-form part |
+| RD About Item | child table of RD About Page (`steps`, `highlights`) | title, text (plain, `**bold**`), link, link text |
 | **RD Server Task** | an upgrade, restart, resource preset, server backup, update check or log request from the Server page, carried out by the updater helper | action, arguments (checked), status (Queued / Running / Succeeded / Failed / Cancelled), requested by, log, summary |
 
 `raw_metadata` keeps the untouched source record, so re-normalising later never needs a

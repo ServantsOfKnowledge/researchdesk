@@ -48,7 +48,22 @@ def after_install():
 	create_sample_profiles()
 	create_workspace()
 	set_website_home()
+	set_up_about_page()
 	frappe.db.commit()
+
+
+def set_up_about_page():
+	"""Starting content for /about and its link in the top bar (once; edited in the Desk after)."""
+	try:
+		from sok_resdesk import about
+
+		about.ensure_defaults()
+		about.sync_top_bar(frappe.get_single("RD About Page"))
+		from frappe.website.utils import clear_cache
+
+		clear_cache()  # the top bar is cached with the pages
+	except Exception:
+		frappe.log_error("Research Desk: could not set up the About page")
 
 
 def set_website_home():

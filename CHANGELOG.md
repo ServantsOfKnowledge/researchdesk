@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.15.0 (2026-10-01): an About page
+
+- **An introduction to the library at `/about`**, edited in the Desk (Research Desk → About
+  Page): a headline and introduction, live numbers (books, pages of searchable text,
+  collections, languages), a button to `/library`, numbered steps on how to use it, highlight
+  cards, featured collections and a free-form part for anything else. It has a link in the
+  portal's top bar (with your label), and switching it off hides both. New installs and
+  upgrades start with a ready-made page to change
+
 ## 0.14.0 (2026-10-01): HTTPS from Let's Encrypt, and the portal's address
 
 - **HTTPS is part of the installation**: `./install.sh --domain library.example.org` (or giving

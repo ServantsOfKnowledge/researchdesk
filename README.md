@@ -23,7 +23,8 @@ Choose a collection, a search or a list of items on archive.org, and Research De
 - keep some books (or everything) **for logged-in readers**: members-only books, a public
   catalogue with reading for members, or an internal library; readers sign up, are approved,
   or are added by staff, and books can be switched in bulk by collection, filter or search
-- carry **your library's logo and name** on the portal, the admin bar and the browser tab
+- carry **your library's logo and name** on the portal, the admin bar and the browser tab, with
+  an **About page** introducing the library and how to use it, edited in the Desk
 - let staff build **curated collections** (by hand, in bulk or by rules), each with its own
   portal page and OAI-PMH set, and **correct catalogue details** that survive re-ingest
 - **export metadata** as a spreadsheet, JSON, Dublin Core, MODS, MARCXML, JSON-LD, BibTeX/RIS or

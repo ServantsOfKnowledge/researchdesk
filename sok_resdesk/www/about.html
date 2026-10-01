@@ -1,0 +1,82 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title | e }}{% endblock %}
+
+{% block page_content %}
+<div class="rd rd-about">
+	<header class="rd-about__hero{% if image %} rd-about__hero--image{% endif %}">
+		<div class="rd-about__lead">
+			<h1 class="rd-about__title">{{ headline | e }}</h1>
+			{% if tagline %}<p class="rd-about__tagline">{{ tagline | e }}</p>{% endif %}
+			{% if intro %}<div class="rd-about__intro rd-prose">{{ intro }}</div>{% endif %}
+			{% if buttons %}
+			<p class="rd-about__buttons">
+				{% for b in buttons %}<a class="rd-btn{% if b.primary %} rd-btn--primary rd-btn--large{% endif %}" href="{{ b.link | e }}">{{ b.label | e }}</a>{% endfor %}
+			</p>
+			{% endif %}
+		</div>
+		{% if image %}<img class="rd-about__image" src="{{ image | e }}" alt="">{% endif %}
+	</header>
+
+	{% if numbers %}
+	<section class="rd-about__numbers" aria-label="{{ _('The library in numbers') }}">
+		{% for n, label in numbers %}
+		<div class="rd-about__number"><b>{{ "{:,}".format(n) }}</b><span>{{ label | e }}</span></div>
+		{% endfor %}
+	</section>
+	{% endif %}
+
+	{% if steps %}
+	<section class="rd-about__section">
+		{% if steps_title %}<h2>{{ steps_title | e }}</h2>{% endif %}
+		<ol class="rd-about__steps">
+			{% for s in steps %}
+			<li>
+				<h3>{{ s.title | e }}</h3>
+				{% if s.text %}<p>{{ s.text }}</p>{% endif %}
+				{% if s.link %}<a href="{{ s.link | e }}">{{ s.link_label | e }}</a>{% endif %}
+			</li>
+			{% endfor %}
+		</ol>
+	</section>
+	{% endif %}
+
+	{% if highlights %}
+	<section class="rd-about__section">
+		{% if highlights_title %}<h2>{{ highlights_title | e }}</h2>{% endif %}
+		<div class="rd-about__cards">
+			{% for h in highlights %}
+			<div class="rd-about__card">
+				<h3>{{ h.title | e }}</h3>
+				{% if h.text %}<p>{{ h.text }}</p>{% endif %}
+				{% if h.link %}<a href="{{ h.link | e }}">{{ h.link_label | e }}</a>{% endif %}
+			</div>
+			{% endfor %}
+		</div>
+	</section>
+	{% endif %}
+
+	{% if collections %}
+	<section class="rd-about__section">
+		<div class="rd-featured__head">
+			<h2>{{ _("Collections") }}</h2>
+			<a href="/library/collections">{{ _("All collections") }} →</a>
+		</div>
+		<div class="rd-coll-grid">
+			{% for c in collections %}{% include "templates/includes/rd_collection_card.html" %}{% endfor %}
+		</div>
+	</section>
+	{% endif %}
+
+	{% if body %}
+	<section class="rd-about__section">
+		{% if body_title %}<h2>{{ body_title | e }}</h2>{% endif %}
+		<div class="rd-prose">{{ body }}</div>
+	</section>
+	{% endif %}
+
+	{% if buttons %}
+	<p class="rd-about__end"><a class="rd-btn rd-btn--primary rd-btn--large" href="{{ buttons[0].link | e }}">{{ buttons[0].label | e }}</a></p>
+	{% endif %}
+</div>
+{% endblock %}

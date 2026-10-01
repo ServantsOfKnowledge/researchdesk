@@ -149,6 +149,31 @@ See [Collections, metadata & pushing](collections-and-metadata.md) and [Koha](ko
 
 Take the tour on the Settings form for the fields most libraries change first.
 
+## The About page
+
+**About Page** (Research Desk → Setup, or `/app/rd-about-page`) is the introduction to your
+library at **`/about`**: what the library is, whose books these are, how to use it, and a big
+button to the library. It has a link in the portal's top bar, next to *Library*.
+
+![The About page](../sok_resdesk/public/images/guide/portal-about.png)
+
+A new install starts with a ready-made page to change. Fill in the parts you want; empty parts
+are left out:
+
+| Part | What goes there |
+|---|---|
+| Page | **Show the About Page** (untick to hide it and its top-bar link; `/about` then goes to the library), the **label** in the top bar, the page title and description for search engines |
+| Introduction | headline (empty: the portal's name), tagline, the **introduction** in a rich-text editor (headings, bold, lists, links, pictures), an optional image beside it, and **live numbers**: books, pages of searchable text, collections and languages, counted as visitors see them |
+| Buttons | the main button (*Open the library* → `/library`) and an optional second one (*How to search* → `/library/help`). Links are a page of this site (`/library/collections`, `/library?q=hampi`) or a web address (`https://…`) |
+| How to Use It | numbered steps: title, a sentence or two (`**bold**` works), and an optional link |
+| Highlights | cards for what makes the library useful, and **Show Featured Collections** (the collections marked *Featured*) |
+| More | anything else, written freely in the rich-text editor: the story of the collection, partners and funders, contact, credits |
+
+**Save**, then **View Page**. Changes show straight away. To have visitors land on the About
+page instead of the library, set *Home Page* to `about` in Desk → Website Settings.
+
+![Editing the About page](../sok_resdesk/public/images/guide/desk-about.png)
+
 ## Roles
 
 | Role | Can |

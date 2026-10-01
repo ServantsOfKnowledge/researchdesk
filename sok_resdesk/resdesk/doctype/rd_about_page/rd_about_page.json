@@ -1,0 +1,252 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-01 18:00:00.000000",
+ "modified": "2026-10-01 18:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD About Page",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "field_order": [
+  "section_page",
+  "enabled",
+  "nav_label",
+  "column_break_page",
+  "page_title",
+  "meta_description",
+  "section_intro",
+  "headline",
+  "tagline",
+  "intro",
+  "column_break_intro",
+  "hero_image",
+  "show_stats",
+  "section_buttons",
+  "primary_label",
+  "primary_link",
+  "column_break_buttons",
+  "secondary_label",
+  "secondary_link",
+  "section_steps",
+  "steps_title",
+  "steps",
+  "section_highlights",
+  "highlights_title",
+  "highlights",
+  "show_collections",
+  "section_more",
+  "body_title",
+  "body"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_page",
+   "fieldtype": "Section Break",
+   "label": "Page"
+  },
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Show the About Page",
+   "default": "1",
+   "description": "An introduction to the library at /about, with a link to it in the portal's top bar. Untick to hide both."
+  },
+  {
+   "fieldname": "nav_label",
+   "fieldtype": "Data",
+   "label": "Label in the Top Bar",
+   "default": "About",
+   "description": "The link to this page in the portal's top bar."
+  },
+  {
+   "fieldname": "column_break_page",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "page_title",
+   "fieldtype": "Data",
+   "label": "Page Title",
+   "description": "The browser tab and search results. Empty: About and the portal's name."
+  },
+  {
+   "fieldname": "meta_description",
+   "fieldtype": "Small Text",
+   "label": "Description for Search Engines",
+   "description": "One or two sentences shown under the link in search results and when the page is shared."
+  },
+  {
+   "fieldname": "section_intro",
+   "fieldtype": "Section Break",
+   "label": "Introduction"
+  },
+  {
+   "fieldname": "headline",
+   "fieldtype": "Data",
+   "label": "Headline",
+   "description": "The big title at the top. Empty: the portal's name."
+  },
+  {
+   "fieldname": "tagline",
+   "fieldtype": "Small Text",
+   "label": "Tagline",
+   "description": "A line under the headline."
+  },
+  {
+   "fieldname": "intro",
+   "fieldtype": "Text Editor",
+   "label": "Introduction",
+   "description": "What the library is, whose books these are and who it is for. Text, headings, images and links."
+  },
+  {
+   "fieldname": "column_break_intro",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "hero_image",
+   "fieldtype": "Attach Image",
+   "label": "Image",
+   "description": "Optional: a picture beside the introduction (a book, a reading room, your logo)."
+  },
+  {
+   "fieldname": "show_stats",
+   "fieldtype": "Check",
+   "label": "Show Live Numbers",
+   "default": "1",
+   "description": "How many books, pages of text, collections and languages the library has, counted as visitors see them."
+  },
+  {
+   "fieldname": "section_buttons",
+   "fieldtype": "Section Break",
+   "label": "Buttons"
+  },
+  {
+   "fieldname": "primary_label",
+   "fieldtype": "Data",
+   "label": "Main Button",
+   "default": "Open the library",
+   "description": "The large button under the introduction."
+  },
+  {
+   "fieldname": "primary_link",
+   "fieldtype": "Data",
+   "label": "Main Button Link",
+   "default": "/library"
+  },
+  {
+   "fieldname": "column_break_buttons",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "secondary_label",
+   "fieldtype": "Data",
+   "label": "Second Button",
+   "default": "How to search",
+   "description": "Optional: a second, plainer button. Empty: none."
+  },
+  {
+   "fieldname": "secondary_link",
+   "fieldtype": "Data",
+   "label": "Second Button Link",
+   "default": "/library/help"
+  },
+  {
+   "fieldname": "section_steps",
+   "fieldtype": "Section Break",
+   "label": "How to Use It",
+   "description": "Numbered steps that show a first-time visitor how to use the library."
+  },
+  {
+   "fieldname": "steps_title",
+   "fieldtype": "Data",
+   "label": "Heading",
+   "default": "How to use the library",
+   "description": "The heading over the steps."
+  },
+  {
+   "fieldname": "steps",
+   "fieldtype": "Table",
+   "label": "Steps",
+   "options": "RD About Item"
+  },
+  {
+   "fieldname": "section_highlights",
+   "fieldtype": "Section Break",
+   "label": "Highlights",
+   "description": "Cards for what makes the library useful: full-text search, citations, collections, partners."
+  },
+  {
+   "fieldname": "highlights_title",
+   "fieldtype": "Data",
+   "label": "Heading",
+   "default": "What you will find",
+   "description": "The heading over the cards."
+  },
+  {
+   "fieldname": "highlights",
+   "fieldtype": "Table",
+   "label": "Cards",
+   "options": "RD About Item"
+  },
+  {
+   "fieldname": "show_collections",
+   "fieldtype": "Check",
+   "label": "Show Featured Collections",
+   "default": "1",
+   "description": "The collections marked Featured, as on the library's home page."
+  },
+  {
+   "fieldname": "section_more",
+   "fieldtype": "Section Break",
+   "label": "More",
+   "description": "Anything else, written freely: the story of the collection, partners and funders, contact, credits."
+  },
+  {
+   "fieldname": "body_title",
+   "fieldtype": "Data",
+   "label": "Heading",
+   "description": "Optional heading over this part."
+  },
+  {
+   "fieldname": "body",
+   "fieldtype": "Text Editor",
+   "label": "Content",
+   "description": "Text, headings, lists, images and links, shown after the steps and cards."
+  }
+ ],
+ "links": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "issingle": 1,
+ "track_changes": 1,
+ "description": "The portal's introduction page at /about: what the library is and how to use it, with a link to /library.",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  }
+ ]
+}
