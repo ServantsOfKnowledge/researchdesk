@@ -23,4 +23,4 @@ fi
 git add -A
 git diff --cached --quiet || git commit -q -m "Release v$V"
 git tag -a "v$V" -m "v$V"
-echo "Tagged v$V. Push with: git push origin main --tags"
+echo "Tagged v$V. Publish it: scripts/publish.sh (GitHub main + tags; or bring a bundle to the publishing machine: scripts/publish.sh FILE.bundle)"
