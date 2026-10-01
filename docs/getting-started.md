@@ -35,13 +35,19 @@ The installer asks:
 |---|---|
 | Portal name | What visitors see, e.g. *Sanchaya Research Desk* |
 | Your email | Sent (politely) to the Internet Archive with each request so they can contact you. Optional. |
+| Web address | On your own computer: leave it empty. On a server with a DNS name pointing at it: the name, e.g. `research.example.org`. The installer then gets an HTTPS certificate from Let's Encrypt, through the server's nginx if it has one ([step by step](installation.md#step-by-step-a-new-linux-server-that-already-runs-nginx)) |
 | Port | `8080` unless something else already uses it |
 | Internal site name | Keep the default |
+
+Change the address later with `./resdesk.sh url https://new.address`
+([Changing the portal's address](installation.md#changing-the-portals-address)).
 
 The first install downloads and builds the software, which takes 10 to 20 minutes. Later starts
 take seconds. At the end, answer **Y** to load 20 sample Kannada books.
 
 ## 3. Look around
+
+(On a server with a name, use `https://your.name` instead of `http://localhost:8080`.)
 
 - **Public portal:** <http://localhost:8080/library>. Try searching `ವಿಜಯನಗರ` or `hampi`,
   then switch to **Inside the text** to search the OCR of every page.

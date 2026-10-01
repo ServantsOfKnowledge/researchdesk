@@ -5,7 +5,7 @@ There are three ways to run Research Desk:
 | Setup | Use it for | How |
 |---|---|---|
 | **Docker, one command** | Laptops, a library PC, trying it out | `./install.sh` |
-| **Docker on a server** | A public portal with a domain name | `./install.sh` + a reverse proxy (below) |
+| **Docker on a server** | A public portal with a domain name and HTTPS | `./install.sh --domain NAME` ([below](#docker-on-a-server-with-a-domain-name-and-https); with nginx already on the server: [step by step](#step-by-step-a-new-linux-server-that-already-runs-nginx)) |
 | **bench (native)** | Developing Research Desk itself | `scripts/dev-setup.sh` |
 
 ## What gets installed
@@ -25,6 +25,7 @@ There are three ways to run Research Desk:
 | `configurator`, `create-site` | one-off setup steps that run and exit |
 | `monitor` (optional) | read-only view of container CPU and memory for Background Jobs (`./resdesk.sh resources monitor on`) |
 | `updater` (optional) | the updater helper: upgrades, restarts and server backups started from the Server page (`./resdesk.sh updater on`, [Server](server.md#the-updater-helper)) |
+| `proxy`, `certbot` (optional) | HTTPS on ports 80 and 443 with a Let's Encrypt certificate, when the server has no nginx of its own (`./resdesk.sh https on NAME`, in `compose.https.yaml`) |
 
 Data lives in Docker volumes (`db-data`, `meili-data`, `sites`, …), so stopping or updating
 containers never deletes it. Only `./resdesk.sh uninstall` removes volumes.
@@ -96,6 +97,113 @@ then run `./install.sh`.
    a free certificate from Let's Encrypt ([below](#https-with-lets-encrypt)). Say no to the
    certificate (or use `--no-https`) if HTTPS is handled elsewhere: Cloudflare, Caddy, or a
    proxy of your own in front of port 8080.
+
+If the server already runs nginx for other sites, nothing changes in these steps: Research Desk
+adds its own site to that nginx. The next section goes through it on a new server.
+
+### Step by step: a new Linux server that already runs nginx
+
+For a fresh Ubuntu or Debian server (a VPS, or a machine in the library) where nginx is
+installed and perhaps serves other sites. Research Desk runs in Docker behind that nginx, and
+gets its certificate from the server's certbot. Your other sites keep working as they are.
+
+**Before you start**
+
+| Check | How |
+|---|---|
+| A DNS name points at the server | an **A** record, e.g. `research.example.org` → the server's public IP (and **AAAA** for IPv6). `dig +short research.example.org` on your computer shows the address |
+| Ports 80 and 443 are open to the internet | cloud firewall or security group; on the server `sudo ufw status` (if it is active: `sudo ufw allow 'Nginx Full'`) |
+| nginx runs | `systemctl status nginx` |
+| You can use `sudo` | the installer asks for your password once, to add the nginx site and run certbot |
+| 4 GB of memory, 10 GB of disk free | `free -h`, `df -h` |
+| Port 8080 is free | `sudo ss -ltnp 'sport = :8080'` shows nothing. If it is taken, use another port: step 3 |
+
+**1. Install Docker** (skip if `docker compose version` already works)
+
+```bash
+curl -fsSL https://get.docker.com | sudo sh
+sudo usermod -aG docker "$USER"
+newgrp docker          # or log out and in again
+docker compose version
+```
+
+**2. Get Research Desk**
+
+```bash
+git clone https://github.com/ServantsOfKnowledge/researchdesk.git
+cd researchdesk
+```
+
+**3. Install, with the name**
+
+```bash
+./install.sh --domain research.example.org --email you@example.org
+```
+
+It asks a few questions; press Enter for the defaults. Give a different port at *Port to open
+in your browser* if 8080 is taken (only nginx on this server talks to it). Building takes
+10 to 20 minutes the first time. When the site is up it continues with HTTPS by itself:
+
+```
+nginx already answers on this server: Research Desk gets a site in it.
+HTTPS for research.example.org through this server's nginx, with a Let's Encrypt certificate
+  research.example.org → 203.0.113.10
+1/4 nginx and certbot…
+  ✓ nginx 1.24.0 (Ubuntu), certbot 2.9.0
+2/4 A site for research.example.org in nginx…
+  ✓ /etc/nginx/sites-available/researchdesk-research-example-org.conf → port 8080
+3/4 Asking Let's Encrypt for a certificate…
+  … Successfully deployed certificate for research.example.org …
+4/4 Switching to HTTPS…
+HTTPS is on: https://research.example.org/library
+```
+
+(certbot and its nginx plugin are installed first if they are missing.)
+
+**4. Check it**
+
+```bash
+./resdesk.sh url            # the address, in .env, the site and Settings: all https://research.example.org
+./resdesk.sh https status   # name, expiry date, renewal timer
+```
+
+Open `https://research.example.org/library` (the portal) and `/app/research-desk` (the Desk;
+the Administrator password is printed at the end of the install and kept in `.env`).
+
+**What it changed on the server**
+
+| | |
+|---|---|
+| `/etc/nginx/sites-available/researchdesk-research-example-org.conf` (linked from `sites-enabled`) | one `server` block for this name only, passing everything to `127.0.0.1:8080`. certbot added the `listen 443 ssl` lines and the HTTP → HTTPS redirect to it |
+| `/etc/letsencrypt/live/research.example.org/` | the certificate; the `certbot.timer` systemd timer renews it |
+| `.env` in the Research Desk folder | `BASE_URL`, `HTTPS_NGINX=1`, `HTTPS_DOMAIN`, and `HTTP_BIND=127.0.0.1:` so port 8080 only answers on the server itself |
+| packages | `certbot` and `python3-certbot-nginx`, if they weren't installed |
+
+Nothing else in nginx is touched: no other site, not `nginx.conf`. `./resdesk.sh https off`
+removes the site again (and keeps the certificate).
+
+**Already installed without a name?** Add it at any time:
+
+```bash
+./resdesk.sh https on research.example.org --email you@example.org
+```
+
+**Native instead of Docker** (`./install.sh --native --domain research.example.org`) works the
+same way, with two differences: the site goes to port 8000, and it also routes
+`/socket.io` to Frappe's realtime server on port 9000 (progress bars and live updates in the
+Desk need it).
+
+**If something goes wrong**
+
+| Message or symptom | What to do |
+|---|---|
+| *Couldn't reach http://NAME from here*, then certbot: *Timeout* or *Connection refused* | DNS doesn't point here yet (`dig +short NAME`), or port 80 is blocked (cloud firewall, `ufw`). Fix it, then `./resdesk.sh https on NAME` |
+| certbot: *too many certificates* or *rate limit* | Let's Encrypt's weekly limit: wait, and try your setup with `--staging` first |
+| *nginx doesn't accept the configuration* | another site already has the same `server_name`: `sudo nginx -T \| grep -n "server_name NAME"`, and remove it from that site |
+| *Something on this server already uses port 80 or 443, and it isn't nginx* | Apache or Caddy has the ports. Let it pass `https://NAME` on to `http://127.0.0.1:8080`, and run `./resdesk.sh url https://NAME` |
+| The page says *502 Bad Gateway* | Research Desk isn't running or is still starting: `./resdesk.sh status`, `./resdesk.sh start` |
+| Cloudflare in front (orange cloud) | turn the proxy off (grey cloud) while the certificate is issued, or use Cloudflare's own certificate and `./install.sh --no-https` |
+| Wrong name, or a new one | `./resdesk.sh url https://NEW-NAME` (gets a certificate for it; the old site is removed once the new one works) |
 
 ### HTTPS with Let's Encrypt
 
@@ -269,8 +377,16 @@ it `/library-source`.
 
 **Starting on boot (native):** on Linux, add `@reboot cd /path/to/researchdesk && ./resdesk.sh start`
 with `crontab -e`. On macOS, add `resdesk.sh start` to *System Settings → General → Login Items*
-through a small Automator app or a LaunchAgent. For a public Linux server, prefer Docker, or Frappe's
-own `sudo bench setup production` (nginx + supervisor).
+through a small Automator app or a LaunchAgent. For a public Linux server, prefer Docker.
+
+**Native on a server with a name (Linux):** `./install.sh --native --domain NAME` (or
+`./resdesk.sh https on NAME` later) puts the server's **nginx** in front: a site for that name
+passing pages to gunicorn and `/socket.io` to Frappe's realtime server, a Let's Encrypt
+certificate from certbot, and gunicorn moved to `127.0.0.1` so only nginx answers from outside.
+nginx and certbot are installed if missing; an nginx that already serves other sites is used
+as it is ([step by step](#step-by-step-a-new-linux-server-that-already-runs-nginx)). Without
+nginx in front, a native install answers on port 8000 directly and the Desk's realtime updates
+(progress bars, live lists) don't reach browsers.
 
 `./resdesk.sh dev on` switches the native web server to Frappe's auto-reloading development
 server (with `developer_mode`); `dev off` goes back to gunicorn. Never leave dev mode on for a
