@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------------------
-#  SoK Research Desk: native install (no Docker)
+#  SOK Research Desk: native install (no Docker)
 #
 #  Installs everything directly on this computer:
 #    MariaDB, Redis, Meilisearch, Python 3.14 (via uv), Node 24 (via nvm),
@@ -161,7 +161,7 @@ if ! site_apps | grep -q '^frappe'; then
 fi
 bench --site "$SITE" set-config resdesk_meili_url "http://127.0.0.1:$MEILI_PORT" >/dev/null
 bench --site "$SITE" set-config resdesk_meili_key "$MEILI_MASTER_KEY" >/dev/null
-bench --site "$SITE" set-config resdesk_portal_title "${PORTAL_TITLE:-SoK Research Desk}" >/dev/null
+bench --site "$SITE" set-config resdesk_portal_title "${PORTAL_TITLE:-SOK Research Desk}" >/dev/null
 bench --site "$SITE" set-config resdesk_contact "${CONTACT_EMAIL:-}" >/dev/null
 bench --site "$SITE" set-config resdesk_repository_id "$SITE" >/dev/null
 mkdir -p "$LIBRARY_DIR"

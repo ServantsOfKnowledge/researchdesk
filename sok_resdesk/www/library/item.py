@@ -30,7 +30,7 @@ def get_context(context):
 	context.no_cache = 1
 	context.full_width = 1
 	context.show_sidebar = 0
-	context.portal_title = s.portal_title or "SoK Research Desk"
+	context.portal_title = s.portal_title or "SOK Research Desk"
 	context.can_read = access.can_read(record.get("visibility"))
 	if not context.can_read:
 		record["pdf_url"] = ""  # keep it out of the page and its citation meta tags

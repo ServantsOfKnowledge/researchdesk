@@ -195,7 +195,7 @@ def context() -> frappe._dict:
 
 	doc = frappe.get_cached_doc("RD About Page")
 	s = settings()
-	portal = s.portal_title or "SoK Research Desk"
+	portal = s.portal_title or "SOK Research Desk"
 	ctx = frappe._dict(
 		enabled=bool(doc.enabled),
 		portal_title=portal,

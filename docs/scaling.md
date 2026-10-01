@@ -82,7 +82,7 @@ more of the index stays in memory and search is faster.
 3. **Start it in the background**, split across the workers:
 
    ```bash
-   ./resdesk.sh ingest --collection ServantsOfKnowledge --limit 50000 --background --name "SoK 50k"
+   ./resdesk.sh ingest --collection ServantsOfKnowledge --limit 50000 --background --name "SOK 50k"
    ```
 
    Or in the Desk: an Ingest Profile with *Maximum Items* 50000 → **Run Ingest**. Large runs

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------------------
-#  SoK Research Desk — one-command installer
+#  SOK Research Desk — one-command installer
 #
 #  ./install.sh              interactive install (asks: Docker or native)
 #  ./install.sh --docker     run everything in Docker containers (recommended)
@@ -60,7 +60,7 @@ secret() { # random URL-safe string
 }
 
 echo
-bold "SoK Research Desk installer"
+bold "SOK Research Desk installer"
 echo
 
 # 0. Docker or native? ------------------------------------------------------------
@@ -109,7 +109,7 @@ if [ -f .env ]; then
   set -a; . ./.env; set +a
 else
   DEFAULT_PORT=8080; [ "$MODE" = native ] && DEFAULT_PORT=8000
-  ask PORTAL_TITLE  "Portal name"                                        "SoK Research Desk"
+  ask PORTAL_TITLE  "Portal name"                                        "SOK Research Desk"
   ask CONTACT_EMAIL "Your email (sent politely to the Internet Archive)" "$EMAIL"
   if [ -z "$DOMAIN" ] && [ "$YES" != 1 ]; then
     echo "  On a server with a DNS name (e.g. library.example.org) pointing at it, give the name for"
@@ -237,9 +237,9 @@ if [ -z "$SAMPLE" ]; then
   fi
 fi
 if [ "$SAMPLE" = 1 ]; then
-  ./resdesk.sh ingest --profile "SoK Kannada sample" --limit 20 || warn "Sample ingest had problems; you can retry with ./resdesk.sh ingest --profile \"SoK Kannada sample\""
+  ./resdesk.sh ingest --profile "SOK Kannada sample" --limit 20 || warn "Sample ingest had problems; you can retry with ./resdesk.sh ingest --profile \"SOK Kannada sample\""
 else
-  ok "Skipped. Later: ./resdesk.sh ingest --profile \"SoK Kannada sample\""
+  ok "Skipped. Later: ./resdesk.sh ingest --profile \"SOK Kannada sample\""
 fi
 
 echo

@@ -415,7 +415,7 @@ Errors from background jobs also appear in Desk → *Error Log*.
 `./resdesk.sh help` prints:
 
 ```text
-SoK Research Desk — everyday commands
+SOK Research Desk — everyday commands
 
   ./resdesk.sh start | stop | restart | status
   ./resdesk.sh logs [name]              follow logs (Docker: backend, queue…; native: bench-start, worker, web…)
@@ -427,7 +427,7 @@ Choosing and ingesting books
   ./resdesk.sh ingest --ids "id1,id2,id3"
   ./resdesk.sh ingest --folder /library-source            (IA-style item folders in LIBRARY_DIR)
   ./resdesk.sh ingest --server https://books.example.org/items/
-  ./resdesk.sh ingest --profile "SoK Kannada sample"
+  ./resdesk.sh ingest --profile "SOK Kannada sample"
   ./resdesk.sh ingest --folder /library-source/staff --visibility members   (who can see the new books)
       options: --no-fulltext  --update  --limit 0 (= everything)  --background
 

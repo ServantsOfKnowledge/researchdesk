@@ -76,7 +76,7 @@ def to_marcxml_record(item: dict, base_url: str = "", with_namespace: bool = Fal
 	fields = [
 		f"<leader>{'00000nam a22000007i 4500'}</leader>",
 		_cf("001", item["item_id"]),
-		_cf("003", "SoK-ResDesk"),
+		_cf("003", "SOK-ResDesk"),
 		_cf("005", datetime.now().strftime("%Y%m%d%H%M%S.0")),
 		_cf("007", "cr |||||||||||"),
 		_cf("008", fixed_008(item)),

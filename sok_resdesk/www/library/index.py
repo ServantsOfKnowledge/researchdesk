@@ -21,7 +21,7 @@ def get_context(context):
 	context.no_cache = 1
 	context.full_width = 1
 	context.show_sidebar = 0
-	context.title = s.portal_title or "SoK Research Desk"
+	context.title = s.portal_title or "SOK Research Desk"
 	context.portal_title = context.title
 	context.tagline = s.portal_tagline or ""
 	context.item_count = frappe.db.sql(

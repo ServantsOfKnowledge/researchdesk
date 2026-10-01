@@ -29,7 +29,7 @@ def get_context(context):
 	context.no_cache = 1
 	context.full_width = 1
 	context.show_sidebar = 0
-	context.portal_title = s.portal_title or "SoK Research Desk"
+	context.portal_title = s.portal_title or "SOK Research Desk"
 	context.collection = doc
 	cards = collection_cards()
 	context.count = next((c.count for c in cards if c.name == doc.name), 0)

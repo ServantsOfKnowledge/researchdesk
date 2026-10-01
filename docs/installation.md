@@ -58,7 +58,7 @@ Settings you can change in `.env` before (re)running the installer:
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `PORTAL_TITLE` | SoK Research Desk | shown on the portal |
+| `PORTAL_TITLE` | SOK Research Desk | shown on the portal |
 | `HTTP_PORT` | 8080 | port on your computer |
 | `BASE_URL` | http://localhost:8080 | public address. Used in citations, OAI-PMH, MARC 856 and realtime. Set with `./install.sh --domain` or `./resdesk.sh url` ([Changing the portal's address](#changing-the-portals-address)) |
 | `HTTPS`, `HTTPS_DOMAIN` | 0 | set by `./resdesk.sh https on DOMAIN`: nginx + Let's Encrypt on ports 80 and 443 |

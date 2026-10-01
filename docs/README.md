@@ -1,3 +1,5 @@
+<img src="../sok_resdesk/public/images/sok-logo.png" alt="Servants of Knowledge" height="64">
+
 # Research Desk documentation
 
 - [Using the library](reader-guide.md): for readers: finding, reading and citing books, My list, members-only books

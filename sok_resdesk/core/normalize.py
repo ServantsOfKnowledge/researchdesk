@@ -11,7 +11,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-# ISO 639-3 code -> English label. Covers what appears in SoK and common Indic
+# ISO 639-3 code -> English label. Covers what appears in SOK and common Indic
 # holdings; unknown values are kept as-is so nothing is lost.
 LANGUAGES: dict[str, str] = {
 	"eng": "English",

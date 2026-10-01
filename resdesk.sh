@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Everyday commands for SoK Research Desk (Docker or native install).  ./resdesk.sh help
+# Everyday commands for SOK Research Desk (Docker or native install).  ./resdesk.sh help
 set -euo pipefail
 cd "$(dirname "$0")"
 # Coolify and similar hosts: no .env here, the containers have their own names
@@ -358,7 +358,7 @@ PY
 
   help|*)
     cat <<EOF
-SoK Research Desk — everyday commands  (this install: $MODE)
+SOK Research Desk — everyday commands  (this install: $MODE)
 
   ./resdesk.sh start | stop | restart | status
   ./resdesk.sh logs [name]              follow logs (Docker: backend, queue…; native: bench-start, worker, web…)
@@ -370,7 +370,7 @@ Choosing and ingesting books
   ./resdesk.sh ingest --ids "id1,id2,id3"
   ./resdesk.sh ingest --folder /library-source            (IA-style item folders in LIBRARY_DIR)
   ./resdesk.sh ingest --server https://books.example.org/items/
-  ./resdesk.sh ingest --profile "SoK Kannada sample"
+  ./resdesk.sh ingest --profile "SOK Kannada sample"
   ./resdesk.sh ingest --folder /library-source/staff --visibility members   (who can see the new books)
       options: --no-fulltext  --update  --limit 0 (= everything)  --background
 

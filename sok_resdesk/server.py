@@ -289,7 +289,7 @@ def _get_json(url: str):
 		url,
 		timeout=15,
 		headers={
-			"User-Agent": "SoK-ResearchDesk/0.11 update check (+https://github.com/ServantsOfKnowledge/researchdesk)",
+			"User-Agent": "SOK-ResearchDesk/0.11 update check (+https://github.com/ServantsOfKnowledge/researchdesk)",
 			"Accept": "application/vnd.github+json",
 		},
 	)

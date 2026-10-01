@@ -1,4 +1,4 @@
-# SoK Research Desk: full stack in Docker.
+# SOK Research Desk: full stack in Docker.
 #
 # Most people should run ./install.sh instead of using this file directly.
 # It creates .env with random passwords, builds the image and creates the site.
@@ -136,7 +136,7 @@ services:
       DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?run ./install.sh first}
       MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
-      PORTAL_TITLE: ${PORTAL_TITLE:-SoK Research Desk}
+      PORTAL_TITLE: ${PORTAL_TITLE:-SOK Research Desk}
       CONTACT_EMAIL: ${CONTACT_EMAIL:-}
       BASE_URL: ${BASE_URL:-}
       FORCE_MIGRATE: ${FORCE_MIGRATE:-0}

@@ -32,7 +32,7 @@ progress page), **Sync with archive.org** (bring in what changed since the last 
 
 Research Desk only asks for `mediatype:texts`, so audio, video and collection records are skipped.
 
-Two starter profiles are created on install: *SoK Kannada sample* and *SoK English sample*.
+Two starter profiles are created on install: *SOK Kannada sample* and *SOK English sample*.
 
 ## Servants of Knowledge sub-collections
 
@@ -83,7 +83,7 @@ Combine with `AND` / `OR` and brackets. Try the same query on
 ./resdesk.sh ingest --query 'collection:ServantsOfKnowledge AND subject:vachana' --limit 100
 ./resdesk.sh ingest --ids "1857rasipayidhan0000srik,1909kannadaeleme0000kran"
 ./resdesk.sh ingest --ids-file my-list.txt          # the file must be inside the container; see below
-./resdesk.sh ingest --profile "SoK Kannada sample" --limit 20
+./resdesk.sh ingest --profile "SOK Kannada sample" --limit 20
 
 # options
 --no-fulltext   metadata only (much faster; no search inside books)

@@ -1,4 +1,4 @@
-# Autopilot state: SoK Research Desk
+# Autopilot state: SOK Research Desk
 
 ## Last run
 2026-10-02: v0.11.0 (Server page, book limit, archive.org sync). Autopilot passes: 2026-09-30 (v0.10.0, v0.10.1).

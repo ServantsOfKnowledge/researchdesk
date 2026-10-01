@@ -7,6 +7,10 @@
 	<nav class="rd-crumbs"><a href="{{ library_url() }}">← {{ portal_title }}</a> · <a href="/library/help">{{ _("Help") }}</a></nav>
 	<div class="rd-help__layout">
 		<aside class="rd-help__nav" aria-label="{{ _('Help pages') }}">
+			<a class="rd-help__brand" href="{{ library_url() }}">
+				<img src="{{ page.brand.logo | e }}" alt="{{ page.brand.title | e }}">
+				<span>{{ _("Help") }}</span>
+			</a>
 			{% for g in page.index %}
 			<h3>{{ g.group }}</h3>
 			<ul>

@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.16.1 (2026-10-02): the logo on the help pages, and SOK
+
+- **The help pages carry the library's logo**, on the portal (for readers) and in the Desk (for
+  staff): the one set in Settings → Logo & Branding, or else the Servants of Knowledge logo
+  (Ganesha reading), which now ships with Research Desk (`public/images/sok-logo.png`). The
+  documentation on GitHub carries it too, and every picture in the guides was taken again with
+  it, showing the About page and the library at `/`
+- **SOK, not SoK**, everywhere: the default portal name *SOK Research Desk*, the starter
+  profiles (*SOK Kannada sample*, *SOK English sample*), the guides, and the name Research
+  Desk gives itself to archive.org and in MARC records (`SOK-ResDesk`). Upgrades rename the
+  portal and the starter profiles where they still have the old spelling
+- **`scripts/publish.sh`** puts the newest release on GitHub's `main` branch, so a fresh
+  `git clone` always gets the current version (`main` had stayed at 0.4.0 while only the tags
+  were pushed, because the folder was on a release tag rather than on `main`)
+- The *About Page* link in the workspace and *Open Portal* going to `/` now reach existing
+  installs (the workspace file's date had gone backwards in 0.15.0, so upgrades skipped it)
+
 ## 0.16.0 (2026-10-02): the library at /
 
 - **The library's search page is the site's front page, `/`**, for everyone, logged-in staff

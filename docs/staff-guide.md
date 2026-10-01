@@ -23,6 +23,9 @@ never see the Desk; they use the portal at `/`, the site's front page (book page
 
 ### Help on every screen
 
+The help pages, in the Desk and on the portal, carry your library's logo (Settings → Logo &
+Branding), or the Servants of Knowledge logo until you set one.
+
 Every Research Desk screen has a **Help** menu at the top:
 
 - **Help for this screen** opens this documentation at the right section, inside the Desk.

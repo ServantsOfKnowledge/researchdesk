@@ -19,7 +19,7 @@ def base_url() -> str:
 
 
 def portal_title() -> str:
-	return settings().portal_title or "SoK Research Desk"
+	return settings().portal_title or "SOK Research Desk"
 
 
 # -- read ---------------------------------------------------------------------

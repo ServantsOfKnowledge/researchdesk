@@ -1,4 +1,6 @@
-# SoK Research Desk
+<img src="sok_resdesk/public/images/sok-logo.png" alt="Servants of Knowledge" height="64">
+
+# SOK Research Desk
 
 An open research portal and digital library for the books digitised by
 [Servants of Knowledge](https://archive.org/details/ServantsOfKnowledge), and for any other

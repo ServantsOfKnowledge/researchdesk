@@ -16,7 +16,8 @@ researchdesk/
 │   ├── dev-setup.sh        bench setup for developers
 │   ├── gen_docs.py         the generated parts of docs/ (./resdesk.sh docs)
 │   ├── screenshots.py      retake the pictures in docs/ (./resdesk.sh screenshots)
-│   └── release.sh          check docs + changelog, set the version, tag
+│   ├── release.sh          check docs + changelog, set the version, tag
+│   └── publish.sh          put the newest release on GitHub's main (and push the tags)
 ├── docs/                   this documentation
 ├── .github/workflows/      CI (lint, unit, Docker install + integration) and image publishing
 └── sok_resdesk/            the Frappe app
@@ -163,6 +164,12 @@ The in-app help, tours and checklist:
 1. Write the `CHANGELOG.md` entry (`## X.Y.Z (date): what it brings`).
 2. `scripts/release.sh X.Y.Z` sets `__version__`, refreshes the generated docs, runs the doc and
    unit checks, commits and tags. It stops if the changelog has no entry for that version.
-3. `git push origin main --tags`. Installs pick it up with `./upgrade.sh` (latest tag), and the
+3. `scripts/publish.sh` (or `scripts/publish.sh FILE.bundle` for a release made elsewhere)
+   moves GitHub's **`main`** to the new release tag and pushes the tags. Do this, not only
+   `git push --tags`: a fresh `git clone` gets whatever `main` is, so `main` must always be
+   the newest release. It works whatever the folder has checked out (after `./upgrade.sh` it's
+   a release tag, not a branch, so `git push origin main` would push an old `main`), only ever
+   moves `main` forward, and `--check` shows what it would do. Installs pick it up with
+   `./upgrade.sh` (latest tag), and the
    `docker-image.yml` workflow publishes `ghcr.io/servantsofknowledge/researchdesk:X.Y.Z` and
    `:latest` for amd64 and arm64.

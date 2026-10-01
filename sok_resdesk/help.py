@@ -83,12 +83,26 @@ def _index(audience: str | None = None) -> list[dict]:
 	return [{"group": _(g), "pages": pages} for g, pages in groups.items()]
 
 
+# the logo the help pages carry when the library hasn't set its own (Settings → Logo & Branding):
+# the Servants of Knowledge logo, shipped with the app
+HELP_LOGO = "/assets/sok_resdesk/images/sok-logo.png"
+
+
+def brand() -> dict:
+	"""The logo and name at the top of the help pages: the library's own (Settings → Logo), else the
+	Servants of Knowledge logo that ships with Research Desk."""
+	return {
+		"logo": frappe.db.get_single_value("RD Settings", "portal_logo") or HELP_LOGO,
+		"title": frappe.db.get_single_value("RD Settings", "portal_title") or "SOK Research Desk",
+	}
+
+
 def portal_page(slug: str | None) -> dict:
 	"""For www/library/help.py: reader pages only."""
 	page = helpdocs.BY_SLUG.get(slug or "reader-guide")
 	if not page or page.audience != "reader":
 		raise frappe.DoesNotExistError
-	return {**_render(page, "portal"), "index": _index("reader")}
+	return {**_render(page, "portal"), "index": _index("reader"), "brand": brand()}
 
 
 @frappe.whitelist()
@@ -101,7 +115,7 @@ def get_page(slug: str = "staff-guide") -> dict:
 	page = helpdocs.BY_SLUG.get(slug)
 	if not page:
 		frappe.throw(_("No help page called {0}.").format(slug), frappe.DoesNotExistError)
-	return {**_render(page, "desk"), "index": _index()}
+	return {**_render(page, "desk"), "index": _index(), "brand": brand()}
 
 
 def boot_session(bootinfo):

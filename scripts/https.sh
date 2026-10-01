@@ -172,7 +172,7 @@ write_nginx_site() { # write_nginx_site DOMAIN: a plain-HTTP site; certbot adds 
   fi
   local tmp; tmp=$(mktemp)
   cat > "$tmp" <<NGINX
-# SoK Research Desk at ${domain}: written by ./resdesk.sh https on (rewritten when the name
+# SOK Research Desk at ${domain}: written by ./resdesk.sh https on (rewritten when the name
 # changes; certbot adds the HTTPS lines). Remove with ./resdesk.sh https off.
 map \$http_upgrade \$${slug}_connection { default upgrade; '' close; }
 

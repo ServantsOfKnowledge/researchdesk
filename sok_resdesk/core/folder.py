@@ -368,7 +368,7 @@ class HttpStore(ItemStore):
 		self.manifest_url = manifest_url
 		self.session = session or requests.Session()
 		self.session.headers.setdefault(
-			"User-Agent", "SoK-ResearchDesk/0.11 (+https://github.com/ServantsOfKnowledge/researchdesk)"
+			"User-Agent", "SOK-ResearchDesk/0.11 (+https://github.com/ServantsOfKnowledge/researchdesk)"
 		)
 		self.timeout = timeout
 		self._listing: dict[str, list[str]] = {}

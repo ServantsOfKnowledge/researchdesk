@@ -17,7 +17,7 @@ def get_context(context):
 	context.no_cache = 1
 	context.full_width = 1
 	context.show_sidebar = 0
-	context.portal_title = s.portal_title or "SoK Research Desk"
+	context.portal_title = s.portal_title or "SOK Research Desk"
 	context.page = page
 	context.title = f"{page['title']} · {context.portal_title}"
 	context.viewer = access.viewer()

@@ -12,7 +12,7 @@ DESK_ROLES = ("ResDesk Manager", "ResDesk Cataloguer")
 
 SAMPLE_PROFILES = [
 	{
-		"profile_name": "SoK Kannada sample",
+		"profile_name": "SOK Kannada sample",
 		"scope_type": "Collection",
 		"ia_collection": "ServantsOfKnowledge",
 		"extra_filter": "language:(kan OR Kannada OR Kan)",
@@ -21,7 +21,7 @@ SAMPLE_PROFILES = [
 		"notes": "A small starter set: 50 Kannada books from Servants of Knowledge. Edit freely.",
 	},
 	{
-		"profile_name": "SoK English sample",
+		"profile_name": "SOK English sample",
 		"scope_type": "Collection",
 		"ia_collection": "ServantsOfKnowledge",
 		"extra_filter": "language:(eng OR English)",
@@ -71,7 +71,7 @@ def set_website_home():
 	ws = frappe.get_single("Website Settings")
 	if not ws.home_page:
 		ws.home_page = "library"
-		ws.app_name = frappe.conf.get("resdesk_portal_title") or "SoK Research Desk"
+		ws.app_name = frappe.conf.get("resdesk_portal_title") or "SOK Research Desk"
 		ws.top_bar_items = []
 		ws.append("top_bar_items", {"label": "Library", "url": "/"})
 		ws.save(ignore_permissions=True)
@@ -163,7 +163,7 @@ def apply_default_settings():
 	"""Pick up values the installer wrote into site_config (resdesk_*)."""
 	s = frappe.get_single("RD Settings")
 	conf = frappe.conf
-	s.portal_title = conf.get("resdesk_portal_title") or s.portal_title or "SoK Research Desk"
+	s.portal_title = conf.get("resdesk_portal_title") or s.portal_title or "SOK Research Desk"
 	s.meili_url = conf.get("resdesk_meili_url") or s.meili_url or "http://127.0.0.1:7700"
 	if conf.get("resdesk_meili_key"):
 		s.meili_api_key = conf.get("resdesk_meili_key")

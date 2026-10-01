@@ -2,7 +2,7 @@
 
 resdesk count    --collection ServantsOfKnowledge --filter "language:kan"
 resdesk ingest   --collection ServantsOfKnowledge --filter "language:kan" --limit 50
-resdesk ingest   --profile "SoK Kannada sample"
+resdesk ingest   --profile "SOK Kannada sample"
 resdesk ingest   --ids "id1,id2"   |  --ids-file ids.txt
 resdesk reindex  [--no-pages]
 resdesk configure --meili-url http://meilisearch:7700 --meili-key KEY --title "My Library"

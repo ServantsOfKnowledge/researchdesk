@@ -50,7 +50,7 @@ RUN rm -rf apps/sok_resdesk/.git \
 # declared last: changes made inside a volume after it is declared would be lost
 VOLUME ["/home/frappe/frappe-bench/sites", "/home/frappe/frappe-bench/logs"]
 
-LABEL org.opencontainers.image.title="SoK Research Desk" \
+LABEL org.opencontainers.image.title="SOK Research Desk" \
       org.opencontainers.image.description="Research portal and digital library on Frappe" \
       org.opencontainers.image.licenses="MIT"
 

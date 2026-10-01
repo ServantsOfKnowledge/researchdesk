@@ -243,3 +243,9 @@
 	.rd-about__hero--image { grid-template-columns: 1fr; }
 	.rd-about__title { font-size: 1.7rem; }
 }
+
+/* the library's logo at the top of the help pages (Settings → Logo; else the SOK logo) */
+.rd-help__brand { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin: 0 0 14px; padding: 0 0 12px; border-bottom: 1px solid var(--rd-border); color: inherit; }
+.rd-help__brand:hover { text-decoration: none; }
+.rd-help__brand img { max-width: 200px; max-height: 64px; width: auto; height: auto; }
+.rd-help__brand span { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--rd-muted); }

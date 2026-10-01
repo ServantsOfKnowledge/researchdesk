@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-02 14:00:00.000000",
+ "modified": "2026-10-02 15:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -85,7 +85,7 @@
    "fieldname": "portal_title",
    "fieldtype": "Data",
    "label": "Portal Title",
-   "default": "SoK Research Desk",
+   "default": "SOK Research Desk",
    "reqd": 1,
    "description": "The library's name on the portal, in the browser tab, in the Desk and in citations."
   },

@@ -67,7 +67,7 @@ In Koha: *Cataloguing → Stage MARC records for import* → upload the file, re
 
 | Tag | Content |
 |---|---|
-| 001 / 003 | IA identifier / `SoK-ResDesk` |
+| 001 / 003 | IA identifier / `SOK-ResDesk` |
 | 007, 008 | online text resource; date, language (MARC code), place `ii` |
 | 020 | ISBN when known |
 | 035 | `(IA)<identifier>` |

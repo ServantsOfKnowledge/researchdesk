@@ -26,7 +26,7 @@ DEFAULT_LOGO = "/assets/sok_resdesk/images/resdesk-logo.svg"
 def apply_branding(settings=None):
 	"""Push the portal name and logo to Frappe's website navbar, favicon and Desk logo."""
 	s = settings or frappe.get_single("RD Settings")
-	title = s.portal_title or "SoK Research Desk"
+	title = s.portal_title or "SOK Research Desk"
 	logo = s.portal_logo or ""
 
 	ws = frappe.get_single("Website Settings")

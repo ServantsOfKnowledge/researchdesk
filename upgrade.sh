@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------------------
-#  SoK Research Desk — upgrade an existing install (Docker or native)
+#  SOK Research Desk — upgrade an existing install (Docker or native)
 #
 #  ./upgrade.sh              upgrade to the latest release (asks before starting)
 #  ./upgrade.sh v0.4.0       upgrade (or roll back) to a specific release
@@ -67,7 +67,7 @@ fi
 TARGET_SHA="$(git rev-parse "$TARGET_REF^{commit}")"
 
 echo
-bold "SoK Research Desk upgrade ($MODE install)"
+bold "SOK Research Desk upgrade ($MODE install)"
 echo "  Installed:  v$CURRENT_VER ($CURRENT_REF)"
 echo "  Target:     $TARGET_LABEL"
 if [ "$(git rev-parse HEAD)" = "$TARGET_SHA" ]; then

@@ -75,6 +75,9 @@ class ResDeskHelp {
 					.join("")}</ul>`
 			)
 			.join("");
+		const brand = p.brand
+			? `<a class="rdh-brand" href="/app/resdesk-help/staff-guide"><img src="${esc(p.brand.logo)}" alt="${esc(p.brand.title)}"><span>${__("Help")}</span></a>`
+			: "";
 		const toc = p.toc.length
 			? `<h6>${__("On this page")}</h6><ul>${p.toc
 					.map((h) => `<li class="rdh-toc-${h.level}"><a href="#${h.anchor}">${esc(frappe.utils.html2text(h.text))}</a></li>`)
@@ -89,6 +92,10 @@ class ResDeskHelp {
 				.rdh-nav li { margin: 3px 0; }
 				.rdh-nav a.active { font-weight: 600; color: var(--primary); }
 				.rdh-toc-3 { padding-left: 12px; }
+				.rdh-brand { display:flex; flex-direction:column; align-items:flex-start; gap:4px; padding: 4px 0 12px; border-bottom: 1px solid var(--border-color); }
+				.rdh-brand:hover { text-decoration: none; }
+				.rdh-brand img { max-width: 180px; max-height: 56px; width: auto; height: auto; }
+				.rdh-brand span { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); }
 				.rdh-body { max-width: 80ch; font-size: 14px; line-height: 1.6; }
 				.rdh-body h1 { font-size: 1.7rem; margin: 0 0 12px; }
 				.rdh-body h2 { font-size: 1.3rem; margin: 30px 0 10px; padding-top: 10px; border-top: 1px solid var(--border-color); scroll-margin-top: 70px; }
@@ -98,7 +105,7 @@ class ResDeskHelp {
 				.rdh-body img { max-width: 100%; height: auto; border: 1px solid var(--border-color); border-radius: 8px; margin: 8px 0; }
 				@media (max-width: 900px) { .rdh { grid-template-columns: 1fr; } .rdh-nav { position: static; max-height: none; } }
 			</style>
-			<aside class="rdh-nav">${nav}${toc}</aside>
+			<aside class="rdh-nav">${brand}${nav}${toc}</aside>
 			<article class="rdh-body">${p.html}</article>`);
 		this.html_ready = true;
 	}
