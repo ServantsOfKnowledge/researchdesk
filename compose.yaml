@@ -230,7 +230,8 @@ services:
       BACKEND: backend:8000
       SOCKETIO: websocket:9000
       FRAPPE_SITE_NAME_HEADER: ${SITE_NAME:-resdesk.localhost}
-      UPSTREAM_REAL_IP_ADDRESS: 127.0.0.1
+      # the HTTPS proxy's network (./resdesk.sh https on), so visitors' own addresses reach Frappe
+      UPSTREAM_REAL_IP_ADDRESS: ${UPSTREAM_REAL_IP_ADDRESS:-127.0.0.1}
       UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
       UPSTREAM_REAL_IP_RECURSIVE: "off"
       PROXY_READ_TIMEOUT: 120
@@ -239,7 +240,8 @@ services:
       - sites:/home/frappe/frappe-bench/sites
       - logs:/home/frappe/frappe-bench/logs
     ports:
-      - "${HTTP_PORT:-8080}:8080"
+      # HTTP_BIND=127.0.0.1: (set by ./resdesk.sh https on) keeps this port to the server itself
+      - "${HTTP_BIND:-}${HTTP_PORT:-8080}:8080"
     depends_on:
       - backend
       - websocket

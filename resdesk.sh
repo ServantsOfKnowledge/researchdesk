@@ -8,6 +8,12 @@ cd "$(dirname "$0")"
 set -a; . ./.env; set +a
 SITE="${SITE_NAME:-resdesk.localhost}"
 MODE="${INSTALL_MODE:-docker}"
+compose_files() { # compose_files DEV_MODE HTTPS → the Compose files for this install
+  local f=compose.yaml
+  [ "$1" = 1 ] && f="$f:compose.dev.yaml"
+  [ "$2" = 1 ] && f="$f:compose.https.yaml"
+  echo "$f"
+}
 
 if [ "$MODE" = native ]; then
   BENCH_DIR="${BENCH_DIR:-$HOME/researchdesk-bench}"
@@ -47,7 +53,11 @@ if [ "$MODE" = native ]; then
   }
 else
   # Developer mode (./resdesk.sh dev on): use this folder's code live inside the containers
-  if [ "${DEV_MODE:-0}" = 1 ] && [ -z "${COMPOSE_FILE:-}" ]; then export COMPOSE_FILE=compose.yaml:compose.dev.yaml; fi
+  # and HTTPS (./resdesk.sh https on): the Let's Encrypt proxy
+  if [ -z "${COMPOSE_FILE:-}" ]; then export COMPOSE_FILE; COMPOSE_FILE=$(compose_files "${DEV_MODE:-0}" "${HTTPS:-0}")
+  elif [ "${HTTPS:-0}" = 1 ]; then
+    case ":$COMPOSE_FILE:" in *:compose.https.yaml:*) ;; *) export COMPOSE_FILE="$COMPOSE_FILE:compose.https.yaml" ;; esac
+  fi
   bench() { docker compose exec -T backend bench --site "$SITE" "$@"; }
   bench_tty() { docker compose exec backend bench --site "$SITE" "$@"; }
 fi
@@ -80,7 +90,6 @@ case "$cmd" in
   logs)
     if [ "$MODE" = native ]; then tail -n 100 -f "$BENCH_DIR/logs/${1:-bench-start}.log"
     else docker compose logs -f --tail 100 "${@:-backend}"; fi ;;
-  url)      echo "http://localhost:${HTTP_PORT:-8080}/library" ;;
 
   count)    bench resdesk count "$@" ;;
   ingest)   bench resdesk ingest "$@" ;;
@@ -212,14 +221,16 @@ PY
     fi
     case "${1:-}" in
       on)  set_env DEV_MODE 1
-           COMPOSE_FILE=compose.yaml:compose.dev.yaml docker compose up -d
-           COMPOSE_FILE=compose.yaml:compose.dev.yaml docker compose exec -T backend bench --site "$SITE" set-config developer_mode 1
-           COMPOSE_FILE=compose.yaml:compose.dev.yaml docker compose restart backend queue scheduler && COMPOSE_FILE=compose.yaml:compose.dev.yaml docker compose restart frontend
+           export COMPOSE_FILE; COMPOSE_FILE=$(compose_files 1 "${HTTPS:-0}")
+           docker compose up -d
+           docker compose exec -T backend bench --site "$SITE" set-config developer_mode 1
+           docker compose restart backend queue scheduler && docker compose restart frontend
            echo "Developer mode ON: code is read live from $(pwd)" ;;
       off) set_env DEV_MODE 0
            docker compose exec -T backend bench --site "$SITE" set-config developer_mode 0 || true
-           COMPOSE_FILE=compose.yaml docker compose build
-           COMPOSE_FILE=compose.yaml docker compose up -d
+           export COMPOSE_FILE; COMPOSE_FILE=$(compose_files 0 "${HTTPS:-0}")
+           docker compose build
+           docker compose up -d
            echo "Developer mode OFF: running the code baked into the image" ;;
       *)   echo "Developer mode is $([ "${DEV_MODE:-0}" = 1 ] && echo ON || echo OFF). Usage: ./resdesk.sh dev on|off" ;;
     esac ;;
@@ -275,6 +286,8 @@ PY
     echo "Restored. Rebuilding the search index in the foreground (Ctrl+C to skip; run ./resdesk.sh reindex later)…"
     bench resdesk reindex ;;
 
+  url)      . scripts/https.sh; rd_url "$@" ;;
+  https)    . scripts/https.sh; rd_https "$@" ;;
   export)   . scripts/move.sh; rd_export "$@" ;;
   import)   . scripts/move.sh; rd_import "$@" ;;
   move-to)  . scripts/move.sh; rd_move_to "$@" ;;
@@ -349,7 +362,6 @@ SoK Research Desk — everyday commands  (this install: $MODE)
 
   ./resdesk.sh start | stop | restart | status
   ./resdesk.sh logs [name]              follow logs (Docker: backend, queue…; native: bench-start, worker, web…)
-  ./resdesk.sh url                      print the portal address
 
 Choosing and ingesting books
   ./resdesk.sh count  --collection ServantsOfKnowledge --filter "language:kan"
@@ -385,6 +397,8 @@ Maintenance
   ./resdesk.sh reindex [--background] [--no-pages] [--reset]
   ./resdesk.sh backup                   database + files into ./site-backups
   ./resdesk.sh restore <file.sql.gz>    restore a database backup, then re-index
+  ./resdesk.sh url [https://NEW.ADDRESS]      show or change the address the portal uses
+  ./resdesk.sh https on DOMAIN [--email E]    HTTPS with a free Let's Encrypt certificate (also: status, renew, off)
   ./resdesk.sh export [FILE]            everything needed to move this install, in one file
   ./resdesk.sh import FILE [--base-url URL]   load an export into this (new) install
   ./resdesk.sh move-to USER@HOST [--with-library]   export, copy over SSH and import in one go

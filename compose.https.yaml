@@ -1,0 +1,37 @@
+# HTTPS with a free Let's Encrypt certificate, added by ./resdesk.sh https on DOMAIN (HTTPS=1 in
+# .env puts this file next to compose.yaml). A separate file, not a profile, so hosts that
+# don't honour Compose profiles (Coolify, which has its own HTTPS) never start it.
+
+services:
+  # nginx answers on ports 80 and 443 in front of the portal; certbot renews the certificate
+  # (checked twice a day) and nginx picks it up by itself (docs/installation.md#https).
+  proxy:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    command: ["sh", "/resdesk-proxy/entrypoint.sh"]
+    environment:
+      DOMAIN: ${HTTPS_DOMAIN:-localhost}
+    volumes:
+      - ./docker/proxy:/resdesk-proxy:ro
+      - certs:/etc/letsencrypt:ro
+      - acme:/var/www/certbot:ro
+    ports:
+      - "${HTTPS_HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    depends_on:
+      - frontend
+
+  certbot:
+    image: certbot/certbot:latest
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "-c", "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet $${ACME_ARGS:-}; sleep 12h & wait $${!}; done"]
+    environment:
+      ACME_ARGS: ${ACME_ARGS:-}
+      REQUESTS_CA_BUNDLE: ${ACME_CA_BUNDLE:-}
+    volumes:
+      - certs:/etc/letsencrypt
+      - acme:/var/www/certbot
+
+volumes:
+  certs:
+  acme:

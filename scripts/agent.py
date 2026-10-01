@@ -79,10 +79,16 @@ def run(cmd, timeout=60, env=None) -> tuple[int, str]:
 
 
 def compose_env(env: dict) -> dict:
-	"""What docker compose needs from .env (it reads the file itself; developer mode adds a file)."""
+	"""What docker compose needs from .env (it reads the file itself; developer mode and HTTPS
+	add a file each)."""
 	extra = {}
-	if env.get("DEV_MODE") == "1" and not env.get("COMPOSE_FILE"):
-		extra["COMPOSE_FILE"] = "compose.yaml:compose.dev.yaml"
+	if not env.get("COMPOSE_FILE") and (env.get("DEV_MODE") == "1" or env.get("HTTPS") == "1"):
+		files = ["compose.yaml"]
+		if env.get("DEV_MODE") == "1":
+			files.append("compose.dev.yaml")
+		if env.get("HTTPS") == "1":
+			files.append("compose.https.yaml")
+		extra["COMPOSE_FILE"] = ":".join(files)
 	return extra
 
 

@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.14.0 (2026-10-01): HTTPS from Let's Encrypt, and the portal's address
+
+- **HTTPS is part of the installation**: `./install.sh --domain library.example.org` (or giving
+  the name when the installer asks for the web address) sets the portal's address and gets a
+  free Let's Encrypt certificate. `./resdesk.sh https on DOMAIN` does it later: nginx on ports
+  80 and 443 in front of the portal, certbot renewing the certificate by itself, HTTP
+  redirected to HTTPS, and the portal's own port kept to the server. `https status`, `renew`,
+  `off`. The containers live in `compose.https.yaml`, added only when HTTPS is on, so Coolify
+  never starts them
+- **Works with the server's own nginx**: when nginx already has ports 80 and 443 (other sites
+  on the server), and on every native install on Linux, `https on` adds a site for Research
+  Desk to that nginx and uses the server's certbot (`--nginx`), leaving the other sites alone.
+  Before, native installs ignored nginx entirely, and realtime updates (progress bars, live
+  lists) didn't reach browsers; the nginx site now routes them to Frappe's socket.io server
+- **`./resdesk.sh url`** shows the portal's address everywhere it is kept, and
+  `./resdesk.sh url https://NEW` changes it in one go (`.env`, the site's `host_name`, Settings
+  → Public Base URL), with no restart. With HTTPS on, a new name gets its own certificate
+  while the old one keeps working until it does
+- Changing the address no longer waits for the search engine (it could take a minute while
+  books were being indexed)
+
 ## 0.13.0 (2026-10-01): Coolify
 
 - **Deploys on Coolify**: `WORKERS_PER_CONTAINER` runs several background workers inside one

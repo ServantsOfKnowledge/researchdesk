@@ -256,3 +256,11 @@ def complete_setup_wizard(timezone: str = "Asia/Kolkata", country: str = "India"
 	)
 	frappe.db.commit()
 	return result
+
+
+def set_base_url(url: str) -> None:
+	"""The portal's public address in Settings (./resdesk.sh url, create-site.sh). Only that
+	field: no save hooks, and no waiting for the search engine, which may be busy indexing."""
+	frappe.db.set_single_value("RD Settings", "base_url", url.rstrip("/"))
+	frappe.db.commit()
+	frappe.clear_cache()

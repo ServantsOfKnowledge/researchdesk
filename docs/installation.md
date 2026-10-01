@@ -46,6 +46,7 @@ multi-architecture.
 ./install.sh            # interactive
 ./install.sh --yes      # accept all defaults (for scripts/CI)
 ./install.sh --sample   # also ingest 20 sample books
+./install.sh --domain library.example.org   # a server with a DNS name: HTTPS from Let's Encrypt
 ```
 
 The installer writes `.env` with random passwords (keep it private). You can re-run
@@ -58,7 +59,8 @@ Settings you can change in `.env` before (re)running the installer:
 |---|---|---|
 | `PORTAL_TITLE` | SoK Research Desk | shown on the portal |
 | `HTTP_PORT` | 8080 | port on your computer |
-| `BASE_URL` | http://localhost:8080 | public address. Used in citations, OAI-PMH, MARC 856 and realtime. **Change this on a server.** |
+| `BASE_URL` | http://localhost:8080 | public address. Used in citations, OAI-PMH, MARC 856 and realtime. Set with `./install.sh --domain` or `./resdesk.sh url` ([Changing the portal's address](#changing-the-portals-address)) |
+| `HTTPS`, `HTTPS_DOMAIN` | 0 | set by `./resdesk.sh https on DOMAIN`: nginx + Let's Encrypt on ports 80 and 443 |
 | `CONTACT_EMAIL` | (empty) | sent to archive.org in the User-Agent; also the OAI-PMH admin email |
 | `TIMEZONE` / `COUNTRY` / `CURRENCY` | Asia/Kolkata / India / INR | Frappe system defaults |
 | `GUNICORN_WORKERS` | 2 | web workers; raise on bigger servers |
@@ -80,26 +82,92 @@ then run `./install.sh`.
 
 ## Docker on a server with a domain name and HTTPS
 
-1. Point a DNS name (e.g. `library.example.org`) at the server.
-2. In `.env`, set `BASE_URL=https://library.example.org` and keep `HTTP_PORT=8080`.
-3. Run `./install.sh`.
-4. Put a TLS-terminating reverse proxy in front of port 8080. With **Caddy**:
+1. Point a DNS name (e.g. `library.example.org`) at the server: an **A** record with its public
+   address (and **AAAA** for IPv6). Open ports **80** and **443** to the internet (firewall,
+   cloud security group, or port forwarding on your router).
+2. Install with the name:
 
-   ```
-   library.example.org {
-       reverse_proxy 127.0.0.1:8080
-   }
+   ```bash
+   ./install.sh --domain library.example.org --email you@example.org
    ```
 
-   With **nginx**, proxy to `http://127.0.0.1:8080` and pass `Host`, `X-Forwarded-For`
-   and `X-Forwarded-Proto`. Include the websocket upgrade headers for `/socket.io`.
+   Or run `./install.sh` and give the name when it asks for the *web address*. The installer
+   sets the portal's address to `https://library.example.org` and, after the site is up, gets
+   a free certificate from Let's Encrypt ([below](#https-with-lets-encrypt)). Say no to the
+   certificate (or use `--no-https`) if HTTPS is handled elsewhere: Cloudflare, Caddy, or a
+   proxy of your own in front of port 8080.
 
-If you changed `BASE_URL` after the first install, apply it with:
+### HTTPS with Let's Encrypt
+
+`./resdesk.sh https on DOMAIN` (which the installer runs for you) works one of two ways,
+chosen by itself:
+
+| | How |
+|---|---|
+| **Docker, nothing on ports 80/443** | two small containers: **nginx** on ports 80 and 443 in front of the portal, and **certbot**, which gets the certificate and renews it (`compose.https.yaml`) |
+| **The server already runs nginx** (other sites on it), and **every native install** on Linux | a site for Research Desk in *that* nginx (`/etc/nginx/sites-available/researchdesk-DOMAIN.conf`), and the certificate from the server's certbot (`certbot --nginx`, renewed by its timer). Your other sites are not touched. nginx and certbot are installed with apt if missing; it asks for your `sudo` password |
+
+Force one or the other with `--nginx` or `--docker-proxy`. If something other than nginx has
+port 80 or 443 (Apache, Caddy…), it stops and says so: pass the name on from that server to
+`http://127.0.0.1:8080` (Docker) or `:8000` (native), and set the address with
+`./resdesk.sh url`.
+
+On a native install the nginx site also carries **realtime updates** (progress bars, live
+lists): Frappe's socket.io server listens on its own port, which browsers can't reach without
+nginx in front. The portal's own port (8000) is then kept to the server itself.
 
 ```bash
-./resdesk.sh bench set-config host_name https://library.example.org
-./resdesk.sh configure --base-url https://library.example.org
+./resdesk.sh https on library.example.org [--email you@example.org]   # turn on, or add later
+./resdesk.sh https status     # the name, the containers, when the certificate expires
+./resdesk.sh https renew      # renew now (it renews by itself)
+./resdesk.sh https off        # back to plain HTTP on port 8080 (the certificate is kept)
 ```
+
+What `https on` does with its own containers (the server's nginx: the same steps, with a site
+in that nginx instead of the containers):
+
+1. starts nginx on ports 80 and 443, and keeps the portal's own port (8080) to the server
+   itself, so visitors only come in through HTTPS;
+2. checks that the name reaches this server;
+3. asks Let's Encrypt for a certificate (the *webroot* check on port 80);
+4. switches nginx to HTTPS (HTTP redirects to it) and sets the portal's address to
+   `https://DOMAIN`.
+
+Certificates last 90 days. certbot checks twice a day and renews a month before they expire;
+nginx picks up the new one within 6 hours. Let's Encrypt emails the address you give
+(`--email`, or *CONTACT_EMAIL* in `.env`) if a renewal keeps failing. `--staging` uses Let's
+Encrypt's test service (certificates browsers don't trust) while you try things out, without
+running into its limits.
+
+If it fails, the message says why. Usually the DNS name doesn't point at the server yet, or
+port 80 is closed: fix it and run `./resdesk.sh https on DOMAIN` again. The portal keeps
+answering on `http://DOMAIN` meanwhile. If another web server already uses port 80 or 443 on
+the machine, stop it, or leave HTTPS to it (proxy to `http://127.0.0.1:8080` with `Host`,
+`X-Forwarded-For`, `X-Forwarded-Proto` and the websocket upgrade headers for `/socket.io`).
+
+On **macOS** (native), put Caddy (`reverse_proxy 127.0.0.1:8000`, plus `/socket.io*` to
+`127.0.0.1:9000`) or nginx in front by hand. On **Coolify**, Coolify does HTTPS itself.
+
+### Changing the portal's address
+
+The address goes into citations, OAI-PMH, MARC 856 links, emails and the realtime connection.
+Set it when installing (`--domain`, or the *web address* question), or at any time after:
+
+```bash
+./resdesk.sh url                                  # what it is now, everywhere it's kept
+./resdesk.sh url https://library.example.org      # change it
+./resdesk.sh url http://192.168.1.20:8080         # e.g. a machine on your own network
+```
+
+`url` sets `BASE_URL` in `.env`, the site's `host_name` and Settings → *Public Base URL* in one
+go, with no restart. With HTTPS on, a new name also gets its own certificate; the old one keeps
+working until the new one is in. Links people already copied (citations, OAI-PMH records
+harvested elsewhere) keep the old address, so keep the old name pointing here for a while, or
+redirect it.
+
+You can also change *Public Base URL* in Settings in the Desk (or with
+`./resdesk.sh configure --base-url URL`), but that changes only the links; `./resdesk.sh url`
+changes all three.
 
 ### Coolify
 

@@ -393,7 +393,8 @@ workspace after login. Readers can also sign up themselves, or be added with
 | Page search slow or disk full on a big collection | see [Scaling](scaling.md) for sizing |
 | Some items *FAIL* in a run log | usually a temporary IA error: re-run the profile (existing items are skipped) |
 | Book has no "search inside" | IA has no page-level OCR for it yet, or it's access-restricted |
-| Citations show `localhost` links on a server | set `BASE_URL` (see [Installation](installation.md#docker-on-a-server-with-a-domain-name-and-https)) |
+| Citations show `localhost` links on a server | `./resdesk.sh url https://your.address` ([Changing the portal's address](installation.md#changing-the-portals-address)) |
+| HTTPS certificate expired or browser warns | `./resdesk.sh https status`, then `./resdesk.sh https renew`; check that port 80 is still open to the internet |
 | Forgot the admin password | `./resdesk.sh password` |
 | Desk looks broken after an update | `./resdesk.sh bench clear-cache`, then hard-refresh the browser |
 | `upgrade.sh` stops at the backup | it prints why (usually Docker, or the database not starting). With a recent backup already in `site-backups/`, run `./upgrade.sh --no-backup` |
@@ -418,7 +419,6 @@ SoK Research Desk — everyday commands
 
   ./resdesk.sh start | stop | restart | status
   ./resdesk.sh logs [name]              follow logs (Docker: backend, queue…; native: bench-start, worker, web…)
-  ./resdesk.sh url                      print the portal address
 
 Choosing and ingesting books
   ./resdesk.sh count  --collection ServantsOfKnowledge --filter "language:kan"
@@ -454,6 +454,8 @@ Maintenance
   ./resdesk.sh reindex [--background] [--no-pages] [--reset]
   ./resdesk.sh backup                   database + files into ./site-backups
   ./resdesk.sh restore <file.sql.gz>    restore a database backup, then re-index
+  ./resdesk.sh url [https://NEW.ADDRESS]      show or change the address the portal uses
+  ./resdesk.sh https on DOMAIN [--email E]    HTTPS with a free Let's Encrypt certificate (also: status, renew, off)
   ./resdesk.sh export [FILE]            everything needed to move this install, in one file
   ./resdesk.sh import FILE [--base-url URL]   load an export into this (new) install
   ./resdesk.sh move-to USER@HOST [--with-library]   export, copy over SSH and import in one go

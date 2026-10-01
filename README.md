@@ -44,6 +44,8 @@ Choose a collection, a search or a list of items on archive.org, and Research De
   health of every part, nightly backups to download, errors and logs, and alerts by Desk
   notification, email or webhook. With the optional updater helper, upgrade (or go back),
   restart parts and apply resource presets from the Desk too
+- go on a server with its own name and **HTTPS from Let's Encrypt** set up by the installer, and
+  change the portal's address with one command
 - run **in Docker or directly on the computer** (macOS or Ubuntu/Debian), and **upgrade with one
   command** (or one button) that backs up first and tells you how to roll back
 
@@ -63,6 +65,7 @@ git clone https://github.com/ServantsOfKnowledge/researchdesk.git
 cd researchdesk
 ./install.sh              # asks: Docker (recommended) or directly on this computer
 ./install.sh --native     # no Docker: macOS (Homebrew) or Ubuntu/Debian (apt)
+./install.sh --domain library.example.org   # on a server: its address, with HTTPS from Let's Encrypt
 ```
 
 Docker needs [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Mac or Windows)
@@ -77,6 +80,13 @@ Portal (public):   http://localhost:8080/library
 Admin (Desk):      http://localhost:8080/app/research-desk
 Login:             Administrator
 Password:          ••••••••    (also in the .env file)
+```
+
+Moving it to a server with a DNS name later, or changing its address:
+
+```bash
+./resdesk.sh url https://library.example.org     # the address used in links and citations
+./resdesk.sh https on library.example.org        # a free Let's Encrypt certificate, renewed by itself
 ```
 
 Keep it up to date with one command. It backs up first and rolls back cleanly:

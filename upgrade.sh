@@ -194,7 +194,14 @@ if [ "$MODE" = native ]; then
   ok "Migrated and rebuilt"
   ./resdesk.sh start
 else
-  [ "${DEV_MODE:-0}" = 1 ] && [ -z "${COMPOSE_FILE:-}" ] && export COMPOSE_FILE=compose.yaml:compose.dev.yaml
+  if [ -z "${COMPOSE_FILE:-}" ]; then
+    COMPOSE_FILE=compose.yaml
+    [ "${DEV_MODE:-0}" = 1 ] && COMPOSE_FILE="$COMPOSE_FILE:compose.dev.yaml"
+    [ "${HTTPS:-0}" = 1 ] && COMPOSE_FILE="$COMPOSE_FILE:compose.https.yaml"
+    export COMPOSE_FILE
+  elif [ "${HTTPS:-0}" = 1 ]; then
+    case ":$COMPOSE_FILE:" in *:compose.https.yaml:*) ;; *) export COMPOSE_FILE="$COMPOSE_FILE:compose.https.yaml" ;; esac
+  fi
   bold "3/5  Container image"
   # A build needs several GB; a full Docker disk corrupts config files and stops containers.
   FREE_KB=$(docker run --rm --entrypoint df "${RESDESK_IMAGE:-sok-resdesk}:${RESDESK_TAG:-local}" -Pk / 2>/dev/null | awk 'NR==2{print $4}' || true)

@@ -7,6 +7,9 @@
 #  ./install.sh --native     install directly on this computer (macOS / Ubuntu / Debian)
 #  ./install.sh --yes        accept all defaults (unattended; Docker unless --native)
 #  ./install.sh --sample     also ingest a small sample from Servants of Knowledge
+#  ./install.sh --domain library.example.org [--email you@example.org]
+#                            a server with a DNS name: the portal's address, with HTTPS from
+#                            Let's Encrypt (Docker; --no-https if you have your own proxy)
 #
 #  Docker: Docker Desktop (Mac/Windows) or Docker Engine + Compose v2 (Linux).
 #  Native: Homebrew (macOS) or apt + sudo (Ubuntu 22.04+/Debian 12+).
@@ -18,17 +21,26 @@ cd "$(dirname "$0")"
 YES=0
 SAMPLE=""
 MODE=""
-for arg in "$@"; do
-  case "$arg" in
+DOMAIN=""
+EMAIL=""
+WANT_HTTPS=""   # not HTTPS: that one, in .env, says whether it is on
+while [ $# -gt 0 ]; do
+  case "$1" in
     -y|--yes) YES=1 ;;
     --docker) MODE=docker ;;
     --native) MODE=native ;;
     --sample) SAMPLE=1 ;;
     --no-sample) SAMPLE=0 ;;
-    -h|--help) sed -n '2,14p' "$0"; exit 0 ;;
-    *) echo "Unknown option: $arg"; exit 1 ;;
+    --domain) DOMAIN="${2:-}"; shift ;;
+    --email) EMAIL="${2:-}"; shift ;;
+    --https) WANT_HTTPS=1 ;;
+    --no-https) WANT_HTTPS=0 ;;
+    -h|--help) sed -n '2,17p' "$0"; exit 0 ;;
+    *) echo "Unknown option: $1"; exit 1 ;;
   esac
+  shift
 done
+DOMAIN="${DOMAIN#http://}"; DOMAIN="${DOMAIN#https://}"; DOMAIN="${DOMAIN%%/*}"
 
 bold() { printf "\033[1m%s\033[0m\n" "$*"; }
 ok()   { printf "  \033[32m✓\033[0m %s\n" "$*"; }
@@ -98,7 +110,13 @@ if [ -f .env ]; then
 else
   DEFAULT_PORT=8080; [ "$MODE" = native ] && DEFAULT_PORT=8000
   ask PORTAL_TITLE  "Portal name"                                        "SoK Research Desk"
-  ask CONTACT_EMAIL "Your email (sent politely to the Internet Archive)" ""
+  ask CONTACT_EMAIL "Your email (sent politely to the Internet Archive)" "$EMAIL"
+  if [ -z "$DOMAIN" ] && [ "$YES" != 1 ]; then
+    echo "  On a server with a DNS name (e.g. library.example.org) pointing at it, give the name for"
+    echo "  its address and HTTPS. Leave it empty to use Research Desk on this computer only."
+  fi
+  ask DOMAIN        "Web address (domain name), or empty"                "$DOMAIN"
+  DOMAIN="${DOMAIN#http://}"; DOMAIN="${DOMAIN#https://}"; DOMAIN="${DOMAIN%%/*}"
   ask HTTP_PORT     "Port to open in your browser"                       "$DEFAULT_PORT"
   ask SITE_NAME     "Internal site name"                                 "resdesk.localhost"
   ask LIBRARY_DIR   "Folder of IA-style book folders (optional)"         "./library"
@@ -109,7 +127,7 @@ PORTAL_TITLE="${PORTAL_TITLE}"
 CONTACT_EMAIL="${CONTACT_EMAIL}"
 HTTP_PORT=${HTTP_PORT}
 SITE_NAME=${SITE_NAME}
-BASE_URL=http://localhost:${HTTP_PORT}
+BASE_URL=$([ -n "$DOMAIN" ] && echo "https://${DOMAIN}" || echo "http://localhost:${HTTP_PORT}")
 LIBRARY_DIR=${LIBRARY_DIR}
 ADMIN_PASSWORD=${ADMIN_PASSWORD}
 DB_ROOT_PASSWORD=$(secret)
@@ -131,9 +149,14 @@ if [ "$MODE" = native ]; then
   YES=$YES bash scripts/install-native.sh || die "Native install failed (see messages above). Fix the problem and run ./install.sh --native again; it resumes."
   set -a; . ./.env; set +a
 else
-  if [ "${DEV_MODE:-0}" = 1 ] && [ -z "${COMPOSE_FILE:-}" ]; then
-    export COMPOSE_FILE=compose.yaml:compose.dev.yaml
-    ok "Developer mode is on (code runs live from this folder)"
+  if [ -z "${COMPOSE_FILE:-}" ]; then
+    COMPOSE_FILE=compose.yaml
+    if [ "${DEV_MODE:-0}" = 1 ]; then
+      COMPOSE_FILE="$COMPOSE_FILE:compose.dev.yaml"
+      ok "Developer mode is on (code runs live from this folder)"
+    fi
+    [ "${HTTPS:-0}" = 1 ] && COMPOSE_FILE="$COMPOSE_FILE:compose.https.yaml"
+    export COMPOSE_FILE
   fi
 
   # 3. Build / pull ------------------------------------------------------------------
@@ -169,6 +192,41 @@ for _ in $(seq 1 60); do
   printf "."; sleep 3
 done
 
+# The public address, and HTTPS -------------------------------------------------------
+if [ -n "$DOMAIN" ]; then
+  echo
+  bold "     Address: https://${DOMAIN}"
+  ON_ALREADY=0
+  { [ "${HTTPS:-0}" = 1 ] || [ "${HTTPS_NGINX:-0}" = 1 ]; } && [ "${HTTPS_DOMAIN:-}" = "$DOMAIN" ] && ON_ALREADY=1
+  if [ "$MODE" = native ] && [ "$(uname -s)" != Linux ]; then
+    ./resdesk.sh url "https://${DOMAIN}" >/dev/null && ok "The portal's address is https://${DOMAIN}"
+    warn "HTTPS on macOS: put nginx or Caddy in front of port ${HTTP_PORT} (docs/installation.md#https-with-lets-encrypt)"
+  else
+    # Docker: its own nginx, or a site in the server's nginx if that already has ports 80/443.
+    # Native (Linux): always the server's nginx (installed if missing), with socket.io routed.
+    if [ "$ON_ALREADY" = 1 ] && [ "$WANT_HTTPS" != 1 ]; then
+      WANT_HTTPS=0   # already on for this name (a re-run): nothing to do
+      ok "HTTPS is already on for ${DOMAIN} (./resdesk.sh https status)"
+    elif [ -z "$WANT_HTTPS" ]; then
+      if [ "$YES" = 1 ]; then WANT_HTTPS=1; else
+        echo "  A free certificate from Let's Encrypt needs ${DOMAIN} to point at this server and ports"
+        echo "  80 and 443 open to the internet. Say no if another proxy (Caddy, Cloudflare…) handles HTTPS."
+        read -r -p "  Get a certificate for ${DOMAIN} now? [Y/n]: " a || true
+        case "${a:-Y}" in [Nn]*) WANT_HTTPS=0 ;; *) WANT_HTTPS=1 ;; esac
+      fi
+    fi
+    if [ "$ON_ALREADY" = 1 ] && [ "$WANT_HTTPS" = 0 ]; then
+      :
+    elif [ "$WANT_HTTPS" = 1 ]; then
+      ./resdesk.sh https on "$DOMAIN" ${EMAIL:+--email "$EMAIL"} \
+        || warn "No certificate yet. When DNS and ports are ready: ./resdesk.sh https on ${DOMAIN}"
+    else
+      ./resdesk.sh url "https://${DOMAIN}" >/dev/null && ok "The portal's address is https://${DOMAIN} (HTTPS from your own proxy, to port ${HTTP_PORT})"
+    fi
+  fi
+  set -a; . ./.env; set +a
+fi
+
 # 5. Sample data -------------------------------------------------------------------
 echo
 bold "5/5  Sample books"
@@ -188,8 +246,8 @@ echo
 bold "All done 🎉"
 cat <<EOF
 
-  Portal (public):   http://localhost:${HTTP_PORT}/library
-  Admin (Desk):      http://localhost:${HTTP_PORT}/app/research-desk
+  Portal (public):   ${BASE_URL%/}/library
+  Admin (Desk):      ${BASE_URL%/}/app/research-desk$( [ "${BASE_URL%/}" != "http://localhost:${HTTP_PORT}" ] && printf "\n  On this server:    http://localhost:%s/library" "${HTTP_PORT}")
   Login:             Administrator
   Password:          ${ADMIN_PASSWORD}      (also in the .env file)
   Running as:        ${MODE}$( [ "$MODE" = native ] && echo " (bench at ${BENCH_DIR:-~/researchdesk-bench})" )
@@ -199,6 +257,7 @@ cat <<EOF
     • Choose what to ingest:  Desk → Research Desk → Ingest Profiles
     • Or from the terminal:   ./resdesk.sh count  --collection ServantsOfKnowledge --filter "language:kan"
                               ./resdesk.sh ingest --collection ServantsOfKnowledge --filter "language:kan" --limit 100
+    • Change the address:     ./resdesk.sh url https://library.example.org
     • Everyday commands:      ./resdesk.sh help
     • Documentation:          docs/README.md
 
