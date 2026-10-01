@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.17.1 (2026-10-03): trying failed ingests again
+
+- **Failed ingest work can be tried again, in the same run.** On the run: **Retry Failed
+  Books** (Completed with Errors: exactly the books that failed), **Carry On** (Interrupted:
+  batches cut off by a restart go back in the queue, failed books are taken again; Cancelled:
+  the books are listed again) and **Try Again** (Failed while listing the books). The same
+  next to each recent run on Background Jobs. Runs now remember which books failed; older
+  runs are read back from their logs
+- **The Server page's Failed jobs list works**: it looked for failed jobs under the wrong queue
+  names, so it was always empty (and the health check never counted them). Each failed job
+  has **Retry**, with **Retry all** and **Clear the list**; ingest batches go back into their
+  run
+- Runs marked *Interrupted* or *Cancelled* show those words properly in the Desk (they were
+  missing from the status list)
+
 ## 0.17.0 (2026-10-02): advice before installing
 
 - **`./install.sh --check`** (`scripts/preflight.sh`) looks at the machine and advises how best

@@ -295,6 +295,218 @@ def cancel_job(job_id: str, force: int = 1) -> dict:
 	return {"result": result, "message": _("Job {0}: {1}").format(job_id.split("||")[-1], _(result))}
 
 
+# -- trying again ----------------------------------------------------------------------------
+
+
+def _failed_registry_jobs() -> list[tuple]:
+	"""(registry, job_id, job) for every failed RQ job of this site."""
+	from frappe.utils.background_jobs import get_queues, get_redis_conn
+	from rq.job import Job
+	from rq.registry import FailedJobRegistry
+
+	conn = get_redis_conn()
+	out = []
+	# get_queues: the queues under their real names (Frappe prefixes them with the bench's)
+	for queue in get_queues(connection=conn):
+		registry = FailedJobRegistry(queue=queue)
+		for job_id in registry.get_job_ids():
+			try:
+				job = Job.fetch(job_id, connection=conn)
+			except Exception:
+				registry.remove(job_id)  # its data expired: nothing left to retry
+				continue
+			if (job.kwargs or {}).get("site") not in (None, frappe.local.site):
+				continue
+			out.append((registry, job_id, job))
+	return out
+
+
+def _job_method(job) -> str:
+	kw = job.kwargs or {}
+	method = kw.get("job_name") or kw.get("method") or job.func_name or ""
+	return method if isinstance(method, str) else getattr(method, "__name__", str(method))
+
+
+def _job_run(job) -> str | None:
+	"""The ingest run a failed job belonged to, if it was an ingest job."""
+	if _job_method(job).endswith(("ingest.run_batch", "ingest.plan_run")):
+		return ((job.kwargs or {}).get("kwargs") or {}).get("run_name")
+	return None
+
+
+def _failed_books(run) -> list:
+	"""The books that failed in a run: recorded one per line (since 0.17.1), or read back from
+	the FAIL lines of older runs' logs."""
+	import json
+	import re
+
+	books, seen = [], set()
+	for line in (run.get("failed_items") or "").splitlines():
+		try:
+			entry = json.loads(line)
+		except ValueError:
+			continue
+		key = entry[0] if isinstance(entry, list) else entry
+		if key not in seen:
+			seen.add(key)
+			books.append(entry)
+	if not books and not run.get("failed_items"):
+		for item_id in re.findall(r"^\S* ?FAIL (\S+?):", run.log or "", re.M):
+			if item_id not in seen:
+				seen.add(item_id)
+				books.append(item_id)
+	return books
+
+
+@frappe.whitelist()
+def retry_run(run: str) -> dict:
+	"""Try again what went wrong in an ingest run, in the same run:
+
+	* batches that failed as a whole (a worker restarted or ran out of memory) are put back
+	  in the queue;
+	* books that failed one by one are taken again, in new batches;
+	* a run that failed while listing its books, or was interrupted without leaving anything
+	  to retry, lists them again (books already in the catalogue are skipped).
+	"""
+	frappe.only_for(MANAGERS)
+	from sok_resdesk.ingest import JOB_TIMEOUT, RUN, enqueue_plan
+
+	doc = frappe.get_doc("RD Ingest Run", run)
+	if doc.status in ACTIVE:
+		frappe.throw(_("Run {0} is still {1}: wait for it, or stop it first.").format(run, _(doc.status)))
+	who = frappe.session.user
+	stamp = now_datetime().strftime("%H:%M:%S")
+
+	failed_jobs = [(reg, jid, job) for reg, jid, job in _failed_registry_jobs() if _job_run(job) == run]
+	plan_failed = any(_job_method(job).endswith("plan_run") for _r, _jid, job in failed_jobs)
+	books = _failed_books(doc)
+	if books and not all(isinstance(b, list) for b in books):
+		# identifiers read back from an older run's log: fine for archive.org, but a folder
+		# source needs each book's folder too, so such a run lists its folders again instead
+		profile = frappe.get_doc("RD Ingest Profile", doc.profile) if doc.profile else None
+		if profile and profile.is_folder:
+			books = []
+			if doc.status == "Completed with Errors":
+				frappe.db.set_value("RD Ingest Run", run, "status", "Interrupted", update_modified=False)
+				doc.status = "Interrupted"
+
+	if (
+		doc.status == "Failed"
+		or plan_failed
+		or (doc.status in ("Interrupted", "Cancelled") and not failed_jobs and not books)
+	):
+		for reg, jid, _job in failed_jobs:
+			reg.remove(jid, delete_job=True)
+		frappe.db.sql(
+			f"update `{RUN}` set status='Queued', finished_on=null, failed_items=null, pending_chunks=0, failed_count=0, "
+			"log = right(concat(ifnull(log,''), %s), 200000) where name=%s",
+			(
+				f"{stamp} Started again by {who}: listing the books again (those already in the catalogue are skipped)\n",
+				run,
+			),
+		)
+		frappe.db.commit()
+		enqueue_plan(run)
+		return {
+			"message": _(
+				"Run {0} starts again: it lists the books again and skips those already in the catalogue."
+			).format(run)
+		}
+
+	if not failed_jobs and not books:
+		return {"message": _("Nothing in run {0} failed, so there is nothing to try again.").format(run)}
+
+	for reg, jid, _job in failed_jobs:
+		reg.requeue(jid)
+	size = max(1, cint(frappe.db.get_single_value("RD Settings", "batch_size")) or 50)
+	batches = [books[i : i + size] for i in range(0, len(books), size)]
+	start = cint(doc.chunks_total)
+	frappe.db.sql(
+		f"""update `{RUN}` set status='Running', finished_on=null, failed_items=null,
+		failed_count = greatest(ifnull(failed_count,0) - %s, 0),
+		processed = greatest(ifnull(processed,0) - %s, 0),
+		pending_chunks = %s, chunks_total = ifnull(chunks_total,0) + %s,
+		log = right(concat(ifnull(log,''), %s), 200000) where name=%s""",
+		(
+			len(books),
+			len(books),
+			len(failed_jobs) + len(batches),
+			len(batches),
+			f"{stamp} Retry by {who}: {len(failed_jobs)} failed batch(es) back in the queue, "
+			f"{len(books)} book(s) that failed taken again\n",
+			run,
+		),
+	)
+	frappe.db.commit()
+	for n, batch in enumerate(batches, start + 1):
+		frappe.enqueue(
+			"sok_resdesk.ingest.run_batch",
+			queue="long",
+			timeout=JOB_TIMEOUT,
+			run_name=run,
+			item_ids=batch,
+			batch_no=n,
+			job_id=f"resdesk-{run}-{n}",
+		)
+	profile = doc.profile
+	if profile:
+		frappe.db.set_value("RD Ingest Profile", profile, "last_status", "Running", update_modified=False)
+	return {
+		"message": _("Trying again in run {0}: {1} book(s) and {2} batch(es).").format(
+			run, len(books), len(failed_jobs)
+		),
+		"books": len(books),
+		"batches": len(failed_jobs),
+	}
+
+
+@frappe.whitelist()
+def retry_failed_jobs(job_id: str | None = None) -> dict:
+	"""Server page → Logs → Failed jobs: try one failed background job again, or all of them.
+	Ingest jobs go through retry_run, so their run carries on properly."""
+	frappe.only_for(MANAGERS)
+	runs, plain = set(), 0
+	for reg, jid, job in _failed_registry_jobs():
+		if job_id and jid.split("||")[-1] != job_id.split("||")[-1]:
+			continue
+		run = _job_run(job)
+		if run and frappe.db.exists("RD Ingest Run", run):
+			runs.add(run)
+			continue
+		reg.requeue(jid)
+		plain += 1
+	messages = []
+	for run in sorted(runs):
+		if frappe.db.get_value("RD Ingest Run", run, "status") in ACTIVE:
+			# the run is still going: only its failed batches go back (the run still counts them)
+			back = 0
+			for reg, jid, job in _failed_registry_jobs():
+				if _job_run(job) == run and (not job_id or jid.split("||")[-1] == job_id.split("||")[-1]):
+					reg.requeue(jid)
+					back += 1
+			messages.append(_("Run {0}: {1} failed batch(es) back in the queue.").format(run, back))
+		else:
+			messages.append(retry_run(run)["message"])
+	if plain:
+		messages.append(_("{0} other job(s) back in the queue.").format(plain))
+	return {
+		"message": " ".join(messages) or _("No failed jobs to try again."),
+		"runs": sorted(runs),
+		"jobs": plain,
+	}
+
+
+@frappe.whitelist()
+def clear_failed_jobs() -> dict:
+	"""Forget every failed background job of this site (the list on the Server page)."""
+	frappe.only_for(("System Manager",))
+	n = 0
+	for reg, jid, _job in _failed_registry_jobs():
+		reg.remove(jid, delete_job=True)
+		n += 1
+	return {"message": _("{0} failed job(s) cleared.").format(n), "cleared": n}
+
+
 @frappe.whitelist()
 def set_paused(paused: int = 1) -> dict:
 	"""Pause or resume scheduled (Hourly/Daily/Weekly) ingests. Manual runs still work."""

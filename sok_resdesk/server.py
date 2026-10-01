@@ -569,12 +569,11 @@ def disk_usage() -> dict:
 
 def failed_job_count() -> int:
 	try:
-		from frappe.utils.background_jobs import get_queue_list, get_redis_conn
-		from rq import Queue
+		from frappe.utils.background_jobs import get_queues, get_redis_conn
 		from rq.registry import FailedJobRegistry
 
 		conn = get_redis_conn()
-		return sum(len(FailedJobRegistry(queue=Queue(q, connection=conn))) for q in get_queue_list())
+		return sum(len(FailedJobRegistry(queue=q)) for q in get_queues(connection=conn))
 	except Exception:
 		return 0
 
@@ -789,15 +788,16 @@ def _tail(path: Path, lines: int) -> str:
 
 def _failed_jobs() -> list[dict]:
 	try:
-		from frappe.utils.background_jobs import get_queue_list, get_redis_conn
-		from rq import Queue
+		from frappe.utils.background_jobs import get_queues, get_redis_conn
 		from rq.job import Job
 		from rq.registry import FailedJobRegistry
 
 		conn = get_redis_conn()
 		out = []
-		for q in get_queue_list():
-			registry = FailedJobRegistry(queue=Queue(q, connection=conn))
+		# get_queues: the queues under their real names (Frappe prefixes them with the bench's)
+		for queue in get_queues(connection=conn):
+			q = queue.name.split(":")[-1]
+			registry = FailedJobRegistry(queue=queue)
 			for job_id in registry.get_job_ids()[-30:]:
 				try:
 					job = Job.fetch(job_id, connection=conn)

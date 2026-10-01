@@ -44,6 +44,25 @@ class ResDeskServer {
 		on("[data-watch]", ($b) => this.watch($b.data("watch")));
 		on("[data-cancel-task]", ($b) => this.call("cancel_task", { name: $b.data("cancel-task") }));
 		on("[data-log-source]", ($b) => this.load_logs($b.data("log-source")));
+		on("[data-retry-job]", ($b) =>
+			frappe.call({
+				method: "sok_resdesk.jobs.retry_failed_jobs",
+				args: { job_id: $b.attr("data-retry-job") || null },
+				freeze: true,
+				callback: (r) => {
+					frappe.show_alert({ message: r.message.message, indicator: "green" }, 8);
+					this.load_logs("failed_jobs");
+				},
+			})
+		);
+		on("[data-clear-failed]", () =>
+			frappe.confirm(__("Clear the list of failed jobs? They won't be tried again."), () =>
+				frappe.call({ method: "sok_resdesk.jobs.clear_failed_jobs", freeze: true, callback: (r) => {
+					frappe.show_alert({ message: r.message.message, indicator: "green" });
+					this.load_logs("failed_jobs");
+				} })
+			)
+		);
 		on("[data-copy]", ($b) => frappe.utils.copy_to_clipboard($b.data("copy")));
 		this.$body.on("change", "[data-log-file]", (e) => this.load_logs("files", $(e.currentTarget).val()));
 		this.refresh();
@@ -254,8 +273,12 @@ class ResDeskServer {
 		else if (v.source === "failed_jobs")
 			body = r.rows.length
 				? `<table class="table table-sm small"><tbody>${r.rows
-						.map((j) => `<tr><td class="text-muted" style="white-space:nowrap">${esc(j.ended_at)}</td><td>${esc(j.method)}<div class="text-muted">${esc(j.error)}</div></td><td>${esc(j.queue)}</td></tr>`)
-						.join("")}</tbody></table>`
+						.map((j) => `<tr><td class="text-muted" style="white-space:nowrap">${esc(j.ended_at)}</td><td>${esc(j.method)}<div class="text-muted">${esc(j.error)}</div></td><td>${esc(j.queue)}</td>
+							<td><button class="btn btn-xs btn-default" data-retry-job="${esc(j.id)}">${__("Retry")}</button></td></tr>`)
+						.join("")}</tbody></table>
+					<div style="display:flex;gap:6px"><button class="btn btn-xs btn-primary" data-retry-job="">${__("Retry all")}</button>
+					${this.data && this.data.is_admin ? `<button class="btn btn-xs btn-default" data-clear-failed>${__("Clear the list")}</button>` : ""}</div>
+					<p class="text-muted small" style="margin-top:6px">${__("Ingest batches that failed go back into their run, which carries on; other jobs simply run again.")}</p>`
 				: `<p class="text-muted">${__("No failed jobs.")}</p>`;
 		else if (v.source === "files")
 			body = `<select class="form-control input-sm" data-log-file style="max-width:320px;margin-bottom:8px">

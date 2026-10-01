@@ -55,6 +55,7 @@ class ResDeskJobs {
 		this.$body.on("click", "[data-choose-preset]", () => this.choose_preset());
 		this.$body.on("click", "[data-discard-all]", () => this.call("release_held", { discard: 1 }, __("Discard all held jobs? They won't run.")));
 		this.$body.on("click", "[data-cancel-search]", () => this.cancel_search());
+		this.$body.on("click", "[data-retry-run]", (e) => this.call("retry_run", { run: $(e.currentTarget).data("retry-run") }));
 		this.start();
 	}
 
@@ -424,7 +425,10 @@ class ResDeskJobs {
 						(r) => `<tr><td>${run_link(r)}</td><td>${esc(r.profile || "")}</td>
 					<td>${pill(r.status, { Completed: "green", Cancelled: "gray", Interrupted: "orange" }[r.status] || "red")}</td>
 					<td class="small">${r.processed || 0} ${__("books")}, ${r.failed_count || 0} ${__("failed")}</td>
-					<td class="text-muted small">${ago(r.finished_on || r.modified)}</td></tr>`
+					<td class="text-muted small">${ago(r.finished_on || r.modified)}</td>
+					<td>${["Completed with Errors", "Interrupted", "Failed", "Cancelled"].includes(r.status)
+						? `<button class="btn btn-xs btn-default" data-retry-run="${esc(r.name)}">${r.status === "Completed with Errors" ? __("Retry failed") : __("Carry on")}</button>`
+						: ""}</td></tr>`
 					)
 					.join("")}</tbody></table>`
 			: `<p class="text-muted">${__("No runs yet.")}</p>`;

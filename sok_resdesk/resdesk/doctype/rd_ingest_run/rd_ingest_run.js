@@ -50,6 +50,21 @@ frappe.ui.form.on("RD Ingest Run", {
 				frappe.confirm(__("Stop this run immediately? The book being processed is rolled back and picked up next time."), () => stop(1))
 			, __("Stop"));
 		}
+		const retryable = { "Completed with Errors": __("Retry Failed Books"), Interrupted: __("Carry On"), Failed: __("Try Again"), Cancelled: __("Carry On") };
+		if (manager && retryable[frm.doc.status]) {
+			const explain = {
+				"Completed with Errors": __("Take the {0} books that failed in this run again?", [frm.doc.failed_count || 0]),
+				Interrupted: __("Carry on with this run? Batches that were cut off go back in the queue, and books that failed are taken again."),
+				Failed: __("Start this run again? It lists the books again; those already in the catalogue are skipped."),
+				Cancelled: __("Carry on with this stopped run? Books already in the catalogue are skipped."),
+			}[frm.doc.status];
+			frm.add_custom_button(retryable[frm.doc.status], () =>
+				frappe.confirm(explain, () => act("retry_run", { run: frm.doc.name }))
+			).addClass("btn-primary");
+			if (frm.doc.status === "Interrupted") {
+				frm.dashboard.set_headline_alert(__("The workers stopped while this run was going (a restart, or not enough memory). Carry On picks it up again."), "orange");
+			}
+		}
 		frm.add_custom_button(__("Background Jobs"), () => frappe.set_route("resdesk-jobs"));
 		if (!frm.is_new()) {
 			frm.add_custom_button(__("Items from this Profile"), () =>

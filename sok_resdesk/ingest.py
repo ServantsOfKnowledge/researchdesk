@@ -482,6 +482,11 @@ def run_batch(run_name: str, item_ids: list, batch_no: int = 0, verbose: bool = 
 		else:
 			_bump(run_name, processed=1, failed_count=1)
 			_log(run_name, f"FAIL {item_id}: {str(error)[:300]}", verbose)
+			# kept on the run so Retry Failed can take exactly these books again
+			frappe.db.sql(
+				f"update `{RUN}` set failed_items = concat(ifnull(failed_items, ''), %s) where name=%s",
+				(json.dumps(entry) + "\n", run_name),
+			)
 		frappe.db.commit()
 	_close_batch(run_name, verbose)
 
@@ -581,7 +586,7 @@ def mark_interrupted_runs(idle_hours: int = 2) -> None:
 		_log(
 			name,
 			f"No progress for {idle_hours} h, so the workers were probably restarted. "
-			"Run the profile again: books already ingested are skipped.",
+			"Retry on this run carries on where it stopped.",
 		)
 		frappe.db.sql(f"update `{RUN}` set finished_on=%s where name=%s", (now_datetime(), name))
 		_set_status(name, "Interrupted")

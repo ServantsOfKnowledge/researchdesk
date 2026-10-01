@@ -109,6 +109,9 @@ two files are ever served, and the PDF only when the caller may read the book.
 | `sok_resdesk.jobs.hold_job` (`job_id`) · `release_held` (`keys` JSON list or empty for all, `discard`) | keep one waiting job aside; put held jobs back or drop them |
 | `sok_resdesk.jobs.choose_preset` (`preset`=`light`/`standard`/`server`) | record the resource preset; `./resdesk.sh resources apply` puts it into effect |
 | `sok_resdesk.jobs.stop_run` (`run`, `force`) | stop one run and drop its queued batches |
+| `sok_resdesk.jobs.retry_run` (`run`) | try a finished run's failures again in the same run: failed books, batches that failed as a whole, or the whole listing for a run that failed or was interrupted |
+| `sok_resdesk.jobs.retry_failed_jobs` (`job_id`, optional) | retry one failed background job, or all of them; ingest batches go back into their run |
+| `sok_resdesk.jobs.clear_failed_jobs` | forget every failed background job (System Manager) |
 | `sok_resdesk.jobs.stop_all` (`force`, `pause`, `search`) | stop all Research Desk background work |
 | `sok_resdesk.jobs.cancel_job` (`job_id`) · `set_paused` (`paused`) · `cancel_search_tasks` | single job, schedules, search indexing |
 | `sok_resdesk.curation.create` (`title`, `description`) | make a collection, returns its name (web address) |

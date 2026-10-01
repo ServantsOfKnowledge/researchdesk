@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-02 12:00:00.000000",
+ "modified": "2026-10-03 09:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Ingest Run",
@@ -31,6 +31,7 @@
   "column_break_3",
   "pending_chunks",
   "held_work",
+  "failed_items",
   "log_section",
   "log"
  ],
@@ -48,7 +49,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "Queued\nRunning\nPaused\nCompleted\nCompleted with Errors\nFailed\nCancelled\nInterrupted",
+   "options": "Queued\nRunning\nPaused\nCompleted\nCompleted with Errors\nInterrupted\nCancelled\nFailed",
    "default": "Queued",
    "in_list_view": 1,
    "in_standard_filter": 1
@@ -163,6 +164,15 @@
    "hidden": 1,
    "read_only": 1,
    "description": "Books not yet processed when the run was paused (JSON)."
+  },
+  {
+   "fieldname": "failed_items",
+   "fieldtype": "Long Text",
+   "label": "Books That Failed",
+   "hidden": 1,
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "One per line, for Retry Failed: the books whose ingest failed in this run."
   },
   {
    "fieldname": "log_section",
