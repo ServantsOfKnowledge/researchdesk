@@ -89,7 +89,11 @@
       CI; reader settings (text size, spacing, dyslexia-friendly font, high contrast); an audit of
       our Desk pages against WCAG 2.2 AA; later EPUB 3 / DAISY downloads of proofread books and
       sharing with Sugamya Pustakalaya under the Marrakesh Treaty and Copyright Act 52(1)(zb)
-- [ ] Portal UI in Kannada and other languages (Frappe translations)
+- [ ] **Portal in Kannada and other languages** (next milestone): the portal's browser-script text
+      marked for translation; a *Portal Translations* page in the Desk (every portal phrase with a
+      column per language, missing ones highlighted, edited in place, spreadsheet download and
+      upload, optional machine drafts checked by a person), stored as Frappe Translation records;
+      the portal's language switch; About page and collection descriptions translatable
 - [ ] Authority control: reconcile creators with VIAF/Wikidata; subjects with LCSH/Sears
 - [ ] Cataloguer review queue for flagged records (no year, unknown language, duplicate titles)
 - [ ] More sources: Wikisource, DSpace/OAI-PMH repositories, bare PDFs with no OCR (OCR on ingest)
