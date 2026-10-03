@@ -111,6 +111,7 @@
 					<label class="rd-pages__where">{{ _("Page image") }} <input type="number" min="1" id="rd-pages-n" value="{{ start_leaf + 1 }}"> <span id="rd-pages-of"></span></label>
 					<button class="rd-btn" type="button" data-step="1" aria-label="{{ _('Next page') }}">→</button>
 					<span class="rd-pages__label" id="rd-pages-label"></span>
+					<span class="rd-pages__status" id="rd-pages-status"></span>
 					<span class="rd-pages__spacer"></span>
 					<button class="rd-btn" type="button" id="rd-pages-link">{{ _("Copy page link") }}</button>
 					<button class="rd-btn" type="button" id="rd-pages-cite">{{ _("Cite this page") }}</button>
@@ -122,6 +123,7 @@
 					<span class="rd-muted" id="rd-notes-hint"></span>
 					<span class="rd-pages__spacer"></span>
 					<a class="rd-notes-mine" href="/library/notes" hidden id="rd-notes-mine">{{ _("My notes") }}</a>
+					<button class="rd-btn" type="button" id="rd-proof-btn" hidden>{{ _("Proofread") }}</button>
 				</div>
 				<div class="rd-pages__cite is-hidden" id="rd-pages-citebox">
 					<div class="rd-tabs" role="tablist" id="rd-pages-cite-tabs"></div>
@@ -190,4 +192,5 @@
 <script src="/assets/sok_resdesk/js/item.js"></script>
 <script src="/assets/sok_resdesk/js/reader.js"></script>
 <script src="/assets/sok_resdesk/js/annotate.js"></script>
+<script src="/assets/sok_resdesk/js/proofread.js"></script>
 {% endblock %}

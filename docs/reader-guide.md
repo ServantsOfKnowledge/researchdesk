@@ -88,6 +88,37 @@ when the page text is corrected later; a note whose words are gone says so.
 at their page, and export with the page's citation: as Markdown (for your writing), a spreadsheet,
 or W3C Web Annotations (for other annotation tools).
 
+## Proofreading
+
+Readers with the **Proofreader** role (and library staff) correct the text of the pages. Pages
+people have corrected are what everyone then reads, searches and cites; the line under the page
+says where its text stands: *machine OCR*, *re-OCR*, *proofread by …* or *validated by …*.
+
+In **Page & text**, press **Proofread**: the page text becomes an editor beside the image.
+
+- **Correct the text** to match the page, then **Save as proofread**.
+- **Validate**: a page proofread by someone else, checked and found right, is validated
+  unchanged. (Change anything and it becomes your proofread version instead.)
+- **History** lists the page's versions: who made each, and **Make current** to bring one back.
+  Nothing is ever lost.
+
+### Reading a page again (OCR), part by part
+
+When the page's text is poor, or its columns run into each other, have it read again:
+
+1. **Draw the parts** of the page to read: drag a box over each one on the image, as many as the
+   page has: a heading, each column, a side note, a footnote. They are read **in the order of
+   their numbers**: move one up or down with ↑ ↓, or **Sort** them top to bottom and left to
+   right. A layout (*Two columns*, *Three columns*, *Heading and two columns*) draws the usual
+   ones for you.
+2. Mark a part **skip** to leave it out (a picture, a stamp, a page number).
+3. **OCR the zones**: each part is read on its own with the book's language, and the text comes
+   back into the editor, part by part, to check and save. Nothing is saved until you do.
+
+**Proofreading** (`/library/proofread`) is the proofreaders' work list: the pages readers
+reported as *OCR error*, pages waiting for a second person to validate, and the books with the
+poorest OCR, each opening at its page in Proofread mode. Filter by language.
+
 ## Citing a book
 
 **Cite this book** gives the reference ready to paste in APA, MLA or Chicago style, or as a

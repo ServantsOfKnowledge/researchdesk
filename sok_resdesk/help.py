@@ -38,6 +38,7 @@ SCREEN_HELP = {
 	"RD Tombstone": ("preservation", "tombstones"),
 	"RD Annotation": ("staff-guide", "readers-notes"),
 	"RD Research Group": ("staff-guide", "readers-notes"),
+	"RD Page Text": ("staff-guide", "proofreading-and-re-ocr"),
 	"RD Preservation Event": ("preservation", "preservation-events"),
 	"research-desk": ("staff-guide", "the-research-desk-workspace"),
 }

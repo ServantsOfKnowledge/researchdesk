@@ -78,7 +78,17 @@ def write_cached_pages(item_id: str, pages: list[dict]) -> None:
 def fetch_pages(
 	item_id: str, ia: IAClient | None = None, page_numbers: dict | None = None, refresh: bool = False
 ) -> list[dict]:
-	"""Page texts for one book: local cache first, then the Internet Archive."""
+	"""Page texts for one book, as readers should see them: archive.org's (or the folder's) text,
+	with the pages that were re-read or corrected replaced by their current version (pagetext.py)."""
+	from sok_resdesk.pagetext import apply
+
+	return apply(item_id, _source_pages(item_id, ia, page_numbers, refresh))
+
+
+def _source_pages(
+	item_id: str, ia: IAClient | None = None, page_numbers: dict | None = None, refresh: bool = False
+) -> list[dict]:
+	"""Page texts as the source has them: local cache first, then the Internet Archive."""
 	use_cache = cache_enabled()
 	if use_cache and not refresh:
 		cached = read_cached_pages(item_id)

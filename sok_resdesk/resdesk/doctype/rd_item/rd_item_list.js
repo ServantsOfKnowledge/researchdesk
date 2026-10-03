@@ -15,6 +15,23 @@ frappe.listview_settings["RD Item"] = {
 		}[doc.visibility || "Public"];
 	},
 	onload(listview) {
+		listview.page.add_menu_item(__("Re-OCR the worst books"), () =>
+			frappe.call({ method: "sok_resdesk.reocr.engine_status" }).then((r) => {
+				if (!r.message.installed) return frappe.msgprint(__("The OCR engine (Tesseract) isn't installed on this server."));
+				frappe.prompt(
+					[
+						{ fieldname: "count", fieldtype: "Int", label: __("How many books"), default: 20 },
+						{ fieldname: "preset", fieldtype: "Select", label: __("Layout of the pages"), options: r.message.presets, default: "Whole page" },
+					],
+					(v) =>
+						frappe.call({ method: "sok_resdesk.reocr.enqueue_worst", args: v }).then((x) =>
+							frappe.show_alert({ message: x.message.message, indicator: "green" })
+						),
+					__("Re-OCR the books with the worst text"),
+					__("Start")
+				);
+			})
+		);
 		// OCR quality: sort by it (lowest first) to find the books that most need better text
 		listview.page.add_menu_item(__("Score OCR quality"), () =>
 			frappe.call({ method: "sok_resdesk.ocr.enqueue_scoring", freeze: true }).then((r) =>

@@ -197,7 +197,10 @@ def ingest_local_one(
 		write_cached_pages(item_id, pages)
 	try:
 		record = item_to_record(frappe.get_doc("RD Item", name))
-		pages = pages if not restricted else []
+		from sok_resdesk.pagetext import apply
+
+		# the folder's text with proofreaders' corrections laid over it (the cache keeps the folder's)
+		pages = apply(item_id, pages) if not restricted else []
 		if buffer is not None:
 			return ("created" if created else "updated"), buffer.add(record, pages, replace_pages=not created)
 		count = index_record(record, pages, replace_pages=not created)

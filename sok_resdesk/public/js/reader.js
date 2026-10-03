@@ -94,7 +94,7 @@
 		else $("#rd-pages-text").scrollTop = 0;
 		if (!$("#rd-pages-citebox").classList.contains("is-hidden")) showCite();
 		// annotate.js draws the page's notes over this
-		document.dispatchEvent(new CustomEvent("rd-page-shown", { detail: { leaf: d.leaf, label: d.label, text: d.text || "", q: state.q, image: d.image } }));
+		document.dispatchEvent(new CustomEvent("rd-page-shown", { detail: { ...d, text: d.text || "", q: state.q } }));
 		if (active()) remember(d.leaf);
 		if (push) pane.scrollIntoView({ behavior: "smooth", block: "start" });
 	}

@@ -39,14 +39,17 @@ bold "1/6  System packages"
 if [ "$OS" = "Darwin" ]; then
   have brew || die "Homebrew is required on macOS. Install it from https://brew.sh and run this again."
   brew list --versions mariadb >/dev/null 2>&1 || brew install mariadb
-  for p in redis meilisearch pkg-config git; do brew list --versions "$p" >/dev/null 2>&1 || brew install "$p"; done
+  for p in redis meilisearch pkg-config git tesseract tesseract-lang; do brew list --versions "$p" >/dev/null 2>&1 || brew install "$p"; done
   MYSQL_CNF_DIR="$(brew --prefix)/etc/my.cnf.d"
-  ok "Homebrew packages: mariadb, redis, meilisearch, pkg-config"
+  ok "Homebrew packages: mariadb, redis, meilisearch, pkg-config, tesseract"
 elif [ -f /etc/debian_version ]; then
   $SUDO apt-get update -qq
   $SUDO env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
     git curl ca-certificates build-essential pkg-config libmariadb-dev mariadb-server mariadb-client \
-    redis-server xvfb libfontconfig1 cron >/dev/null
+    redis-server xvfb libfontconfig1 cron tesseract-ocr \
+    tesseract-ocr-kan tesseract-ocr-hin tesseract-ocr-mar tesseract-ocr-san tesseract-ocr-tam \
+    tesseract-ocr-tel tesseract-ocr-mal tesseract-ocr-ben tesseract-ocr-guj tesseract-ocr-pan \
+    tesseract-ocr-ori tesseract-ocr-eng >/dev/null
   MYSQL_CNF_DIR=/etc/mysql/mariadb.conf.d
   if ! have meilisearch; then
     ARCH="$(uname -m)"; case "$ARCH" in x86_64) M=amd64;; aarch64|arm64) M=aarch64;; *) die "Unsupported CPU $ARCH";; esac

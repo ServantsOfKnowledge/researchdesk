@@ -192,7 +192,20 @@ def page(item_id: str, leaf: int = 0):
 	last = max([cint(record.get("page_count")) - 1, *(by_leaf or [0])])
 	leaf = min(max(0, cint(leaf)), max(0, last))
 	here = by_leaf.get(leaf) or {}
+	from sok_resdesk import pagetext
+
+	version = pagetext.current(item_id).get(leaf)
 	return {
+		# where the text comes from: archive.org's OCR, a re-OCR, or people (with their names: credit)
+		"text_status": version.status if version else "",
+		"text_source": version.source if version else "",
+		"proofread_by": frappe.utils.get_fullname(version.proofread_by)
+		if version and version.proofread_by
+		else "",
+		"validated_by": frappe.utils.get_fullname(version.validated_by)
+		if version and version.validated_by
+		else "",
+		"can_proofread": pagetext.can_proofread(),
 		"leaf": leaf,
 		"last": last,
 		"label": here.get("label") or "",

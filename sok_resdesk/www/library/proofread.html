@@ -1,0 +1,53 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="rd rd-proofwork">
+	<nav class="rd-crumbs"><a href="{{ library_url() }}">← {{ portal_title }}</a></nav>
+	<h1 class="rd-page-title">{{ _("Proofreading") }}</h1>
+	{% if not allowed %}
+	<p>{{ _("Proofreading is done by the library's proofreaders. Ask the library if you would like to help: they can make you one.") }}</p>
+	{% else %}
+	<p class="rd-muted">{{ _("Open a page, press Proofread, correct the text against the image (draw zones and OCR them again where the columns are mixed up) and save. Thank you: every page you correct becomes searchable as it should be.") }}
+		<br>{{ _("You have proofread {0} pages and validated {1}.").format(mine, validated) }}</p>
+	<form class="rd-mynotes__filters" method="get">
+		<select name="language" onchange="this.form.submit()">
+			<option value="">{{ _("Every language") }}</option>
+			{% for l in languages %}<option {% if l == language %}selected{% endif %}>{{ l }}</option>{% endfor %}
+		</select>
+	</form>
+
+	<h2>{{ _("Pages readers found errors on") }} ({{ reports|length }})</h2>
+	{% if reports %}
+	<ul class="rd-note-list">
+		{% for r in reports %}
+		<li class="rd-note"><a href="/library/item/{{ r.item | urlencode }}?page={{ r.leaf }}&view=text">{{ r.title }} · {{ ("p. " ~ r.page_label) if r.page_label else ("leaf " ~ r.leaf) }}</a>
+			{% if r.exact %}<blockquote>{{ r.exact }}</blockquote>{% endif %}{% if r.body %}<p>{{ r.body }}</p>{% endif %}</li>
+		{% endfor %}
+	</ul>
+	{% else %}<p class="rd-muted">{{ _("None waiting.") }}</p>{% endif %}
+
+	<h2>{{ _("Waiting for a second look") }} ({{ waiting_validation|length }})</h2>
+	<p class="rd-muted">{{ _("Pages someone else proofread: check them against the image and press Validate if they're right.") }}</p>
+	{% if waiting_validation %}
+	<ul class="rd-note-list">
+		{% for r in waiting_validation %}
+		<li class="rd-note"><a href="/library/item/{{ r.item | urlencode }}?page={{ r.leaf }}&view=text">{{ r.title }} · {{ ("p. " ~ r.page_label) if r.page_label else ("leaf " ~ r.leaf) }}</a></li>
+		{% endfor %}
+	</ul>
+	{% else %}<p class="rd-muted">{{ _("None waiting.") }}</p>{% endif %}
+
+	<h2>{{ _("Books whose text needs it most") }}</h2>
+	<table class="table rd-proofwork__table">
+		<thead><tr><th>{{ _("Book") }}</th><th>{{ _("Language") }}</th><th>{{ _("OCR quality") }}</th><th>{{ _("Poor pages") }}</th><th>{{ _("Proofread") }}</th></tr></thead>
+		<tbody>
+		{% for b in worst %}
+		<tr><td><a href="/library/item/{{ b.name | urlencode }}?page=0&view=text">{{ b.title }}</a></td><td>{{ b.language_label or "" }}</td>
+			<td>{{ b.ocr_quality }}</td><td>{{ b.ocr_low_pages if b.ocr_low_pages > 0 else "" }}</td><td>{{ b.pages_proofread or 0 }}{% if b.page_count %} ({{ b.percent_done }}%){% endif %}</td></tr>
+		{% endfor %}
+		</tbody>
+	</table>
+	{% endif %}
+</div>
+{% endblock %}

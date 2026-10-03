@@ -37,6 +37,35 @@ frappe.ui.form.on("RD Item", {
 		if (frm.doc.persistent_id) {
 			frm.add_web_link(`/${frm.doc.persistent_id}`, __("Permanent Link (ARK)"));
 		}
+		// read the book's page images again with OCR, keeping only the pages that get better
+		frm.add_custom_button(
+			__("Re-OCR this book"),
+			() =>
+				frappe.call({ method: "sok_resdesk.reocr.engine_status" }).then((r) => {
+					const st = r.message;
+					if (!st.installed) return frappe.msgprint(__("The OCR engine (Tesseract) isn't installed on this server."));
+					frappe.prompt(
+						[
+							{
+								fieldname: "preset",
+								fieldtype: "Select",
+								label: __("Layout of the pages"),
+								options: st.presets,
+								default: "Whole page",
+								description: __("Columns are read one by one, so they don't mix. Pages people have proofread are left alone; a page keeps its new text only if it reads better. For pages with their own layout, draw zones in Page & text → Proofread."),
+							},
+						],
+						(v) =>
+							frappe.call({ method: "sok_resdesk.reocr.enqueue_book", args: { item_id: frm.doc.name, preset: v.preset } }).then((x) => {
+								frappe.show_alert({ message: x.message.message, indicator: "green" });
+								frm.reload_doc();
+							}),
+						__("Re-OCR this book"),
+						__("Start")
+					);
+				}),
+			__("Actions")
+		);
 		// the library's own copy (Settings → Preservation)
 		frm.add_custom_button(
 			__("Preserve Now"),

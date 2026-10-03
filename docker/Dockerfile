@@ -32,6 +32,13 @@ WORKDIR /home/frappe/frappe-bench
 RUN echo "{}" > sites/common_site_config.json && find apps -mindepth 1 -path "*/.git" | xargs rm -fr
 
 USER root
+# OCR for re-reading pages (reocr.py): Tesseract with the Indic models the libraries need. Its own
+# layer, cached across upgrades. Fewer models: --build-arg OCR_LANGS="kan eng"
+ARG OCR_LANGS="kan hin mar san tam tel mal ben guj pan ori eng"
+RUN apt-get update -q \
+ && apt-get install -y -q --no-install-recommends tesseract-ocr \
+      $(for l in ${OCR_LANGS}; do echo tesseract-ocr-$l; done) \
+ && rm -rf /var/lib/apt/lists/*
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY docker/start.sh /usr/local/bin/start.sh
 COPY docker/create-site.sh /usr/local/bin/create-site.sh

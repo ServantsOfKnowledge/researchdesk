@@ -1310,3 +1310,192 @@ class TestAnnotations(OpsTestCase):
 		self.assertEqual(csv_text.count("\n"), 3)
 		frappe.set_user("Guest")
 		self.assertRaises(frappe.PermissionError, annotations.mine)
+
+
+class TestProofreading(OpsTestCase):
+	P, Q, R = "rdtest-proof-p@example.com", "rdtest-proof-q@example.com", "rdtest-reader-r@example.com"
+	GOOD = "Kanakadasa sang of Udupi; Udupi Krishna faced him through the window. " * 3
+	BAD = "K@n#k ~~ ds;; 1l|I ,,.. ^^ %% Ud!p| Kr~shn@ f@c#d h|m" * 3
+
+	def setUp(self):
+		super().setUp()
+		from sok_resdesk.ingest import write_cached_pages
+
+		for email in (self.P, self.Q, self.R):
+			if not frappe.db.exists("User", email):
+				user = frappe.get_doc(
+					{
+						"doctype": "User",
+						"email": email,
+						"first_name": email.split("@")[0],
+						"send_welcome_email": 0,
+						"user_type": "Website User",
+					}
+				).insert(ignore_permissions=True)
+				if "proof" in email:
+					user.add_roles("ResDesk Proofreader")
+		self.book = _item(81)
+		frappe.db.set_value(
+			"RD Item", self.book, {"has_page_text": 1, "visibility": "Public", "on_archive_org": 1}
+		)
+		write_cached_pages(
+			self.book,
+			[
+				{"leaf": 1, "label": "1", "text": self.BAD},
+				{"leaf": 2, "label": "2", "text": self.GOOD},
+				{"leaf": 3, "label": "3", "text": self.BAD},
+			],
+		)
+		patcher = mock.patch("sok_resdesk.search.reindex_pages")
+		self.reindexed = patcher.start()
+		self.addCleanup(patcher.stop)
+		frappe.db.commit()
+		self.addCleanup(self.cleanup)
+
+	def cleanup(self):
+		frappe.set_user("Administrator")
+		frappe.db.delete("RD Page Text", {"item": ("like", f"{PREFIX}%")})
+		frappe.db.commit()
+
+	def text_of(self, leaf):
+		from sok_resdesk.ingest import fetch_pages
+
+		return {p["leaf"]: p["text"] for p in fetch_pages(self.book)}[leaf]
+
+	def test_corrections_overlay_the_text_and_validation_needs_a_second_person(self):
+		from sok_resdesk import pagetext
+
+		frappe.set_user(self.P)
+		self.assertEqual(pagetext.save_page(self.book, 1, "Corrected page one")["status"], "Proofread")
+		self.assertEqual(self.text_of(1), "Corrected page one")
+		self.assertEqual(self.text_of(2), self.GOOD)  # other pages keep archive.org's text
+		self.assertEqual(frappe.db.get_value("RD Item", self.book, "pages_proofread"), 1)
+		self.assertTrue(self.reindexed.called)
+		# the proofreader can't validate their own page
+		self.assertRaises(
+			frappe.ValidationError, pagetext.save_page, self.book, 1, "Corrected page one", validate=1
+		)
+		frappe.set_user(self.Q)
+		# a second person who changes the text makes a new proofread version instead
+		changed = pagetext.save_page(self.book, 1, "Corrected page one!", validate=1)
+		self.assertEqual(changed["status"], "Proofread")
+		frappe.set_user(self.P)
+		done = pagetext.save_page(self.book, 1, "Corrected page one!", validate=1)
+		self.assertEqual(done["status"], "Validated")
+		versions = pagetext.history(self.book, 1)["versions"]
+		self.assertEqual([v.status for v in versions], ["Validated", "Proofread"])
+		self.assertEqual(versions[0].validated_by, self.P)
+		# an earlier version comes back as a new one: the history keeps everything
+		pagetext.restore(versions[1].name)
+		self.assertEqual(self.text_of(1), "Corrected page one")
+		self.assertEqual(len(pagetext.history(self.book, 1)["versions"]), 3)
+		self.assertEqual(frappe.db.count("RD Page Text", {"item": self.book, "is_current": 1}), 1)
+
+	def test_only_proofreaders(self):
+		from sok_resdesk import pagetext, reocr
+
+		for user in (self.R, "Guest"):
+			frappe.set_user(user)
+			self.assertRaises(frappe.PermissionError, pagetext.save_page, self.book, 1, "x")
+			self.assertRaises(frappe.PermissionError, pagetext.history, self.book, 1)
+			self.assertRaises(frappe.PermissionError, reocr.ocr_page, self.book, 1)
+		frappe.set_user(self.P)
+		self.assertRaises(frappe.PermissionError, reocr.enqueue_book, self.book)
+
+	def test_ocr_of_one_page_in_zones_comes_back_to_its_proofreader(self):
+		from sok_resdesk import reocr
+
+		frappe.set_user(self.P)
+		zones = [
+			{"x": 50, "y": 0, "w": 50, "h": 100, "kind": "text"},
+			{"x": 0, "y": 0, "w": 50, "h": 100, "kind": "text"},
+		]
+		with mock.patch("sok_resdesk.core.ocr_engine.available", return_value=["eng"]):
+			key = reocr.ocr_page(self.book, 1, zones)["key"]
+		self.assertEqual(reocr.ocr_result(key)["status"], "queued")
+		method, kw = self.enqueued[-1]
+		self.assertEqual(method, "sok_resdesk.reocr.ocr_page_job")
+		self.assertEqual([z["x"] for z in kw["zones"]], [50, 0])  # the proofreader's reading order
+		seen = {}
+
+		def read_page(image, zones, models):
+			seen["zones"] = zones
+			return {"text": "right\n\nleft", "zones": [{"zone": z, "text": ""} for z in zones]}
+
+		with (
+			mock.patch("sok_resdesk.reocr.page_image", return_value=b"png"),
+			mock.patch("sok_resdesk.reocr.models_for", return_value="eng"),
+			mock.patch("sok_resdesk.core.ocr_engine.read_page", side_effect=read_page),
+		):
+			reocr.ocr_page_job(**{k: v for k, v in kw.items() if k not in ("queue", "timeout")})
+		result = reocr.ocr_result(key)
+		self.assertEqual((result["status"], result["text"]), ("done", "right\n\nleft"))
+		self.assertEqual(len(seen["zones"]), 2)
+		frappe.set_user(self.Q)
+		self.assertRaises(frappe.PermissionError, reocr.ocr_result, key)
+
+	def test_book_reocr_keeps_better_text_and_never_touches_proofread_pages(self):
+		from sok_resdesk import pagetext, reocr
+		from sok_resdesk.core import ocr_engine
+
+		frappe.set_user(self.P)
+		pagetext.save_page(self.book, 3, "Proofread by a person")
+		frappe.set_user("Administrator")
+		asked = []
+
+		def page_image(item_id, leaf):
+			if leaf == 0:
+				raise ocr_engine.OcrError("no image")
+			asked.append(leaf)
+			return str(leaf).encode()
+
+		def read_page(image, zones, models):
+			return {"text": self.GOOD.replace("Udupi", "Udupi!"), "zones": []}
+
+		with (
+			mock.patch("sok_resdesk.reocr.page_image", side_effect=page_image),
+			mock.patch("sok_resdesk.reocr.models_for", return_value="eng"),
+			mock.patch("sok_resdesk.core.ocr_engine.read_page", side_effect=read_page),
+		):
+			counts = reocr.reocr_book(self.book, "Two columns")
+		self.assertEqual(asked, [1, 2])
+		self.assertEqual(counts, {"read": 2, "improved": 1, "failed": 1})
+		self.assertIn("Udupi!", self.text_of(1))  # garbled text replaced
+		self.assertEqual(self.text_of(2), self.GOOD)  # good text kept
+		self.assertEqual(self.text_of(3), "Proofread by a person")
+		row = frappe.db.get_value(
+			"RD Page Text",
+			{"item": self.book, "leaf": 1, "is_current": 1},
+			["source", "status"],
+			as_dict=True,
+		)
+		self.assertEqual((row.source, row.status), ("Re-OCR", "Machine"))
+		self.assertIn("better", frappe.db.get_value("RD Item", self.book, "reocr_state"))
+
+	def test_worst_books_first(self):
+		from sok_resdesk import reocr
+
+		worse, done = _item(82), _item(83)
+		frappe.db.set_value("RD Item", self.book, {"ocr_quality": 60})
+		frappe.db.set_value("RD Item", worse, {"ocr_quality": 20, "on_archive_org": 1})
+		frappe.db.set_value("RD Item", done, {"ocr_quality": 10, "on_archive_org": 1, "reocr_state": "x"})
+		with mock.patch("sok_resdesk.core.ocr_engine.available", return_value=["eng"]):
+			reocr.enqueue_worst(500, "Whole page")
+		names = [n for n in self.enqueued[-1][1]["names"] if n.startswith(PREFIX)]
+		self.assertEqual(names, [worse, self.book])
+		self.assertEqual(frappe.db.get_value("RD Item", worse, "reocr_state"), "waiting to be read again")
+
+	def test_work_list(self):
+		from frappe.website.serve import get_response_content
+
+		from sok_resdesk import pagetext
+
+		frappe.db.set_value("RD Item", self.book, {"published": 1, "ocr_quality": 40})
+		frappe.set_user(self.P)
+		pagetext.save_page(self.book, 1, "Corrected page one")
+		frappe.set_user(self.Q)
+		html = get_response_content("library/proofread")
+		self.assertIn("Operations test book 81", html)
+		self.assertIn("Waiting for a second look", html)
+		frappe.set_user(self.R)
+		self.assertNotIn("Waiting for a second look", get_response_content("library/proofread"))

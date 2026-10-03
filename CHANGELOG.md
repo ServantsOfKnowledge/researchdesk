@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.24.0 (2026-10-05): proofreading and re-OCR, part by part
+
+- **Proofread** in Page & text: the page text becomes an editor beside its image; **Save as
+  proofread**, **Validate** (a second person, text unchanged), and a **History** of every version
+  with **Make current**. Corrected pages are what readers see, search finds and citations quote,
+  and re-ingesting a book never undoes them
+- **Read a page again, part by part**: draw as many zones as the page has (columns, headings,
+  side notes, footnotes), order them, skip pictures, or start from a layout (*Two columns*,
+  *Three columns*, *Heading and two columns*). Each zone is read on its own with Tesseract and the
+  book's language model, so columns no longer run into each other
+- **Re-OCR whole books** in the background (book form, or Items → *Re-OCR the worst books*): the
+  new text is kept only where it scores clearly better, and pages people proofread are never
+  replaced
+- **Proofreading work list** (`/library/proofread`): OCR error reports to correct, pages to
+  validate, the books with the poorest OCR; by language
+- New **ResDesk Proofreader** role (portal only), **Page Texts** in the Desk, and Tesseract with
+  Indic language models in the Docker image (and the native installer)
+- Every pure test file now runs in CI
+
 ## 0.23.0 (2026-10-05): notes on the pages
 
 - **Notes in Page & text** for logged-in readers: select words to **Highlight**, **Comment**,

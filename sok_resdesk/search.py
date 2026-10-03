@@ -456,6 +456,19 @@ def pages_held() -> bool:
 	return bool(frappe.db.get_single_value("RD Settings", "hold_page_text", cache=False))
 
 
+def reindex_pages(item_id: str, pages: list[dict], client: MeiliClient | None = None) -> int:
+	"""Send some pages of a book again (a corrected page): replaces those page documents only."""
+	from sok_resdesk.catalogue import item_to_record
+
+	if not pages or not cint(settings().index_pages):
+		return 0
+	client = client or MeiliClient.from_settings()
+	record = item_to_record(frappe.get_doc("RD Item", item_id))
+	docs = page_documents(record, pages, cint(settings().max_page_chars) or 6000)
+	client.add(client.pages, docs)
+	return len(docs)
+
+
 def index_missing(limit: int = 0) -> list[str]:
 	"""Published books that never reached the search engine (indexed_on is empty): a worker
 	stopped between saving a book and sending it."""

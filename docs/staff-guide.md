@@ -197,6 +197,7 @@ to it follows; set *Home Page* back to `library` to return.
 | System Manager | also upgrades, restarts and downloading backups on the Server page |
 | ResDesk Cataloguer | edit books, authors, subjects and collections; exports and spreadsheet imports; read ingest runs |
 | ResDesk Reader | the portal only: read members-only books |
+| ResDesk Proofreader | the portal only: correct and validate page text, and read pages again with OCR |
 
 Give staff a role under **Users** in the Desk ([more](operations.md#users-and-roles)).
 
@@ -208,9 +209,34 @@ Readers keep notes on the pages of books in **Page & text** (see the reader guid
   manager: filter **Review** = *Pending*, open one, read it on its page (**Open on its Page**) and
   **Approve** or **Reject** it. Only approved ones show to other readers.
 - **OCR error** reports reach the managers whoever made them, private or not: filter **Kind** =
-  *OCR error* to see where the page text needs correcting (proofreading, next release).
+  *OCR error* to see where the page text needs correcting (see Proofreading below).
 - **Research Groups** (Research Desk → *Research Groups*): a class, a project or a reading circle.
   Add the readers as members; they can then share notes with the group.
 
 A book's approved public notes are also published as W3C Web Annotations, for other tools:
 `/api/method/sok_resdesk.annotations.collection?item_id=<id>`.
+
+## Proofreading and re-OCR
+
+A page's text starts as archive.org's OCR. It is improved two ways, and each change is kept as a
+**page text version** (Research Desk → *Page Texts*): the page's current version is what readers
+see, search finds and citations quote. Re-ingesting a book never undoes a correction.
+
+- **Proofreaders** correct pages in the portal (Page & text → **Proofread**; see the reader
+  guide). Give a volunteer the **ResDesk Proofreader** role (portal only); cataloguers and
+  managers can proofread too. A page is **Proofread** by one person and **Validated** by a second
+  one who checks it unchanged. Their work list is `/library/proofread`: OCR error reports not
+  corrected yet, pages to validate, and the books with the poorest OCR.
+- **Re-OCR** reads page images again with Tesseract and the book's language model (Kannada,
+  Hindi, Marathi, Sanskrit, Tamil, Telugu, Malayalam, Bengali, Gujarati, Punjabi, Oriya, plus
+  English; installed in the Docker image). In Proofread mode a page is read **part by part**:
+  the proofreader draws its columns, headings and side notes, in reading order.
+  For whole books, in the background: **Re-OCR this book** on a book's form, or Items → **Re-OCR
+  the worst books** (the poorest OCR quality first). Choose the layout most pages have (*Whole
+  page*, *Two columns*, *Three columns*, *Heading and two columns*). A new text is kept only where
+  it scores clearly better than the page's text (5 points of OCR quality), and **pages people
+  have proofread are never replaced**. The book's **Re-OCR** field says how it went.
+
+Page images come from archive.org, one request a page, so re-OCR applies to books there for now.
+Re-OCR runs on the long queue and stops with **Pause All**. Each version records the engine and
+the zones it was read with.

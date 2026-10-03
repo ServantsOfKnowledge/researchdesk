@@ -1,0 +1,203 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-10-05 18:00:00.000000",
+ "modified": "2026-10-05 18:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Page Text",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "description": "A version of one page's text: a new OCR or a person's correction. The page's current version is what readers see and search; the others are its history. Pages never corrected or re-read keep archive.org's text and have no rows here.",
+ "field_order": [
+  "item",
+  "leaf",
+  "page_label",
+  "is_current",
+  "column_break_a",
+  "source",
+  "status",
+  "quality",
+  "section_people",
+  "proofread_by",
+  "proofread_on",
+  "column_break_p",
+  "validated_by",
+  "validated_on",
+  "section_text",
+  "text",
+  "section_how",
+  "engine",
+  "zones"
+ ],
+ "fields": [
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Item",
+   "options": "RD Item",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "leaf",
+   "fieldtype": "Int",
+   "label": "Leaf",
+   "in_list_view": 1,
+   "description": "The page image, counted from 0."
+  },
+  {
+   "fieldname": "page_label",
+   "fieldtype": "Data",
+   "label": "Printed Page"
+  },
+  {
+   "fieldname": "is_current",
+   "fieldtype": "Check",
+   "label": "Current",
+   "default": "1",
+   "in_standard_filter": 1,
+   "description": "The version readers see and search."
+  },
+  {
+   "fieldname": "column_break_a",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "label": "Made By",
+   "options": "Re-OCR\nProofreading",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Machine\nProofread\nValidated",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "description": "Machine: OCR nobody has checked. Proofread: corrected by a person. Validated: checked again by a second person."
+  },
+  {
+   "fieldname": "quality",
+   "fieldtype": "Int",
+   "label": "OCR Quality",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_people",
+   "fieldtype": "Section Break",
+   "label": "Who"
+  },
+  {
+   "fieldname": "proofread_by",
+   "fieldtype": "Link",
+   "label": "Proofread By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "proofread_on",
+   "fieldtype": "Datetime",
+   "label": "Proofread On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_p",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "validated_by",
+   "fieldtype": "Link",
+   "label": "Validated By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "validated_on",
+   "fieldtype": "Datetime",
+   "label": "Validated On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_text",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "text",
+   "fieldtype": "Long Text",
+   "label": "Text"
+  },
+  {
+   "fieldname": "section_how",
+   "fieldtype": "Section Break",
+   "label": "How It Was Read",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "engine",
+   "fieldtype": "Data",
+   "label": "OCR Engine",
+   "read_only": 1
+  },
+  {
+   "fieldname": "zones",
+   "fieldtype": "Long Text",
+   "label": "Zones",
+   "read_only": 1,
+   "description": "The parts of the page image read, in reading order (JSON, percent of the image)."
+  }
+ ],
+ "links": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "track_changes": 0,
+ "in_create": 1,
+ "title_field": "item",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 0,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 0,
+   "share": 0
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 0,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 0,
+   "share": 0
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 0,
+   "share": 0
+  }
+ ]
+}

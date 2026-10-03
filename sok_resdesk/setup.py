@@ -6,6 +6,7 @@ ROLES = {
 	"ResDesk Manager": "Configures the portal, runs ingests, manages the catalogue.",
 	"ResDesk Cataloguer": "Edits catalogue records.",
 	"ResDesk Reader": "Logged-in reader: can find and read members-only books on the portal.",
+	"ResDesk Proofreader": "Corrects the page text of books on the portal (Page & text → Proofread), and runs OCR on parts of a page.",
 }
 # roles that work in the Desk; readers only use the portal
 DESK_ROLES = ("ResDesk Manager", "ResDesk Cataloguer")
