@@ -784,6 +784,8 @@ def _run_scheduled(schedule: str):
 
 
 AUTO_CARRY_ON = 3  # times a run whose batches vanished is carried on by itself
+AUTO_RETRY = 2  # times a run that ended with failed books (or failed to list them) tries again by itself
+RETRY_AFTER_MINUTES = 15  # how long after it ended: a short outage at archive.org is over by then
 LOST_MINUTES = 15
 
 
@@ -859,6 +861,9 @@ def mark_interrupted_runs(idle_hours: int = 2, lost_minutes: int = LOST_MINUTES)
 				frappe.db.rollback()
 				frappe.log_error(title=f"Research Desk: carrying on run {name} failed")
 
+	if not is_paused():
+		_retry_failed_runs(now, add_to_date)
+
 	cutoff = add_to_date(now, hours=-idle_hours)
 	for name in frappe.get_all(
 		"RD Ingest Run", filters={"status": "Running", "modified": ("<", cutoff)}, pluck="name"
@@ -871,6 +876,32 @@ def mark_interrupted_runs(idle_hours: int = 2, lost_minutes: int = LOST_MINUTES)
 		frappe.db.sql(f"update `{RUN}` set finished_on=%s where name=%s", (now, name))
 		_set_status(name, "Interrupted")
 	frappe.db.commit()
+
+
+def _retry_failed_runs(now, add_to_date) -> None:
+	"""Runs that ended with failed books, or failed while listing them, try again by themselves
+	(AUTO_RETRY times, RETRY_AFTER_MINUTES after they ended): most failures are a busy moment at
+	archive.org, a lock between two workers or a restart. After that they wait for Retry."""
+	from sok_resdesk.jobs import retry_run
+
+	cutoff = add_to_date(now, minutes=-RETRY_AFTER_MINUTES)
+	for name in frappe.get_all(
+		"RD Ingest Run",
+		filters={"status": ("in", ["Completed with Errors", "Failed"]), "finished_on": ("<", cutoff)},
+		pluck="name",
+	):
+		log = frappe.db.get_value("RD Ingest Run", name, "log") or ""
+		if log.count("Retried by itself") >= AUTO_RETRY:
+			continue
+		try:
+			retry_run(name)
+			_log(
+				name, "Retried by itself (the failed books were taken again; those already done are skipped)."
+			)
+			frappe.db.commit()
+		except Exception:
+			# e.g. another run of the profile is going: it stays as it is and the next turn tries again
+			frappe.db.rollback()
 
 
 def run_scheduled_hourly():

@@ -678,3 +678,52 @@ class TestWorkerPriority(OpsTestCase):
 		frappe.set_user("Guest")
 		self.assertRaises(frappe.PermissionError, priority.set_worker_priority, 10)
 		frappe.set_user("Administrator")
+
+
+class TestJobListIsReadOnly(OpsTestCase):
+	def test_listing_jobs_does_not_clean_up_the_registries(self):
+		"""Pause, Stop and the Jobs page list the running jobs from a web request. RQ's clean-up of
+		the started registry runs failure callbacks with SIGALRM, which fails off the main thread
+		("signal only works in main thread of the main interpreter"), so listing must not trigger it."""
+		from rq.registry import StartedJobRegistry
+
+		from sok_resdesk import jobs
+
+		with (
+			mock.patch.object(StartedJobRegistry, "get_job_ids", return_value=[]) as ids,
+			mock.patch.object(StartedJobRegistry, "cleanup") as cleanup,
+		):
+			jobs._rq_jobs()
+		self.assertTrue(ids.called)
+		for call in ids.call_args_list:
+			self.assertIs(call.kwargs.get("cleanup"), False)
+		cleanup.assert_not_called()
+
+
+class TestRetryByItself(OpsTestCase):
+	def test_failed_runs_try_again_twice_then_wait_for_a_person(self):
+		from frappe.utils import add_to_date, now_datetime
+
+		from sok_resdesk import ingest
+
+		profile = frappe.get_doc(
+			{
+				"doctype": "RD Ingest Profile",
+				"profile_name": "rdtest retry",
+				"source": "Internet Archive",
+				"scope_type": "Collection",
+				"ia_collection": "rdtestretry",
+				"fetch_fulltext": 0,
+			}
+		).insert(ignore_permissions=True)
+		run = frappe.get_doc(
+			{"doctype": "RD Ingest Run", "profile": profile.name, "status": "Completed with Errors"}
+		).insert(ignore_permissions=True)
+		frappe.db.set_value("RD Ingest Run", run.name, "finished_on", add_to_date(now_datetime(), hours=-1))
+		frappe.db.commit()
+		self.addCleanup(lambda: frappe.db.delete("RD Ingest Run", run.name))
+		self.addCleanup(lambda: frappe.db.delete("RD Ingest Profile", profile.name))
+		with mock.patch("sok_resdesk.jobs.retry_run") as retry:
+			for _ in range(4):
+				ingest._retry_failed_runs(now_datetime(), add_to_date)
+		self.assertEqual(retry.call_count, ingest.AUTO_RETRY)

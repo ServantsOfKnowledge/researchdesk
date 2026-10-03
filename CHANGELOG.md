@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.19.1 (2026-10-05): Pause, Stop and the jobs list work again; failed runs retry by themselves
+
+- **Fixed: Pause (and Stop, and the jobs list) failed with "signal only works in main thread of
+  the main interpreter".** Listing the running jobs made RQ clean up its started registry, which
+  runs the failure callbacks of dead jobs with a SIGALRM timer, and that only works in a main
+  thread, not in a web request. Listing now only reads; the 10-minute watcher (a worker's main
+  thread) does the clean-up
+- **Failed work is tried again by itself.** A run that ends *Completed with Errors* or *Failed*
+  retries 15 minutes later, up to twice, taking only the books that failed; after that it waits
+  for **Retry**. (Runs that lose their workers already carried on by themselves since 0.19.0)
+
 ## 0.19.0 (2026-10-05): the portal book count, worker priority, the guide
 
 - **The portal's book total no longer stops at 10,000.** The count under the search box comes

@@ -137,6 +137,9 @@ Desk notices within about 15 minutes that none of the run's batches is queued or
 more: the run is marked **Interrupted** and carries on by itself, listing its books again and
 taking only those not done yet. It does that up to three times; after that it waits for
 **Carry On**. A run with no progress for two hours is marked Interrupted too.
+A run that ends *Completed with Errors* or *Failed* tries again by itself, 15 minutes after it
+ended and up to twice (most failures are a busy moment at archive.org or a clash between two
+workers), taking only the books that failed; after that it waits for **Retry**.
 
 ## When books or batches fail
 

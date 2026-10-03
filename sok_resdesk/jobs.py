@@ -53,8 +53,12 @@ def _rq_jobs() -> list[dict]:
 	prefix = f"{frappe.local.site}||"
 	out = []
 	for queue in get_queues(connection=conn):
+		# cleanup=False: RQ's own clean-up of the running jobs runs the failure callbacks of dead ones,
+		# which sets a SIGALRM timer, and that only works in a main thread. This runs in a web
+		# request (a gunicorn thread: "signal only works in main thread"), so it only reads.
+		# The scheduler (ingest.mark_interrupted_runs, a worker's main thread) does the clean-up.
 		ids = [(i, "queued") for i in queue.get_job_ids()]
-		ids += [(i, "running") for i in StartedJobRegistry(queue=queue).get_job_ids()]
+		ids += [(i, "running") for i in StartedJobRegistry(queue=queue).get_job_ids(cleanup=False)]
 		for job_id, state in ids:
 			if not job_id.startswith(prefix) and "sok_resdesk" not in job_id:
 				continue
