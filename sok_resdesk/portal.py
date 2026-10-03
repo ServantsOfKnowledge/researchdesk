@@ -33,6 +33,42 @@ def home_is_library() -> None:
 		pass  # e.g. during install, before the tables exist
 
 
+COUNT_TTL = 60  # seconds a book count on the home page may be behind
+
+
+def _cached(key: str, compute):
+	"""A count the home page shows: worked out at most once a minute for each kind of visitor.
+	Counting every book of every collection on each page view is the slowest query on the portal."""
+	key = f"resdesk:{key}:{access.sql_condition()}"
+	value = frappe.cache.get_value(key)
+	if value is None:
+		value = compute()
+		frappe.cache.set_value(key, value, expires_in_sec=COUNT_TTL)
+	return value
+
+
+def item_count() -> int:
+	return _cached(
+		"item-count",
+		lambda: frappe.db.sql(
+			f"select count(*) from `tabRD Item` where published=1 and {access.sql_condition()}"
+		)[0][0],
+	)
+
+
+def collection_counts() -> dict:
+	return _cached(
+		"collection-counts",
+		lambda: dict(
+			frappe.db.sql(
+				f"""select c.collection, count(distinct i.name) from `tabRD Item Collection` c
+		join `tabRD Item` i on i.name = c.parent
+		where i.published = 1 and {access.sql_condition("i.visibility")} group by c.collection"""
+			)
+		),
+	)
+
+
 def collection_cards() -> list[frappe._dict]:
 	"""Published collections with the number of books this visitor can find in each."""
 	rows = frappe.get_all(
@@ -52,13 +88,7 @@ def collection_cards() -> list[frappe._dict]:
 	)
 	if not rows:
 		return []
-	counts = dict(
-		frappe.db.sql(
-			f"""select c.collection, count(distinct i.name) from `tabRD Item Collection` c
-		join `tabRD Item` i on i.name = c.parent
-		where i.published = 1 and {access.sql_condition("i.visibility")} group by c.collection"""
-		)
-	)
+	counts = collection_counts()
 	published = {r.name for r in rows}
 	subs: dict[str, int] = {}
 	for r in rows:

@@ -29,6 +29,7 @@ SETTINGS_FIELDS = (
 	"quiet_to",
 	"quiet_weekdays_only",
 	"resource_preset",
+	"worker_nice",
 	"book_limit",
 	"mirror_all_collections",
 	"mirror_min_books",
@@ -334,6 +335,8 @@ class TestSetupHelpers(OpsTestCase):
 		guide.mark_visited("jobs")
 		self.assertIn("jobs", guide._state()["done"])
 		self.assertTrue(guide.checklist_mark("", "hide")["hidden"])
+		self.assertFalse(guide.checklist_mark("", "show")["hidden"])  # and it can be brought back
+		self.assertEqual(guide.checklist()["steps"][0]["skipped"], True)  # without losing progress
 		self.assertRaises(frappe.ValidationError, guide.checklist_mark, "no-such-step")
 
 	def test_choose_preset(self):
@@ -577,3 +580,101 @@ class TestIASync(OpsTestCase):
 		sub_name = frappe.db.get_value("RD Collection", {"mirror_of": "rdtestsub"})
 		self.assertEqual(cards[sub_name].part_of, top)
 		self.assertEqual(cards[top].subcollections, 1)
+
+
+class FakeMeili:
+	"""Records what is sent to the search engine, in order."""
+
+	books, pages = "rd_books", "rd_pages"
+
+	def __init__(self):
+		self.calls = []
+
+	def add(self, index, documents, wait=False):
+		self.calls.append(("add", index, len(documents)))
+
+	def delete_by_filter(self, index, filter_):
+		self.calls.append(("delete", index, filter_))
+
+
+class TestIndexBuffer(OpsTestCase):
+	def record(self, n):
+		from sok_resdesk.catalogue import item_to_record
+
+		return item_to_record(frappe.get_doc("RD Item", _item(n)))
+
+	def test_books_go_first_then_old_pages_then_new_pages_in_big_tasks(self):
+		from sok_resdesk.search import IndexBuffer
+
+		fake = FakeMeili()
+		buf = IndexBuffer(fake, flush_books=3)
+		buf.PAGE_CHUNK = 5
+		pages = [{"leaf": i, "label": "", "text": f"page {i}"} for i in range(4)]
+		for n in (1, 2, 3):
+			buf.add(self.record(n), pages, replace_pages=n != 1)
+		self.assertTrue(buf.due)
+		self.assertEqual(fake.calls, [])  # nothing is sent until the batch says so
+		buf.flush()
+		kinds = [c[:2] for c in fake.calls]
+		self.assertEqual(kinds[0], ("add", "rd_books"))  # all three books in one task, first
+		self.assertEqual(fake.calls[0][2], 3)
+		self.assertEqual(kinds[1], ("delete", "rd_pages"))  # one delete for the two old page sets
+		self.assertEqual(fake.calls[1][2].count(" OR "), 1)
+		self.assertEqual([c[2] for c in fake.calls[2:]], [5, 5, 2])  # 12 pages in chunks of 5
+		self.assertFalse(buf.due)
+		for n in (1, 2, 3):
+			self.assertTrue(frappe.db.get_value("RD Item", f"{PREFIX}{n:04d}", "indexed_on"))
+			self.assertEqual(frappe.db.get_value("RD Item", f"{PREFIX}{n:04d}", "indexed_pages"), 4)
+
+	def test_books_not_sent_are_found(self):
+		from sok_resdesk.search import index_missing
+
+		name = _item(7)
+		frappe.db.set_value("RD Item", name, "indexed_on", None)
+		self.assertIn(name, index_missing())
+		frappe.db.set_value("RD Item", name, "indexed_on", frappe.utils.now_datetime())
+		self.assertNotIn(name, index_missing())
+
+
+class TestWorkerPriority(OpsTestCase):
+	def test_worker_takes_the_chosen_level(self):
+		from sok_resdesk import priority
+
+		frappe.set_user("Administrator")
+		self.assertEqual(priority.set_worker_priority(10)["wanted"], 10)
+		with (
+			mock.patch("os.getpriority", return_value=19),
+			mock.patch("os.setpriority") as setp,
+		):
+			self.assertEqual(priority.apply(force=True), 10)
+		setp.assert_called_once_with(os.PRIO_PROCESS, 0, 10)
+
+	def test_a_worker_that_may_not_lower_its_niceness_says_so(self):
+		from sok_resdesk import priority
+
+		frappe.set_user("Administrator")
+		priority.set_worker_priority(0)
+		with (
+			mock.patch("os.getpriority", return_value=19),
+			mock.patch("os.setpriority", side_effect=PermissionError("Operation not permitted")),
+		):
+			self.assertEqual(priority.apply(force=True), 19)  # stays where it was, no crash
+		self.assertIn("Operation not permitted", priority.status()["refused"][0])
+
+	def test_nothing_chosen_changes_nothing(self):
+		from sok_resdesk import priority
+
+		frappe.db.set_single_value("RD Settings", "worker_nice", "")
+		with mock.patch("os.setpriority") as setp:
+			priority.apply(force=True)
+		setp.assert_not_called()
+
+	def test_only_managers_and_only_known_levels(self):
+		from sok_resdesk import priority
+
+		frappe.set_user("Administrator")
+		self.assertRaises(frappe.ValidationError, priority.set_worker_priority, 7)
+		self.assertRaises(frappe.ValidationError, priority.set_worker_priority, "fast")
+		frappe.set_user("Guest")
+		self.assertRaises(frappe.PermissionError, priority.set_worker_priority, 10)
+		frappe.set_user("Administrator")

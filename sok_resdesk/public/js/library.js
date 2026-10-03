@@ -106,7 +106,7 @@
 			return;
 		}
 		const noun = state.mode === "pages" ? "matching pages" : "books";
-		$("#rd-summary").textContent = `${(data.total || 0).toLocaleString()} ${noun}${data.took_ms != null ? ` · ${data.took_ms} ms` : ""}`;
+		$("#rd-summary").textContent = `${(data.total || 0).toLocaleString()}${data.total_capped ? "+" : ""} ${noun}${data.took_ms != null ? ` · ${data.took_ms} ms` : ""}`;
 		renderChips();
 		renderFacets(data.facets || {});
 		const hits = data.hits || [];

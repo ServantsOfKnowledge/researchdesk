@@ -45,9 +45,10 @@ Six steps take a new library from an empty install to a working portal: name and
 selection of books, watching the ingest, access, a first collection, and this guide. Each step's
 button opens the right screen, often with its tour. Steps tick themselves when the library has
 done them some other way (a logo is set, an ingest has finished, a collection exists). **Skip**
-sets a step aside; **Hide checklist** removes the whole block once you don't need it.
-
-To see the checklist again: Help → menu (⋯) → **Restart the getting-started checklist**. Only
+sets a step aside; **Hide checklist** folds the block away once you don't need it. A line
+*The getting-started guide is hidden. Show the guide again* stays in its place on the workspace,
+so it is one click to bring back with your progress kept. Help → menu (⋯) → **Restart the
+getting-started checklist** brings it back from scratch (ticks and skips forgotten). Only
 managers see it.
 
 ## Bringing books in

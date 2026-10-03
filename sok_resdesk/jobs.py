@@ -961,8 +961,39 @@ def _search_size() -> int | None:
 		return None
 
 
+def _indexing() -> dict | None:
+	"""Books in the catalogue against books the search engine lists, and what it still has to
+	work through. The portal's search lists only what the engine has taken in, so while it is
+	behind readers see fewer books than the catalogue holds."""
+	cached = frappe.cache.get_value("resdesk:indexing")
+	if cached is not None:
+		return cached or None
+	from sok_resdesk.search import MeiliClient
+
+	try:
+		client = MeiliClient.from_settings()
+		listed = client.stats().get("indexes", {}).get(client.books, {}).get("numberOfDocuments", 0)
+		tasks = client._req("GET", "/tasks", params={"statuses": "enqueued,processing", "limit": 1})
+		waiting = tasks.get("total", 0)
+	except Exception:
+		frappe.cache.set_value("resdesk:indexing", {}, expires_in_sec=5)
+		return None
+	row = {
+		"catalogue": frappe.db.count("RD Item", {"published": 1}),
+		"listed": listed,
+		"waiting": waiting,
+		"unsent": frappe.db.count("RD Item", {"published": 1, "indexed_on": ("is", "not set")}),
+	}
+	frappe.cache.set_value("resdesk:indexing", row, expires_in_sec=5)
+	return row
+
+
 def machine() -> dict:
+	from sok_resdesk import priority
+
 	return {
+		"priority": priority.status(),
+		"indexing": _indexing(),
 		"host": _host(),
 		"limits": _limits(),
 		"containers": _containers(),

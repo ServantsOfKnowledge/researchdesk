@@ -53,6 +53,13 @@ class ResDeskJobs {
 		);
 		this.$body.on("click", "[data-release-all]", () => this.call("release_held", {}));
 		this.$body.on("click", "[data-choose-preset]", () => this.choose_preset());
+		this.$body.on("click", "[data-renice]", () => this.renice());
+		this.$body.on("click", "[data-index-missing]", () =>
+			frappe.call({ method: "sok_resdesk.search.enqueue_index_missing", freeze: true }).then((r) => {
+				frappe.show_alert({ message: __("{0} books queued for the search engine.", [r.message]), indicator: "green" });
+				this.refresh();
+			})
+		);
 		this.$body.on("click", "[data-discard-all]", () => this.call("release_held", { discard: 1 }, __("Discard all held jobs? They won't run.")));
 		this.$body.on("click", "[data-cancel-search]", () => this.cancel_search());
 		this.$body.on("click", "[data-retry-run]", (e) => this.call("retry_run", { run: $(e.currentTarget).data("retry-run") }));
@@ -134,6 +141,35 @@ class ResDeskJobs {
 				)
 			);
 		}
+	}
+
+	renice() {
+		const P = (this.data && this.data.machine && this.data.machine.priority) || {};
+		const d = new frappe.ui.Dialog({
+			title: __("Worker priority"),
+			fields: [
+				{
+					fieldname: "nice",
+					fieldtype: "Select",
+					label: __("Priority of the background workers"),
+					options: (P.levels || []).map((l) => ({ value: String(l.nice), label: `${l.nice}: ${l.label}` })),
+					default: String(P.wanted != null ? P.wanted : 10),
+				},
+				{
+					fieldtype: "HTML",
+					options: `<p class="text-muted small">${__("The workers run the ingests and re-indexing. A lower number gives them a bigger share of the CPU when the machine is busy; the portal and search slow down a little in return. Each worker takes the change on when it starts its next book, nothing is restarted.")}</p>`,
+				},
+			],
+			primary_action_label: __("Apply"),
+			primary_action: (v) => {
+				d.hide();
+				frappe.call({ method: "sok_resdesk.priority.set_worker_priority", args: { nice: v.nice }, freeze: true }).then((r) => {
+					frappe.show_alert({ message: r.message.message, indicator: "green" });
+					this.refresh();
+				});
+			},
+		});
+		d.show();
 	}
 
 	choose_preset() {
@@ -373,6 +409,18 @@ class ResDeskJobs {
 			? ""
 			: `<p class="text-muted small">${__("For CPU and memory per part, run on the server:")} <code>./resdesk.sh resources monitor on</code></p>`;
 		const preset = L.preset || (m.native ? "" : "standard");
+		const P = m.priority || {};
+		const started = L.worker_nice != null && L.worker_nice !== "" ? L.worker_nice : null;
+		const prio = `<p class="small" style="margin-top:6px">${__("Worker priority")} (nice): <b>${P.wanted != null ? P.wanted : started != null ? started : "–"}</b>
+			${P.wanted != null && P.workers ? ` · ${__("{0} of {1} workers on it", [P.applied, P.workers])}` : ""}
+			<button class="btn btn-xs btn-default" data-renice style="margin-left:6px">${__("Change")}</button>
+			${(P.refused || []).length ? `<br><span class="text-danger">${__("A worker may not lower its niceness here ({0}). To give workers more, run on the server:", [esc(P.refused[0])])} <code>./resdesk.sh resources set WORKER_NICE=${esc(P.wanted)}</code></span>` : ""}</p>`;
+		const I = m.indexing;
+		const idx = I
+			? `<p class="small" style="margin-top:6px">${__("Search index")}: <b>${I.listed.toLocaleString()}</b> ${__("of")} <b>${I.catalogue.toLocaleString()}</b> ${__("books listed to readers")}
+				${I.waiting ? ` · ${__("{0} jobs waiting in the search engine", [I.waiting])}` : ""}
+				${I.unsent ? `<br><span class="text-warning">${__("{0} books never reached the search engine.", [I.unsent])}</span> <button class="btn btn-xs btn-default" data-index-missing>${__("Send them")}</button>` : ""}</p>`
+			: "";
 		const machine = `
 			<div class="rdj-machine">
 				<div>
@@ -382,6 +430,7 @@ class ResDeskJobs {
 					<p class="small" style="margin-top:10px">${__("Preset in use")}: <b>${esc(preset || "–")}</b>
 						${m.requested_preset && m.requested_preset !== preset ? ` · ${__("chosen")}: <b>${esc(m.requested_preset)}</b> (${__("run")} <code>./resdesk.sh resources apply</code>)` : ""}
 						${m.native ? "" : `<button class="btn btn-xs btn-default" data-choose-preset style="margin-left:6px">${__("Change")}</button>`}</p>
+					${prio}${idx}
 					<p class="small text-muted">${
 						q.enabled
 							? __("Quiet hours: {0} to {1}{2}.", [q.from, q.to, q.weekdays_only ? " " + __("on weekdays") : ""])

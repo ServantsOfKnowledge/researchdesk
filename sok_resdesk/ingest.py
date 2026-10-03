@@ -70,7 +70,7 @@ def write_cached_pages(item_id: str, pages: list[dict]) -> None:
 	path = _cache_path(item_id)
 	os.makedirs(os.path.dirname(path), exist_ok=True)
 	tmp = f"{path}.tmp"
-	with gzip.open(tmp, "wt", encoding="utf-8", compresslevel=6) as f:
+	with gzip.open(tmp, "wt", encoding="utf-8", compresslevel=3) as f:
 		json.dump(pages, f, ensure_ascii=False)
 	os.replace(tmp, path)
 
@@ -174,9 +174,15 @@ def refresh_item(item_id: str) -> str:
 
 
 def _ingest_one(
-	ia: IAClient, item_id: str, profile: str | None, fetch_text: bool, refresh: bool = False
+	ia: IAClient,
+	item_id: str,
+	profile: str | None,
+	fetch_text: bool,
+	refresh: bool = False,
+	buffer=None,
 ) -> tuple[bool, int]:
-	"""Fetch, store and index one item. Returns (created, pages_indexed)."""
+	"""Fetch, store and index one item (or hand it to the batch's IndexBuffer, which sends a
+	whole batch at once). Returns (created, pages_indexed)."""
 	from sok_resdesk.search import SearchError, index_record
 
 	data = ia.metadata(item_id)
@@ -188,9 +194,10 @@ def _ingest_one(
 	if fetch_text and record["has_page_text"]:
 		pages = fetch_pages(item_id, ia, data.get("page_numbers"), refresh=refresh)
 	try:
-		count = index_record(
-			item_to_record(frappe.get_doc("RD Item", name)), pages, replace_pages=not created
-		)
+		record = item_to_record(frappe.get_doc("RD Item", name))
+		if buffer is not None:
+			return created, buffer.add(record, pages, replace_pages=not created)
+		count = index_record(record, pages, replace_pages=not created)
 	except SearchError as e:
 		frappe.log_error("Research Desk: indexing failed", f"{item_id}: {e}")
 		count = 0
@@ -552,7 +559,8 @@ def _already_done(item_id: str, since, only_new: bool) -> bool:
 def run_batch(run_name: str, item_ids: list, batch_no: int = 0, verbose: bool = False) -> None:
 	"""Ingest one batch. Items are IA identifiers, or [identifier, folder] pairs for folder
 	sources. Safe to run many at once."""
-	from sok_resdesk import ia_sync
+	from sok_resdesk import ia_sync, priority
+	from sok_resdesk.search import IndexBuffer
 
 	run = frappe.db.get_value(
 		"RD Ingest Run", run_name, ["profile", "started_on", "triggered_by"], as_dict=True
@@ -577,71 +585,83 @@ def run_batch(run_name: str, item_ids: list, batch_no: int = 0, verbose: bool = 
 	from sok_resdesk.capacity import BookLimitReached, has_room
 
 	limit_told = False
-	for pos, entry in enumerate(item_ids):
-		item_id, loc = (entry[0], entry[1]) if isinstance(entry, (list, tuple)) else (entry, None)
-		frappe.db.commit()  # start each item with a fresh snapshot
-		status = _status(run_name)
-		if status == "Cancelled":
-			_log(run_name, f"batch {batch_no}: cancelled", verbose)
-			break
-		if status == "Paused" and _paused_here(run_name, item_ids[pos:], batch_no, verbose):
-			break
-		if _already_done(item_id, run.started_on, only_new):
-			already += 1
-			_bump(run_name, processed=1, skipped_count=1)
-			frappe.db.commit()
-			continue
-		# at the book limit, books already in the catalogue are still updated; new ones wait
-		if not frappe.db.exists("RD Item", item_id) and not has_room():
-			if not limit_told:
-				_log(run_name, f"batch {batch_no}: book limit reached: new books are skipped", verbose)
-				limit_told = True
-			_bump(run_name, processed=1, skipped_count=1, limit_skipped=1)
-			frappe.db.commit()
-			continue
-		error = None
-		for attempt in range(TRIES):
-			try:
-				if store is not None:
-					outcome, pages = ingest_local_one(store, item_id, loc, profile, fetch_text, force=refresh)
-				else:
-					created, pages = _ingest_one(ia, item_id, profile_name, fetch_text, refresh=refresh)
-					outcome = "created" if created else "updated"
-				frappe.db.commit()
-				error = None
+	# books and their page text go to the search engine together, a few books at a time
+	buffer = IndexBuffer()
+	try:
+		for pos, entry in enumerate(item_ids):
+			item_id, loc = (entry[0], entry[1]) if isinstance(entry, (list, tuple)) else (entry, None)
+			frappe.db.commit()  # start each item with a fresh snapshot
+			priority.apply()  # the worker priority chosen in the Desk (Background Jobs → Machine)
+			status = _status(run_name)
+			if status == "Cancelled":
+				_log(run_name, f"batch {batch_no}: cancelled", verbose)
 				break
-			except Exception as e:
-				frappe.db.rollback()
-				error = e
-				if not _is_transient(e) or attempt == TRIES - 1:
+			if status == "Paused" and _paused_here(run_name, item_ids[pos:], batch_no, verbose):
+				break
+			if _already_done(item_id, run.started_on, only_new):
+				already += 1
+				_bump(run_name, processed=1, skipped_count=1)
+				frappe.db.commit()
+				continue
+			# at the book limit, books already in the catalogue are still updated; new ones wait
+			if not frappe.db.exists("RD Item", item_id) and not has_room():
+				if not limit_told:
+					_log(run_name, f"batch {batch_no}: book limit reached: new books are skipped", verbose)
+					limit_told = True
+				_bump(run_name, processed=1, skipped_count=1, limit_skipped=1)
+				frappe.db.commit()
+				continue
+			error = None
+			for attempt in range(TRIES):
+				try:
+					if store is not None:
+						outcome, pages = ingest_local_one(
+							store, item_id, loc, profile, fetch_text, force=refresh, buffer=buffer
+						)
+					else:
+						created, pages = _ingest_one(
+							ia, item_id, profile_name, fetch_text, refresh=refresh, buffer=buffer
+						)
+						outcome = "created" if created else "updated"
+					frappe.db.commit()
+					error = None
 					break
-				# another worker touched the same creator, subject or collection: wait and retry
-				time.sleep(1 + attempt * 2 + random.random() * 2)
-		# Counters/log go in their own short transaction so parallel batches never conflict.
-		if error is None:
-			_bump(
-				run_name,
-				processed=1,
-				created_count=int(outcome == "created"),
-				updated_count=int(outcome == "updated"),
-				skipped_count=int(outcome == "unchanged"),
-			)
-			if verbose and outcome != "unchanged":
-				print(f"{'NEW' if outcome == 'created' else 'UPD'} {item_id} ({pages} pages)")
-		elif isinstance(error, BookLimitReached):  # another batch took the last room meanwhile
-			_bump(run_name, processed=1, skipped_count=1, limit_skipped=1)
-			if not limit_told:
-				_log(run_name, f"batch {batch_no}: book limit reached: new books are skipped", verbose)
-				limit_told = True
-		else:
-			_bump(run_name, processed=1, failed_count=1)
-			_log(run_name, f"FAIL {item_id}: {str(error)[:300]}", verbose)
-			# kept on the run so Retry Failed can take exactly these books again
-			frappe.db.sql(
-				f"update `{RUN}` set failed_items = concat(ifnull(failed_items, ''), %s) where name=%s",
-				(json.dumps(entry) + "\n", run_name),
-			)
-		frappe.db.commit()
+				except Exception as e:
+					frappe.db.rollback()
+					error = e
+					if not _is_transient(e) or attempt == TRIES - 1:
+						break
+					# another worker touched the same creator, subject or collection: wait and retry
+					time.sleep(1 + attempt * 2 + random.random() * 2)
+			# Counters/log go in their own short transaction so parallel batches never conflict.
+			if error is None:
+				_bump(
+					run_name,
+					processed=1,
+					created_count=int(outcome == "created"),
+					updated_count=int(outcome == "updated"),
+					skipped_count=int(outcome == "unchanged"),
+				)
+				if verbose and outcome != "unchanged":
+					print(f"{'NEW' if outcome == 'created' else 'UPD'} {item_id} ({pages} pages)")
+			elif isinstance(error, BookLimitReached):  # another batch took the last room meanwhile
+				_bump(run_name, processed=1, skipped_count=1, limit_skipped=1)
+				if not limit_told:
+					_log(run_name, f"batch {batch_no}: book limit reached: new books are skipped", verbose)
+					limit_told = True
+			else:
+				_bump(run_name, processed=1, failed_count=1)
+				_log(run_name, f"FAIL {item_id}: {str(error)[:300]}", verbose)
+				# kept on the run so Retry Failed can take exactly these books again
+				frappe.db.sql(
+					f"update `{RUN}` set failed_items = concat(ifnull(failed_items, ''), %s) where name=%s",
+					(json.dumps(entry) + "\n", run_name),
+				)
+			frappe.db.commit()
+			if buffer.due:
+				_flush_index(buffer, run_name, batch_no, verbose)
+	finally:
+		_flush_index(buffer, run_name, batch_no, verbose)
 	if already:
 		_log(
 			run_name,
@@ -650,6 +670,23 @@ def run_batch(run_name: str, item_ids: list, batch_no: int = 0, verbose: bool = 
 		)
 		frappe.db.commit()
 	_close_batch(run_name, verbose)
+
+
+def _flush_index(buffer, run_name: str, batch_no: int, verbose: bool = False) -> None:
+	"""Send the batch's waiting books to the search engine. If it can't be reached the books are
+	still in the catalogue, and Settings → Search → Index Missing Books sends them later."""
+	from sok_resdesk.search import SearchError
+
+	try:
+		buffer.flush()
+		frappe.db.commit()
+	except SearchError as e:
+		frappe.db.rollback()
+		frappe.log_error("Research Desk: indexing failed", f"run {run_name}, batch {batch_no}: {e}")
+		_log(
+			run_name, f"batch {batch_no}: the search engine did not take some books: {str(e)[:200]}", verbose
+		)
+		frappe.db.commit()
 
 
 def _is_transient(e: Exception) -> bool:

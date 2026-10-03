@@ -19,7 +19,7 @@ from werkzeug.wrappers import Response
 from sok_resdesk import access
 from sok_resdesk.catalogue import base_url, get_record
 from sok_resdesk.core import citations, marc
-from sok_resdesk.search import MeiliClient, SearchError, _quote
+from sok_resdesk.search import PAGES_MAX_HITS, MeiliClient, SearchError, _quote
 from sok_resdesk.search import search as _search
 
 MAX_BATCH = 500
@@ -70,6 +70,8 @@ def search(q: str = "", mode: str = "books", filters=None, page: int = 1, per_pa
 		"page": result.get("page", 1),
 		"total_pages": result.get("totalPages", 0),
 		"total": result.get("totalHits", result.get("estimatedTotalHits", 0)),
+		# the engine counts matching pages only up to a limit: the portal shows "10,000+"
+		"total_capped": mode == "pages" and result.get("totalHits", 0) >= PAGES_MAX_HITS,
 		"took_ms": result.get("processingTimeMs"),
 		"facets": result.get("facetDistribution", {}),
 		"hits": [_hit(h, mode) for h in result.get("hits", [])],

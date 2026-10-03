@@ -12,6 +12,7 @@ swapping to OpenSearch later means writing one new adapter.
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 
 import frappe
@@ -22,6 +23,13 @@ from frappe.utils import cint, now_datetime
 from sok_resdesk.catalogue import item_to_record, settings
 from sok_resdesk.core.normalize import decade_of
 from sok_resdesk.holding import hold_when_paused
+
+# How far Meilisearch counts a search's results. The portal shows "N books" from this count, so the
+# books index counts well past the size of any catalogue (a cap of 10,000 froze the number
+# shown at 10,000 however many books came in). Page text has millions of documents, so it
+# keeps a small cap and the portal shows "10,000+ matching pages".
+BOOKS_MAX_HITS = 1_000_000
+PAGES_MAX_HITS = 10_000
 
 BOOK_SETTINGS = {
 	"searchableAttributes": [
@@ -55,7 +63,7 @@ BOOK_SETTINGS = {
 	"sortableAttributes": ["year", "title_sort", "indexed_at"],
 	"displayedAttributes": ["*"],
 	"faceting": {"maxValuesPerFacet": 200, "sortFacetValuesBy": {"*": "count"}},
-	"pagination": {"maxTotalHits": 10000},
+	"pagination": {"maxTotalHits": BOOKS_MAX_HITS},
 }
 # Tuned for millions of page documents:
 #  - proximityPrecision byAttribute: much smaller index and faster indexing; word
@@ -85,7 +93,7 @@ PAGE_SETTINGS = {
 	],
 	"sortableAttributes": ["leaf"],
 	"displayedAttributes": ["*"],
-	"pagination": {"maxTotalHits": 10000},
+	"pagination": {"maxTotalHits": PAGES_MAX_HITS},
 }
 FACETS = ["curated", "item_type", "language_label", "decade", "subjects", "creators", "collections"]
 
@@ -127,6 +135,12 @@ class MeiliClient:
 		return f"{self.prefix}_pages"
 
 	def _req(self, method: str, path: str, **kwargs):
+		if "json" in kwargs:
+			# Kannada, Hindi, Tamil… as themselves, not \uXXXX escapes: about half the bytes
+			# for Meilisearch to read, which is most of what a page-text task sends
+			body = kwargs.pop("json")
+			kwargs["data"] = json.dumps(body, ensure_ascii=False).encode("utf-8")
+			kwargs["headers"] = {**kwargs.get("headers", {}), "Content-Type": "application/json"}
 		try:
 			resp = self.session.request(method, f"{self.url}{path}", timeout=60, **kwargs)
 		except requests.RequestException as exc:
@@ -275,6 +289,75 @@ def index_record(
 		update_modified=False,
 	)
 	return count
+
+
+class IndexBuffer:
+	"""Books (and their page text) waiting to go to Meilisearch, sent together.
+
+	Meilisearch works through its tasks one at a time, whichever index they are for, and only
+	merges neighbouring tasks of the same kind. Sending each book's own few tasks (the book,
+	the old pages to drop, the new pages) made the page text of earlier books queue in front of
+	the next book itself, so the portal's list of books trailed far behind the catalogue.
+	Collected here, a batch of books goes as one task for all the books, which readers see at
+	once, then one for the old pages and a few big ones for the new pages."""
+
+	PAGE_CHUNK = 2000  # page documents per task
+
+	def __init__(self, client: MeiliClient | None = None, flush_books: int = 10):
+		self.client = client
+		self.flush_books = flush_books
+		self.books: list[dict] = []
+		self.stale: list[str] = []  # books whose old pages go before the new ones arrive
+		self.pages: list[dict] = []
+		self.counts: dict[str, int | None] = {}  # item -> pages indexed (None: no page text sent)
+
+	def add(self, record: dict, pages: list[dict], replace_pages: bool = True) -> int:
+		"""Queue one book (nothing is sent yet: see due and flush). Returns its page count."""
+		s = settings()
+		excerpt = " ".join(p["text"] for p in pages[:6])
+		self.books.append(book_document(record, excerpt))
+		docs = []
+		if pages and cint(s.index_pages):
+			docs = page_documents(record, pages, cint(s.max_page_chars) or 6000)
+			if replace_pages:
+				self.stale.append(record["item_id"])
+			self.pages.extend(docs)
+		self.counts[record["item_id"]] = len(docs) if pages else None
+		return len(docs)
+
+	@property
+	def due(self) -> bool:
+		return len(self.books) >= self.flush_books
+
+	def flush(self) -> None:
+		"""Send what is waiting: the books first, so they are listed before their page text is."""
+		if not self.books:
+			return
+		books, stale, pages, counts = self.books, self.stale, self.pages, self.counts
+		self.books, self.stale, self.pages, self.counts = [], [], [], {}
+		client = self.client = self.client or MeiliClient.from_settings()
+		client.add(client.books, books)
+		if stale:
+			filters = " OR ".join(f"item_id = {_quote(i)}" for i in stale)
+			client.delete_by_filter(client.pages, filters)
+		for i in range(0, len(pages), self.PAGE_CHUNK):
+			client.add(client.pages, pages[i : i + self.PAGE_CHUNK])
+		now = now_datetime()
+		for item_id, count in counts.items():
+			values = {"indexed_on": now} | ({} if count is None else {"indexed_pages": count})
+			frappe.db.set_value("RD Item", item_id, values, update_modified=False)
+
+
+def index_missing(limit: int = 0) -> list[str]:
+	"""Published books that never reached the search engine (indexed_on is empty): a worker
+	stopped between saving a book and sending it."""
+	return frappe.get_all(
+		"RD Item",
+		filters={"published": 1, "indexed_on": ("is", "not set")},
+		pluck="name",
+		order_by="creation asc",
+		limit=limit or None,
+	)
 
 
 PAGE_FIELDS = (
@@ -437,13 +520,27 @@ def enqueue_rebuild(with_pages: int = 1):
 	return queue_rebuild(cint(with_pages))
 
 
-def queue_rebuild(with_pages: int = 1, batch_size: int = 50) -> int:
-	"""Split a full re-index into batches that the queue workers run in parallel."""
+@frappe.whitelist()
+def enqueue_index_missing(with_pages: int = 1) -> int:
+	"""Send the books that never reached the search engine (a worker stopped, or the engine was
+	down) without redoing the ones that did. Returns how many books were queued."""
+	frappe.only_for(("System Manager", "ResDesk Manager"))
+	return queue_rebuild(cint(with_pages), names=index_missing(), job_prefix="resdesk-index-missing")
+
+
+def queue_rebuild(
+	with_pages: int = 1,
+	batch_size: int = 50,
+	names: list[str] | None = None,
+	job_prefix: str = "resdesk-reindex",
+) -> int:
+	"""Split a full re-index (or just `names`) into batches that the queue workers run in parallel."""
 	frappe.cache.delete_value(
 		"resdesk:stop-background"
 	)  # a new rebuild overrides an earlier "stop everything"
 	MeiliClient.from_settings().setup()
-	names = frappe.get_all("RD Item", filters={"published": 1}, pluck="name", order_by="creation asc")
+	if names is None:
+		names = frappe.get_all("RD Item", filters={"published": 1}, pluck="name", order_by="creation asc")
 	for n, i in enumerate(range(0, len(names), batch_size), 1):
 		frappe.enqueue(
 			"sok_resdesk.search.rebuild_batch",
@@ -451,20 +548,30 @@ def queue_rebuild(with_pages: int = 1, batch_size: int = 50) -> int:
 			timeout=6 * 3600,
 			names=names[i : i + batch_size],
 			with_pages=with_pages,
-			job_id=f"resdesk-reindex-{n}",
+			job_id=f"{job_prefix}-{n}",
 		)
 	return len(names)
 
 
 @hold_when_paused("long")
 def rebuild_batch(names: list[str], with_pages: int = 1, verbose: bool = False) -> int:
+	from sok_resdesk import priority
 	from sok_resdesk.ingest import fetch_pages
 
-	client = MeiliClient.from_settings()
+	buffer = IndexBuffer(MeiliClient.from_settings())
+	try:
+		return _rebuild(names, with_pages, verbose, buffer, priority, fetch_pages)
+	finally:
+		buffer.flush()
+		frappe.db.commit()
+
+
+def _rebuild(names, with_pages, verbose, buffer, priority, fetch_pages) -> int:
 	for n, name in enumerate(names, 1):
 		if frappe.cache.get_value("resdesk:stop-background"):
 			break  # "Stop everything" on the Background Jobs page
 		frappe.db.commit()
+		priority.apply()
 		doc = frappe.get_doc("RD Item", name)
 		pages = []
 		if with_pages and doc.has_page_text:
@@ -472,7 +579,9 @@ def rebuild_batch(names: list[str], with_pages: int = 1, verbose: bool = False) 
 				pages = fetch_pages(doc.item_id)  # local cache first, archive.org only if missing
 			except Exception as e:  # keep going; one bad item should not stop a rebuild
 				frappe.log_error("Research Desk: page fetch failed", f"{name}: {e}")
-		index_record(item_to_record(doc), pages, client)
+		buffer.add(item_to_record(doc), pages)
+		if buffer.due:
+			buffer.flush()
 		frappe.db.commit()
 		if verbose:
 			print(f"[{n}/{len(names)}] {name} ({len(pages)} pages)")

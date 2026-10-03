@@ -141,7 +141,13 @@ def file_url(item_id: str, name: str) -> str:
 
 
 def ingest_local_one(
-	store: ItemStore, item_id: str, loc: str, profile, fetch_text: bool, force: bool = False
+	store: ItemStore,
+	item_id: str,
+	loc: str,
+	profile,
+	fetch_text: bool,
+	force: bool = False,
+	buffer=None,
 ) -> tuple[str, int]:
 	"""Returns (outcome, pages_indexed); outcome is 'created', 'updated' or 'unchanged'."""
 	from sok_resdesk.ingest import cache_enabled, write_cached_pages
@@ -190,11 +196,11 @@ def ingest_local_one(
 	if pages and cache_enabled():
 		write_cached_pages(item_id, pages)
 	try:
-		count = index_record(
-			item_to_record(frappe.get_doc("RD Item", name)),
-			pages if not restricted else [],
-			replace_pages=not created,
-		)
+		record = item_to_record(frappe.get_doc("RD Item", name))
+		pages = pages if not restricted else []
+		if buffer is not None:
+			return ("created" if created else "updated"), buffer.add(record, pages, replace_pages=not created)
+		count = index_record(record, pages, replace_pages=not created)
 	except SearchError as e:
 		frappe.log_error("Research Desk: indexing failed", f"{item_id}: {e}")
 		count = 0

@@ -43,6 +43,7 @@
   "held_jobs",
   "machine_section",
   "resource_preset",
+  "worker_nice",
   "book_limit",
   "book_limit_number",
   "column_break_machine",
@@ -283,6 +284,13 @@
    "label": "Resource Preset",
    "options": "\nlight\nstandard\nserver",
    "description": "How much of the machine Research Desk may use: light (a laptop), standard, or server (a dedicated machine). Docker's limits can only be changed outside the app, so after choosing, run ./resdesk.sh resources apply on the server."
+  },
+  {
+   "fieldname": "worker_nice",
+   "fieldtype": "Select",
+   "label": "Worker Priority",
+   "options": "\n19\n10\n5\n0\n-5",
+   "description": "How much CPU the background workers get compared with the portal, search and database: 19 is the lowest (they only use what the others leave), 0 the same as the others, -5 ahead of them. Empty: as the workers were started (WORKER_NICE). Changed live from Background Jobs → Machine too: each worker takes it on when it starts its next book."
   },
   {
    "fieldname": "book_limit",

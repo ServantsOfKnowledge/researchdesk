@@ -320,11 +320,13 @@ def checklist() -> dict:
 
 @frappe.whitelist()
 def checklist_mark(key: str, what: str = "done") -> dict:
-	"""Record a step as done (visited) or skipped, or hide/show the whole checklist."""
+	"""Record a step as done (visited) or skipped, or hide/show (`what`) the whole checklist."""
 	frappe.only_for(MANAGERS)
 	state = _state()
 	if what == "hide":
 		state["hidden"] = 1
+	elif what == "show":
+		state.pop("hidden", None)
 	elif what in ("done", "skipped"):
 		if key not in {s[0] for s in STEPS}:
 			frappe.throw(_("Unknown step"))

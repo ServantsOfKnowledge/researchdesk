@@ -99,6 +99,22 @@ stay responsive while they work. Priority only matters when the machine is busy:
 still gives the workers all the CPU they ask for. To let them work harder next to other programs,
 raise their priority, e.g. `./resdesk.sh resources set WORKER_NICE=10` (`0` is normal priority).
 
+**Change it while they work.** *Background Jobs → Machine → Worker priority → Change* (or
+Settings → Machine Resources → Worker Priority) sets the level for every worker at once: 19
+lowest, 10 low, 5 medium, 0 normal, -5 ahead of the portal. Each worker takes it on when it starts
+its next book; nothing restarts, and the page shows how many workers are on the new level. Docker
+installs may go up as well as down (`ulimits: nice` in `compose.yaml`). On a native install a
+worker can only be made *nicer*; to give workers more, the page shows the command that restarts
+them at the new level: `./resdesk.sh resources set WORKER_NICE=<n>`. If the machine is busy and
+the catalogue grows too slowly, try 10 first.
+
+Quick jobs (schedules, housekeeping) are taken before long ingest batches whenever a worker is
+free, so they never wait behind hours of ingesting.
+
+**Search index.** The same card shows *N of M books listed to readers*: M is the catalogue, N what
+the search engine has taken in, plus the jobs it still has to work through. Books that never
+reached it (a worker stopped between saving and sending) show a **Send them** button.
+
 A worker that hits its memory cap is stopped by Docker and its batch has to be
 run again, so don't set `QUEUE_MEMORY` below 1 GB. On **Docker Desktop** (Mac, Windows) Docker
 itself has a ceiling too: Settings → Resources. The presets fit inside its defaults.
@@ -322,6 +338,7 @@ Every setting:
 | Setting | What it does |
 |---|---|
 | Resource Preset | How much of the machine Research Desk may use: light (a laptop), standard, or server (a dedicated machine). Docker's limits can only be changed outside the app, so after choosing, run ./resdesk.sh resources apply on the server. Choices: *light*, *standard*, *server*. |
+| Worker Priority | How much CPU the background workers get compared with the portal, search and database: 19 is the lowest (they only use what the others leave), 0 the same as the others, -5 ahead of them. Empty: as the workers were started (WORKER_NICE). Changed live from Background Jobs → Machine too: each worker takes it on when it starts its next book. Choices: *19*, *10*, *5*, *0*, *-5*. |
 | Book Limit | How many books the catalogue may hold. Automatic: what this machine's CPUs, memory and disk can take (the Server page shows the numbers). At the limit, ingests keep updating books already here but add no new ones. Books with many pages count for more. Choices: *Automatic*, *A number I choose*, *No limit*. |
 | Books at Most | The limit in books of this library's average size (more than the machine can take is allowed, at your own risk). |
 | Quiet Hours | Pause all background work between these times every day (e.g. office hours), and carry on afterwards. Ingests, pushes and re-indexing wait; the portal and Desk work as usual. |

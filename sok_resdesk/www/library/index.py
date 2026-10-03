@@ -24,9 +24,9 @@ def get_context(context):
 	context.title = s.portal_title or "SOK Research Desk"
 	context.portal_title = context.title
 	context.tagline = s.portal_tagline or ""
-	context.item_count = frappe.db.sql(
-		f"select count(*) from `tabRD Item` where published=1 and {access.sql_condition()}"
-	)[0][0]
+	from sok_resdesk.portal import item_count
+
+	context.item_count = item_count()
 	context.viewer = access.viewer()
 	context.login_url = access.login_url("/library")
 	context.visibilities = access.VISIBILITIES

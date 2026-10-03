@@ -85,10 +85,15 @@
 		const box = root.querySelector(".rd-checklist");
 		if (!box) return;
 		const esc = frappe.utils.escape_html;
-		const host = root.host && root.host.closest(".widget, .ce-block");
 		const draw = (d) => {
 			if (d.hidden) {
-				if (host) host.style.display = "none";
+				// a hidden guide leaves a one-line way back, so it can always be brought back
+				box.innerHTML = `<div class="text-muted small" style="padding:4px 2px">${__("The getting-started guide is hidden.")}
+					<a href="#" class="rdc-show">${__("Show the guide again")}</a></div>`;
+				box.querySelector(".rdc-show").onclick = (e) => {
+					e.preventDefault();
+					frappe.call({ method: "sok_resdesk.guide.checklist_mark", args: { key: "", what: "show" } }).then((r) => draw(r.message));
+				};
 				return;
 			}
 			const n = d.steps.filter((s) => s.done || s.skipped).length;

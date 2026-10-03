@@ -173,7 +173,16 @@ services:
   queue:
     <<: *backend
     command: ["nice", "-n", "${WORKER_NICE:-19}", "ionice", "-c", "2", "-n", "7", "sh", "-c",
-              "if [ ${WORKERS_PER_CONTAINER:-1} -gt 1 ]; then exec bench worker-pool --num-workers ${WORKERS_PER_CONTAINER:-1} --queue long,default,short; else exec bench worker --queue long,default,short; fi"]
+              "if [ ${WORKERS_PER_CONTAINER:-1} -gt 1 ]; then exec bench worker-pool --num-workers ${WORKERS_PER_CONTAINER:-1} --queue short,default,long; else exec bench worker --queue short,default,long; fi"]
+    # Quick jobs (short, default: schedules, emails, housekeeping) come before the long ingest
+    # batches whenever a worker is free, so they never wait behind hours of ingesting.
+    # ulimits nice: a worker may lower its own niceness down to -20, which is what makes
+    # Background Jobs → Machine → Worker priority work live in both directions (without it a
+    # process can only be made nicer, never less nice).
+    ulimits:
+      nice:
+        soft: 40
+        hard: 40
     deploy:
       replicas: ${QUEUE_WORKERS:-2}
       <<: *limits-queue

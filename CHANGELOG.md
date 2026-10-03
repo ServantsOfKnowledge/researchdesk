@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.19.0 (2026-10-05): the portal book count, worker priority, the guide
+
+- **The portal's book total no longer stops at 10,000.** The count under the search box comes
+  from the search engine, which only counted that far, so with more than 10,000 books it stayed at
+  10,000 however many were ingested. The books index now counts them all (an upgrade patch applies
+  it); page-text searches show *10,000+ matching pages*
+- **New books reach the search sooner.** Each book used to send its own few small tasks, and the
+  page text of earlier books queued in front of the next book itself. A batch now sends all its
+  books in one task first, then the page text in a few big ones; Kannada, Hindi and Tamil text is
+  sent as itself instead of `\uXXXX` escapes. Books that never got there are listed on
+  Background Jobs → Machine with a **Send them** button
+- **Worker priority can be changed live** by an admin (Background Jobs → Machine → Worker
+  priority, or Settings): each worker applies it between books, no restart. Docker workers may
+  also be made *less* nice (`ulimits: nice`). Quick jobs are now taken before long ingest batches
+- **The getting-started guide can be brought back**: hiding it leaves a *Show the guide again*
+  line on the workspace, keeping what was ticked
+- **Fixed: runs that lost their workers never carried on.** Two schedules shared the same
+  `*/10 * * * *` key in `hooks.py`, so the Server page's watcher replaced the job that carries
+  interrupted runs on (a check now guards against it)
+- Faster: the home page's book and collection counts are worked out once a minute rather than on
+  every view; the page-text cache is compressed at a lighter level (3x quicker to write)
+
 ## 0.18.0 (2026-10-04): big ingests that don't stall or do work twice
 
 - **A big run no longer stalls.** Every batch of a run used to go into the queue at once; a
