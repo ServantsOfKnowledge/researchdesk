@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.32.0 (2026-10-09): Ingest from a metadata file
+
+- **Import a metadata file** to build a catalogue without asking archive.org book by book: an
+  ingest profile's *Choose By* = *Metadata File* takes an uploaded file or one in the library
+  folder (`./resdesk.sh ingest --metadata-file /library-source/sok.jsonl.gz`)
+- Reads JSON Lines from `ia search` and `ia metadata` (or a JSON array), CSV/TSV with an
+  `identifier` column (IA's `subject[0]` columns joined), plain identifier lists; gzip or not;
+  unreadable lines counted and left out; the last record of a book wins
+- Full `ia metadata` records (with file lists) are catalogued completely: no request at all when
+  page text isn't wanted; search records get their details (and text) in the background
+- Count shows how many records a file holds; such profiles are never "kept in step"
+- docs (how to make the file with the `ia` tool), tests
+
 ## 0.31.0 (2026-10-08): Accessibility, first pass
 
 From an accessibility study of the portal (axe-core against WCAG 2.2 AA, a code review and a

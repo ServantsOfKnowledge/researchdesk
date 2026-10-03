@@ -9,7 +9,8 @@ Internet Archive collection. It is built on the [Frappe](https://frappe.io) fram
 Choose a collection, a search or a list of items on archive.org, and Research Desk will:
 
 - ingest from **archive.org** (a whole collection is listed on the portal within minutes, from
-  archive.org's search records in bulk; page text follows in the background) *or* from
+  archive.org's search records in bulk, or from a **metadata file** made with the `ia` tool;
+  page text follows in the background) *or* from
   **IA-style item folders** on your own disk, NAS or web
   server, with a drop folder that picks up new and changed books automatically
 - **stay in step with archive.org** by itself: every day, books added to a collection come in,
@@ -86,7 +87,7 @@ It's built to install with one command, for librarians, educators, archivists an
 anyone else who can open a terminal. It scales to tens of thousands of books on one server
 ([measured](docs/scaling.md)).
 
-> Status: **v0.31**, before 1.0. It works end to end and is tested against live Servants of
+> Status: **v0.32**, before 1.0. It works end to end and is tested against live Servants of
 > Knowledge data, but expect changes before 1.0. What changed: [CHANGELOG](CHANGELOG.md); what
 > comes next: [the roadmap](docs/roadmap.md).
 

@@ -373,6 +373,8 @@ Choosing and ingesting books
   ./resdesk.sh ingest --ids "id1,id2,id3"
   ./resdesk.sh ingest --folder /library-source            (IA-style item folders in LIBRARY_DIR)
   ./resdesk.sh ingest --server https://books.example.org/items/
+  ./resdesk.sh ingest --metadata-file /library-source/sok.jsonl.gz --limit 0 --background
+                                                         (a metadata export put in LIBRARY_DIR: fastest)
   ./resdesk.sh ingest --profile "SOK Kannada sample"
   ./resdesk.sh ingest --folder /library-source/staff --visibility members   (who can see the new books)
       options: --no-fulltext  --update  --limit 0 (= everything)  --background

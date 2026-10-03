@@ -31,7 +31,11 @@ def resdesk():
 	"""Research Desk: ingest, index and manage the catalogue."""
 
 
-def _scope(collection, filter_, query, ids, ids_file, folder=None, server=None, manifest=None):
+def _scope(
+	collection, filter_, query, ids, ids_file, folder=None, server=None, manifest=None, metadata_file=None
+):
+	if metadata_file:
+		return {"scope_type": "Metadata File", "metadata_path": metadata_file}
 	if folder or server:
 		return {
 			"source": "Folder or Server",
@@ -69,6 +73,11 @@ _scope_options = [
 		"--server", help="Web server with IA-style item folders, e.g. https://books.example.org/items/"
 	),
 	click.option("--manifest", help="With --server: URL of a list of item folders (one per line)"),
+	click.option(
+		"--metadata-file",
+		help="Catalogue from a file of records (ia search / ia metadata JSON Lines, CSV, or identifiers), "
+		"under the library folder, e.g. /library-source/sok.jsonl.gz",
+	),
 ]
 
 
@@ -81,14 +90,23 @@ def scope_options(f):
 @resdesk.command("count")
 @scope_options
 @pass_context
-def count(context, collection, filter_, query, ids, ids_file, folder, server, manifest):
+def count(context, collection, filter_, query, ids, ids_file, folder, server, manifest, metadata_file):
 	"""How many IA items match (before you ingest)."""
 	frappe = _connect(context)
 	try:
 		from sok_resdesk.core.ia import IAClient
 		from sok_resdesk.ingest import client
 
-		s = _scope(collection, filter_, query, ids, ids_file, folder, server, manifest)
+		s = _scope(collection, filter_, query, ids, ids_file, folder, server, manifest, metadata_file)
+		if s.get("scope_type") == "Metadata File":
+			from sok_resdesk.ingest import read_metadata_file
+
+			dump = read_metadata_file(frappe._dict(s))
+			click.echo(
+				f"Records in {metadata_file}: {len(dump['rows']):,} ({dump['kind']}, {dump['complete']:,} with "
+				f"their file lists, {dump['bad']:,} lines left out)"
+			)
+			return
 		if s.get("source") == "Folder or Server":
 			from sok_resdesk.local_source import open_profile_store
 
@@ -138,6 +156,7 @@ def ingest(
 	folder,
 	server,
 	manifest,
+	metadata_file,
 	limit,
 	no_fulltext,
 	update,
@@ -156,7 +175,9 @@ def ingest(
 
 		profile_given = bool(profile)
 		if not profile:
-			values = _scope(collection, filter_, query, ids, ids_file, folder, server, manifest)
+			values = _scope(
+				collection, filter_, query, ids, ids_file, folder, server, manifest, metadata_file
+			)
 			values.update(
 				{
 					"max_items": 50 if limit is None else limit,

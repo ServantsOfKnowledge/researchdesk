@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-08 10:00:00.000000",
+ "modified": "2026-10-09 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Ingest Profile",
@@ -21,6 +21,8 @@
   "extra_filter",
   "ia_query",
   "identifiers",
+  "metadata_file",
+  "metadata_path",
   "location",
   "manifest_url",
   "check_archive_org",
@@ -90,10 +92,11 @@
    "fieldname": "scope_type",
    "fieldtype": "Select",
    "label": "Choose By",
-   "options": "Collection\nSearch Query\nIdentifier List",
+   "options": "Collection\nSearch Query\nIdentifier List\nMetadata File",
    "default": "Collection",
    "depends_on": "eval:doc.source=='Internet Archive'",
-   "mandatory_depends_on": "eval:doc.source=='Internet Archive'"
+   "mandatory_depends_on": "eval:doc.source=='Internet Archive'",
+   "description": "Metadata File: build the catalogue from a file of records (an <code>ia search</code> or <code>ia metadata</code> export, a CSV, or a list of identifiers) without asking archive.org for each book: the fastest way to bring a big collection in."
   },
   {
    "fieldname": "ia_collection",
@@ -124,6 +127,21 @@
    "label": "Identifiers",
    "depends_on": "eval:doc.source=='Internet Archive' && doc.scope_type=='Identifier List'",
    "description": "One IA identifier per line."
+  },
+  {
+   "fieldname": "metadata_file",
+   "fieldtype": "Attach",
+   "label": "Metadata File",
+   "depends_on": "eval:doc.source=='Internet Archive' && doc.scope_type=='Metadata File'",
+   "description": "Upload the file (it may be gzip-compressed, <code>.jsonl.gz</code>). JSON Lines from <code>ia search \"collection:X\" -f title -f creator -f date -f language -f subject -f description -f collection -f imagecount -f format</code>, full records from <code>ia metadata</code>, a CSV with an <code>identifier</code> column, or one identifier per line."
+  },
+  {
+   "fieldname": "metadata_path",
+   "fieldtype": "Data",
+   "label": "Or a File on the Server",
+   "length": 1000,
+   "depends_on": "eval:doc.source=='Internet Archive' && doc.scope_type=='Metadata File'",
+   "description": "For files too big to upload: its path under the library folder, e.g. <code>/library-source/sok-metadata.jsonl.gz</code>."
   },
   {
    "fieldname": "location",

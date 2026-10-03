@@ -84,6 +84,9 @@ downloaded; scans stay on archive.org (or your server) and are shown from there.
 
 ![Background Jobs](../sok_resdesk/public/images/guide/desk-jobs.png)
 
+A big collection comes in fastest from a **metadata file** (an `ia search` or `ia metadata`
+export): see *Importing a metadata file* in [Choosing & ingesting books](ingesting.md).
+
 ## The Server page
 
 **Server** shows whether every part of Research Desk is working, which version runs and whether

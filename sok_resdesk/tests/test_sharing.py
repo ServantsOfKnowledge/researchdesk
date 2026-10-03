@@ -396,3 +396,51 @@ class TestCatalogueFirst(SharingTestCase):
 			(0, "Quick one, in full"),
 		)
 		self.assertTrue(ingest._already_done(f"{PREFIX}0094", None, only_new=True))
+
+
+class TestMetadataFileIngest(SharingTestCase):
+	def test_a_collection_catalogued_from_a_file(self):
+		from sok_resdesk import ingest
+
+		frappe.db.set_single_value("RD Settings", "book_limit", "No limit")
+		full = {
+			"metadata": {"identifier": f"{PREFIX}0096", "title": "Complete in the file", "language": "kan"},
+			"files": [{"name": f"{PREFIX}0096_hocr_searchtext.txt.gz"}, {"name": f"{PREFIX}0096.pdf"}],
+		}
+		lines = [
+			json.dumps(full),
+			json.dumps(
+				{"identifier": f"{PREFIX}0097", "title": "Only a search record", "creator": "A. Writer"}
+			),
+			"garbage",
+		]
+		f = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "rdtest-books.jsonl",
+				"content": "\n".join(lines),
+				"is_private": 1,
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(lambda: frappe.delete_doc("File", f.name, force=True))
+		name = ingest.ensure_profile(
+			"rdtest file", scope_type="Metadata File", metadata_file=f.file_url, fetch_fulltext=0, max_items=0
+		)
+		profile = frappe.get_doc("RD Ingest Profile", name)
+		self.assertEqual(ingest.count_profile(name)["count"], 2)
+		run = ingest.create_run(profile, "Manual")
+		with (
+			mock.patch("sok_resdesk.search.MeiliClient"),
+			mock.patch("sok_resdesk.search.IndexBuffer.flush"),
+		):
+			batches = ingest.plan_run(run.name, foreground=True)
+		# the complete record needs nothing more; the search record still gets its details
+		self.assertEqual([i for b in batches for i in b], [f"{PREFIX}0097"])
+		one = frappe.db.get_value(
+			"RD Item", f"{PREFIX}0096", ["details_pending", "has_page_text", "title"], as_dict=True
+		)
+		self.assertEqual((one.details_pending, one.has_page_text, one.title), (0, 1, "Complete in the file"))
+		self.assertEqual(frappe.db.get_value("RD Item", f"{PREFIX}0097", "details_pending"), 1)
+		log = frappe.db.get_value("RD Ingest Run", run.name, "log")
+		self.assertIn("2 records in the metadata file", log)
+		self.assertIn("1 lines left out", log)

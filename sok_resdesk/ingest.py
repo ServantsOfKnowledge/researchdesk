@@ -158,6 +158,8 @@ def count_profile(profile: str) -> dict:
 		from sok_resdesk.local_source import open_profile_store
 
 		count = sum(1 for _ in open_profile_store(doc).iter_items())
+	elif doc.scope_type == "Metadata File":
+		count = len(read_metadata_file(doc)["rows"])
 	else:
 		count = client().count(query)
 	frappe.db.set_value("RD Ingest Profile", profile, "matching_count", count)
@@ -392,6 +394,19 @@ def plan_run(
 			# only what changed on archive.org since the last run (new, changed, back again)
 			ids = ia_sync.plan(run_name, profile, ia, lambda m: _log(run_name, m, verbose))
 			only_new = False
+		elif profile.get("scope_type") == "Metadata File":
+			# the whole catalogue from a file: no listing on archive.org at all
+			dump = read_metadata_file(profile)
+			for row in dump["rows"][: limit or None]:
+				records[row["identifier"]] = row
+			ids = list(records)
+			_log(
+				run_name,
+				f"{len(dump['rows']):,} records in the metadata file ({dump['kind']}; "
+				f"{dump['complete']:,} with their file lists; {dump['bad']:,} lines left out)"
+				+ (f"; taking {len(ids):,}" if limit and limit < len(dump["rows"]) else ""),
+				verbose,
+			)
 		elif profile.is_folder:
 			# Every item goes to a batch: unchanged ones are skipped there by comparing
 			# file signatures, so new *and* changed books are picked up.
@@ -443,8 +458,24 @@ def plan_run(
 				_log(run_name, f"{len(done):,} books were already done since this run started", verbose)
 
 		if records and ids:
-			if catalogue_first(run_name, [records[i] for i in ids if i in records], profile.name, verbose):
+			from sok_resdesk.core.metadump import only_identifiers
+
+			# a bare identifier says nothing to catalogue: those books come in book by book
+			rows = [records[i] for i in ids if i in records and not only_identifiers(records[i])]
+			fetch_text = bool(cint(profile.fetch_fulltext))
+			if catalogue_first(run_name, rows, profile.name, verbose, fetch_text=fetch_text):
 				return []  # cancelled while cataloguing
+			# books the file described completely (and whose text isn't wanted) are done: no batch
+			done = (
+				_complete_now([r["identifier"] for r in rows if "_files" in r]) if not fetch_text else set()
+			)
+			if done:
+				ids = [i for i in ids if i not in done]
+				_log(
+					run_name,
+					f"{len(done):,} books catalogued completely from the file; no request needed",
+					verbose,
+				)
 		size = max(1, cint(settings().get("batch_size")) or 50)
 		batches = [ids[i : i + size] for i in range(0, len(ids), size)]
 		frappe.db.sql(
@@ -511,10 +542,54 @@ def _list_records(ia: IAClient, query: str, limit: int, run_name: str, verbose: 
 	return {}
 
 
+def metadata_file_bytes(profile) -> tuple[bytes, str]:
+	"""The profile's metadata file: a path under the library folder, or the uploaded file."""
+	path = (profile.get("metadata_path") or "").strip()
+	if path:
+		from sok_resdesk.local_source import check_folder_allowed, resolve_location
+
+		real = check_folder_allowed(resolve_location(path))
+		if not os.path.isfile(real):
+			frappe.throw(frappe._("No file at {0}").format(path))
+		with open(real, "rb") as f:
+			return f.read(), path
+	url = (profile.get("metadata_file") or "").strip()
+	if not url:
+		frappe.throw(frappe._("Upload a metadata file, or give the path of one on the server."))
+	doc = frappe.get_doc("File", {"file_url": url})
+	content = doc.get_content()
+	return content if isinstance(content, bytes) else content.encode(), doc.file_name or url
+
+
+def read_metadata_file(profile) -> dict:
+	"""The profile's metadata file read into records (core/metadump.py)."""
+	from sok_resdesk.core import metadump
+
+	data, name = metadata_file_bytes(profile)
+	try:
+		return metadump.read(data, name)
+	except metadump.DumpError as e:
+		frappe.throw(str(e))
+
+
 CATALOGUE_CHUNK = 500  # books catalogued and sent to search together in the first pass
 
 
-def catalogue_first(run_name: str, rows: list[dict], profile: str, verbose: bool = False) -> bool:
+def _complete_now(names: list[str]) -> set[str]:
+	"""Of these books, those fully in the catalogue (not waiting for their details)."""
+	out: set[str] = set()
+	for i in range(0, len(names), 1000):
+		out.update(
+			frappe.get_all(
+				"RD Item", filters={"name": ("in", names[i : i + 1000]), "details_pending": 0}, pluck="name"
+			)
+		)
+	return out
+
+
+def catalogue_first(
+	run_name: str, rows: list[dict], profile: str, verbose: bool = False, fetch_text: bool = True
+) -> bool:
 	"""The first pass: catalogue every new book from its search record and send it to search, so
 	the portal lists them all within minutes. Each is marked details_pending; the batches then
 	fetch its full record and page text. Returns True if the run was cancelled meanwhile."""
@@ -535,8 +610,14 @@ def catalogue_first(run_name: str, rows: list[dict], profile: str, verbose: bool
 		for row in new[start : start + CATALOGUE_CHUNK]:
 			item_id = row["identifier"]
 			try:
-				record = normalize_ia_item(item_id, row, files_from_formats(item_id, row.get("format")))
-				name, _created = upsert_item(record, raw=None, profile=profile, quick=True)
+				full = "_files" in row  # an `ia metadata` record: the book's real file list
+				meta = {k: v for k, v in row.items() if k != "_files"}
+				files = row["_files"] if full else files_from_formats(item_id, row.get("format"))
+				record = normalize_ia_item(item_id, meta, files)
+				# complete and no text wanted: the book is in; else its details and text follow
+				name, _created = upsert_item(
+					record, raw=meta if full else None, profile=profile, quick=not (full and not fetch_text)
+				)
 				frappe.db.commit()
 				buffer.add(item_to_record(frappe.get_doc("RD Item", name)), [], replace_pages=False)
 				done += 1

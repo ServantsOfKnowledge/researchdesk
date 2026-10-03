@@ -117,6 +117,51 @@ It is on for every archive.org profile (**Catalogue First, Details Later**); unt
 book by book as before. If archive.org refuses some of the fields, the run asks for the core
 ones; if that fails too, it lists identifiers only and works book by book.
 
+## Importing a metadata file (the fastest way)
+
+When the metadata of a whole collection is already in a file, nothing needs to be asked of
+archive.org to build the catalogue. Make the file with the `ia` command-line tool (`pip install
+internetarchive`), on any computer:
+
+```bash
+# search records: quick to make (thousands of books a request), enough to catalogue
+ia search "collection:ServantsOfKnowledge" \
+   -f title -f creator -f date -f language -f subject -f description -f collection \
+   -f publisher -f imagecount -f format -f licenseurl -f rights -f volume > sok.jsonl
+
+# or full records, with each book's file list: slower to make, but complete
+ia search "collection:ServantsOfKnowledge" --itemlist | xargs -n1 ia metadata > sok-full.jsonl
+
+gzip sok.jsonl          # optional: files may be gzip-compressed
+```
+
+Then an ingest profile with **Choose By** = *Metadata File*: upload the file under **Metadata
+File**, or, for a big one, put it in the library folder (`LIBRARY_DIR` in `.env`) and give its
+path under **Or a File on the Server** (`/library-source/sok.jsonl.gz`). **Count** says how many
+records it holds; **Start** catalogues them all and sends them to search, 500 at a time, without
+a single request to archive.org. From the terminal:
+
+```bash
+./resdesk.sh count  --metadata-file /library-source/sok.jsonl.gz
+./resdesk.sh ingest --metadata-file /library-source/sok.jsonl.gz --limit 0 --background
+```
+
+Files it reads: JSON Lines from `ia search` or `ia metadata` (or a JSON array of them), a CSV or
+TSV with an `identifier` column (IA's `subject[0]`, `subject[1]` columns are joined; several
+values in a cell split on `;` or `|`), or a plain list of identifiers. Lines it can't read are
+counted in the run's log and left out.
+
+What happens next depends on the records and on **Fetch Full Text**:
+
+| Records | Fetch Full Text off | Fetch Full Text on |
+|---|---|---|
+| full (`ia metadata`, with file lists) | done: no request at all | page text fetched in the background |
+| search records (`ia search`) | full record fetched in the background (one request a book) | full record and page text in the background |
+| identifiers only | each book fetched as usual | each book fetched as usual |
+
+A file doesn't change on archive.org, so such profiles are not kept in step with it (use a
+collection profile for that).
+
 ## What happens to each book
 
 1. **Metadata** from `archive.org/metadata/<id>` is normalised:

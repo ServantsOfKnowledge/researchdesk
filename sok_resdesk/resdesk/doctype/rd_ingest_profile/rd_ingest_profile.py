@@ -27,6 +27,11 @@ class RDIngestProfile(Document):
 			if not (self.location or "").strip():
 				raise IAError("Folder path or server URL is empty")
 			return f"items under {self.location.strip()}"
+		if self.scope_type == "Metadata File":
+			where = (self.metadata_path or "").strip() or (self.metadata_file or "").strip()
+			if not where:
+				raise IAError("Upload a metadata file, or give the path of one on the server")
+			return f"records in {where}"
 		return IAClient.build_query(
 			self.scope_type,
 			collection=self.ia_collection or "",
