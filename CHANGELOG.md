@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.21.1 (2026-10-05): Books first by itself
+
+- **Books first happens by itself** when a new book has waited more than 15 minutes in the search
+  engine behind page text (at most every 30 minutes): the page text is moved back and sent again
+  later, and new books reach the portal first. Settings → Machine Resources → *Books First
+  Automatically* (on by default); the Search queue card shows when it last did
+
 ## 0.21.0 (2026-10-05): the search queue, under control
 
 - **Background Jobs → Search queue** shows what waits in the search engine (book records and page

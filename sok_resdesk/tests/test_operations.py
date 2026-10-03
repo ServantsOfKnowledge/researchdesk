@@ -39,6 +39,7 @@ SETTINGS_FIELDS = (
 	"preservation_budget_gb",
 	"fixity_days",
 	"hold_page_text",
+	"auto_books_first",
 	"book_limit",
 	"mirror_all_collections",
 	"mirror_min_books",
@@ -1050,3 +1051,56 @@ class TestSearchQueue(OpsTestCase):
 		buf.flush()
 		self.assertEqual([c[1] for c in buf.client.calls], ["rd_books"])  # the book record only
 		self.assertEqual(self.pending(self.done), 1)
+
+
+class TestAutoBooksFirst(OpsTestCase):
+	def engine(self, book_uid, page_uid, book_minutes_ago):
+		import datetime as dt
+
+		def at(minutes):
+			return (dt.datetime.now(dt.UTC) - dt.timedelta(minutes=minutes)).strftime(
+				"%Y-%m-%dT%H:%M:%S.000000Z"
+			)
+
+		fake = FakeQueue(at(book_minutes_ago))
+		tasks = {
+			fake.books: {"uid": book_uid, "enqueuedAt": at(book_minutes_ago)},
+			fake.pages: {"uid": page_uid, "enqueuedAt": at(60)},
+		}
+		fake._req = lambda method, path, **kw: (
+			{"results": [tasks[kw["params"]["indexUids"]]]}
+			if kw.get("params", {}).get("reverse")
+			else {"total": 0}
+		)
+		return fake
+
+	def setUp(self):
+		super().setUp()
+		frappe.db.set_single_value("RD Settings", {"auto_books_first": 1, "hold_page_text": 0})
+		frappe.cache.delete_value("resdesk:auto-books-first")
+		self.addCleanup(frappe.cache.delete_value, "resdesk:auto-books-first")
+		p = mock.patch("sok_resdesk.search_queue.cancel_waiting", return_value={"cancelled": 3, "books": 2})
+		self.cancel = p.start()
+		self.addCleanup(p.stop)
+
+	def test_a_book_stuck_behind_page_text_goes_first_by_itself(self):
+		from sok_resdesk import search_queue
+
+		self.assertIsNotNone(
+			search_queue.auto_books_first(self.engine(book_uid=500, page_uid=100, book_minutes_ago=20))
+		)
+		self.cancel.assert_called_once_with(include_books=False)
+		# not again for half an hour
+		self.assertIsNone(search_queue.auto_books_first(self.engine(500, 100, 20)))
+		self.assertEqual(self.cancel.call_count, 1)
+
+	def test_left_alone_when_not_stuck_or_switched_off(self):
+		from sok_resdesk import search_queue
+
+		self.assertIsNone(search_queue.auto_books_first(self.engine(500, 100, 5)))  # not waiting long yet
+		self.assertIsNone(
+			search_queue.auto_books_first(self.engine(100, 500, 20))
+		)  # no page text ahead of it
+		frappe.db.set_single_value("RD Settings", "auto_books_first", 0)
+		self.assertIsNone(search_queue.auto_books_first(self.engine(500, 100, 20)))
+		self.cancel.assert_not_called()

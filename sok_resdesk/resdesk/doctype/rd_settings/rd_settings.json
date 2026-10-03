@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-05 12:00:00.000000",
+ "modified": "2026-10-05 14:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -45,6 +45,7 @@
   "machine_section",
   "resource_preset",
   "worker_nice",
+  "auto_books_first",
   "book_limit",
   "book_limit_number",
   "column_break_machine",
@@ -312,6 +313,13 @@
    "label": "Worker Priority",
    "options": "\n19\n10\n5\n0\n-5",
    "description": "How much CPU the background workers get compared with the portal, search and database: 19 is the lowest (they only use what the others leave), 0 the same as the others, -5 ahead of them. Empty: as the workers were started (WORKER_NICE). Changed live from Background Jobs → Machine too: each worker takes it on when it starts its next book."
+  },
+  {
+   "fieldname": "auto_books_first",
+   "fieldtype": "Check",
+   "label": "Books First Automatically",
+   "default": "1",
+   "description": "When a new book has waited more than 15 minutes in the search engine behind page text, do what Background Jobs → Search queue → Books first does: the waiting page text is cancelled and sent again later, so new books reach the portal first. At most every 30 minutes."
   },
   {
    "fieldname": "book_limit",

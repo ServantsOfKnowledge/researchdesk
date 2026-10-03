@@ -78,6 +78,8 @@ def overview(client: MeiliClient | None = None) -> dict:
 		"eta_minutes": eta,
 		"history": _count(client),  # every task Meilisearch still remembers
 		"held": bool(cint(frappe.db.get_single_value("RD Settings", "hold_page_text"))),
+		"auto": bool(cint(frappe.db.get_single_value("RD Settings", "auto_books_first"))),
+		"auto_last": frappe.cache.get_value("resdesk:auto-books-first-last"),
 		"pages_pending": frappe.db.count("RD Item", {"pages_pending": 1}),
 	}
 
@@ -257,18 +259,49 @@ def send_pending(limit: int = 2000) -> int:
 	return sent
 
 
+AUTO_AFTER_MINUTES = 15  # a book record waiting this long behind page text: Books first by itself
+AUTO_EVERY_MINUTES = 30  # and not more often than this
+
+
 def every_ten_minutes() -> None:
-	"""Scheduler: keep pending page text moving when the engine has room."""
-	if frappe.db.count("RD Item", {"pages_pending": 1}) and not cint(
-		frappe.db.get_single_value("RD Settings", "hold_page_text")
-	):
-		try:
-			client = MeiliClient.from_settings()
+	"""Scheduler: Books first by itself when book records are stuck behind page text, then keep
+	pending page text moving when the engine has room."""
+	if cint(frappe.db.get_single_value("RD Settings", "hold_page_text")):
+		return
+	try:
+		client = MeiliClient.from_settings()
+		auto_books_first(client)
+		if frappe.db.count("RD Item", {"pages_pending": 1}):
 			if _count(client, statuses="enqueued") > MAX_WAITING // 2:
 				return  # busy: the next turn
-		except SearchError:
-			return
-		_queue_send()
+			_queue_send()
+	except SearchError:
+		return
+
+
+def auto_books_first(client: MeiliClient) -> dict | None:
+	"""Settings → Books First Automatically: when the oldest waiting book record has waited more
+	than AUTO_AFTER_MINUTES with page text queued ahead of it, do what the Books first button does.
+	At most once every AUTO_EVERY_MINUTES. Returns what it did, or None."""
+	if not cint(frappe.db.get_single_value("RD Settings", "auto_books_first", cache=False)):
+		return None
+	if frappe.cache.get_value("resdesk:auto-books-first"):
+		return None
+	book = _oldest_waiting(client, client.books)
+	page = _oldest_waiting(client, client.pages)
+	if not book or not page or cint(page["uid"]) > cint(book["uid"]):
+		return None  # no book waiting, or no page text ahead of it
+	since = _system_time(book.get("enqueuedAt"))
+	if not since or (frappe.utils.now_datetime() - since).total_seconds() < AUTO_AFTER_MINUTES * 60:
+		return None
+	frappe.cache.set_value("resdesk:auto-books-first", 1, expires_in_sec=AUTO_EVERY_MINUTES * 60)
+	result = cancel_waiting(include_books=False)
+	frappe.cache.set_value(
+		"resdesk:auto-books-first-last",
+		{"at": str(frappe.utils.now_datetime())[:19], **{k: result[k] for k in ("cancelled", "books")}},
+		expires_in_sec=7 * 24 * 3600,
+	)
+	return result
 
 
 @frappe.whitelist()

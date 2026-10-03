@@ -340,6 +340,7 @@ Every setting:
 |---|---|
 | Resource Preset | How much of the machine Research Desk may use: light (a laptop), standard, or server (a dedicated machine). Docker's limits can only be changed outside the app, so after choosing, run ./resdesk.sh resources apply on the server. Choices: *light*, *standard*, *server*. |
 | Worker Priority | How much CPU the background workers get compared with the portal, search and database: 19 is the lowest (they only use what the others leave), 0 the same as the others, -5 ahead of them. Empty: as the workers were started (WORKER_NICE). Changed live from Background Jobs → Machine too: each worker takes it on when it starts its next book. Choices: *19*, *10*, *5*, *0*, *-5*. |
+| Books First Automatically | When a new book has waited more than 15 minutes in the search engine behind page text, do what Background Jobs → Search queue → Books first does: the waiting page text is cancelled and sent again later, so new books reach the portal first. At most every 30 minutes. |
 | Book Limit | How many books the catalogue may hold. Automatic: what this machine's CPUs, memory and disk can take (the Server page shows the numbers). At the limit, ingests keep updating books already here but add no new ones. Books with many pages count for more. Choices: *Automatic*, *A number I choose*, *No limit*. |
 | Books at Most | The limit in books of this library's average size (more than the machine can take is allowed, at your own risk). |
 | Quiet Hours | Pause all background work between these times every day (e.g. office hours), and carry on afterwards. Ingests, pushes and re-indexing wait; the portal and Desk work as usual. |
@@ -458,6 +459,10 @@ page text held back, and how many finished tasks it still remembers.
 | **Hold page text** / **Resume page text** | while held, books are still catalogued and listed on the portal, and their page text waits (marked pending). Resume sends it. Useful during busy hours, or while the engine recovers |
 | **Clear finished tasks** | forgets the record of tasks finished more than a week ago (done weekly by itself): on a big catalogue it grows to gigabytes |
 | **Cancel all waiting** | cancels everything waiting, book records too, keeping track of it: page text is sent again, and the book records count as not sent (*Send them* on the Machine card) |
+
+**Books first happens by itself** (Settings → Machine Resources → *Books First Automatically*, on
+by default): when a new book has waited more than 15 minutes behind page text, at most every 30
+minutes. The Search queue card shows when it last did.
 
 Page text that waits is sent every 10 minutes, a few books at a time, whenever the engine has
 fewer than 150 tasks waiting.
