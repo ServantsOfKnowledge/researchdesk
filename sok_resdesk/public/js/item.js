@@ -74,9 +74,10 @@
 			}
 			setTimeout(() => (btn.textContent = was), 1500);
 		};
-		$("#rd-copy").addEventListener("click", (e) =>
-			copy(dlg.querySelector("pre.rd-cite:not(.is-hidden)").textContent, e.target)
-		);
+		$("#rd-copy").addEventListener("click", (e) => {
+			copy(dlg.querySelector("pre.rd-cite:not(.is-hidden)").textContent, e.target);
+			window.rdTrack && rdTrack("Citation copied", { scope, format: fmt });
+		});
 		$("#rd-copy-link").addEventListener("click", (e) => copy(scope === "page" && page ? page.url : dlg.dataset.url, e.target));
 	}
 
@@ -134,6 +135,7 @@
 		form.addEventListener("submit", (e) => {
 			e.preventDefault();
 			searchInside($("#rd-inside-q").value.trim());
+			window.rdTrack && rdTrack("Search inside a book");
 		});
 		$("#rd-inside-hits").addEventListener("click", (e) => {
 			const b = e.target.closest("[data-leaf]");

@@ -81,6 +81,56 @@
 		} else go();
 	}
 
+	// ---- the numbers at the top of the workspace (custom block "Research Desk Numbers") -------
+	window.rd_numbers = function (root) {
+		const box = root.querySelector(".rd-numbers");
+		if (!box) return;
+		const esc = frappe.utils.escape_html;
+		const fmt = (v) => (typeof v === "number" ? v.toLocaleString() : esc(String(v)));
+		const draw = (d) => {
+			box.innerHTML = `
+				<style>
+					.rdn { padding: 4px 2px 8px; }
+					.rdn-head { display:flex; align-items:baseline; gap:12px; margin-bottom:6px; }
+					.rdn-head h4 { margin:0; font-size:15px; font-weight:600; }
+					.rdn-head a { margin-left:auto; font-size:12px; }
+					.rdn-group { margin: 10px 0 4px; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color: var(--text-muted); }
+					.rdn-cards { display:grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap:10px; }
+					.rdn-card { border:1px solid var(--border-color); border-radius:10px; padding:10px 12px; cursor:pointer; background: var(--card-bg); text-align:left; }
+					.rdn-card:hover { border-color: var(--primary); }
+					.rdn-card .v { font-size:22px; font-weight:600; line-height:1.2; }
+					.rdn-card .v small { font-size:12px; color: var(--text-muted); font-weight:400; }
+					.rdn-card .l { font-size:13px; font-weight:500; }
+					.rdn-card .s { font-size:12px; color: var(--text-muted); }
+					.rdn-card.alert .v { color: var(--orange-600, #c45a00); }
+				</style>
+				<div class="rdn">
+					<div class="rdn-head"><h4>${__("Your library today")}</h4><span class="text-muted small">${__("as of {0}", [esc(d.as_of)])}</span><a href="#" class="rdn-refresh">${__("Refresh")}</a></div>
+					${d.groups
+						.map((g, gi) => `<div class="rdn-group">${esc(g.title)}</div><div class="rdn-cards">${g.cards
+							.map((c, ci) => `<button type="button" class="rdn-card ${c.alert && c.value ? "alert" : ""}" data-g="${gi}" data-c="${ci}">
+								<div class="v">${fmt(c.value)}${c.suffix ? `<small>${esc(c.suffix)}</small>` : ""}</div>
+								<div class="l">${esc(c.label)}</div><div class="s">${esc(c.sub || "")}</div></button>`)
+							.join("")}</div>`)
+						.join("")}
+				</div>`;
+			box.querySelector(".rdn-refresh").onclick = (e) => {
+				e.preventDefault();
+				load(1);
+			};
+			box.querySelectorAll(".rdn-card").forEach((b) => {
+				b.onclick = () => {
+					const c = d.groups[b.dataset.g].cards[b.dataset.c];
+					if (c.url) return window.open(c.url, c.url.startsWith("/") ? "_self" : "_blank");
+					if (c.route) frappe.set_route(...c.route);
+				};
+			});
+		};
+		const load = (refresh) =>
+			frappe.call({ method: "sok_resdesk.dashboard.numbers", args: { refresh: refresh || 0 } }).then((r) => r.message && draw(r.message));
+		load(0);
+	};
+
 	window.rd_checklist = function (root) {
 		const box = root.querySelector(".rd-checklist");
 		if (!box) return;

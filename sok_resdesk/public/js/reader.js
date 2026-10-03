@@ -123,7 +123,12 @@
 		state.leaf = Number(pane.dataset.start) || 0;
 		state.q = new URLSearchParams(location.search).get("q") || "";
 
-		document.querySelectorAll(".rd-view").forEach((b) => b.addEventListener("click", () => setView(b.dataset.view)));
+		document.querySelectorAll(".rd-view").forEach((b) =>
+			b.addEventListener("click", () => {
+				setView(b.dataset.view);
+				window.rdTrack && rdTrack("Reader opened", { reader: b.dataset.view === "text" ? "Page & text" : "Book reader" });
+			})
+		);
 		pane.addEventListener("click", (e) => {
 			const step = e.target.closest("[data-step]");
 			if (step) go(state.leaf + Number(step.dataset.step));

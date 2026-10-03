@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.25.0 (2026-10-06): people, usage and the library at a glance
+
+- **People & Roles** in the Desk: each role with its people; tick to give or take a role; invite
+  people by email with their roles; switch accounts off and on; approve or reject sign-ups. Only
+  a System Manager grants System Manager, and nobody can lock themselves out
+- **Your library today** on the Research Desk workspace: books, pages, search backlog, OCR
+  quality, readers, logins this week and month, sign-ups, proofreaders, notes, reviews, OCR error
+  reports, pages proofread, preservation, and portal use; each number opens where to act on it
+- **Usage statistics** (Settings): Built-in (on this server, Frappe's page-view log), PostHog,
+  Plausible or Umami; portal pages only, cookieless, no personal data; named events for search,
+  readers, citations, notes and proofreading
+- Help and tours for the new page; architecture, comparison and roadmap shared with partners
+
 ## 0.24.1 (2026-10-06): each page's text with its own image, a wider reader, one Cite
 
 - Fixed: in Page & text, a page's text could sit next to the following page's image. archive.org's

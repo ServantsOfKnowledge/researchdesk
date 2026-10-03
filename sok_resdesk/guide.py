@@ -269,6 +269,7 @@ STEPS = [
 	),
 ]
 BLOCK = "Research Desk Checklist"
+NUMBERS_BLOCK = "Research Desk Numbers"
 STATE_KEY = "resdesk_checklist"
 
 
@@ -319,22 +320,28 @@ def _sync_tour(doctype: str, steps) -> None:
 
 
 def _sync_checklist_block() -> None:
-	"""The workspace block only holds a placeholder; desk_help.js draws the checklist."""
+	"""The workspace blocks only hold a placeholder; desk_help.js draws the checklist and the
+	numbers (dashboard.py)."""
+	_sync_block(BLOCK, "rd-checklist", "rd_checklist")
+	_sync_block(NUMBERS_BLOCK, "rd-numbers", "rd_numbers")
+
+
+def _sync_block(name: str, css_class: str, fn: str) -> None:
 	values = {
-		"html": '<div class="rd-checklist"></div>',
-		"script": "window.rd_checklist && window.rd_checklist(root_element);",
+		"html": f'<div class="{css_class}"></div>',
+		"script": f"window.{fn} && window.{fn}(root_element);",
 		"style": "",
 		"private": 0,
 	}
-	if frappe.db.exists("Custom HTML Block", BLOCK):
-		doc = frappe.get_doc("Custom HTML Block", BLOCK)
+	if frappe.db.exists("Custom HTML Block", name):
+		doc = frappe.get_doc("Custom HTML Block", name)
 		doc.update(values)
 	else:
 		doc = frappe.new_doc("Custom HTML Block")
 		doc.update(values)
 	doc.set("roles", [{"role": r} for r in MANAGERS])
 	if doc.is_new():
-		doc.insert(ignore_permissions=True, set_name=BLOCK)
+		doc.insert(ignore_permissions=True, set_name=name)
 	else:
 		doc.save(ignore_permissions=True)
 

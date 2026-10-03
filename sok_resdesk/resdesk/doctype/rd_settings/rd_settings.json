@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-05 14:00:00.000000",
+ "modified": "2026-10-06 12:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -81,6 +81,12 @@
   "mirror_min_books",
   "column_break_iac",
   "mirror_skip",
+  "analytics_section",
+  "analytics_provider",
+  "analytics_host",
+  "column_break_analytics",
+  "analytics_key",
+  "analytics_dashboard",
   "access_section",
   "guest_access",
   "default_visibility",
@@ -553,6 +559,47 @@
    "label": "Skip These archive.org Collections",
    "depends_on": "mirror_all_collections",
    "description": "archive.org collection identifiers that should not get a page, one per line (for example a big general collection most of your books are also in)."
+  },
+  {
+   "fieldname": "analytics_section",
+   "fieldtype": "Section Break",
+   "label": "Usage Statistics",
+   "collapsible": 1,
+   "description": "How readers use the portal: pages seen, searches, books opened. Only the portal is counted, never the Desk; no cookies and no personal data are sent."
+  },
+  {
+   "fieldname": "analytics_provider",
+   "fieldtype": "Select",
+   "label": "Statistics",
+   "options": "Off\nBuilt-in\nPostHog\nPlausible\nUmami",
+   "default": "Off",
+   "description": "<b>Built-in</b>: counted on this server (Frappe's page views), shown on the Research Desk dashboard; nothing leaves the server. <b>PostHog</b>, <b>Plausible</b> or <b>Umami</b>: sent to that service (cloud or your own), with its own dashboards."
+  },
+  {
+   "fieldname": "analytics_host",
+   "fieldtype": "Data",
+   "label": "Service address",
+   "depends_on": "eval:['PostHog','Plausible','Umami'].includes(doc.analytics_provider)",
+   "description": "PostHog: https://us.i.posthog.com, https://eu.i.posthog.com or your own. Plausible: https://plausible.io or your own. Umami: your Umami server, or https://cloud.umami.is."
+  },
+  {
+   "fieldname": "column_break_analytics",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "analytics_key",
+   "fieldtype": "Data",
+   "label": "Project key or site id",
+   "depends_on": "eval:['PostHog','Plausible','Umami'].includes(doc.analytics_provider)",
+   "description": "PostHog: the project API key (phc_…). Plausible: the site's domain as added there. Umami: the website id."
+  },
+  {
+   "fieldname": "analytics_dashboard",
+   "fieldtype": "Data",
+   "label": "Dashboard link",
+   "options": "URL",
+   "depends_on": "eval:doc.analytics_provider && doc.analytics_provider != 'Off'",
+   "description": "Optional: where staff open the statistics (shown on the Research Desk dashboard)."
   },
   {
    "fieldname": "access_section",

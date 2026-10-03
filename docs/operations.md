@@ -388,6 +388,15 @@ Every setting:
 | Smallest Collection to Show | Only make a page for archive.org collections with at least this many of your books. |
 | Skip These archive.org Collections | archive.org collection identifiers that should not get a page, one per line (for example a big general collection most of your books are also in). |
 
+**Usage Statistics**
+
+| Setting | What it does |
+|---|---|
+| Statistics | <b>Built-in</b>: counted on this server (Frappe's page views), shown on the Research Desk dashboard; nothing leaves the server. <b>PostHog</b>, <b>Plausible</b> or <b>Umami</b>: sent to that service (cloud or your own), with its own dashboards. Choices: *Off*, *Built-in*, *PostHog*, *Plausible*, *Umami*. |
+| Service address | PostHog: https://us.i.posthog.com, https://eu.i.posthog.com or your own. Plausible: https://plausible.io or your own. Umami: your Umami server, or https://cloud.umami.is. |
+| Project key or site id | PostHog: the project API key (phc_…). Plausible: the site's domain as added there. Umami: the website id. |
+| Dashboard link | Optional: where staff open the statistics (shown on the Research Desk dashboard). |
+
 **Access & Sign-up**
 
 | Setting | What it does |
@@ -411,10 +420,12 @@ Every setting:
 | ResDesk Manager | everything in Research Desk: settings, profiles, ingests, catalogue |
 | ResDesk Cataloguer | edit catalogue records, re-index items, read runs, change who can see books |
 | ResDesk Reader | log in on the portal and read members-only books; no Desk access |
+| ResDesk Proofreader | correct and validate page text on the portal, and read pages again with OCR; no Desk access |
 | (visitors) | search, read and cite what the site allows without a login |
 
-Add staff in Desk → *User* → give them one of these roles. They land on the Research Desk
-workspace after login. Readers can also sign up themselves, or be added with
+Give and take roles, invite people and decide sign-ups on **People & Roles** in the Desk
+([staff guide](staff-guide.md#people-and-roles)). Staff land on the Research Desk workspace after
+login. Readers can also sign up themselves, or be added with
 `./resdesk.sh add-reader EMAIL`: see [Who can see what](access.md#reader-accounts).
 
 ## Troubleshooting

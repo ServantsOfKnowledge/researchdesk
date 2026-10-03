@@ -1,9 +1,16 @@
 {
  "app": "sok_resdesk",
  "charts": [],
- "content": "[{\"data\": {\"col\": 12, \"text\": \"<span class=\\\"h4\\\"><b>Research Desk</b></span>\"}, \"id\": \"rd-h\", \"type\": \"header\"}, {\"id\": \"rd-checklist\", \"type\": \"custom_block\", \"data\": {\"custom_block_name\": \"Research Desk Checklist\", \"col\": 12}}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Ingest Profiles\"}, \"id\": \"rd-s1\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Items\"}, \"id\": \"rd-s2\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Collections\"}, \"id\": \"rd-s6\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Background Jobs\"}, \"id\": \"rd-s5\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Server\"}, \"id\": \"rdShortcutServer\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Open Portal\"}, \"id\": \"rd-s3\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Settings\"}, \"id\": \"rd-s4\", \"type\": \"shortcut\"}, {\"id\": \"rd-s7\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Help\", \"col\": 3}}, {\"data\": {\"card_name\": \"Catalogue\", \"col\": 3}, \"id\": \"rd-c1\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Ingest\", \"col\": 3}, \"id\": \"rd-c2\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Setup\", \"col\": 3}, \"id\": \"rd-c3\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Readers\", \"col\": 3}, \"id\": \"rd-c4\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Metadata\", \"col\": 3}, \"id\": \"rd-c5\", \"type\": \"card\"}]",
+ "content": "[{\"data\": {\"col\": 12, \"text\": \"<span class=\\\"h4\\\"><b>Research Desk</b></span>\"}, \"id\": \"rd-h\", \"type\": \"header\"}, {\"id\": \"rd-numbers\", \"type\": \"custom_block\", \"data\": {\"custom_block_name\": \"Research Desk Numbers\", \"col\": 12}}, {\"id\": \"rd-checklist\", \"type\": \"custom_block\", \"data\": {\"custom_block_name\": \"Research Desk Checklist\", \"col\": 12}}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Ingest Profiles\"}, \"id\": \"rd-s1\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Items\"}, \"id\": \"rd-s2\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Collections\"}, \"id\": \"rd-s6\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Background Jobs\"}, \"id\": \"rd-s5\", \"type\": \"shortcut\"}, {\"id\": \"rd-s8\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"People & Roles\", \"col\": 3}}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Server\"}, \"id\": \"rdShortcutServer\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Open Portal\"}, \"id\": \"rd-s3\", \"type\": \"shortcut\"}, {\"data\": {\"col\": 3, \"shortcut_name\": \"Settings\"}, \"id\": \"rd-s4\", \"type\": \"shortcut\"}, {\"id\": \"rd-s7\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Help\", \"col\": 3}}, {\"data\": {\"card_name\": \"Catalogue\", \"col\": 3}, \"id\": \"rd-c1\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Ingest\", \"col\": 3}, \"id\": \"rd-c2\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Setup\", \"col\": 3}, \"id\": \"rd-c3\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Readers\", \"col\": 3}, \"id\": \"rd-c4\", \"type\": \"card\"}, {\"data\": {\"card_name\": \"Metadata\", \"col\": 3}, \"id\": \"rd-c5\", \"type\": \"card\"}]",
  "creation": "2026-09-29 15:43:25.717447",
  "custom_blocks": [
+  {
+   "custom_block_name": "Research Desk Numbers",
+   "label": "Research Desk Numbers",
+   "doctype": "Workspace Custom Block",
+   "parentfield": "custom_blocks",
+   "parenttype": "Workspace"
+  },
   {
    "custom_block_name": "Research Desk Checklist",
    "label": "Research Desk Checklist",
@@ -233,6 +240,16 @@
    "is_query_report": 0,
    "link_count": 0,
    "onboard": 0,
+   "label": "People & Roles",
+   "link_to": "resdesk-people",
+   "link_type": "Page",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "link_count": 0,
+   "onboard": 0,
    "label": "Reader Requests",
    "link_to": "RD Reader Request",
    "link_type": "DocType",
@@ -308,7 +325,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-05 18:00:00.000000",
+ "modified": "2026-10-06 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "ResDesk",
  "name": "Research Desk",
@@ -374,6 +391,13 @@
    "type": "Page",
    "link_to": "resdesk-help",
    "color": "Cyan"
+  },
+  {
+   "color": "Blue",
+   "doc_view": "",
+   "label": "People & Roles",
+   "link_to": "resdesk-people",
+   "type": "Page"
   }
  ],
  "title": "Research Desk",

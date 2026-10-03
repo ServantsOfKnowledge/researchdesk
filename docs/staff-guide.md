@@ -11,10 +11,18 @@ never see the Desk; they use the portal at `/`, the site's front page (book page
 
 ![The Research Desk workspace with the getting-started checklist](../sok_resdesk/public/images/guide/desk-workspace.png)
 
-- **Get started with Research Desk**, at the top, is a checklist for a new library (see
+- **Your library today**, at the top (managers): the numbers that matter, each a button to
+  where you act on it. *Catalogue*: books on the portal and added this week, pages searchable,
+  books waiting for search, average OCR quality. *Readers*: readers, new accounts, who logged in
+  this week and month, sign-ups waiting, proofreaders. *Research*: notes this month, public notes
+  to review, OCR errors reported, pages proofread and validated. *Preservation*: books preserved,
+  failed checks. *Portal use*, when [usage statistics](#usage-statistics) are on. Numbers to act
+  on (sign-ups, reviews, failed checks) show in orange. They are worked out at most every five
+  minutes; **Refresh** for now.
+- **Get started with Research Desk** is a checklist for a new library (see
   [below](#the-getting-started-checklist)). Hide it when you're done.
-- **Shortcuts**: Ingest Profiles, Items, Collections, Background Jobs, Server, Open Portal,
-  Settings and Help.
+- **Shortcuts**: Ingest Profiles, Items, Collections, Background Jobs, People & Roles, Server,
+  Open Portal, Settings and Help.
 - **Cards** list everything else: the catalogue (items, collections, authors, subjects), ingest
   (profiles, runs, background jobs), setup, readers (sign-up requests, users) and metadata
   (exports, spreadsheet imports, push targets).
@@ -201,7 +209,47 @@ to it follows; set *Home Page* back to `library` to return.
 | ResDesk Reader | the portal only: read members-only books |
 | ResDesk Proofreader | the portal only: correct and validate page text, and read pages again with OCR |
 
-Give staff a role under **Users** in the Desk ([more](operations.md#users-and-roles)).
+Give and take roles on **People & Roles** (below).
+
+## People and roles
+
+**People & Roles** (Research Desk → *People & Roles*, managers) shows who can do what:
+
+- **A card per role** with how many people have it, what it allows, and whether it works in the
+  Desk or only on the portal. Click a card to list just those people; click it again for everyone.
+- **The people**, newest first, with a tick box per role: tick to give a role, untick to take it.
+  Giving a staff role (Manager, Cataloguer) lets the person into the Desk; readers and
+  proofreaders stay on the portal. Find people by name or email; **Show switched-off accounts**
+  lists those too.
+- **Switch off** an account to stop it logging in (its notes and corrections stay), and **Switch
+  on** to let it back.
+- **Invite people**: one or more email addresses (one per line), the roles to give, and whether to
+  send a welcome email. Existing accounts just get the roles.
+- **Sign-ups waiting for approval** show at the top, with **Approve** and **Reject**.
+
+Only a System Manager gives or takes the System Manager role. Nobody can take a manager role
+from themselves or switch themselves off, so a library can't lock itself out. The full Frappe
+account screen stays one click away (**⋯ → All accounts**).
+
+## Usage statistics
+
+Settings → **Usage Statistics** counts how readers use the portal. The Desk is never counted,
+no cookies are set, and nothing about who a reader is goes with the numbers.
+
+| Choice | Where the numbers are | What it costs |
+|---|---|---|
+| **Off** (the start) | nowhere | nothing |
+| **Built-in** | on this server (Frappe's page-view log): page views and visitors this week and the most-read books, on the dashboard; the full log under *Web Page View* | one small database row per page seen; nothing leaves the server |
+| **PostHog** | PostHog (cloud in the US or EU, or your own): pages, searches, funnels, its own dashboards | one script from the service on portal pages |
+| **Plausible** | Plausible (cloud or your own): a simple, privacy-first page dashboard | a very small script |
+| **Umami** | Umami (cloud or your own) | a very small script |
+
+For PostHog, Plausible or Umami, give the **service address** (e.g. `https://eu.i.posthog.com`),
+the **project key or site id**, and optionally the **dashboard link** shown on the Research Desk
+dashboard. Besides page views, the portal sends a few named events: *Search* (books or inside the
+text, with how many results), *Search inside a book*, *Reader opened*, *Citation copied* (book or
+page, format), *Note added* (kind, visibility) and *Page proofread*. A visitor's browser asks for
+the choice once per visit, so a change shows to new visits.
 
 ## Readers' notes
 

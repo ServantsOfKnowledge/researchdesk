@@ -87,6 +87,8 @@
 			const body = await res.json();
 			if (!res.ok) throw new Error(body._server_messages || body.exception || res.statusText);
 			render(body.message);
+			if (state.q && state.page === 1 && window.rdTrack)
+				rdTrack("Search", { mode: state.mode || "books", results: (body.message || {}).total || 0 });
 		} catch (e) {
 			$("#rd-hits").innerHTML = `<li class="rd-error">Search is unavailable right now. ${esc(e.message).slice(0, 200)}</li>`;
 		}

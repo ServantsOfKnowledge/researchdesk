@@ -15,12 +15,18 @@ class RDSettings(Document):
 		from sok_resdesk.identifiers import validate_settings
 
 		validate_settings(self)
+		from sok_resdesk.analytics import validate_settings as validate_analytics
+
+		validate_analytics(self)
 
 	def on_update(self):
 		apply_branding(self)
 		from sok_resdesk.access import apply_signup_setting
 
 		apply_signup_setting(self)
+		from sok_resdesk.analytics import apply_settings as apply_analytics
+
+		apply_analytics(self)
 
 
 DEFAULT_LOGO = "/assets/sok_resdesk/images/resdesk-logo.svg"

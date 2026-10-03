@@ -244,6 +244,7 @@
 				true
 			);
 			msg.textContent = r.status === "Validated" ? "Validated. Thank you." : "Saved as proofread. Thank you.";
+			window.rdTrack && rdTrack("Page proofread", { status: r.status });
 			const leaf = page.leaf;
 			close();
 			window.RDPages && RDPages.go(leaf);

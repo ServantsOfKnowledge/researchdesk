@@ -34,6 +34,7 @@ SCREEN_HELP = {
 	"RD Subject": ("staff-guide", "authors-and-subjects"),
 	"resdesk-jobs": ("operations", "background-jobs-see-pause-and-stop-what-is-running"),
 	"resdesk-server": ("server", "the-server-page"),
+	"resdesk-people": ("staff-guide", "people-and-roles"),
 	"RD Server Task": ("server", "upgrading-from-the-desk"),
 	"RD Tombstone": ("preservation", "tombstones"),
 	"RD Annotation": ("staff-guide", "readers-notes"),

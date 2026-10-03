@@ -199,6 +199,7 @@
 			} else {
 				const target = pending.region ? { region: pending.region } : { start: pending.start, end: pending.end };
 				await call("add", { item_id: itemId, leaf: page.leaf, page_label: page.label || "", ...data, ...target }, true);
+				window.rdTrack && rdTrack("Note added", { kind: data.kind || "", visibility: data.visibility || "" });
 			}
 		} catch (e) {
 			const err = $("#rd-note-error");

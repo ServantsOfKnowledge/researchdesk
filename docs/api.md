@@ -143,6 +143,10 @@ two files are ever served, and the PDF only when the caller may read the book.
 | `sok_resdesk.pagetext.save_page` (`item_id`, `leaf`, `text`, `zones`, `page_label`, `validate`=1/0) · `restore` (`name`) | proofreaders: save a corrected page (Proofread), validate one proofread by someone else (unchanged text), or make an earlier version current again |
 | `sok_resdesk.reocr.ocr_page` (`item_id`, `leaf`, `zones`=`[{x,y,w,h,kind}]` in percent, in reading order) · `ocr_result` (`key`) | proofreaders: read one page again, zone by zone, in the background; `ocr_result` returns its text when done (to the same person) |
 | `sok_resdesk.reocr.enqueue_book` (`item_id`, `preset`) · `enqueue_worst` (`count`, `preset`) · `engine_status` | managers: re-OCR a book, or the books with the poorest OCR, keeping the better text; whether Tesseract is installed and with which models |
+| `sok_resdesk.people.overview` · `users` (`role`, `q`, `show_disabled`) | managers: each role with its count and sign-ups waiting; people with their Research Desk roles |
+| `sok_resdesk.people.set_role` (`user`, `role`, `on`) · `set_enabled` (`user`, `enabled`) · `invite` (`emails`, `roles`, `full_name`, `send_welcome`) · `decide` (`names`, `status`) | managers: give or take a role, switch an account off or on, invite people, approve or reject sign-ups |
+| `sok_resdesk.dashboard.numbers` (`refresh`) | managers: the workspace numbers (cached five minutes) |
+| `sok_resdesk.analytics.config` | the usage statistics service portal pages load (public) |
 | `GET /ark:/<naan>/<name>[/n<leaf>]` | a permanent ARK: redirects to the book (with a leaf: that page in the page reader); `?info` returns its who/what/when/where record as text; a deleted book's ARK leads to its tombstone |
 | `sok_resdesk.capacity.get_status` | the book limit: books and pages in the catalogue, the limit, room left, and what the machine's CPUs, memory and disk can each hold |
 | `sok_resdesk.server.status` | everything on the Server page: versions, updates, health, backups, helper, recent tasks |

@@ -1590,3 +1590,104 @@ class TestPageOrder(OpsTestCase):
 			self.assertEqual(fetch_pages(book)[0]["leaf"], 0)
 		self.assertEqual(frappe.db.get_value("RD Item", book, "page_order"), 1)
 		self.assertNotIn("sok_resdesk.page_order.reindex_book", [m for m, _ in self.enqueued])
+
+
+class TestPeople(OpsTestCase):
+	MANAGER, OTHER = "rdtest-manager@example.com", "rdtest-person@example.com"
+
+	def setUp(self):
+		super().setUp()
+		for email in (self.MANAGER, self.OTHER):
+			if not frappe.db.exists("User", email):
+				frappe.get_doc(
+					{
+						"doctype": "User",
+						"email": email,
+						"first_name": email.split("@")[0],
+						"send_welcome_email": 0,
+					}
+				).insert(ignore_permissions=True)
+		frappe.get_doc("User", self.MANAGER).add_roles("ResDesk Manager")
+		frappe.db.commit()
+		self.addCleanup(self.cleanup)
+
+	def cleanup(self):
+		frappe.set_user("Administrator")
+		for email in (self.MANAGER, self.OTHER, "rdtest-new1@example.com", "rdtest-new2@example.com"):
+			if frappe.db.exists("User", email):
+				frappe.delete_doc("User", email, ignore_permissions=True, force=True)
+		frappe.db.commit()
+
+	def test_roles_given_taken_and_guarded(self):
+		from sok_resdesk import people
+
+		frappe.set_user(self.MANAGER)
+		roles = {r["role"]: r for r in people.overview()["roles"]}
+		self.assertFalse(roles["System Manager"]["can_grant"])
+		self.assertIn("ResDesk Proofreader", people.set_role(self.OTHER, "ResDesk Proofreader", 1)["roles"])
+		self.assertIn(self.OTHER, [u.name for u in people.users(role="ResDesk Proofreader")])
+		self.assertNotIn(
+			"ResDesk Proofreader", people.set_role(self.OTHER, "ResDesk Proofreader", 0)["roles"]
+		)
+		# staff role → Desk account
+		self.assertTrue(people.set_role(self.OTHER, "ResDesk Cataloguer", 1)["desk"])
+		self.assertRaises(frappe.PermissionError, people.set_role, self.OTHER, "System Manager", 1)
+		self.assertRaises(frappe.ValidationError, people.set_role, self.MANAGER, "ResDesk Manager", 0)
+		self.assertRaises(frappe.ValidationError, people.set_role, "Administrator", "ResDesk Reader", 1)
+		self.assertRaises(frappe.ValidationError, people.set_role, self.OTHER, "Accounts User", 1)
+		self.assertRaises(frappe.ValidationError, people.set_enabled, self.MANAGER, 0)
+		self.assertEqual(people.set_enabled(self.OTHER, 0)["enabled"], 0)
+		self.assertNotIn(self.OTHER, [u.name for u in people.users(q="rdtest-person")])
+		self.assertIn(self.OTHER, [u.name for u in people.users(q="rdtest-person", show_disabled=1)])
+		people.set_enabled(self.OTHER, 1)
+		frappe.set_user(self.OTHER)
+		self.assertRaises(frappe.PermissionError, people.overview)
+
+	def test_invite(self):
+		from sok_resdesk import people
+
+		frappe.set_user(self.MANAGER)
+		out = people.invite(
+			"rdtest-new1@example.com, rdtest-new2@example.com\n" + self.OTHER,
+			'["ResDesk Reader"]',
+			send_welcome=0,
+		)
+		self.assertEqual(sorted(out["made"]), ["rdtest-new1@example.com", "rdtest-new2@example.com"])
+		self.assertEqual(out["updated"], [self.OTHER])
+		self.assertIn("ResDesk Reader", frappe.get_roles("rdtest-new1@example.com"))
+		self.assertEqual(frappe.db.get_value("User", "rdtest-new1@example.com", "user_type"), "Website User")
+		self.assertRaises(frappe.ValidationError, people.invite, "rdtest-new1@example.com", "[]")
+
+
+class TestDashboardAndStatistics(OpsTestCase):
+	def test_numbers_and_statistics_choice(self):
+		from sok_resdesk import analytics, dashboard
+
+		_item(95)
+		frappe.db.set_value("RD Item", f"{PREFIX}0095", {"published": 1, "ocr_quality": 40})
+		out = dashboard.numbers(refresh=1)
+		cards = {c["label"]: c for g in out["groups"] for c in g["cards"]}
+		self.assertGreaterEqual(cards["Books on the portal"]["value"], 1)
+		self.assertIn("Readers", cards)
+		s = frappe.get_single("RD Settings")
+		s.analytics_provider, s.analytics_host, s.analytics_key = (
+			"PostHog",
+			"http://insecure.example",
+			"phc_x",
+		)
+		self.assertRaises(frappe.ValidationError, s.save)
+		s.analytics_host = "https://eu.i.posthog.com/"
+		s.save()
+		self.assertEqual(
+			analytics.config(), {"provider": "PostHog", "host": "https://eu.i.posthog.com", "key": "phc_x"}
+		)
+		s.analytics_provider = "Built-in"
+		s.save()
+		self.assertEqual(analytics.config(), {"provider": ""})
+		ws = frappe.get_single("Website Settings")
+		if ws.meta.has_field("enable_view_tracking"):
+			self.assertEqual(int(ws.enable_view_tracking), 1)
+			titles = [g["title"] for g in dashboard.numbers(refresh=1)["groups"]]
+			self.assertIn("Portal use", titles)
+		s.analytics_provider = "Off"
+		s.save()
