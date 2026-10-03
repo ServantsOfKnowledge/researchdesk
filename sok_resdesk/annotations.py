@@ -236,8 +236,10 @@ def add(
 	research_group: str = "",
 	page_label: str = "",
 	entity: str = "",
+	quote: str = "",
 ) -> dict:
-	"""A new note on a passage (start, end in the page text) or a region (x,y,w,h in percent)."""
+	"""A new note on a passage (start, end in the page text, or the words themselves as `quote`),
+	a region (x,y,w,h in percent), or, with none of these, the whole page."""
 	book = _book(item_id)
 	if not _can_annotate(book):
 		frappe.throw(_("Log in to add notes."), frappe.PermissionError)
@@ -260,6 +262,21 @@ def add(
 		if len(parts) != 4 or parts[2] <= 0 or parts[3] <= 0:
 			frappe.throw(_("Mark a region of the page first."))
 		target["region"] = core.region(*parts)
+	elif start in (None, "") and end in (None, ""):
+		quote = (quote or "").strip()
+		if quote:  # words typed or pasted (no mouse needed): found in the page text
+			text = _page_text(item_id, leaf) or ""
+			where = core.anchor(text, None, None, quote)
+			if not where:
+				frappe.throw(_("Those words are not in this page's text. Check them, or leave them out."))
+			q = core.quote_selector(text, *where)
+			target = {
+				"exact": q["exact"][:2000],
+				"prefix": q["prefix"],
+				"suffix": q["suffix"],
+				"pos_start": where[0],
+				"pos_end": where[1],
+			}
 	else:
 		text = _page_text(item_id, leaf)
 		start, end = cint(start), cint(end)

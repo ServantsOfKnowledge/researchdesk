@@ -441,6 +441,26 @@ def json_ld(item: dict, base_url: str = "") -> dict:
 		data["image"] = item["thumbnail_url"]
 	if item.get("doi"):
 		data["identifier"] = {"@type": "PropertyValue", "propertyID": "DOI", "value": item["doi"]}
+	# schema.org accessibility metadata (as EPUB Accessibility and Google Books read it): page
+	# images, and page text for screen readers and text-to-speech where the book has it
+	data["accessMode"] = ["visual", "textual"] if item.get("has_page_text") else ["visual"]
+	data["accessModeSufficient"] = (
+		[
+			{"@type": "ItemList", "itemListElement": ["textual"]},
+			{"@type": "ItemList", "itemListElement": ["visual"]},
+		]
+		if item.get("has_page_text")
+		else [{"@type": "ItemList", "itemListElement": ["visual"]}]
+	)
+	data["accessibilityFeature"] = (
+		["readingOrder", "displayTransformability"] if item.get("has_page_text") else ["none"]
+	)
+	data["accessibilityHazard"] = ["none"]
+	data["accessibilitySummary"] = (
+		"Scanned page images, each with its OCR text (corrected where proofread), readable with a screen reader and read aloud."
+		if item.get("has_page_text")
+		else "Scanned page images only: no text a screen reader can read yet."
+	)
 	return data
 
 

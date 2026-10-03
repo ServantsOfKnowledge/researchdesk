@@ -71,9 +71,9 @@
 		list.innerHTML = zones.length
 			? zones
 					.map(
-						(z, i) => `<li data-z="${i}"><b>${z.kind === "skip" ? "×" : i + 1}</b>
-				<select data-kind="${i}"><option value="text" ${z.kind === "text" ? "selected" : ""}>read</option><option value="skip" ${z.kind === "skip" ? "selected" : ""}>skip</option></select>
-				<select data-zlang="${i}" title="This part's language, when it differs from the page's" ${z.kind === "skip" ? "hidden" : ""}><option value="">page's languages</option>${Object.entries(langs.available)
+						(z, i) => `<li data-z="${i}" tabindex="0" aria-label="Zone ${i + 1}: ${Math.round(z.x)}% from the left, ${Math.round(z.y)}% from the top, ${Math.round(z.w)}% wide, ${Math.round(z.h)}% high. Arrow keys move it; Shift and the arrow keys change its size."><b>${z.kind === "skip" ? "×" : i + 1}</b>
+				<select data-kind="${i}" aria-label="Read or skip zone ${i + 1}"><option value="text" ${z.kind === "text" ? "selected" : ""}>read</option><option value="skip" ${z.kind === "skip" ? "selected" : ""}>skip</option></select>
+				<select data-zlang="${i}" aria-label="Language of zone ${i + 1}" title="This part's language, when it differs from the page's" ${z.kind === "skip" ? "hidden" : ""}><option value="">page's languages</option>${Object.entries(langs.available)
 					.map(([m, n]) => `<option value="${esc(m)}" ${(z.langs || [])[0] === m ? "selected" : ""}>${esc(n)}</option>`)
 					.join("")}</select>
 				<button type="button" data-up="${i}" title="Earlier" ${i ? "" : "disabled"}>↑</button><button type="button" data-down="${i}" title="Later" ${i < zones.length - 1 ? "" : "disabled"}>↓</button>
@@ -102,15 +102,16 @@
 		box.innerHTML = `
 			<div class="rd-proof__zones">
 				<button class="rd-btn" type="button" id="rd-zone-draw">Draw a zone</button>
-				<select id="rd-zone-preset"><option value="">Layout…</option>${Object.keys(presets).map((k) => `<option>${esc(k)}</option>`).join("")}</select>
+				<button class="rd-btn" type="button" id="rd-zone-add" title="A zone in the middle of the page, to move and size with the arrow keys">Add a zone</button>
+				<select id="rd-zone-preset" aria-label="Layout"><option value="">Layout…</option>${Object.keys(presets).map((k) => `<option>${esc(k)}</option>`).join("")}</select>
 				<button class="rd-btn" type="button" id="rd-zone-sort" title="Columns left to right, headings where they fall">Sort</button>
 				<button class="rd-btn" type="button" id="rd-zone-clear">Clear</button>
 				<button class="rd-btn rd-btn--primary" type="button" id="rd-zone-ocr">OCR the zones</button>
-				<span class="rd-muted" id="rd-proof-msg"></span>
+				<span class="rd-muted" id="rd-proof-msg" role="status"></span>
 				<div class="rd-proof__langs" id="rd-proof-langs"></div>
 				<ol class="rd-zone-list" id="rd-zone-list"></ol>
 			</div>
-			<textarea id="rd-proof-text" spellcheck="false" lang="${esc($("#rd-pages-text").getAttribute("lang") || "")}"></textarea>
+			<textarea id="rd-proof-text" aria-label="The page's text, to correct" spellcheck="false" lang="${esc($("#rd-pages-text").getAttribute("lang") || "")}"></textarea>
 			<div class="rd-proof__actions">
 				<button class="rd-btn rd-btn--primary" type="button" id="rd-proof-save">Save as proofread</button>
 				<button class="rd-btn" type="button" id="rd-proof-validate" hidden>Validate: it's right</button>
@@ -297,6 +298,12 @@
 			const t = e.target;
 			if (t.closest("#rd-zone-draw")) draw();
 			if (t.closest("#rd-zone-sort")) sort();
+			if (t.closest("#rd-zone-add")) {
+				zones.push({ x: 30, y: 30, w: 40, h: 30, kind: "text" });
+				drawZones();
+				const li = $(`#rd-zone-list [data-z="${zones.length - 1}"]`);
+				if (li) li.focus();
+			}
 			if (t.closest("#rd-zone-clear")) (zones = []), drawZones();
 			if (t.closest("#rd-zone-ocr")) ocr();
 			if (t.closest("#rd-proof-save")) save(false);
@@ -322,6 +329,26 @@
 					RDPages.go(leaf);
 				});
 			}
+		});
+		// zones from the keyboard: on a zone in the list, arrows move it by 1% of the page and
+		// Shift with the arrows changes its size (the same rectangle the mouse draws)
+		$("#rd-pages").addEventListener("keydown", (e) => {
+			const li = e.target.closest && e.target.closest("#rd-zone-list [data-z]");
+			const step = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+			if (!li || e.target !== li || !step) return;
+			e.preventDefault();
+			const i = +li.dataset.z, z = zones[i];
+			const clip = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+			if (e.shiftKey) {
+				z.w = clip(z.w + step[0], 1, 100 - z.x);
+				z.h = clip(z.h + step[1], 1, 100 - z.y);
+			} else {
+				z.x = clip(z.x + step[0], 0, 100 - z.w);
+				z.y = clip(z.y + step[1], 0, 100 - z.h);
+			}
+			drawZones();
+			const again = $(`#rd-zone-list [data-z="${i}"]`);
+			if (again) again.focus();
 		});
 		$("#rd-pages").addEventListener("change", (e) => {
 			const k = e.target.closest("[data-kind]");

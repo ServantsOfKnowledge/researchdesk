@@ -149,6 +149,19 @@ class TestNotesAsData(SharingTestCase):
 		start = self.TEXT.index("Purandara")
 		return annotations.add(self.book, 4, start=start, end=start + 14, **kw)
 
+	def test_a_note_without_a_mouse(self):
+		from sok_resdesk import annotations
+
+		frappe.set_user(self.reader)
+		typed = annotations.add(self.book, 4, kind="Comment", body="where", quote="Hampi was the capital")
+		self.assertEqual(
+			(typed["exact"], typed["pos_start"]), ("Hampi was the capital", self.TEXT.index("Hampi was"))
+		)
+		page = annotations.add(self.book, 4, kind="Comment", body="the whole page")
+		self.assertFalse(page["exact"] or page["region"])  # on the whole page
+		with self.assertRaises(frappe.ValidationError):
+			annotations.add(self.book, 4, kind="Comment", body="x", quote="not on this page")
+
 	def test_a_note_names_what_it_is_about(self):
 		from sok_resdesk import annotations
 

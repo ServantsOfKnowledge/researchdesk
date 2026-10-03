@@ -55,6 +55,9 @@ Choose a collection, a search or a list of items on archive.org, and Research De
   Internet Archive upload files, and **edit many books at once** by importing an edited spreadsheet
 - **push metadata** to the Internet Archive, Koha, Wikidata or any web service (webhook), with a
   dry run first and automatic updates when a book is edited
+- be **accessible**: keyboard and screen readers throughout, Kannada and other Indian-language
+  text marked so screen readers use the right voice, pages read aloud, notes and proofreading
+  without a mouse (WCAG 2.2 AA and GIGW 3.0; see [Accessibility](docs/accessibility.md))
 - **help on every screen**: the documentation is built into the portal (for readers) and the
   Desk (for staff), with step-by-step tours of the main forms, a getting-started checklist for
   a new library, and first-visit tips for readers
@@ -83,7 +86,7 @@ It's built to install with one command, for librarians, educators, archivists an
 anyone else who can open a terminal. It scales to tens of thousands of books on one server
 ([measured](docs/scaling.md)).
 
-> Status: **v0.30**, before 1.0. It works end to end and is tested against live Servants of
+> Status: **v0.31**, before 1.0. It works end to end and is tested against live Servants of
 > Knowledge data, but expect changes before 1.0. What changed: [CHANGELOG](CHANGELOG.md); what
 > comes next: [the roadmap](docs/roadmap.md).
 

@@ -12,7 +12,7 @@
 	<p class="rd-muted">{{ _("Open a page, press Proofread, correct the text against the image (draw zones and OCR them again where the columns are mixed up) and save. Thank you: every page you correct becomes searchable as it should be.") }}
 		<br>{{ _("You have proofread {0} pages and validated {1}.").format(mine, validated) }}</p>
 	<form class="rd-mynotes__filters" method="get">
-		<select name="language" onchange="this.form.submit()">
+		<select name="language" aria-label="{{ _('Language') }}" onchange="this.form.submit()">
 			<option value="">{{ _("Every language") }}</option>
 			{% for l in languages %}<option {% if l == language %}selected{% endif %}>{{ l }}</option>{% endfor %}
 		</select>

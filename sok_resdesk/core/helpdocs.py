@@ -32,6 +32,7 @@ PAGES = [
 	Page("reader-guide", "reader-guide.md", "Using the library", "reader", "For readers"),
 	Page("searching", "searching.md", "Searching", "reader", "For readers"),
 	Page("citations", "citations.md", "Citations & reading lists", "reader", "For readers"),
+	Page("accessibility", "accessibility.md", "Accessibility", "reader", "For readers"),
 	Page("staff-guide", "staff-guide.md", "Staff guide: a tour of the Desk", "staff", "For library staff"),
 	Page("ingesting", "ingesting.md", "Choosing & ingesting books", "staff", "For library staff"),
 	Page(

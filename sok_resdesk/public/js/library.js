@@ -110,7 +110,7 @@
 		const noun = state.mode === "pages" ? "matching pages" : "books";
 		$("#rd-summary").textContent = `${(data.total || 0).toLocaleString()}${data.total_capped ? "+" : ""} ${noun}${data.took_ms != null ? ` · ${data.took_ms} ms` : ""}`;
 		// a search in Latin letters also found these spellings (search.expand_query)
-		const also = (data.also || []).map((a) => `<b lang="${a.script === "Devanagari" ? "hi" : ""}">${esc(a.q)}</b>`);
+		const also = (data.also || []).map((a) => `<b${lang(a.q, "")}>${esc(a.q)}</b>`);
 		$("#rd-also").innerHTML = also.length ? `Also searched: ${also.join(", ")}` : "";
 		$("#rd-also").hidden = !also.length;
 		renderChips();
@@ -125,16 +125,19 @@
 		markBasket();
 	}
 
+	// the language of a title or snippet, for screen readers (a11y.js)
+	const lang = (text, code) => (window.rdLangAttr ? window.rdLangAttr(String(text || "").replace(/<[^>]+>/g, ""), code) : "");
+
 	function bookHit(h) {
 		const meta = [h.year || "n.d.", h.language, h.page_count ? `${h.page_count} pp.` : ""].filter(Boolean).join(" · ");
 		return `<li class="rd-hit">
-			<a href="${h.url}" class="rd-hit__thumb">${h.thumbnail ? `<img src="${esc(h.thumbnail)}" alt="" loading="lazy">` : ""}</a>
+			<a href="${h.url}" class="rd-hit__thumb" tabindex="-1" aria-hidden="true">${h.thumbnail ? `<img src="${esc(h.thumbnail)}" alt="" loading="lazy">` : ""}</a>
 			<div class="rd-hit__body">
-				<h3><a href="${h.url}">${safeMarked(h.title_html)}</a></h3>
+				<h3${lang(h.title, h.language)}><a href="${h.url}">${safeMarked(h.title_html)}</a></h3>
 				${h.alt_title && h.alt_title !== h.title ? `<div class="rd-muted">${esc(h.alt_title)}</div>` : ""}
 				<div class="rd-hit__creators">${(h.creators || []).map(esc).join("; ")}</div>
 				<div class="rd-muted">${esc(meta)}${h.has_fulltext ? ' · <span class="rd-badge">full text</span>' : ""}${lockBadge(h)}</div>
-				${h.snippet ? `<p class="rd-snippet">${safeMarked(h.snippet)}</p>` : ""}
+				${h.snippet ? `<p class="rd-snippet"${lang(h.snippet, h.language)}>${safeMarked(h.snippet)}</p>` : ""}
 			</div>
 			<button class="rd-save" data-id="${esc(h.item_id)}" type="button" title="Add to my list" aria-label="Add to my list">＋</button>
 		</li>`;
@@ -147,9 +150,9 @@
 		const url = `${h.url}&q=${encodeURIComponent(state.q)}#rd-reader`;
 		return `<li class="rd-hit rd-hit--page">
 			<div class="rd-hit__body">
-				<h3><a href="${url}">${esc(h.title)}</a> <span class="rd-muted">· ${label}</span>${lockBadge(h)}</h3>
+				<h3><a href="${url}"${lang(h.title, h.language)}>${esc(h.title)}</a> <span class="rd-muted">· ${label}</span>${lockBadge(h)}</h3>
 				<div class="rd-muted">${(h.creators || []).map(esc).join("; ")}${h.year ? " · " + h.year : ""}</div>
-				<p class="rd-snippet">${safeMarked(h.snippet)}</p>
+				<p class="rd-snippet"${lang(h.snippet, h.language)}>${safeMarked(h.snippet)}</p>
 			</div>
 			<button class="rd-save" data-id="${esc(h.item_id)}" type="button" title="Add book to my list" aria-label="Add book to my list">＋</button>
 		</li>`;

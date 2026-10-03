@@ -79,7 +79,7 @@
 	background: var(--rd-soft); color: inherit; font-size: .85rem; margin: 0 4px 4px 0; cursor: pointer;
 }
 .rd-chip.is-active { background: var(--rd-accent); color: #fff; border-color: var(--rd-accent); }
-.rd-badge { font-size: .75rem; padding: 1px 6px; border-radius: 4px; background: var(--rd-soft); border: 1px solid var(--rd-border); }
+.rd-badge { font-size: .75rem; padding: 1px 6px; border-radius: 4px; background: var(--rd-soft); border: 1px solid var(--rd-border); color: var(--text-color, #1f272e); }
 
 /* results */
 .rd-hits { list-style: none; padding: 0; margin: 0; }
@@ -165,7 +165,7 @@
 .rd-sel-bar button:hover, .rd-sel-bar button:focus { background: var(--rd-soft); }
 .rd-sel-bar a { padding: 5px 8px; font-size: .85rem; }
 .rd-notes { margin-top: 12px; }
-.rd-notes h3 { font-size: 1rem; margin: 12px 0 6px; }
+.rd-notes h3, .rd-notes__h { font-size: 1rem; margin: 12px 0 6px; }
 .rd-note-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
 .rd-note { border: 1px solid var(--rd-border); border-radius: 8px; padding: 8px 12px; cursor: pointer; }
 .rd-note.is-detached { opacity: .75; border-style: dashed; }
@@ -385,3 +385,23 @@ a.rd-chip { text-decoration: none; }
 .rd-coll-group__head h2 { font-size: 1.2rem; margin: 0; }
 .rd-coll-group__head p { margin: 2px 0 0; font-size: .9rem; }
 .rd-coll-card__trail { font-size: .75rem; margin: 0 0 2px; }
+
+/* Accessibility (docs/accessibility.md): text for screen readers only, the skip link, a focus
+   ring everyone can see, and less motion for those who ask their system for it */
+.rd-sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.rd-skip { position: absolute; left: 8px; top: -60px; z-index: 1000; padding: 8px 14px; border-radius: 6px; background: var(--rd-accent); color: #fff !important; font-weight: 600; text-decoration: none; }
+.rd-skip:focus { top: 8px; outline: 3px solid #ffbf47; outline-offset: 2px; }
+.rd a:focus-visible, .rd button:focus-visible, .rd input:focus-visible, .rd select:focus-visible, .rd textarea:focus-visible,
+.rd summary:focus-visible, .rd [tabindex]:focus-visible, .rd-sel-bar button:focus-visible {
+	outline: 3px solid var(--rd-accent); outline-offset: 2px; box-shadow: 0 0 0 5px rgba(255, 191, 71, .55);
+}
+main:focus { outline: none; }
+.rd-zone-list li[tabindex]:focus-visible { background: var(--rd-soft); }
+@media (prefers-reduced-motion: reduce) {
+	.rd *, .rd *::before, .rd *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+}
+@media (forced-colors: active) {
+	.rd-zone, .rd-hl, .rd-chip, .rd-badge { forced-color-adjust: auto; border: 1px solid CanvasText; }
+}
+.rd-read-status:empty { display: none; }
+.rd-read-status { margin: 4px 0; }

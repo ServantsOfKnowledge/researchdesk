@@ -132,7 +132,7 @@
 				<div class="rd-note__head"><span class="rd-note__kind rd-note__kind--${esc(n.kind.replace(/\s/g, "-").toLowerCase())}">${esc(n.kind)}</span>
 					<span class="rd-muted">${esc(n.mine ? who(n) : `${n.author} · ${who(n)}`)}</span>
 					${n.mine || me.manager ? `<span class="rd-note__acts"><button type="button" class="rd-linkish" data-edit="${esc(n.name)}">Edit</button> <button type="button" class="rd-linkish" data-remove="${esc(n.name)}">Delete</button></span>` : ""}</div>
-				${n.exact ? `<blockquote>${esc(n.exact)}</blockquote>` : n.region ? `<p class="rd-muted">A region of the page image</p>` : ""}
+				${n.exact ? `<blockquote${textLang()}>${esc(n.exact)}</blockquote>` : n.region ? `<p class="rd-muted">A region of the page image</p>` : `<p class="rd-muted">The whole page</p>`}
 				${n.detached ? `<p class="rd-muted">The words this note was on are no longer in the page text (it was corrected).</p>` : ""}
 				${n.body ? `<p>${esc(n.body)}</p>` : ""}
 				${n.entity || (n.tags && n.tags.length) ? `<p>${n.entity ? `<a class="rd-chip rd-chip--entity" href="/library/entity/${esc(n.entity)}" title="${esc(n.entity_description || "")}">${esc(n.entity_label || n.entity)}</a> ` : ""}${(n.tags || []).map((t) => `<a class="rd-chip" href="/library/tag/${encodeURIComponent(t)}">${esc(t)}</a>`).join(" ")}</p>` : ""}
@@ -140,7 +140,7 @@
 			</li>`
 			)
 			.join("");
-		box.innerHTML = `${pending || editing ? form() : ""}${notes.length ? `<h3>Notes on this page (${notes.length})</h3><ul class="rd-note-list">${items}</ul>` : ""}`;
+		box.innerHTML = `${pending || editing ? form() : ""}${notes.length ? `<h2 class="rd-notes__h">Notes on this page (${notes.length})</h2><ul class="rd-note-list">${items}</ul>` : ""}`;
 		if (pending || editing) {
 			const f = $("#rd-note-form");
 			setFields(f);
@@ -151,14 +151,23 @@
 
 	// -- the form ---------------------------------------------------------------------------------
 
+	// quotes are in the page text's language (for screen readers)
+	function textLang() {
+		const l = $("#rd-pages-text") && $("#rd-pages-text").getAttribute("lang");
+		return l ? ` lang="${esc(l)}"` : "";
+	}
+
 	function form() {
 		const n = editing || {};
 		const kind = n.kind || (pending && pending.kind) || "Comment";
 		const groups = me.groups.map((g) => `<option value="${esc(g.name)}" ${n.research_group === g.name ? "selected" : ""}>${esc(g.title)}</option>`).join("");
-		const about = editing ? (n.exact ? `“${esc(n.exact)}”` : "A region of the page image") : pending.region ? "A region of the page image" : `“${esc(pending.exact)}”`;
+		const about = editing
+			? n.exact ? `“${esc(n.exact)}”` : n.region ? "A region of the page image" : "The whole page"
+			: pending.region ? "A region of the page image" : pending.page ? "This page" : `“${esc(pending.exact)}”`;
 		return `<form class="rd-note-form" id="rd-note-form">
 			<p class="rd-note-form__about">${about}</p>
-			<div class="rd-tabs" role="radiogroup">${KINDS.map((k) => `<label class="rd-tab${k === kind ? " is-active" : ""}"><input type="radio" name="kind" value="${k}" ${k === kind ? "checked" : ""}> ${k}</label>`).join("")}</div>
+			${pending && pending.page ? `<label>Words on the page it is about <span class="rd-muted">(optional: type or paste them; leave empty for the whole page)</span><input type="text" name="quote"${textLang()}></label>` : ""}
+			<div class="rd-tabs" role="radiogroup" aria-label="Kind of note">${KINDS.map((k) => `<label class="rd-tab${k === kind ? " is-active" : ""}"><input type="radio" name="kind" value="${k}" ${k === kind ? "checked" : ""}> ${k}</label>`).join("")}</div>
 			<label data-for="body">Note<textarea name="body" rows="3">${esc(n.body || "")}</textarea></label>
 			<label data-for="tags">Tags <span class="rd-muted">(commas between them)</span><input type="text" name="tags" value="${esc((n.tags || []).join(", "))}"></label>
 			<div class="rd-entity-pick" data-for="entity"><label>About <span class="rd-muted">(optional: the person, place, work or idea on Wikidata)</span>
@@ -173,7 +182,7 @@
 				<option value="Public" ${n.visibility === "Public" ? "selected" : ""}>Everyone (after the library reviews it)</option>
 			</select></label>
 			${groups ? `<label data-for="group">Group <select name="research_group">${groups}</select></label>` : ""}
-			<p class="rd-note-form__error" id="rd-note-error"></p>
+			<p class="rd-note-form__error" id="rd-note-error" role="alert"></p>
 			<div class="rd-actions"><button class="rd-btn rd-btn--primary" type="submit">Save</button> <button class="rd-btn" type="button" data-cancel>Cancel</button></div>
 		</form>`;
 	}
@@ -202,7 +211,8 @@
 				const updated = await call("edit", { name: editing.name, ...data }, true);
 				Object.assign(editing, updated);
 			} else {
-				const target = pending.region ? { region: pending.region } : { start: pending.start, end: pending.end };
+				const target = pending.region ? { region: pending.region } : pending.page ? { quote: data.quote || "" } : { start: pending.start, end: pending.end };
+				delete data.quote;
 				await call("add", { item_id: itemId, leaf: page.leaf, page_label: page.label || "", ...data, ...target }, true);
 				window.rdTrack && rdTrack("Note added", { kind: data.kind || "", visibility: data.visibility || "" });
 			}
@@ -270,7 +280,7 @@
 				return save(f);
 			}
 			renderList();
-			$("#rd-notes").scrollIntoView({ block: "nearest", behavior: "smooth" });
+			$("#rd-notes").scrollIntoView({ block: "nearest", behavior: window.rdReducedMotion && rdReducedMotion() ? "auto" : "smooth" });
 		});
 	}
 
@@ -323,7 +333,7 @@
 			pending = { region: `${x.toFixed(2)},${y.toFixed(2)},${w.toFixed(2)},${h.toFixed(2)}`, kind: "Comment" };
 			editing = null;
 			renderList();
-			$("#rd-notes").scrollIntoView({ block: "nearest", behavior: "smooth" });
+			$("#rd-notes").scrollIntoView({ block: "nearest", behavior: window.rdReducedMotion && rdReducedMotion() ? "auto" : "smooth" });
 		};
 		const stop = () => {
 			fig.classList.remove("is-marking");
@@ -359,6 +369,7 @@
 		notes = d.notes || [];
 		me = d.me || me;
 		$("#rd-notes-region").hidden = !(me.can_annotate && page.image);
+		$("#rd-notes-add").hidden = !me.can_annotate;
 		$("#rd-notes-mine").hidden = !me.logged_in;
 		$("#rd-notes-hint").innerHTML = !me.logged_in && page.text ? `<a href="${esc(loginUrl())}">Log in</a> to add notes.` : "";
 		renderText();
@@ -368,7 +379,7 @@
 
 	function flash(name) {
 		document.querySelectorAll(`[data-notes~="${CSS.escape(name)}"]`).forEach((el) => {
-			el.scrollIntoView({ block: "center", behavior: "smooth" });
+			el.scrollIntoView({ block: "center", behavior: window.rdReducedMotion && rdReducedMotion() ? "auto" : "smooth" });
 			el.classList.add("is-flash");
 			setTimeout(() => el.classList.remove("is-flash"), 1200);
 		});
@@ -385,15 +396,25 @@
 			renderList();
 			load();
 		});
-		$("#rd-pages-text").addEventListener("mouseup", () => setTimeout(() => {
+		// words selected with the mouse, or with Shift and the arrow keys (caret browsing, F7)
+		const selected = () => setTimeout(() => {
 			const sel = page && page.text ? selectedRange() : null;
 			sel ? toolbar(sel) : hideToolbar();
-		}, 0));
+		}, 0);
+		$("#rd-pages-text").addEventListener("mouseup", selected);
+		$("#rd-pages-text").addEventListener("keyup", (e) => e.shiftKey && selected());
 		document.addEventListener("mousedown", (e) => {
 			if (!e.target.closest("#rd-sel-bar") && !e.target.closest("#rd-pages-text")) hideToolbar();
 		});
 		$("#rd-notes-show").addEventListener("change", () => (renderText(), renderRegions(), renderList()));
 		$("#rd-notes-region").addEventListener("click", startRegion);
+		// a note without a mouse: on the whole page, or on words typed in (annotations.add finds them)
+		$("#rd-notes-add").addEventListener("click", () => {
+			pending = { page: true, kind: "Comment" };
+			editing = null;
+			hideToolbar();
+			renderList();
+		});
 		$("#rd-notes").addEventListener("change", (e) => {
 			const f = e.target.closest("#rd-note-form");
 			if (f) setFields(f);
@@ -459,7 +480,7 @@
 			if (!el || getSelection().toString()) return;
 			const li = $(`[data-note="${CSS.escape(el.dataset.notes.split(" ")[0])}"]`);
 			if (li) {
-				li.scrollIntoView({ block: "nearest", behavior: "smooth" });
+				li.scrollIntoView({ block: "nearest", behavior: window.rdReducedMotion && rdReducedMotion() ? "auto" : "smooth" });
 				li.classList.add("is-flash");
 				setTimeout(() => li.classList.remove("is-flash"), 1200);
 			}

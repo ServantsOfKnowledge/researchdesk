@@ -7,6 +7,20 @@ import frappe
 from sok_resdesk import access
 
 
+def lang_tag(code: str | None) -> str:
+	"""{{ lang_tag(item.language) }} in templates: the HTML lang for a catalogue language."""
+	from sok_resdesk.core.normalize import lang_tag as tag
+
+	return tag(code)
+
+
+def text_lang(text: str | None, code: str | None = None) -> str:
+	"""{{ text_lang(item.title, item.language) }}: the lang for a title or quote, by its script."""
+	from sok_resdesk.core.normalize import text_lang as by_script
+
+	return by_script(text, code)
+
+
 def library_url() -> str:
 	"""The address of the library's search page: / while it is the site's home page (the default,
 	Website Settings → Home Page = library), else /library. Book pages stay at /library/item/…"""

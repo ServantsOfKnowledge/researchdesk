@@ -266,3 +266,84 @@ def normalize_ia_item(identifier: str, meta: dict, files: list[dict] | None = No
 		"source_url": f"https://archive.org/details/{identifier}",
 		"thumbnail_url": f"https://archive.org/services/img/{identifier}",
 	}
+
+
+# ISO 639-3 (the catalogue's codes) → BCP 47 language tags, the shortest form browsers and screen
+# readers know (W3C: use the two-letter ISO 639-1 code where there is one). Without the right
+# tag a screen reader reads Kannada with an English voice, or not at all.
+BCP47 = {
+	"eng": "en",
+	"kan": "kn",
+	"hin": "hi",
+	"kok": "kok",
+	"ory": "or",
+	"ori": "or",
+	"tam": "ta",
+	"mal": "ml",
+	"tel": "te",
+	"san": "sa",
+	"mar": "mr",
+	"ben": "bn",
+	"guj": "gu",
+	"pan": "pa",
+	"urd": "ur",
+	"tcy": "tcy",
+	"kfa": "kfa",
+	"asm": "as",
+	"nep": "ne",
+	"pli": "pi",
+	"pra": "pra",
+	"ara": "ar",
+	"per": "fa",
+	"fas": "fa",
+	"fre": "fr",
+	"fra": "fr",
+	"ger": "de",
+	"deu": "de",
+	"por": "pt",
+	"lat": "la",
+	"rus": "ru",
+	"spa": "es",
+	"jpn": "ja",
+	"chi": "zh",
+	"zho": "zh",
+}
+
+
+def lang_tag(code: str | None) -> str:
+	"""The HTML `lang` value for a catalogue language: 'kan' → 'kn'. Empty for none, several
+	('mul') or unknown, so the text takes the page's language rather than a wrong one."""
+	code = (code or "").strip().lower()
+	if not code or code in ("mul", "und", "zxx"):
+		return ""
+	if len(code) == 2:
+		return code
+	return BCP47.get(code, "")
+
+
+# first code point of each Indic script → the language its text is usually in, and which
+# languages are written in it (Konkani, Tulu and Kodava books here are in Kannada script)
+SCRIPT_BLOCKS = {
+	0x0900: ("hi", {"hi", "mr", "sa", "ne", "kok", "pi", "pra"}),
+	0x0980: ("bn", {"bn", "as"}),
+	0x0A00: ("pa", {"pa"}),
+	0x0A80: ("gu", {"gu"}),
+	0x0B00: ("or", {"or"}),
+	0x0B80: ("ta", {"ta"}),
+	0x0C00: ("te", {"te"}),
+	0x0C80: ("kn", {"kn", "kok", "tcy", "kfa", "sa"}),
+	0x0D00: ("ml", {"ml"}),
+}
+
+
+def text_lang(text: str | None, code: str | None = None) -> str:
+	"""The lang for a piece of text (a title, a quote) in a book catalogued as `code`: the book's
+	language when the text is written in its script, else the usual language of the script the
+	text is in (a Kannada title in an 'English' record), else '' (Latin letters: the page's)."""
+	tag = lang_tag(code)
+	for ch in text or "":
+		block = ord(ch) & ~0x7F
+		if block in SCRIPT_BLOCKS:
+			usual, langs = SCRIPT_BLOCKS[block]
+			return tag if tag in langs else usual
+	return ""

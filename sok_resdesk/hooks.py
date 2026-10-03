@@ -39,9 +39,16 @@ app_include_js = ["/assets/sok_resdesk/js/desk_help.js"]
 boot_session = "sok_resdesk.help.boot_session"
 web_include_css = ["/assets/sok_resdesk/css/resdesk.css"]
 # usage statistics on portal pages, when switched on in Settings (analytics.py)
-web_include_js = ["/assets/sok_resdesk/js/analytics.js"]
+# and accessibility helpers (a11y.js: skip link, the language of Indic text, less motion)
+web_include_js = ["/assets/sok_resdesk/js/analytics.js", "/assets/sok_resdesk/js/a11y.js"]
 # {{ library_url() }} in portal templates: / (the site's home page), or /library
-jinja = {"methods": ["sok_resdesk.portal.library_url"]}
+jinja = {
+	"methods": [
+		"sok_resdesk.portal.library_url",
+		"sok_resdesk.portal.lang_tag",
+		"sok_resdesk.portal.text_lang",
+	]
+}
 # / shows the library to everyone, also to logged-in staff whose role has another home page
 before_request = ["sok_resdesk.portal.home_is_library"]
 

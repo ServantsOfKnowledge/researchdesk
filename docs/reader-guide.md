@@ -192,3 +192,9 @@ under the search box on the home page. Close them with **Got it**, or step throu
 **Next tip**. To see them again, use **Show the tips again** on the help page.
 
 ![Help for readers](../sok_resdesk/public/images/guide/portal-help.png)
+
+## Accessibility
+
+The portal works with the keyboard and screen readers, marks Kannada and other Indian-language
+text so screen readers use the right voice, and can **read a page aloud** (Page & text → **Read
+aloud**). What works, what doesn't yet, and how to tell the library: [Accessibility](accessibility.md).

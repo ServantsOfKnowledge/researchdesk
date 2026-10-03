@@ -1,19 +1,21 @@
 {# facets, toolbar, staff bar, results and pager #}
 	<div class="rd-layout">
 		<aside class="rd-facets" id="rd-facets" aria-label="{{ _('Filters') }}">
+			<h2 class="rd-sr-only">{{ _("Filters") }}</h2>
 			<div class="rd-facet">
 				<h3>{{ _("Year") }}</h3>
 				<div class="rd-years">
-					<input type="number" id="rd-year-from" placeholder="{{ _('from') }}" min="1000" max="2100">
-					<input type="number" id="rd-year-to" placeholder="{{ _('to') }}" min="1000" max="2100">
+					<input type="number" id="rd-year-from" placeholder="{{ _('from') }}" aria-label="{{ _('From year') }}" min="1000" max="2100">
+					<input type="number" id="rd-year-to" placeholder="{{ _('to') }}" aria-label="{{ _('To year') }}" min="1000" max="2100">
 				</div>
 			</div>
 			<div id="rd-facet-lists"></div>
 		</aside>
 
-		<main class="rd-results">
+		<section class="rd-results" aria-labelledby="rd-results-h">
+			<h2 class="rd-sr-only" id="rd-results-h">{{ _("Results") }}</h2>
 			<div class="rd-toolbar">
-				<div id="rd-summary" class="rd-muted"></div>
+				<div id="rd-summary" class="rd-muted" role="status"></div>
 				<div id="rd-also" class="rd-muted rd-also" hidden></div>
 				<div class="rd-toolbar__right">
 					<select id="rd-sort" aria-label="{{ _('Sort') }}">
@@ -61,7 +63,7 @@
 				<button class="rd-btn" type="submit">{{ _("Apply") }}</button>
 			</form>
 			{% endif %}
-			<ol id="rd-hits" class="rd-hits" aria-live="polite"></ol>
+			<ol id="rd-hits" class="rd-hits"></ol>
 			<nav id="rd-pager" class="rd-pager" aria-label="{{ _('Pages') }}"></nav>
-		</main>
+		</section>
 	</div>

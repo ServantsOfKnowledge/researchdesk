@@ -10,7 +10,7 @@
 		{% if groups %}{{ _("Your groups") }}: {% for g in groups %}<span class="rd-chip">{{ g.title }}</span>{% endfor %}{% endif %}</p>
 	<form class="rd-mynotes__filters" id="rd-mynotes-form" autocomplete="off">
 		<input type="search" name="q" placeholder="{{ _('Search notes, quotes, tags and titles') }}">
-		<select name="kind">
+		<select name="kind" aria-label="{{ _('Kind of note') }}">
 			<option value="">{{ _("Every kind") }}</option>
 			{% for k in ["Highlight", "Comment", "Tag", "Question", "Link", "OCR error"] %}<option value="{{ k }}">{{ _(k) }}</option>{% endfor %}
 		</select>

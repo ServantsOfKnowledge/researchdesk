@@ -24,7 +24,7 @@
 		<img class="rd-item__thumb" src="{{ item.thumbnail_url }}" alt="" loading="lazy">
 		{% endif %}
 		<div>
-			<h1 class="rd-item__title">{{ item.title }}</h1>
+			<h1 class="rd-item__title"{% if text_lang(item.title, item.language) %} lang="{{ text_lang(item.title, item.language) }}"{% endif %}>{{ item.title }}</h1>
 			{% if item.alt_title and item.alt_title != item.title %}
 			<p class="rd-item__alt">{{ item.alt_title }}</p>
 			{% endif %}
@@ -120,9 +120,12 @@
 					<button class="rd-btn" type="button" id="rd-pages-link">{{ _("Copy page link") }}</button>
 					<button class="rd-btn" type="button" id="rd-pages-cite" data-scope="page">{{ _("Cite this page") }}</button>
 					<button class="rd-btn" type="button" id="rd-pages-book">{{ _("Open in book reader") }}</button>
+					<button class="rd-btn" type="button" id="rd-read-aloud" aria-pressed="false" hidden>{{ _("Read aloud") }}</button>
 				</div>
+				<p class="rd-muted rd-read-status" id="rd-read-status" role="status"></p>
 				<div class="rd-notes-bar" id="rd-notes-bar" data-login="/login">
 					<label class="rd-notes-toggle"><input type="checkbox" id="rd-notes-show" checked> {{ _("Show notes") }}</label>
+					<button class="rd-btn" type="button" id="rd-notes-add" hidden>{{ _("Add a note") }}</button>
 					<button class="rd-btn" type="button" id="rd-notes-region" hidden>{{ _("Mark a region") }}</button>
 					<span class="rd-muted" id="rd-notes-hint"></span>
 					<span class="rd-pages__spacer"></span>
@@ -131,7 +134,7 @@
 				</div>
 				<div class="rd-pages__body">
 					<figure class="rd-pages__image" id="rd-pages-image"></figure>
-					<div class="rd-pages__text" id="rd-pages-text" lang="{{ item.language or '' }}"></div>
+					<div class="rd-pages__text" id="rd-pages-text"{% if lang_tag(item.language) %} lang="{{ lang_tag(item.language) }}"{% endif %} tabindex="0" aria-label="{{ _('Page text') }}"></div>
 				</div>
 				<section class="rd-notes" id="rd-notes" aria-live="polite"></section>
 			</div>
@@ -206,6 +209,7 @@
 <script src="/assets/sok_resdesk/js/basket.js"></script>
 <script src="/assets/sok_resdesk/js/item.js"></script>
 <script src="/assets/sok_resdesk/js/reader.js"></script>
+<script src="/assets/sok_resdesk/js/readaloud.js"></script>
 <script src="/assets/sok_resdesk/js/annotate.js"></script>
 <script src="/assets/sok_resdesk/js/proofread.js"></script>
 {% endblock %}

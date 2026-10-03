@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.31.0 (2026-10-08): Accessibility, first pass
+
+From an accessibility study of the portal (axe-core against WCAG 2.2 AA, a code review and a
+keyboard-only run; the findings, standards and plan are in docs/accessibility.md):
+
+- **Indian languages for screen readers**: titles, page text, quotes and search results carry
+  their language (BCP 47: `kn`, `hi`, `ta`…; the catalogue's `kan` was not understood), worked
+  out from the script, so screen readers use the right voice
+- **Read aloud** in Page & text, with the device's voice for the book's language (Web Speech API)
+- **Without a mouse**: *Skip to content* on every portal page; *Add a note* (on the whole page or
+  on words typed in, found in the page text); words selected with the keyboard offer the note
+  bar; proofreading *Add a zone*, moved and resized with the arrow keys
+- Focus ring on everything, one main landmark per page, labels on every menu and field, headings
+  in order, result counts and progress announced, badge contrast, less motion when asked,
+  Windows high-contrast colours
+- schema.org accessibility metadata on every book page (access modes, features, summary)
+- An accessibility page (help, for readers) that is also the library's accessibility statement
+- 0.30 fixes: Docker images build on the new frappe/base (no `frappe` group); the bulk listing
+  falls back on any failure; a Link note to Wikidata names its item
+
 ## 0.30.0 (2026-10-08): Sharing the loop, and a catalogue in minutes
 
 - **Catalogue first, details later**: an archive.org ingest asks archive.org's search for every
