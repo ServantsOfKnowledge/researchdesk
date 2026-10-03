@@ -129,6 +129,9 @@ two files are ever served, and the PDF only when the caller may read the book.
 | `sok_resdesk.priority.set_worker_priority` (`nice`=`19`/`10`/`5`/`0`/`-5`) | choose the background workers' priority live; each worker applies it between two books (Background Jobs → Machine → Worker priority) |
 | `sok_resdesk.search.enqueue_index_missing` (`with_pages`) | queue the books that never reached the search engine; returns how many |
 | `sok_resdesk.preservation.preserve_now` (`item`) · `check_now` (`item`) · `enqueue_preservation` | make or update a book's preservation copy now; check a copy against its checksums; copy every book waiting for one (docs/preservation.md) |
+| `sok_resdesk.preservation.second_copy_now` (`item`) · `enqueue_second_copies` | make or update a book's second copy now; queue every book whose second copy is missing or behind |
+| `sok_resdesk.preservation.serve_from_copy` (`item`, `on`=1/0) | serve a book's PDF from our copy (archive.org no longer serves it), or stop |
+| `sok_resdesk.preservation.export_book` (`item`) · `export_collection` (`collection`) · `exports` · `download_export` (`file`) | BagIt bags of a book (at once) or a collection's preserved books (in the background); the exports made; download one |
 | `sok_resdesk.ocr.enqueue_scoring` (`limit`) · `sok_resdesk.jobs.score_ocr_now` | score the OCR quality of books not scored yet, in one background job; returns how many |
 | `sok_resdesk.search_queue.get_overview` | the search engine's queue: book records and page text waiting, tasks a minute, time to go, failures, page text held or pending, task history |
 | `sok_resdesk.search_queue.books_first` · `hold_page_text` (`hold`=1/0) · `clear_history` (`days`) | cancel the waiting page text so books are listed next (it is sent again later); hold or resume page text; forget finished tasks older than `days` (7) |

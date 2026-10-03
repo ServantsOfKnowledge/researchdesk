@@ -63,7 +63,9 @@ def item_to_record(doc) -> dict:
 		"persistent_id": (doc.get("persistent_id") or "") if _arks_on() else "",
 		"has_fulltext": bool(doc.has_fulltext),
 		"has_page_text": bool(doc.has_page_text),
-		"on_archive_org": bool(doc.on_archive_org) or doc.source == "Internet Archive",
+		"on_archive_org": (bool(doc.on_archive_org) or doc.source == "Internet Archive")
+		and not doc.get("served_from_copy"),
+		"served_from_copy": bool(doc.get("served_from_copy")),
 		"local_pdf": doc.local_pdf or "",
 		"pdf_url": _pdf_url(doc),
 		"modified": doc.modified,
@@ -83,12 +85,20 @@ def _absolute(url: str) -> str:
 
 
 def _pdf_url(doc) -> str:
-	"""Where readers can download the PDF: archive.org, or this portal for local-only books."""
+	"""Where readers can download the PDF: archive.org, or this portal for local-only books and
+	for books served from our preservation copy."""
+	from urllib.parse import quote
+
+	if doc.get("served_from_copy"):
+		from sok_resdesk.preservation import copy_pdf
+
+		found = copy_pdf(doc.item_id)
+		if found:
+			return f"{base_url()}/api/method/sok_resdesk.api.file?item_id={quote(doc.item_id, safe='')}&name={quote(found[0], safe='')}"
+		return ""
 	if doc.source == "Internet Archive" or doc.on_archive_org:
 		return f"https://archive.org/download/{doc.item_id}/{doc.item_id}.pdf"
 	if doc.local_pdf:
-		from urllib.parse import quote
-
 		return f"{base_url()}/api/method/sok_resdesk.api.file?item_id={quote(doc.item_id, safe='')}&name={quote(doc.local_pdf, safe='')}"
 	return ""
 

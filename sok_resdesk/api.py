@@ -316,7 +316,8 @@ def marcxml_all(profile: str | None = None):
 def file(item_id: str, name: str):
 	"""A local-only book's PDF or cover image, streamed from its folder or its book server.
 
-	Only the two files recorded on the item are ever served; PDFs only for Open items.
+	Only the two files recorded on the item are ever served (or, for a book served from our
+	preservation copy, its PDF there); PDFs only for Open items.
 	Supports HTTP range requests, so PDF viewers can open large books page by page.
 	"""
 	from werkzeug.utils import send_file
@@ -327,9 +328,30 @@ def file(item_id: str, name: str):
 	doc = frappe.db.get_value(
 		"RD Item",
 		item_id,
-		["name", "published", "source", "access_status", "local_pdf", "local_thumb", "visibility"],
+		[
+			"name",
+			"published",
+			"source",
+			"access_status",
+			"local_pdf",
+			"local_thumb",
+			"visibility",
+			"served_from_copy",
+		],
 		as_dict=True,
 	)
+	if doc and doc.published and doc.served_from_copy:
+		# a book archive.org no longer serves: its PDF from our preservation copy
+		from sok_resdesk.preservation import copy_pdf
+
+		found = copy_pdf(item_id)
+		if not found or name != found[0] or not access.can_find(doc.visibility):
+			raise frappe.PageDoesNotExistError
+		if doc.access_status != "Open" or not access.can_read(doc.visibility):
+			raise frappe.PermissionError
+		return send_file(
+			found[1], frappe.local.request.environ, conditional=True, max_age=86400, download_name=name
+		)
 	if (
 		not doc
 		or not doc.published

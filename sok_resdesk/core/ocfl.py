@@ -248,3 +248,71 @@ def head_files(root: str, object_id: str) -> dict[str, str]:
 		for logical in logicals:
 			out[logical] = os.path.join(obj, inventory["manifest"][digest][0])
 	return out
+
+
+def object_rel(object_id: str) -> str:
+	"""The object's folder relative to the storage root (the same under every root)."""
+	return os.path.relpath(object_path("/", object_id), "/").replace(os.sep, "/")
+
+
+def object_files(root: str, object_id: str) -> list[str]:
+	"""Every file of the object, relative to its folder, the root inventory and its sidecar last
+	(the order a copy must be written in: until the root inventory names a version, readers see
+	the one before)."""
+	obj = object_path(root, object_id)
+	out = []
+	for dirpath, _dirs, names in os.walk(obj):
+		for name in names:
+			out.append(os.path.relpath(os.path.join(dirpath, name), obj).replace(os.sep, "/"))
+	last = {"inventory.json", f"inventory.json.{DIGEST}"}
+	return sorted(f for f in out if f not in last) + [
+		f for f in ("inventory.json", f"inventory.json.{DIGEST}") if f in out
+	]
+
+
+def install_object(root: str, object_id: str, staged: str) -> dict:
+	"""Put a whole object, staged in the folder `staged` (inside `root`, so the move is a rename),
+	in place of the one at `root`, but only if it checks out. The old object is kept until then.
+	Returns verify()'s result for the installed object."""
+	obj = object_path(root, object_id)
+	tmp_root = tempfile.mkdtemp(prefix=".check-", dir=root)
+	try:
+		check_obj = object_path(tmp_root, object_id)
+		os.makedirs(os.path.dirname(check_obj), exist_ok=True)
+		os.replace(staged, check_obj)
+		result = verify(tmp_root, object_id)
+		if not result["ok"]:
+			raise OcflError(f"{object_id}: the copy does not check out: " + "; ".join(result["problems"][:5]))
+		os.makedirs(os.path.dirname(obj), exist_ok=True)
+		old = None
+		if os.path.exists(obj):
+			old = os.path.join(tmp_root, ".old")
+			os.replace(obj, old)
+		try:
+			os.replace(check_obj, obj)
+		except OSError:
+			if old:
+				os.replace(old, obj)  # put the old object back rather than lose both
+			raise
+		return result
+	finally:
+		shutil.rmtree(tmp_root, ignore_errors=True)
+
+
+def copy_object(src_root: str, dst_root: str, object_id: str) -> dict:
+	"""Copy a book's whole object from one storage root to another (a second copy, or a repair
+	from the good copy). The copy is checked before it replaces what `dst_root` had."""
+	src = object_path(src_root, object_id)
+	if not os.path.exists(os.path.join(src, "inventory.json")):
+		raise OcflError(f"{object_id}: not stored in {src_root}")
+	init_root(dst_root)
+	staging = tempfile.mkdtemp(prefix=".copy-", dir=dst_root)
+	try:
+		staged = os.path.join(staging, "object")
+		for rel in object_files(src_root, object_id):
+			target = os.path.join(staged, rel)
+			os.makedirs(os.path.dirname(target), exist_ok=True)
+			shutil.copy2(os.path.join(src, rel), target)
+		return install_object(dst_root, object_id, staged)
+	finally:
+		shutil.rmtree(staging, ignore_errors=True)

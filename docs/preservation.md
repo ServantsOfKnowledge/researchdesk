@@ -94,10 +94,67 @@ in Settings → Server & Updates).
 book's preservation history, in the spirit of PREMIS: each copy made (with its version, the
 files and bytes added), each failed check (with what was wrong), and a copy that checks out
 again, with when, by whom and the outcome. Checks that pass only update the book's *Fixity
-Checked On*, so the list stays readable.
+Checked On*, so the list stays readable. Second copies (*Replication*), repairs (*Repair*),
+books served from our copy (*Access from copy*) and BagIt exports (*Export*) are recorded too.
 
-Coming next: a second copy in another place with automatic repair from the good one, and BagIt
-packages for handing a collection to another archive ([roadmap](roadmap.md)).
+## A second copy
+
+One copy on one disk is one fault away from loss. Settings → Preservation → **Second Copy**
+keeps a second copy of every preserved book somewhere else:
+
+| Second copy | Where | How it is checked |
+|---|---|---|
+| **Folder** | another disk, a NAS, or a partner's storage mounted on this server (NFS, SMB, `rclone mount`) | like the first: every file's sha512 against the inventory |
+| **S3-compatible** | a bucket on Amazon S3, Wasabi, Backblaze B2, a partner's MinIO or Ceph… (endpoint, region, bucket, an optional folder, access and secret keys) | every file's MD5, which the service checked when the file arrived and keeps (as its ETag), against the MD5 the inventory records, without downloading the files |
+
+The second copy holds the same OCFL objects at the same paths, so each copy can be read on its
+own, by any OCFL tool, and each can rebuild the other.
+
+- It is **made right after the first copy**, and every night for books whose second copy is
+  missing or behind (Settings → **Preservation → Make Every Second Copy Now** for all at once).
+  Only new files travel: a corrected book sends its new version, not the scans again.
+- A book's **Copies** field says how many copies it has and how many passed their last check:
+  *2 of 2 verified*.
+- **Repair.** The nightly checks look at both copies. When one fails (a changed or missing file)
+  and the other is good, the bad one is rebuilt from the good one: copied whole into a temporary
+  place, checked against its inventory, and only then put in place of the bad one. The repair is
+  recorded on the book. When both fail, both are marked and the Server page alerts.
+- On the book form, **Preservation → Make Second Copy** and **Check Copy** do the same for one
+  book at once.
+
+For S3 the server needs the `boto3` package (it comes with Frappe). Files are uploaded whole, with
+their MD5, so the service refuses a damaged upload; a file uploaded to the bucket in parts by
+another tool can't be checked this way and is reported.
+
+## Serving a book from our copy
+
+When archive.org stops serving a book (it was taken down, or *darkened*), the daily sync takes it
+off the portal. For a book we hold a copy of, the library can keep it instead:
+
+- **Book by book** (the default): Preservation → **Serve From Our Copy** on the book form. The
+  portal then shows the book with its PDF from our copy, through Research Desk (archive.org's page
+  images aren't in the copy unless *Include Page Images* was on, so *Page & text* shows the text
+  and a link to the PDF). **Stop Serving From Our Copy** undoes it.
+- **Always**: Settings → **Keep Dropped Books on the Portal**: the sync keeps every dropped book we
+  hold a PDF of, served from our copy, and lists them in the profile's log.
+
+archive.org often darkens books for rights reasons, so decide before serving a book again. Each
+change is recorded as an *Access from copy* event.
+
+## Handing books to another archive (BagIt)
+
+**Export BagIt** makes [BagIt](https://www.rfc-editor.org/rfc/rfc8493) bags (the packaging
+libraries and archives exchange collections in) of the newest preserved version of books:
+
+- on a **book** form (Preservation → Export BagIt): downloads at once;
+- on a **collection** form (**Export BagIt**): all its preserved books, bagged in the background,
+  with a notification when the file is ready.
+
+One zip file holds one bag per book: `bagit.txt`, `bag-info.txt` (the library, the book's ARK or
+identifier, its title, the date), `data/` with the book's files, and SHA-512 manifests. Any BagIt
+tool validates it (the Library of Congress's `bagit-python`, Archivematica, DSpace). Exports are
+written to `exports/` in the first copy's folder, listed in Settings → **Preservation → BagIt
+Exports** for download, and removed after two weeks (make them again any time).
 
 ## OCR quality
 

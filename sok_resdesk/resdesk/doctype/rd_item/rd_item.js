@@ -105,6 +105,53 @@ frappe.ui.form.on("RD Item", {
 				__("Preservation")
 			);
 			frm.add_custom_button(
+				__("Make Second Copy"),
+				() =>
+					frappe.call({
+						method: "sok_resdesk.preservation.second_copy_now",
+						args: { item: frm.doc.name },
+						freeze: true,
+						freeze_message: __("Copying to the second place and checking it…"),
+						callback: (r) => {
+							frappe.show_alert({
+								message: r.message.ok ? __("Second copy made: {0}", [r.message.where]) : __("The second copy failed its check"),
+								indicator: r.message.ok ? "green" : "red",
+							});
+							frm.reload_doc();
+						},
+					}),
+				__("Preservation")
+			);
+			frm.add_custom_button(
+				__("Export BagIt"),
+				() =>
+					frappe.call({
+						method: "sok_resdesk.preservation.export_book",
+						args: { item: frm.doc.name },
+						freeze: true,
+						freeze_message: __("Making the bag…"),
+						callback: (r) => {
+							window.open(`/api/method/sok_resdesk.preservation.download_export?file=${encodeURIComponent(r.message.file)}`);
+						},
+					}),
+				__("Preservation")
+			);
+			const serving = frm.doc.served_from_copy;
+			frm.add_custom_button(
+				serving ? __("Stop Serving From Our Copy") : __("Serve From Our Copy"),
+				() =>
+					frappe.confirm(
+						serving
+							? __("Stop serving this book's PDF from our copy? If archive.org doesn't have it either, it leaves the portal.")
+							: __("Serve this book's PDF from our preservation copy, instead of archive.org's? Do this only when the library may share it: archive.org often darkens books for rights reasons."),
+						() =>
+							frappe
+								.call({ method: "sok_resdesk.preservation.serve_from_copy", args: { item: frm.doc.name, on: serving ? 0 : 1 } })
+								.then(() => frm.reload_doc())
+					),
+				__("Preservation")
+			);
+			frm.add_custom_button(
 				__("History"),
 				() => frappe.set_route("List", "RD Preservation Event", { item: frm.doc.name }),
 				__("Preservation")

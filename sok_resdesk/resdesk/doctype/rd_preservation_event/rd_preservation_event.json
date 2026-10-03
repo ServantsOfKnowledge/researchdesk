@@ -3,7 +3,7 @@
  "allow_rename": 0,
  "autoname": "hash",
  "creation": "2026-10-05 09:00:00.000000",
- "modified": "2026-10-05 09:00:00.000000",
+ "modified": "2026-10-07 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Preservation Event",
@@ -37,7 +37,7 @@
    "fieldname": "event_type",
    "fieldtype": "Select",
    "label": "Event",
-   "options": "Ingestion\nFixity check\nReplication\nRepair\nDeletion",
+   "options": "Ingestion\nFixity check\nReplication\nRepair\nDeletion\nAccess from copy\nExport",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "read_only": 1

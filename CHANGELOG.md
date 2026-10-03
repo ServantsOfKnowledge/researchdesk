@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.26.0 (2026-10-07): a second copy, repair, serving from our copy, BagIt
+
+- **A second copy** of every preserved book (Settings → Preservation → Second Copy): another
+  folder (a disk, a NAS, a partner's storage mounted here) or an **S3-compatible** bucket (AWS,
+  Wasabi, Backblaze B2, MinIO…). Same OCFL objects at the same paths; made right after the first
+  copy and nightly for any behind; only new files travel. A book's **Copies** says *2 of 2 verified*
+- **Automatic repair**: the nightly checks look at both copies; when one fails and the other is
+  good, the bad one is rebuilt from the good one, checked before it replaces anything, and recorded
+- **Serving from our copy**: when archive.org stops serving a book we hold, keep it on the portal
+  with its PDF from our copy, book by book (form → Serve From Our Copy) or always (Settings);
+  off by default, since archive.org often darkens books for rights reasons
+- **BagIt exports** (RFC 8493, validated with the Library of Congress's bagit-python): a book at
+  once, or a collection's preserved books in the background; listed under Settings →
+  Preservation → BagIt Exports and kept two weeks
+- New preservation events: Access from copy, Export; the Server page counts second copies
+
 ## 0.25.0 (2026-10-06): people, usage and the library at a glance
 
 - **People & Roles** in the Desk: each role with its people; tick to give or take a role; invite

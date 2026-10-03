@@ -29,6 +29,14 @@ frappe.ui.form.on("RD Collection", {
 			);
 		}
 		frm.add_custom_button(__("Export Metadata"), () => frappe.new_doc("RD Export", { scope: "Collection", collection: frm.doc.name }));
+		// bags of the collection's preserved books, for handing to another archive (BagIt)
+		frm.add_custom_button(__("Export BagIt"), () =>
+			frappe.call({ method: "sok_resdesk.preservation.export_collection", args: { collection: frm.doc.name } }).then((r) =>
+				frappe.msgprint(
+					__("Bagging {0} books in the background. You'll get a notification when the file is ready; Settings → Preservation → BagIt Exports lists it.", [r.message.books])
+				)
+			)
+		);
 	},
 	title(frm) {
 		if (frm.is_new() && frm.doc.title && !frm.doc.slug) {

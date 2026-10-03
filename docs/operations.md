@@ -380,6 +380,20 @@ Every setting:
 | Space for Copies (GB) | The most the copies may take. 0: as much as the disk allows (the last 5% of the disk is never used). |
 | Check Every (days) | Every copy is checked against its checksums at least this often: each night a share of them is checked. A copy that fails is marked and alerts on the Server page. |
 
+**Second Copy**
+
+| Setting | What it does |
+|---|---|
+| Second Copy | <b>Folder</b>: another disk, a NAS or a partner's storage mounted on this server. <b>S3-compatible</b>: a bucket on Amazon S3, Wasabi, Backblaze B2, MinIO or similar. Choices: *Off*, *Folder*, *S3-compatible*. |
+| Second Copy Folder | On another disk or a mounted share, not inside the first copy's folder, e.g. <code>/mnt/nas/sok-copies</code>. |
+| S3 Endpoint | The service's address, e.g. <code>https://s3.eu-central-1.wasabisys.com</code>, <code>https://s3.us-west-004.backblazeb2.com</code> or a partner's MinIO. Empty for Amazon S3. |
+| S3 Region | The bucket's region, e.g. <code>eu-central-1</code> (some services need it, others ignore it). |
+| S3 Bucket | The bucket's name; make it first, on the service, and keep it private. |
+| Folder in the Bucket | Optional, e.g. <code>sok-library</code>. |
+| S3 Access Key | A key with read, write, list and delete rights on this bucket only. |
+| S3 Secret Key | Stored encrypted; never shown again after saving. |
+| Keep Dropped Books on the Portal | When archive.org stops serving a book we hold a copy of, keep it on the portal and serve its PDF from our copy instead of taking it down. archive.org often darkens books for rights reasons: leave this off to decide book by book (book form → <b>Serve From Our Copy</b>). |
+
 **Collections from archive.org**
 
 | Setting | What it does |

@@ -38,6 +38,9 @@ SETTINGS_FIELDS = (
 	"preserve_page_images",
 	"preservation_budget_gb",
 	"fixity_days",
+	"second_copy",
+	"second_folder",
+	"serve_from_copy",
 	"hold_page_text",
 	"auto_books_first",
 	"book_limit",
@@ -1697,3 +1700,125 @@ class TestDashboardAndStatistics(OpsTestCase):
 			titles = [g["title"] for g in dashboard.numbers(refresh=1)["groups"]]
 			self.assertIn("Portal use", titles)
 		choose(analytics_provider="Off")
+
+
+class TestSecondCopy(OpsTestCase):
+	"""The second copy, repairs both ways, serving from our copy and BagIt, on real files."""
+
+	def setUp(self):
+		super().setUp()
+		self.root, self.second = tempfile.mkdtemp(), tempfile.mkdtemp()
+		frappe.db.set_single_value(
+			"RD Settings",
+			{
+				"preservation_root": self.root,
+				"preserve_books": "Every book",
+				"fixity_days": 1,
+				"second_copy": "Folder",
+				"second_folder": self.second,
+			},
+		)
+		content = {"book.pdf": b"%PDF-1.4 book", "book_meta.xml": b"<metadata/>"}
+
+		def fetch(item_id, staging, with_images):
+			out = {}
+			for name, data in content.items():
+				path = os.path.join(staging, f"{item_id}.pdf" if name == "book.pdf" else name)
+				with open(path, "wb") as f:
+					f.write(data)
+				out[os.path.basename(path)] = path
+			return out
+
+		p = mock.patch("sok_resdesk.preservation._fetch_ia", side_effect=fetch)
+		p.start()
+		self.addCleanup(p.stop)
+		self.addCleanup(lambda: frappe.db.delete("RD Preservation Event", {"item": ("like", f"{PREFIX}%")}))
+
+	def _rot(self, root, name, file="book_meta.xml"):
+		from sok_resdesk.core import ocfl
+
+		with open(ocfl.head_files(root, name)[file], "ab") as f:
+			f.write(b"rot")
+
+	def test_second_copy_and_repairs_both_ways(self):
+		from sok_resdesk import preservation
+
+		name = _item(61)
+		preservation.preserve(name)  # the second copy follows the first at once
+		row = frappe.db.get_value(
+			"RD Item", name, ["second_copy_status", "second_copy_version", "copies"], as_dict=True
+		)
+		self.assertEqual(
+			(row.second_copy_status, row.second_copy_version, row.copies), ("Copied", "v1", "2 of 2 verified")
+		)
+		self.assertNotIn(name, preservation.wanted_second())
+		# the first copy rots: rebuilt from the second
+		self._rot(self.root, name)
+		result = preservation.check(name)
+		self.assertTrue(result["ok"])
+		self.assertTrue(
+			frappe.db.exists(
+				"RD Preservation Event", {"item": name, "event_type": "Repair", "outcome": "Success"}
+			)
+		)
+		self.assertEqual(frappe.db.get_value("RD Item", name, "preservation_status"), "Preserved")
+		# the second copy rots: rebuilt from the first
+		self._rot(self.second, name)
+		self.assertTrue(preservation.check(name)["second"]["ok"])
+		self.assertEqual(frappe.db.count("RD Preservation Event", {"item": name, "event_type": "Repair"}), 2)
+		# both rot: nothing to rebuild from, both marked
+		self._rot(self.root, name)
+		self._rot(self.second, name)
+		preservation.check(name)
+		row = frappe.db.get_value(
+			"RD Item", name, ["preservation_status", "second_copy_status", "copies"], as_dict=True
+		)
+		self.assertEqual(
+			(row.preservation_status, row.second_copy_status, row.copies),
+			("Failed check", "Failed check", "0 of 2 verified"),
+		)
+		self.assertEqual(preservation.health_check()["state"], "bad")
+		# the second folder can't be the first one, or inside it
+		s = frappe.get_single("RD Settings")
+		s.second_folder = os.path.join(self.root, "inside")
+		self.assertRaises(frappe.ValidationError, s.save)
+
+	def test_serving_from_our_copy_and_bagit(self):
+		from werkzeug.test import EnvironBuilder
+		from werkzeug.wrappers import Request
+
+		from sok_resdesk import api, preservation
+		from sok_resdesk.catalogue import item_to_record
+		from sok_resdesk.core import bagit
+
+		name = _item(62)
+		frappe.db.set_value("RD Item", name, {"visibility": "Public", "access_status": "Open"})
+		preservation.preserve(name)
+		preservation.serve_from_copy(name, 1)
+		record = item_to_record(frappe.get_doc("RD Item", name))
+		self.assertFalse(record["on_archive_org"])
+		self.assertIn(f"sok_resdesk.api.file?item_id={name}&name={name}.pdf", record["pdf_url"])
+		frappe.local.request = Request(EnvironBuilder(path="/").get_environ())
+		response = api.file(name, f"{name}.pdf")
+		response.direct_passthrough = False
+		self.assertEqual(response.get_data(), b"%PDF-1.4 book")
+		self.assertRaises(frappe.PageDoesNotExistError, api.file, name, "book_meta.xml")
+		self.assertTrue(
+			frappe.db.exists("RD Preservation Event", {"item": name, "event_type": "Access from copy"})
+		)
+		# no longer on archive.org and no longer served: it leaves the portal
+		frappe.db.set_value("RD Item", name, "removed_from_source", 1)
+		preservation.serve_from_copy(name, 0)
+		self.assertEqual(frappe.db.get_value("RD Item", name, "published"), 0)
+		# a bag of the book, valid, in <first copy>/exports
+		made = preservation.export_book(name)
+		path = os.path.join(self.root, "exports", made["file"])
+		self.assertEqual(bagit.validate(path, name), [])
+		self.assertIn(made["file"], [x["file"] for x in preservation.exports()])
+		self.assertRaises(frappe.PermissionError, preservation.download_export, "../secret.zip")
+
+	def test_s3_library_is_in_the_image(self):
+		"""An S3 second copy needs boto3: Frappe brings it (for its own S3 backups)."""
+		import importlib.util
+
+		self.assertIsNotNone(importlib.util.find_spec("boto3"), "boto3 is missing from the image")

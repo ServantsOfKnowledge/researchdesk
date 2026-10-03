@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-06 12:00:00.000000",
+ "modified": "2026-10-07 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -76,6 +76,17 @@
   "column_break_pres",
   "preservation_budget_gb",
   "fixity_days",
+  "second_copy_heading",
+  "second_copy",
+  "second_folder",
+  "s3_endpoint",
+  "s3_region",
+  "s3_bucket",
+  "column_break_second",
+  "s3_prefix",
+  "s3_access_key",
+  "s3_secret_key",
+  "serve_from_copy",
   "ia_collections_section",
   "mirror_all_collections",
   "mirror_min_books",
@@ -525,6 +536,81 @@
    "default": "30",
    "non_negative": 1,
    "description": "Every copy is checked against its checksums at least this often: each night a share of them is checked. A copy that fails is marked and alerts on the Server page."
+  },
+  {
+   "fieldname": "second_copy_heading",
+   "fieldtype": "Section Break",
+   "label": "Second Copy",
+   "collapsible": 0,
+   "description": "A second copy of every preserved book, somewhere else: another disk, a NAS, a partner's storage mounted on this server, or an S3-compatible bucket. Each copy is checked on the same schedule; when one fails its check and the other is good, the bad one is rebuilt from the good one."
+  },
+  {
+   "fieldname": "second_copy",
+   "fieldtype": "Select",
+   "label": "Second Copy",
+   "options": "Off\nFolder\nS3-compatible",
+   "default": "Off",
+   "description": "<b>Folder</b>: another disk, a NAS or a partner's storage mounted on this server. <b>S3-compatible</b>: a bucket on Amazon S3, Wasabi, Backblaze B2, MinIO or similar."
+  },
+  {
+   "fieldname": "second_folder",
+   "fieldtype": "Data",
+   "label": "Second Copy Folder",
+   "depends_on": "eval:doc.second_copy=='Folder'",
+   "description": "On another disk or a mounted share, not inside the first copy's folder, e.g. <code>/mnt/nas/sok-copies</code>."
+  },
+  {
+   "fieldname": "s3_endpoint",
+   "fieldtype": "Data",
+   "label": "S3 Endpoint",
+   "depends_on": "eval:doc.second_copy=='S3-compatible'",
+   "description": "The service's address, e.g. <code>https://s3.eu-central-1.wasabisys.com</code>, <code>https://s3.us-west-004.backblazeb2.com</code> or a partner's MinIO. Empty for Amazon S3."
+  },
+  {
+   "fieldname": "s3_region",
+   "fieldtype": "Data",
+   "label": "S3 Region",
+   "depends_on": "eval:doc.second_copy=='S3-compatible'",
+   "description": "The bucket's region, e.g. <code>eu-central-1</code> (some services need it, others ignore it)."
+  },
+  {
+   "fieldname": "s3_bucket",
+   "fieldtype": "Data",
+   "label": "S3 Bucket",
+   "depends_on": "eval:doc.second_copy=='S3-compatible'",
+   "description": "The bucket's name; make it first, on the service, and keep it private."
+  },
+  {
+   "fieldname": "column_break_second",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "s3_prefix",
+   "fieldtype": "Data",
+   "label": "Folder in the Bucket",
+   "depends_on": "eval:doc.second_copy=='S3-compatible'",
+   "description": "Optional, e.g. <code>sok-library</code>."
+  },
+  {
+   "fieldname": "s3_access_key",
+   "fieldtype": "Data",
+   "label": "S3 Access Key",
+   "depends_on": "eval:doc.second_copy=='S3-compatible'",
+   "description": "A key with read, write, list and delete rights on this bucket only."
+  },
+  {
+   "fieldname": "s3_secret_key",
+   "fieldtype": "Password",
+   "label": "S3 Secret Key",
+   "depends_on": "eval:doc.second_copy=='S3-compatible'",
+   "description": "Stored encrypted; never shown again after saving."
+  },
+  {
+   "fieldname": "serve_from_copy",
+   "fieldtype": "Check",
+   "label": "Keep Dropped Books on the Portal",
+   "default": "0",
+   "description": "When archive.org stops serving a book we hold a copy of, keep it on the portal and serve its PDF from our copy instead of taking it down. archive.org often darkens books for rights reasons: leave this off to decide book by book (book form → <b>Serve From Our Copy</b>)."
   },
   {
    "fieldname": "ia_collections_section",

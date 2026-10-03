@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-06 10:00:00.000000",
+ "modified": "2026-10-07 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Item",
@@ -75,6 +75,12 @@
   "preserved_on",
   "fixity_checked_on",
   "preserved_bytes",
+  "copies",
+  "second_copy_status",
+  "second_copy_version",
+  "second_copy_on",
+  "second_copy_checked_on",
+  "served_from_copy",
   "section_system",
   "ingest_profile",
   "lock_metadata",
@@ -515,6 +521,52 @@
    "read_only": 1,
    "no_copy": 1,
    "precision": "0"
+  },
+  {
+   "fieldname": "copies",
+   "fieldtype": "Data",
+   "label": "Copies",
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "How many preservation copies this book has, and how many passed their last check."
+  },
+  {
+   "fieldname": "second_copy_status",
+   "fieldtype": "Select",
+   "label": "Second Copy",
+   "options": "\nCopied\nFailed check\nMissing",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "second_copy_version",
+   "fieldtype": "Data",
+   "label": "Second Copy Version",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "second_copy_on",
+   "fieldtype": "Datetime",
+   "label": "Second Copy Made On",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "second_copy_checked_on",
+   "fieldtype": "Datetime",
+   "label": "Second Copy Checked On",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "served_from_copy",
+   "fieldtype": "Check",
+   "label": "Served From Our Copy",
+   "read_only": 1,
+   "no_copy": 1,
+   "default": "0",
+   "description": "archive.org no longer serves this book; the portal serves its PDF from our preservation copy."
   },
   {
    "fieldname": "section_system",

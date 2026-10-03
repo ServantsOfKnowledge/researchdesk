@@ -98,7 +98,8 @@ def removals(run_name: str, profile, ia, query: str, log) -> list[str]:
 	back = [r.name for r in rows if r.name in on_ia and r.removed_from_source]
 	if back:
 		frappe.db.sql(
-			"update `tabRD Item` set published=1, removed_from_source=0 where name in %s", (tuple(back),)
+			"update `tabRD Item` set published=1, removed_from_source=0, served_from_copy=0 where name in %s",
+			(tuple(back),),
 		)
 		frappe.db.commit()
 		log(f"{len(back):,} books are back on archive.org: published again")
@@ -111,7 +112,10 @@ def removals(run_name: str, profile, ia, query: str, log) -> list[str]:
 		)
 		_alert(profile, len(gone), len(rows))
 		return back
-	removed = []
+	from sok_resdesk import preservation
+
+	removed, kept = [], []
+	keep_from_copy = bool(frappe.db.get_single_value("RD Settings", "serve_from_copy"))
 	collection = (profile.ia_collection or "").strip().lower()
 	for item in gone:
 		try:
@@ -125,14 +129,25 @@ def removals(run_name: str, profile, ia, query: str, log) -> list[str]:
 			if profile.scope_type != "Collection" or collection in {c.lower() for c in cols}:
 				continue
 		doc = frappe.get_doc("RD Item", item)
-		doc.published = 0
 		doc.removed_from_source = 1
-		doc.save(ignore_permissions=True)  # also takes it out of the search index
-		removed.append(item)
+		if keep_from_copy and preservation.copy_pdf(doc.item_id):
+			# Settings → Keep Dropped Books on the Portal: its PDF now comes from our copy
+			doc.served_from_copy = 1
+			kept.append(item)
+		else:
+			doc.published = 0
+			removed.append(item)
+		doc.save(ignore_permissions=True)  # also updates (or takes it out of) the search index
+		if doc.served_from_copy:
+			preservation.event(item, "Access from copy", "Success", "archive.org no longer serves it")
 	frappe.db.commit()
 	if removed:
 		log(
 			f"{len(removed):,} books left archive.org: unpublished ({', '.join(removed[:10])}{' …' if len(removed) > 10 else ''})"
+		)
+	if kept:
+		log(
+			f"{len(kept):,} books left archive.org: kept on the portal from our copy ({', '.join(kept[:10])}{' …' if len(kept) > 10 else ''})"
 		)
 	return back
 
