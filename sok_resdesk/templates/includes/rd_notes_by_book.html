@@ -1,0 +1,21 @@
+{# readers' public notes, grouped by book, each linking to its page (entity and tag pages) #}
+{% for b in books %}
+<section class="rd-notes-book">
+	<h2><a href="/library/item/{{ b.item | urlencode }}">{{ b.title }}</a></h2>
+	{% if b.citation %}<p class="rd-muted">{{ b.citation }}</p>{% endif %}
+	<ul class="rd-note-list">
+		{% for n in b.notes %}
+		<li class="rd-note">
+			<div class="rd-note__head"><span class="rd-note__kind rd-note__kind--{{ n.kind | lower | replace(' ', '-') }}">{{ _(n.kind) }}</span>
+				<a href="{{ n.url }}">{{ n.page or _("page") }}</a>{% if n.author %} <span class="rd-muted">· {{ n.author }}</span>{% endif %}</div>
+			{% if n.exact %}<blockquote>{{ n.exact }}</blockquote>{% elif n.region %}<p class="rd-muted">{{ _("A region of the page image") }}</p>{% endif %}
+			{% if n.body %}<p>{{ n.body }}</p>{% endif %}
+			{% if n.tags or n.entity %}<p>
+				{% if n.entity %}<a class="rd-chip rd-chip--entity" href="/library/entity/{{ n.entity }}" title="{{ n.entity_description or '' }}">{{ n.entity_label or n.entity }}</a>{% endif %}
+				{% for t in n.tags %}<a class="rd-chip" href="/library/tag/{{ t | urlencode }}">{{ t }}</a> {% endfor %}
+			</p>{% endif %}
+		</li>
+		{% endfor %}
+	</ul>
+</section>
+{% endfor %}

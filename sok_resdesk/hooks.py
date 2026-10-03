@@ -27,6 +27,9 @@ website_route_rules = [
 	{"from_route": "/library/item/<item_id>", "to_route": "library/item"},
 	{"from_route": "/library/collection/<collection>", "to_route": "library/collection"},
 	{"from_route": "/library/help/<slug>", "to_route": "library/help"},
+	{"from_route": "/library/ground-truth", "to_route": "library/ground_truth"},
+	{"from_route": "/library/entity/<entity>", "to_route": "library/entity"},
+	{"from_route": "/library/tag/<tag>", "to_route": "library/tag"},
 ]
 
 
@@ -57,6 +60,11 @@ doc_events = {
 	# portal sign-ups become readers, or wait for approval (RD Settings → Reader Accounts)
 	"User": {"after_insert": "sok_resdesk.access.on_user_insert"},
 	"RD Collection": {"on_trash": "sok_resdesk.curation.on_collection_trash"},
+	# a public note's tags and Wikidata item are searched with its book
+	"RD Annotation": {
+		"on_update": "sok_resdesk.annotations.on_change",
+		"on_trash": "sok_resdesk.annotations.on_change",
+	},
 	# a profile's portal collection (Keep in Step with archive.org)
 	"RD Ingest Profile": {"on_update": "sok_resdesk.ia_sync.on_profile_update"},
 	"RD Settings": {
@@ -96,6 +104,8 @@ scheduler_events = {
 		"sok_resdesk.ocr.daily",
 		# books whose page text was counted by OCR page rather than page shown (before 0.24.1)
 		"sok_resdesk.page_order.daily",
+		# DOIs for the books of collections that give them, and metadata changes sent to DataCite
+		"sok_resdesk.datacite.daily",
 	],
 	"weekly": [
 		"sok_resdesk.ingest.run_scheduled_weekly",

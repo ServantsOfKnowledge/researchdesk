@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-07 16:00:00.000000",
+ "modified": "2026-10-08 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Item",
@@ -47,6 +47,11 @@
   "source_url",
   "ark",
   "persistent_id",
+  "doi",
+  "doi_state",
+  "doi_hash",
+  "doi_on",
+  "details_pending",
   "has_fulltext",
   "has_page_text",
   "column_break_d",
@@ -331,6 +336,49 @@
    "no_copy": 1,
    "in_standard_filter": 1,
    "description": "This library's permanent identifier for the book, given when it is first catalogued and never changed. It works as a link: <portal>/ark:/… opens this book, and …/n42 its leaf 42."
+  },
+  {
+   "fieldname": "doi",
+   "fieldtype": "Data",
+   "label": "DOI",
+   "read_only": 1,
+   "no_copy": 1,
+   "in_standard_filter": 1,
+   "description": "The book's DOI, when one of its collections gives DOIs (Settings → DOIs). It points at this book on the portal."
+  },
+  {
+   "fieldname": "doi_state",
+   "fieldtype": "Select",
+   "label": "DOI State",
+   "options": "\nTest\nFindable\nFailed",
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "Test: registered on DataCite's test system only. Findable: registered and resolving. Failed: see the error log."
+  },
+  {
+   "fieldname": "doi_hash",
+   "fieldtype": "Data",
+   "label": "DOI Metadata Fingerprint",
+   "read_only": 1,
+   "hidden": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "doi_on",
+   "fieldtype": "Datetime",
+   "label": "DOI Sent On",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "details_pending",
+   "fieldtype": "Check",
+   "label": "Details Still Coming",
+   "read_only": 1,
+   "no_copy": 1,
+   "in_standard_filter": 1,
+   "default": "0",
+   "description": "Catalogued from archive.org's search record in an ingest's first pass; its full record and page text are being fetched in the background."
   },
   {
    "fieldname": "has_fulltext",

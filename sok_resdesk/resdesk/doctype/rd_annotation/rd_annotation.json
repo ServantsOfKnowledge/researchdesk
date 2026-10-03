@@ -3,7 +3,7 @@
  "allow_rename": 0,
  "autoname": "hash",
  "creation": "2026-10-05 16:00:00.000000",
- "modified": "2026-10-05 16:00:00.000000",
+ "modified": "2026-10-08 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Annotation",
@@ -24,6 +24,9 @@
   "body",
   "tags",
   "link",
+  "entity",
+  "entity_label",
+  "entity_description",
   "section_target",
   "exact",
   "prefix",
@@ -113,6 +116,25 @@
    "label": "Link",
    "options": "URL",
    "description": "e.g. the Wikidata page of a person, place or work the passage is about."
+  },
+  {
+   "fieldname": "entity",
+   "fieldtype": "Data",
+   "label": "About (Wikidata)",
+   "search_index": 1,
+   "description": "The Wikidata item the passage is about: a person, place, work or idea, e.g. <i>Q2724213</i>. Public notes list the book on that item's page on the portal (/library/entity/Q…)."
+  },
+  {
+   "fieldname": "entity_label",
+   "fieldtype": "Data",
+   "label": "Wikidata Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "entity_description",
+   "fieldtype": "Data",
+   "label": "Wikidata Description",
+   "read_only": 1
   },
   {
    "fieldname": "section_target",

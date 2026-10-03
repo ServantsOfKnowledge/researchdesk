@@ -135,7 +135,7 @@
 				${n.exact ? `<blockquote>${esc(n.exact)}</blockquote>` : n.region ? `<p class="rd-muted">A region of the page image</p>` : ""}
 				${n.detached ? `<p class="rd-muted">The words this note was on are no longer in the page text (it was corrected).</p>` : ""}
 				${n.body ? `<p>${esc(n.body)}</p>` : ""}
-				${n.tags && n.tags.length ? `<p>${n.tags.map((t) => `<span class="rd-chip">${esc(t)}</span>`).join(" ")}</p>` : ""}
+				${n.entity || (n.tags && n.tags.length) ? `<p>${n.entity ? `<a class="rd-chip rd-chip--entity" href="/library/entity/${esc(n.entity)}" title="${esc(n.entity_description || "")}">${esc(n.entity_label || n.entity)}</a> ` : ""}${(n.tags || []).map((t) => `<a class="rd-chip" href="/library/tag/${encodeURIComponent(t)}">${esc(t)}</a>`).join(" ")}</p>` : ""}
 				${n.link ? `<p><a href="${esc(n.link)}" target="_blank" rel="noopener nofollow">${esc(n.link)}</a></p>` : ""}
 			</li>`
 			)
@@ -161,6 +161,11 @@
 			<div class="rd-tabs" role="radiogroup">${KINDS.map((k) => `<label class="rd-tab${k === kind ? " is-active" : ""}"><input type="radio" name="kind" value="${k}" ${k === kind ? "checked" : ""}> ${k}</label>`).join("")}</div>
 			<label data-for="body">Note<textarea name="body" rows="3">${esc(n.body || "")}</textarea></label>
 			<label data-for="tags">Tags <span class="rd-muted">(commas between them)</span><input type="text" name="tags" value="${esc((n.tags || []).join(", "))}"></label>
+			<div class="rd-entity-pick" data-for="entity"><label>About <span class="rd-muted">(optional: the person, place, work or idea on Wikidata)</span>
+				<input type="search" id="rd-entity-q" autocomplete="off" placeholder="Type a name, e.g. Purandara Dasa" value="${esc(n.entity ? n.entity_label || n.entity : "")}"></label>
+				<input type="hidden" name="entity" value="${esc(n.entity || "")}">
+				<p class="rd-muted" id="rd-entity-chosen">${n.entity ? `${esc(n.entity)}${n.entity_description ? ` · ${esc(n.entity_description)}` : ""}` : ""}</p>
+				<ul class="rd-entity-pick__list" id="rd-entity-list" hidden></ul></div>
 			<label data-for="link">Link <span class="rd-muted">(e.g. a Wikidata page)</span><input type="url" name="link" placeholder="https://www.wikidata.org/wiki/Q…" value="${esc(n.link || "")}"></label>
 			<label>Who can see it <select name="visibility">
 				<option value="Private" ${n.visibility === "Private" || !n.visibility ? "selected" : ""}>Only me</option>
@@ -176,7 +181,7 @@
 	function setFields(f) {
 		const kind = $("input[name=kind]:checked", f).value;
 		f.querySelectorAll(".rd-tab").forEach((t) => t.classList.toggle("is-active", $("input", t).checked));
-		const show = { body: kind !== "Tag" && kind !== "Link" ? true : false, tags: kind === "Tag", link: kind === "Link" };
+		const show = { body: kind !== "Tag" && kind !== "Link" ? true : false, tags: kind === "Tag", link: kind === "Link", entity: kind !== "OCR error" };
 		if (kind === "Highlight") show.body = true; // a highlight may carry a short note
 		Object.entries(show).forEach(([k, on]) => ($(`[data-for=${k}]`, f) || {}).hidden = !on);
 		const vis = $("select[name=visibility]", f).value;
@@ -392,6 +397,38 @@
 		$("#rd-notes").addEventListener("change", (e) => {
 			const f = e.target.closest("#rd-note-form");
 			if (f) setFields(f);
+		});
+		// "About": Wikidata items as the reader types (annotations.wikidata_search)
+		let typing = null;
+		$("#rd-notes").addEventListener("input", (e) => {
+			if (e.target.id !== "rd-entity-q") return;
+			const f = e.target.closest("form"), q = e.target.value.trim(), list = $("#rd-entity-list", f);
+			$("input[name=entity]", f).value = "";
+			$("#rd-entity-chosen", f).textContent = "";
+			clearTimeout(typing);
+			if (q.length < 2) return (list.hidden = true);
+			typing = setTimeout(async () => {
+				let hits = [];
+				try {
+					hits = await call("wikidata_search", { q });
+				} catch (err) {
+					$("#rd-entity-chosen", f).textContent = err.message;
+				}
+				if (e.target.value.trim() !== q) return; // the reader typed on
+				list.innerHTML = hits
+					.map((h) => `<li><button type="button" data-entity="${esc(h.id)}" data-label="${esc(h.label)}" data-description="${esc(h.description)}">${esc(h.label)} <small>${esc(h.description || h.id)}</small></button></li>`)
+					.join("");
+				list.hidden = !hits.length;
+			}, 300);
+		});
+		$("#rd-notes").addEventListener("click", (e) => {
+			const pick = e.target.closest("[data-entity]");
+			if (!pick) return;
+			const f = pick.closest("form");
+			$("input[name=entity]", f).value = pick.dataset.entity;
+			$("#rd-entity-q", f).value = pick.dataset.label;
+			$("#rd-entity-chosen", f).textContent = `${pick.dataset.entity}${pick.dataset.description ? ` · ${pick.dataset.description}` : ""}`;
+			$("#rd-entity-list", f).hidden = true;
 		});
 		$("#rd-notes").addEventListener("submit", (e) => {
 			e.preventDefault();

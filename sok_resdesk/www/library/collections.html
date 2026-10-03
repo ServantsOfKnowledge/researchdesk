@@ -3,13 +3,36 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block page_content %}
-<div class="rd">
+<div class="rd rd-collections">
 	<nav class="rd-crumbs"><a href="{{ library_url() }}">← {{ portal_title }}</a></nav>
 	<h1 class="rd-page-title">{{ _("Collections") }}</h1>
 	{% if collections %}
-	<div class="rd-coll-grid">
-		{% for c in collections %}{% include "templates/includes/rd_collection_card.html" %}{% endfor %}
-	</div>
+	{% if groups|length + (1 if single else 0) > 1 %}
+	<nav class="rd-chips rd-coll-jump" aria-label="{{ _('Jump to') }}">
+		{% for g in groups %}<a class="rd-chip" href="#c-{{ g.parent.name }}">{{ g.parent.title }} <span class="rd-muted">{{ g.children|length }}</span></a>{% endfor %}
+		{% if single %}<a class="rd-chip" href="#c-more">{{ _("More collections") if groups else _("Collections") }}</a>{% endif %}
+	</nav>
+	{% endif %}
+	{% for g in groups %}
+	{% set p = g.parent %}
+	<section class="rd-coll-group" id="c-{{ p.name }}">
+		<header class="rd-coll-group__head">
+			<h2><a href="/library/collection/{{ p.name }}">{{ p.title }}</a></h2>
+			<p class="rd-muted">{{ p.count }} {{ _("books") if p.count != 1 else _("book") }} · {{ g.children|length }} {{ _("sub-collections") if g.children|length != 1 else _("sub-collection") }} · <a href="/library/collection/{{ p.name }}">{{ _("All its books") }} →</a></p>
+		</header>
+		<div class="rd-coll-grid">
+			{% for c in g.children %}{% include "templates/includes/rd_collection_card.html" %}{% endfor %}
+		</div>
+	</section>
+	{% endfor %}
+	{% if single %}
+	<section class="rd-coll-group" id="c-more">
+		{% if groups %}<header class="rd-coll-group__head"><h2>{{ _("More collections") }}</h2></header>{% endif %}
+		<div class="rd-coll-grid">
+			{% for c in single %}{% include "templates/includes/rd_collection_card.html" %}{% endfor %}
+		</div>
+	</section>
+	{% endif %}
 	{% else %}
 	<p class="rd-muted">{{ _("No collections yet.") }}</p>
 	{% endif %}

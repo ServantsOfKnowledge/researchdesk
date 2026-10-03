@@ -263,8 +263,17 @@ Readers keep notes on the pages of books in **Page & text** (see the reader guid
 - **Research Groups** (Research Desk → *Research Groups*): a class, a project or a reading circle.
   Add the readers as members; they can then share notes with the group.
 
-A book's approved public notes are also published as W3C Web Annotations, for other tools:
-`/api/method/sok_resdesk.annotations.collection?item_id=<id>`.
+A book's notes are also open to other annotation tools through the **W3C Web Annotation
+Protocol**: `/api/method/sok_resdesk.annotation_protocol.annotations/<id>/` lists the notes a
+visitor may see (public ones for everyone) and takes new ones from logged-in readers (their
+session or an API key, made on their user record); they arrive private. The older
+`sok_resdesk.annotations.collection?item_id=<id>` (approved public notes) still answers.
+
+**Notes as data.** A note can say what its passage is about: a Wikidata item (**About** in the
+reader, *About (Wikidata)* on the Annotation). Approved public notes then list their page on the
+portal's page for that item (`/library/entity/Q…`) and for each tag (`/library/tag/…`), their
+names and tags are searched with the book, and exports carry the Q-number. Approving, editing or
+deleting a public note updates the book's search entry by itself.
 
 ## Proofreading and re-OCR
 
@@ -297,3 +306,50 @@ see, search finds and citations quote. Re-ingesting a book never undoes a correc
 Page images come from archive.org, one request a page, so re-OCR applies to books there for now.
 Re-OCR runs on the long queue and stops with **Pause All**. Each version records the engine and
 the zones it was read with.
+
+## Sharing ground truth
+
+Every page proofread (and validated by a second person) is **ground truth**: a page image with
+the text that is truly on it. Many of them, in Kannada, Sanskrit, Tamil or Hindi, are what better
+OCR for Indian languages is trained and measured on. **Ground Truth** (Research Desk → *Ground
+Truth*) makes them into sets to share:
+
+1. **New**: give the set a title and choose its pages: *Proofread or validated* or *Validated
+   only*, a collection, a language, a single book, at most how many pages. **Only Books Anyone
+   Can Read** (on by default) leaves out books for members only. **Include Page Parts** also cuts
+   out each part a proofreader drew (a column, a heading) with its own text.
+2. Save and **Make the Set**. The form says how many pages match; page images come from
+   archive.org one at a time, so a big set takes a while. You get a notification when it is ready.
+3. **Download** it: a zip with each page image and its text (`.gt.txt`), the page parts, a
+   manifest (CSV and JSON Lines, with checksums), a Frictionless Data Package description, a
+   README and the licence.
+
+**The licence comes first.** Settings → **Ground Truth** → *Licence for Ground Truth* (CC0, CC
+BY or CC BY-SA) is the library's decision, with its partners. Until one is chosen, sets are made
+for the library's own use (their README says so) and none can go on the portal. Once one is,
+make the set again and **Put on the Portal**: it is listed at `/library/ground-truth` for anyone
+to download, with its licence, the credit line from Settings and its checksum. Proofreaders are
+named in the manifest only if **Name the Proofreaders** is ticked (their full names, never their
+emails); ask them first.
+
+## DOIs
+
+For libraries that are **DataCite** members (directly or through a consortium), the books of
+chosen collections can have DOIs, the identifiers journals and citation indexes expect.
+
+1. Settings → **DOIs**: the **DOI Prefix** (e.g. `10.12345`), the **DataCite Repository ID** and
+   password from DataCite Fabrica, and a **DOI Shoulder** (`rd.` by default: DOIs then read
+   `10.12345/RD.KANAKADASA1950`; never change it once DOIs are given). Leave **DataCite Test
+   System** ticked while trying it out: test DOIs never resolve and never show in citations.
+   Tick **Give DOIs** and save.
+2. On a collection, tick **Give DOIs**, save, and **Register DOIs**: its public books are sent
+   to DataCite in the background. After that, every night, new books in such collections get
+   DOIs and changed ones are sent again (only when their metadata changed).
+
+Each DOI points at the book's permanent link (its ARK when it has one) and carries its title,
+authors, year, language, subjects, description, licence and archive.org identifier, with the
+library as publisher. A book's form shows its **DOI** and **DOI State** (*Test*, *Findable*,
+*Failed*); **Actions → Send to DataCite** sends one book now. Findable DOIs appear in every
+citation format, the page's Zotero tags, Dublin Core, MODS, OAI-PMH and JSON-LD. A deleted book
+keeps its DOI, which is pointed at its tombstone page. The Server page's *DOIs* line counts the
+registered and failed ones.

@@ -20,6 +20,26 @@ frappe.ui.form.on("RD Item", {
 				}),
 			__("Actions")
 		);
+		if (frm.doc.doi) {
+			const test = frm.doc.doi_state === "Test";
+			frm.add_custom_button(__("Open DOI"), () => window.open(`https://${test ? "handle.test.datacite.org" : "doi.org"}/${frm.doc.doi}`), __("Links"));
+		}
+		if (frappe.user.has_role(["System Manager", "ResDesk Manager"])) {
+			frm.add_custom_button(
+				__("Send to DataCite"),
+				() =>
+					frappe.call({
+						method: "sok_resdesk.datacite.register_book",
+						args: { name: frm.doc.name },
+						freeze: true,
+						callback: (r) => {
+							frappe.show_alert({ message: __("DOI {0}: {1}", [r.message.doi, r.message.result]), indicator: "green" });
+							frm.reload_doc();
+						},
+					}),
+				__("Actions")
+			);
+		}
 		frm.add_custom_button(
 			__("Re-index"),
 			() =>

@@ -19,6 +19,8 @@ import csv
 import io
 import re
 
+from sok_resdesk.core import wikidata
+
 MOTIVATIONS = {
 	# the reader's word: the W3C motivation
 	"Highlight": "highlighting",
@@ -107,8 +109,13 @@ def to_w3c(note: dict, page_url: str, image_url: str = "", creator_url: str = ""
 		)
 	for tag in split_tags(note.get("tags")):
 		bodies.append({"type": "TextualBody", "value": tag, "purpose": "tagging"})
-	if note.get("link"):
-		bodies.append({"id": note["link"], "purpose": "identifying"})
+	entity = wikidata.qid(note.get("entity"))
+	if entity:  # what the passage is about (W3C model §3.3.5: purpose on a SpecificResource)
+		bodies.append(
+			{"type": "SpecificResource", "source": wikidata.entity_uri(entity), "purpose": "identifying"}
+		)
+	if note.get("link") and not (entity and wikidata.qid(note["link"]) == entity):
+		bodies.append({"type": "SpecificResource", "source": note["link"], "purpose": "identifying"})
 	target: dict = {"source": page_url}
 	if note.get("region"):
 		target = {
@@ -189,6 +196,9 @@ def to_markdown(notes: list[dict]) -> str:
 		tags = split_tags(n.get("tags"))
 		if tags:
 			line += " " + " ".join(f"#{t.replace(' ', '_')}" for t in tags)
+		if wikidata.qid(n.get("entity")):
+			q = wikidata.qid(n.get("entity"))
+			line += f" [{n.get('entity_label') or q}]({wikidata.page_url(q)})"
 		if n.get("link"):
 			line += f" <{n['link']}>"
 		if n.get("url"):
@@ -197,7 +207,20 @@ def to_markdown(notes: list[dict]) -> str:
 	return "\n".join(out).strip() + "\n"
 
 
-CSV_COLUMNS = ("book", "page", "kind", "quote", "note", "tags", "link", "who_can_see", "url", "created")
+CSV_COLUMNS = (
+	"book",
+	"page",
+	"kind",
+	"quote",
+	"note",
+	"tags",
+	"link",
+	"wikidata",
+	"wikidata_name",
+	"who_can_see",
+	"url",
+	"created",
+)
 
 
 def to_csv(notes: list[dict]) -> str:
@@ -214,9 +237,135 @@ def to_csv(notes: list[dict]) -> str:
 				n.get("body") or "",
 				", ".join(split_tags(n.get("tags"))),
 				n.get("link") or "",
+				wikidata.qid(n.get("entity")) or "",
+				n.get("entity_label") or "",
 				n.get("visibility") or "",
 				n.get("url") or "",
 				n.get("created") or "",
 			]
 		)
 	return buf.getvalue()
+
+
+# -- the other way: a Web Annotation from another tool → a note (the Annotation Protocol) ----------
+
+KIND_OF = {v: k for k, v in MOTIVATIONS.items()}
+_LEAF_PATTERNS = (
+	re.compile(r"[?&]page=(\d+)"),  # …/library/item/<id>?page=12
+	re.compile(r"/n(\d+)(?:\.jpg)?(?:$|[/?#])"),  # an ARK …/n12, or archive.org …/page/n12(.jpg)
+)
+
+
+class AnnotationError(ValueError):
+	pass
+
+
+def leaf_of(source: str) -> int | None:
+	"""The page (leaf, from 0) a target's source names: the page reader's link, a page ARK, or
+	archive.org's page or page image."""
+	for pattern in _LEAF_PATTERNS:
+		m = pattern.search(source or "")
+		if m:
+			return int(m.group(1))
+	return None
+
+
+def _list(value) -> list:
+	if value is None:
+		return []
+	return value if isinstance(value, list) else [value]
+
+
+def from_w3c(anno: dict) -> dict:
+	"""A W3C Web Annotation (JSON-LD, as another tool POSTs it) → the note's fields:
+	{kind, body, tags, link, entity, leaf, exact, prefix, suffix, start, end, region}.
+	Raises AnnotationError with what is wrong."""
+	if not isinstance(anno, dict) or "Annotation" not in _list(anno.get("type")):
+		raise AnnotationError("Send a W3C Web Annotation (type: Annotation).")
+	motivation = (_list(anno.get("motivation")) or ["commenting"])[0]
+	kind = KIND_OF.get(motivation.replace("oa:", ""), "Comment")
+	note: dict = {"kind": kind, "body": "", "tags": [], "link": "", "entity": ""}
+	for b in _list(anno.get("body")):
+		if isinstance(b, str):
+			b = {"id": b}
+		purpose = (b.get("purpose") or "").replace("oa:", "")
+		value = b.get("value")
+		if value is not None and (b.get("type") in (None, "TextualBody", "oa:TextualBody")):
+			if purpose == "tagging":
+				note["tags"].append(str(value)[:100])
+			else:
+				note["body"] = (note["body"] + "\n\n" + str(value)).strip()
+			continue
+		ref = b.get("source") or b.get("id") or ""
+		if not ref:
+			continue
+		q = wikidata.qid(ref)
+		if q and not note["entity"]:
+			note["entity"] = q
+		elif str(ref).startswith(("https://", "http://")):
+			note["link"] = str(ref)[:500]
+	targets = _list(anno.get("target"))
+	if not targets:
+		raise AnnotationError("The annotation needs a target: the page it is on.")
+	target = targets[0]
+	if isinstance(target, str):
+		target = {"source": target}
+	source = target.get("source") or target.get("id") or ""
+	note["leaf"] = leaf_of(source)
+	if note["leaf"] is None:
+		raise AnnotationError("The target's source must be a page of the book (its page link or page ARK).")
+	for sel in _list(target.get("selector")):
+		kind_of = (sel.get("type") or "").replace("oa:", "")
+		if kind_of == "TextQuoteSelector":
+			note.update(
+				exact=sel.get("exact") or "", prefix=sel.get("prefix") or "", suffix=sel.get("suffix") or ""
+			)
+		elif kind_of == "TextPositionSelector":
+			note.update(start=int(sel.get("start") or 0), end=int(sel.get("end") or 0))
+		elif kind_of == "FragmentSelector":
+			r = parse_region(sel.get("value") or "")
+			if not r:
+				raise AnnotationError("A FragmentSelector must be xywh=percent:x,y,w,h.")
+			note["region"] = region(*r)
+	if not (note.get("exact") or note.get("region") or note.get("end")):  # a position alone will do
+		raise AnnotationError(
+			"Say where on the page: a TextQuoteSelector, TextPositionSelector or FragmentSelector."
+		)
+	note["tags"] = ", ".join(split_tags(note["tags"]))
+	return note
+
+
+def collection_page(
+	items: list[dict], container: str, page: int, total: int, per_page: int, embed: bool = True
+) -> dict:
+	"""One page of an AnnotationCollection (Annotation Protocol §4.2)."""
+	last = max(0, (total - 1) // per_page)
+	out = {
+		"@context": "http://www.w3.org/ns/anno.jsonld",
+		"id": f"{container}?page={page}" + ("" if embed else "&iris=1"),
+		"type": "AnnotationPage",
+		"partOf": {"id": container, "total": total},
+		"startIndex": page * per_page,
+		"items": items if embed else [i["id"] for i in items],
+	}
+	if page < last:
+		out["next"] = f"{container}?page={page + 1}" + ("" if embed else "&iris=1")
+	if page > 0:
+		out["prev"] = f"{container}?page={page - 1}" + ("" if embed else "&iris=1")
+	return out
+
+
+def collection(container: str, label: str, total: int, per_page: int, embed: bool = True) -> dict:
+	"""The container itself: an AnnotationCollection with links to its first and last pages."""
+	suffix = "" if embed else "&iris=1"
+	out = {
+		"@context": ["http://www.w3.org/ns/anno.jsonld", "http://www.w3.org/ns/ldp.jsonld"],
+		"id": container,
+		"type": ["BasicContainer", "AnnotationCollection"],
+		"label": label,
+		"total": total,
+	}
+	if total:
+		out["first"] = f"{container}?page=0{suffix}"
+		out["last"] = f"{container}?page={max(0, (total - 1) // per_page)}{suffix}"
+	return out

@@ -56,7 +56,8 @@
 				<a href="${esc(n.url)}">${esc(n.page || "")}</a><span class="rd-muted">${esc(n.mine ? vis : `${n.author} · ${vis}`)}</span></div>
 				${n.exact ? `<blockquote>${esc(n.exact)}</blockquote>` : n.region ? `<p class="rd-muted">{{ _("A region of the page image") }}</p>` : ""}
 				${n.body ? `<p>${esc(n.body)}</p>` : ""}
-				${(n.tags || []).map((t) => `<span class="rd-chip">${esc(t)}</span>`).join(" ")}
+				${n.entity ? `<a class="rd-chip rd-chip--entity" href="/library/entity/${esc(n.entity)}" title="${esc(n.entity_description || "")}">${esc(n.entity_label || n.entity)}</a>` : ""}
+				${(n.tags || []).map((t) => `<a class="rd-chip" href="/library/tag/${encodeURIComponent(t)}">${esc(t)}</a>`).join(" ")}
 				${n.link ? `<p><a href="${esc(n.link)}" target="_blank" rel="noopener nofollow">${esc(n.link)}</a></p>` : ""}</li>`;
 		}
 		list.innerHTML = html + "</ul>";

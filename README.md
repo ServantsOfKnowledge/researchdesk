@@ -8,7 +8,9 @@ Internet Archive collection. It is built on the [Frappe](https://frappe.io) fram
 
 Choose a collection, a search or a list of items on archive.org, and Research Desk will:
 
-- ingest from **archive.org** *or* from **IA-style item folders** on your own disk, NAS or web
+- ingest from **archive.org** (a whole collection is listed on the portal within minutes, from
+  archive.org's search records in bulk; page text follows in the background) *or* from
+  **IA-style item folders** on your own disk, NAS or web
   server, with a drop folder that picks up new and changed books automatically
 - **stay in step with archive.org** by itself: every day, books added to a collection come in,
   changed ones are refreshed and removed ones are unpublished, and every archive.org collection
@@ -22,12 +24,16 @@ Choose a collection, a search or a list of items on archive.org, and Research De
   the book or the page: BibTeX, BibLaTeX, RIS, CSL-JSON, APA, MLA and Chicago, with a link
 - let readers keep **notes on pages** (highlights, comments, tags, questions, links, OCR error
   reports; private, shared with a research group, or public after review), following the W3C Web
-  Annotation model, exported with page citations
+  Annotation model, exported with page citations, linked to **Wikidata** (pages about a person,
+  place or work gathered on one page), and open to other annotation tools through the **W3C Web
+  Annotation Protocol**
 - **improve the text over time**: an OCR quality score for every page and book; proofreading
   beside the page image, validated by a second person, every version kept; **re-OCR** with
   Tesseract's Indic models, **several languages at once** (the book's languages and English, or a
   language of its own for a verse or footnote), a page part by part (columns, headings) or whole
-  books worst first
+  books worst first; and share the corrected pages as **open OCR ground truth** under the
+  library's chosen licence
+- give books **DOIs** from DataCite for chosen collections (optional, for DataCite members)
 - give every book and page a **permanent ARK** (on once the library's NAAN is assigned), with
   tombstones so no link ever dies
 - **keep its own checked copies** of the books (OCFL, SHA-256, nightly fixity checks, PREMIS-style
@@ -77,7 +83,7 @@ It's built to install with one command, for librarians, educators, archivists an
 anyone else who can open a terminal. It scales to tens of thousands of books on one server
 ([measured](docs/scaling.md)).
 
-> Status: **v0.29**, before 1.0. It works end to end and is tested against live Servants of
+> Status: **v0.30**, before 1.0. It works end to end and is tested against live Servants of
 > Knowledge data, but expect changes before 1.0. What changed: [CHANGELOG](CHANGELOG.md); what
 > comes next: [the roadmap](docs/roadmap.md).
 

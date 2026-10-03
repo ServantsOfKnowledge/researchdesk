@@ -62,7 +62,7 @@ cause. Details: [Server](server.md#how-the-updater-helper-works).
 
 | DocType | Purpose | Key fields |
 |---|---|---|
-| **RD Item** | one book/document | `item_id` (= IA identifier, the document name), title, alt_title, creators (table), year, language (ISO 639-3), publisher, subjects (multi-select), collections (source), curated_collections, item_type, lock_metadata ("Keep My Edits"), removed_from_source, licence, access, visibility (Public / Login to read / Login to find) and visibility_set_by, page_count, has_page_text, ark (archive.org's), persistent_id (this library's permanent ARK), ocr_quality and ocr_low_pages, ocr_languages (the languages to OCR it in), reocr_state and pages_proofread (re-OCR and proofreading), page_order (page text matched to the page images by the scan data), preservation_status / preserved_on / preserved_version / preserved_bytes / fixity_checked_on, copies ("2 of 2 verified"), second_copy_status / second_copy_version / second_copy_on / second_copy_checked_on, served_from_copy, raw_metadata (JSON) |
+| **RD Item** | one book/document | `item_id` (= IA identifier, the document name), title, alt_title, creators (table), year, language (ISO 639-3), publisher, subjects (multi-select), collections (source), curated_collections, item_type, lock_metadata ("Keep My Edits"), removed_from_source, licence, access, visibility (Public / Login to read / Login to find) and visibility_set_by, page_count, has_page_text, ark (archive.org's), persistent_id (this library's permanent ARK), ocr_quality and ocr_low_pages, ocr_languages (the languages to OCR it in), doi / doi_state (DataCite), details_pending (catalogued from its search record, full record and text still coming), reocr_state and pages_proofread (re-OCR and proofreading), page_order (page text matched to the page images by the scan data), preservation_status / preserved_on / preserved_version / preserved_bytes / fixity_checked_on, copies ("2 of 2 verified"), second_copy_status / second_copy_version / second_copy_on / second_copy_checked_on, served_from_copy, raw_metadata (JSON) |
 | RD Item Creator | child table | creator → RD Creator, role, name_as_given |
 | RD Item Subject | child table | subject → RD Subject |
 | **RD Creator** | authority-lite person record | full_name, alt_name (romanised), VIAF, Wikidata |
@@ -84,7 +84,8 @@ cause. Details: [Server](server.md#how-the-updater-helper-works).
 | RD About Item | child table of RD About Page (`steps`, `highlights`) | title, text (plain, `**bold**`), link, link text |
 | **RD Tombstone** | what is left of a deleted or merged book, so its ARK still answers | ark, item_id, title, authors, year, reason (Deleted / Withdrawn / Merged), replaced_by, note for readers |
 | **RD Preservation Event** | a book's preservation history (PREMIS-style) | item, event (Ingestion / Fixity check / Replication / Repair / Deletion / Access from copy / Export), outcome, when, copy version, by, detail |
-| **RD Annotation** | a reader's note on a page | item, leaf, printed page, kind (Highlight / Comment / Tag / Question / Link / OCR error), who can see it (Private / Group / Public), research group, review (Pending / Approved / Rejected), note, tags, link; on a passage: quoted text with the text before and after it, and its character positions; on the page image: a region in percent |
+| **RD Annotation** | a reader's note on a page | item, leaf, printed page, kind (Highlight / Comment / Tag / Question / Link / OCR error), who can see it (Private / Group / Public), research group, review (Pending / Approved / Rejected), note, tags, link, what it is about (a Wikidata item, with its name and description); on a passage: quoted text with the text before and after it, and its character positions; on the page image: a region in percent |
+| **RD Ground Truth** | a set of proofread pages with their images, shared for training and testing OCR | title, which pages (proofread or validated, validated only), collection, language, book, only books anyone can read, page parts, at most; status, on the portal, licence, pages, page parts, books, languages, file, size, SHA-256, log |
 | **RD Page Text** | a version of one page's text (re-OCR or proofreading); the current one overlays archive.org's text wherever the page is read | item, leaf, printed page, current (yes/no), source (Re-OCR / Proofreading), status (Machine / Proofread / Validated), OCR quality, proofread by/on, validated by/on, text, OCR engine, zones (JSON, in reading order) |
 | **RD Research Group** | readers who share notes | group name, description, members (RD Research Group Member: user) |
 | RD Research Group Member | child table | user, name |
@@ -106,7 +107,12 @@ without touching the portal or API.
 
 ## Ingest pipeline
 
-`profile → IA query → scrape (cursor) → per item: metadata → normalise → upsert → page text → index`
+`profile → IA query → scrape with catalogue fields (5,000 a request) → catalogue + index every new book → per item, in batches: metadata → normalise → upsert → page text → index`
+
+- **Catalogue first**: the planner asks the scrape API for each book's catalogue fields (as
+  `ia search -f` does) and catalogues and indexes all new books at once, marked
+  `details_pending`; the batches then fetch each book's full record, files and page text and
+  clear the mark. Refused fields fall back to a core set, then to identifiers only.
 
 - **Plan** job lists identifiers and skips what's already catalogued; **batch** jobs (default 50
   books) run in parallel, one per queue worker. Counters use atomic SQL increments; the last
@@ -127,6 +133,22 @@ or the list in its *OCR Languages* field; a zone can carry its own. Only install
 used, and Server → Requirements (`requirements.py`, `core/equipment.py`) says which the
 catalogue needs. Results become RD Page Text versions; people's proofread pages are never
 replaced.
+
+## Sharing
+
+- **Ground truth** (`groundtruth.py`, `core/groundtruth.py`): RD Ground Truth sets of current
+  proofread/validated RD Page Text versions with their page images, written as a zip (page and
+  zone pairs, manifest, Frictionless Data Package) in the site's private files; public only with
+  a licence chosen in Settings, served by `groundtruth.download`.
+- **Notes as data** (`core/wikidata.py`): a note's `entity` is a Wikidata Q-number (search proxied
+  and cached by `annotations.wikidata_search`); approved public notes' tags and items are copied
+  into the book's search document (`note_tags`, `note_entities`, `note_entity_names`) and listed
+  on `/library/entity/Q…` and `/library/tag/…`.
+- **W3C Web Annotation Protocol** (`annotation_protocol.py`): one whitelisted endpoint whose path
+  names the container (`…/annotations/<book>/`) or the note (`…/<book>/<note>`); GET/HEAD/OPTIONS,
+  POST, PUT and DELETE with ETags; the same visibility rules as the page reader.
+- **DOIs** (`datacite.py`, `core/datacite.py`): DataCite REST API (JSON:API, schema 4.5), PUT to
+  create or update, sent again only when the metadata fingerprint changes; test system first.
 
 ## Scaling path
 

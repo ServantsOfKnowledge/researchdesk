@@ -53,7 +53,7 @@
 - [x] Big ingests that don't stall or do work twice; failed books retried by themselves
 - [x] Worker priority from the Desk; the portal's book count kept up with the catalogue
 
-## v0.20 – v0.29: a research library (done)
+## v0.20 – v0.30: a research library (done)
 
 - [x] Permanent links: ARKs for every book and page (switched on once the NAAN is assigned), tombstones
 - [x] Preservation: OCFL copies with SHA-256 fixity checks and PREMIS-style events; a second copy
@@ -73,11 +73,14 @@
 - [x] Server → Requirements: what the server has and lacks, installing it from the Desk (native)
       or with the upgrade (Docker, OCR languages chosen in `.env`)
 
+- [x] Sharing the loop: corrected pages as open OCR ground truth (once a licence is chosen); notes
+      linked to Wikidata people, places and works, with a page for each; the W3C Annotation
+      Protocol for other tools; optional DOIs (DataCite) for chosen collections
+- [x] A collection on the portal within minutes: catalogue from archive.org's search records in
+      bulk, page text in the background; every collection on one page
+
 ## Next
 
-- [ ] Ground truth: corrected pages with their images as an open training set for Indic OCR
-- [ ] Notes linked to Wikidata people, places and works; the W3C Annotation Protocol for other tools
-- [ ] Optional DOIs (DataCite) for chosen collections
 - [ ] Portal UI in Kannada and other languages (Frappe translations), and an accessibility review
 - [ ] Authority control: reconcile creators with VIAF/Wikidata; subjects with LCSH/Sears
 - [ ] Cataloguer review queue for flagged records (no year, unknown language, duplicate titles)

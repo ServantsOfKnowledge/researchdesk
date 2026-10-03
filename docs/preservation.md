@@ -19,6 +19,9 @@ pushes to Koha, Wikidata and the Internet Archive use as the book's address.
 - The name says nothing about the book, on purpose: it never has to change when a title or
   date is corrected. The last character is a check character that catches a mistyped one.
 
+Libraries that are DataCite members can give chosen collections **DOIs** as well (see the staff
+guide, *DOIs*): a DOI points at the book's ARK, and both keep working when a book is deleted.
+
 ### Switching ARKs on
 
 ARKs are **off** until the library has its own **NAAN**, the number after `ark:/`, given free

@@ -135,6 +135,19 @@ TOURS: dict[str, list[tuple[str, str, str]]] = {
 			"Ticked for you when you edit: re-ingesting won't overwrite your corrections.",
 		),
 	],
+	"RD Ground Truth": [
+		("title", "Name the set", "What it holds, e.g. <i>Kannada proofread pages, October 2026</i>."),
+		(
+			"pages_wanted",
+			"Which pages",
+			"Proofread pages, or only those a second person validated: fewer, but the surest.",
+		),
+		(
+			"public_books_only",
+			"Books anyone can read",
+			"Keep this ticked for a set that goes on the portal. Its licence is chosen in Settings → Ground Truth.",
+		),
+	],
 	"RD Research Group": [
 		(
 			"group_name",

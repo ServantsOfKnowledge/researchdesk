@@ -112,6 +112,8 @@ def dc_record(item: dict, base_url: str = "") -> str:
 	add("identifier", item.get("source_url"))
 	if item.get("ark"):
 		add("identifier", item["ark"])
+	if item.get("doi"):
+		add("identifier", f"https://doi.org/{item['doi']}")
 	add("language", item.get("language"))
 	add("rights", item.get("licence_url") or item.get("rights"))
 	add("source", "Internet Archive")

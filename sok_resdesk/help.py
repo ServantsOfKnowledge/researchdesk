@@ -40,6 +40,7 @@ SCREEN_HELP = {
 	"RD Annotation": ("staff-guide", "readers-notes"),
 	"RD Research Group": ("staff-guide", "readers-notes"),
 	"RD Page Text": ("staff-guide", "proofreading-and-re-ocr"),
+	"RD Ground Truth": ("staff-guide", "sharing-ground-truth"),
 	"RD Preservation Event": ("preservation", "preservation-events"),
 	"research-desk": ("staff-guide", "the-research-desk-workspace"),
 }

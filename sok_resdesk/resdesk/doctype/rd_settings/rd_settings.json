@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-07 12:00:00.000000",
+ "modified": "2026-10-08 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -93,6 +93,19 @@
   "mirror_min_books",
   "column_break_iac",
   "mirror_skip",
+  "ground_truth_section",
+  "ground_truth_licence",
+  "column_break_gt",
+  "ground_truth_attribution",
+  "ground_truth_names",
+  "doi_section",
+  "doi_enabled",
+  "datacite_test",
+  "doi_prefix",
+  "column_break_doi",
+  "datacite_repository",
+  "datacite_password",
+  "doi_shoulder",
   "analytics_section",
   "analytics_provider",
   "analytics_host",
@@ -653,6 +666,87 @@
    "label": "Skip These archive.org Collections",
    "depends_on": "mirror_all_collections",
    "description": "archive.org collection identifiers that should not get a page, one per line (for example a big general collection most of your books are also in)."
+  },
+  {
+   "fieldname": "ground_truth_section",
+   "fieldtype": "Section Break",
+   "label": "Ground Truth",
+   "collapsible": 1,
+   "description": "Proofread pages with their images, shared as an open set for training and testing OCR (Ground Truth in the Desk)."
+  },
+  {
+   "fieldname": "ground_truth_licence",
+   "fieldtype": "Select",
+   "label": "Licence for Ground Truth",
+   "options": "\nCC0-1.0\nCC-BY-4.0\nCC-BY-SA-4.0",
+   "description": "Under which licence the library shares its corrected texts. Until one is chosen, sets are made for the library's own use only and none can be put on the portal. CC0: no conditions; CC-BY: credit; CC-BY-SA: credit and share alike."
+  },
+  {
+   "fieldname": "column_break_gt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ground_truth_attribution",
+   "fieldtype": "Data",
+   "label": "Credit Line",
+   "description": "How reusers should credit the set, e.g. <i>Servants of Knowledge and its volunteer proofreaders</i>."
+  },
+  {
+   "fieldname": "ground_truth_names",
+   "fieldtype": "Check",
+   "label": "Name the Proofreaders",
+   "default": "0",
+   "description": "Put each page's proofreader and validator (their full names, never their emails) in the set's manifest. Ask them first."
+  },
+  {
+   "fieldname": "doi_section",
+   "fieldtype": "Section Break",
+   "label": "DOIs (DataCite)",
+   "collapsible": 1,
+   "description": "For libraries that are DataCite members (directly or through a consortium): the books of collections marked <b>Give DOIs</b> get a DOI pointing at their page on the portal."
+  },
+  {
+   "fieldname": "doi_enabled",
+   "fieldtype": "Check",
+   "label": "Give DOIs",
+   "default": "0",
+   "description": "Register DOIs for the books of collections marked Give DOIs, every night and from a collection's form."
+  },
+  {
+   "fieldname": "datacite_test",
+   "fieldtype": "Check",
+   "label": "DataCite Test System",
+   "default": "1",
+   "description": "Use DataCite's test system (api.test.datacite.org) while trying this out: its DOIs never resolve and never show in citations. Untick once the library's production account is ready."
+  },
+  {
+   "fieldname": "doi_prefix",
+   "fieldtype": "Data",
+   "label": "DOI Prefix",
+   "description": "The prefix DataCite gave the library, e.g. <i>10.12345</i>."
+  },
+  {
+   "fieldname": "column_break_doi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "datacite_repository",
+   "fieldtype": "Data",
+   "label": "DataCite Repository ID",
+   "description": "The repository's ID in DataCite Fabrica, e.g. <i>SOK.LIBRARY</i>."
+  },
+  {
+   "fieldname": "datacite_password",
+   "fieldtype": "Password",
+   "label": "DataCite Repository Password",
+   "description": "The repository's password in DataCite Fabrica. Kept encrypted."
+  },
+  {
+   "fieldname": "doi_shoulder",
+   "fieldtype": "Data",
+   "label": "DOI Shoulder",
+   "default": "rd.",
+   "description": "Put before each book's identifier in its DOI: 10.12345/<b>rd.</b>kanakadasa1950. Never change it once DOIs are given."
   },
   {
    "fieldname": "analytics_section",

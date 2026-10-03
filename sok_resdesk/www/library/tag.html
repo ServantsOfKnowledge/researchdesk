@@ -1,0 +1,16 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="rd rd-entity">
+	<nav class="rd-crumbs"><a href="{{ library_url() }}">← {{ portal_title }}</a></nav>
+	<h1 class="rd-page-title">#{{ tag }}</h1>
+	{% if books %}
+	<p class="rd-muted">{{ _("Pages readers tagged {0}: {1} notes in {2} books.").format(tag, count, books|length) }}</p>
+	{% include "templates/includes/rd_notes_by_book.html" %}
+	{% else %}
+	<p class="rd-muted">{{ _("No public notes carry this tag yet.") }}</p>
+	{% endif %}
+</div>
+{% endblock %}

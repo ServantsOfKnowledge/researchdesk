@@ -1,0 +1,233 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-08 10:00:00.000000",
+ "modified": "2026-10-08 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Ground Truth",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "description": "A set of proofread page images with their corrected text, for training and testing OCR.",
+ "field_order": [
+  "title",
+  "pages_wanted",
+  "collection",
+  "language",
+  "item",
+  "public_books_only",
+  "include_zones",
+  "max_pages",
+  "column_break_g",
+  "status",
+  "published",
+  "licence",
+  "made_on",
+  "page_count",
+  "zone_count",
+  "book_count",
+  "languages",
+  "file_name",
+  "file_size",
+  "sha256",
+  "section_log",
+  "log"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "What the set is, e.g. <i>Kannada proofread pages, October 2026</i>. It is the set's name in its README and on the portal."
+  },
+  {
+   "fieldname": "pages_wanted",
+   "fieldtype": "Select",
+   "label": "Pages",
+   "options": "Proofread or validated\nValidated only",
+   "default": "Proofread or validated",
+   "description": "Validated pages were checked again, unchanged, by a second person: fewer, but the surest."
+  },
+  {
+   "fieldname": "collection",
+   "fieldtype": "Link",
+   "label": "Collection",
+   "options": "RD Collection",
+   "description": "Only books in this collection (empty: every collection)."
+  },
+  {
+   "fieldname": "language",
+   "fieldtype": "Data",
+   "label": "Language",
+   "description": "Only books in this language: its code, e.g. <i>kan</i> (empty: every language)."
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Book",
+   "options": "RD Item",
+   "description": "Only this book (empty: every book)."
+  },
+  {
+   "fieldname": "public_books_only",
+   "fieldtype": "Check",
+   "label": "Only Books Anyone Can Read",
+   "default": "1",
+   "description": "Leave out books for logged-in readers only. A set shown on the portal must keep this ticked."
+  },
+  {
+   "fieldname": "include_zones",
+   "fieldtype": "Check",
+   "label": "Include Page Parts",
+   "default": "1",
+   "description": "Also cut out each part a proofreader drew (a column, a heading) with its own text, when the text still splits into those parts."
+  },
+  {
+   "fieldname": "max_pages",
+   "fieldtype": "Int",
+   "label": "At Most (pages)",
+   "default": "5000",
+   "description": "Page images come from archive.org, one request a page, at the pace set in Settings."
+  },
+  {
+   "fieldname": "column_break_g",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nQueued\nRunning\nReady\nFailed",
+   "default": "Draft",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "published",
+   "fieldtype": "Check",
+   "label": "On the Portal",
+   "read_only": 1,
+   "in_list_view": 1,
+   "description": "Listed for anyone to download at /library/ground-truth. Needs a licence (Settings → Ground Truth)."
+  },
+  {
+   "fieldname": "licence",
+   "fieldtype": "Data",
+   "label": "Licence",
+   "read_only": 1,
+   "description": "The licence chosen in Settings when the set was made (empty: none yet, for the library's own use)."
+  },
+  {
+   "fieldname": "made_on",
+   "fieldtype": "Datetime",
+   "label": "Made On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "page_count",
+   "fieldtype": "Int",
+   "label": "Pages",
+   "read_only": 1
+  },
+  {
+   "fieldname": "zone_count",
+   "fieldtype": "Int",
+   "label": "Page Parts",
+   "read_only": 1
+  },
+  {
+   "fieldname": "book_count",
+   "fieldtype": "Int",
+   "label": "Books",
+   "read_only": 1
+  },
+  {
+   "fieldname": "languages",
+   "fieldtype": "Data",
+   "label": "Languages",
+   "read_only": 1
+  },
+  {
+   "fieldname": "file_name",
+   "fieldtype": "Data",
+   "label": "File",
+   "read_only": 1
+  },
+  {
+   "fieldname": "file_size",
+   "fieldtype": "Data",
+   "label": "Size",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sha256",
+   "fieldtype": "Data",
+   "label": "SHA-256",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_log",
+   "fieldtype": "Section Break",
+   "label": "Log",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "log",
+   "fieldtype": "Code",
+   "label": "Log",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "title_field": "title",
+ "show_title_field_in_link": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  }
+ ],
+ "track_changes": 0,
+ "autoname": "GT-.#####",
+ "naming_rule": "Expression (old style)"
+}

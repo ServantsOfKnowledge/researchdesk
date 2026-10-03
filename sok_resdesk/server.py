@@ -514,6 +514,12 @@ def health() -> list[dict]:
 	except Exception as e:
 		out.append(_check("preservation", _("Preservation copies"), "warn", str(e)[:120]))
 	try:
+		from sok_resdesk.datacite import health_check as doi_check
+
+		out.append(doi_check())
+	except Exception as e:
+		out.append(_check("dois", _("DOIs"), "warn", str(e)[:120]))
+	try:
 		from sok_resdesk.requirements import health_check as requirements_check
 
 		out.append(requirements_check())

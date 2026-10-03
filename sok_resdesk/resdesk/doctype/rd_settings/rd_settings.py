@@ -21,6 +21,9 @@ class RDSettings(Document):
 		from sok_resdesk.preservation import validate_settings as validate_preservation
 
 		validate_preservation(self)
+		from sok_resdesk.datacite import validate_settings as validate_dois
+
+		validate_dois(self)
 
 	def on_update(self):
 		apply_branding(self)

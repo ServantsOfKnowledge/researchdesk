@@ -135,12 +135,16 @@ def validate_settings(doc) -> None:
 
 def leave_tombstone(item, reason: str = "Deleted", replaced_by: str = "") -> None:
 	"""A deleted book keeps its ARK alive: the ARK then explains what happened."""
-	if not item.get("persistent_id") or frappe.db.exists("RD Tombstone", {"ark": item.persistent_id}):
+	# a book with a DOI but no ARK keeps a tombstone too, under "doi:<DOI>" (datacite.py)
+	key = item.get("persistent_id") or (
+		f"doi:{item.doi}" if item.get("doi") and item.get("doi_state") == "Findable" else ""
+	)
+	if not key or frappe.db.exists("RD Tombstone", {"ark": key}):
 		return
 	frappe.get_doc(
 		{
 			"doctype": "RD Tombstone",
-			"ark": item.persistent_id,
+			"ark": key,
 			"item_id": item.name,
 			"title": (item.get("title") or "")[:140],
 			"creators": (item.get("creator_display") or "")[:140],

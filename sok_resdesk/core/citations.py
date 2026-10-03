@@ -128,6 +128,14 @@ def url_for(item: dict, base_url: str = "") -> str:
 	return item.get("source_url") or f"https://archive.org/details/{item['item_id']}"
 
 
+def link_for(item: dict, base_url: str = "") -> str:
+	"""The link a formatted citation ends with: the book's DOI when it has one (citation styles
+	prefer it), else url_for. A page citation keeps the page's own link."""
+	if item.get("doi") and not item.get("page_url"):
+		return f"https://doi.org/{item['doi']}"
+	return url_for(item, base_url)
+
+
 def cite_key(item: dict) -> str:
 	people = _people(item)
 	who = ""
@@ -194,6 +202,8 @@ def to_bibtex(item: dict, base_url: str = "", biblatex: bool = False) -> str:
 		fields.append(("pagetotal", str(item["page_count"])))
 	if page_phrase(item):
 		fields.append(("pages", _bib_escape(item.get("cite_page") or page_phrase(item))))
+	if item.get("doi"):
+		fields.append(("doi", item["doi"]))
 	fields.append(("url", url_for(item, base_url)))
 	fields.append(("urldate", date.today().isoformat()))
 	if item.get("on_archive_org", True):
@@ -235,6 +245,8 @@ def to_ris(item: dict, base_url: str = "") -> str:
 		lines.append(f"AB  - {item['description'][:2000]}")
 	if page_phrase(item):
 		lines.append(f"SP  - {item.get('cite_page') or page_phrase(item)}")
+	if item.get("doi"):
+		lines.append(f"DO  - {item['doi']}")
 	lines.append(f"UR  - {url_for(item, base_url)}")
 	lines.append(f"Y2  - {date.today().isoformat()}")
 	lines.append("DB  - Servants of Knowledge Research Desk")
@@ -278,6 +290,8 @@ def to_csl(item: dict, base_url: str = "") -> dict:
 			csl[dst] = item[src]
 	if item.get("page_count"):
 		csl["number-of-pages"] = str(item["page_count"])
+	if item.get("doi"):
+		csl["DOI"] = item["doi"]
 	return csl
 
 
@@ -315,7 +329,7 @@ def to_apa(item: dict, base_url: str = "") -> str:
 		parts.append(f"{item['publisher']}.")
 	if page_phrase(item):
 		parts.append(f"{page_phrase(item)}.")
-	parts.append(url_for(item, base_url))
+	parts.append(link_for(item, base_url))
 	return " ".join(parts)
 
 
@@ -335,7 +349,7 @@ def to_mla(item: dict, base_url: str = "") -> str:
 		parts.append(f"{pub}{', ' + page_phrase(item) if page_phrase(item) else ''}.")
 	elif page_phrase(item):
 		parts.append(f"{page_phrase(item)}.")
-	parts.append(f"Internet Archive, {url_for(item, base_url).replace('https://', '')}.")
+	parts.append(f"Internet Archive, {link_for(item, base_url).replace('https://', '')}.")
 	return " ".join(p.replace("..", ".") for p in parts)
 
 
@@ -351,7 +365,7 @@ def to_chicago(item: dict, base_url: str = "") -> str:
 		parts.append(f"{tail}{', ' + page_phrase(item).removeprefix('p. ') if page_phrase(item) else ''}.")
 	elif page_phrase(item):
 		parts.append(f"{page_phrase(item).removeprefix('p. ')}.")
-	parts.append(f"{url_for(item, base_url)}.")
+	parts.append(f"{link_for(item, base_url)}.")
 	return " ".join(p for p in parts if p).replace("..", ".")
 
 
@@ -387,6 +401,8 @@ def highwire_tags(item: dict, base_url: str = "") -> list[tuple[str, str]]:
 		tags.append(("citation_language", item["language"]))
 	if item.get("isbn"):
 		tags.append(("citation_isbn", item["isbn"]))
+	if item.get("doi"):
+		tags.append(("citation_doi", item["doi"]))
 	tags.append(("citation_public_url", url_for(item, base_url)))
 	if item.get("access_status") == "Open":
 		pdf = item.get("pdf_url", f"https://archive.org/download/{item['item_id']}/{item['item_id']}.pdf")
@@ -423,6 +439,8 @@ def json_ld(item: dict, base_url: str = "") -> dict:
 		data["license"] = item["licence_url"]
 	if item.get("thumbnail_url"):
 		data["image"] = item["thumbnail_url"]
+	if item.get("doi"):
+		data["identifier"] = {"@type": "PropertyValue", "propertyID": "DOI", "value": item["doi"]}
 	return data
 
 

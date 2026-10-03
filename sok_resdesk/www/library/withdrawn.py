@@ -13,7 +13,13 @@ def get_context(context):
 	from sok_resdesk.identifiers import resolve
 
 	ark = frappe.form_dict.get("ark") or ""
-	where = resolve(ark)
+	if ark.lower().startswith("doi:"):  # a deleted book that had a DOI but no ARK (datacite.py)
+		stone = frappe.db.get_value("RD Tombstone", {"ark": ark}, ["name", "item_id", "title"], as_dict=True)
+		if not stone:
+			raise frappe.PageDoesNotExistError
+		where = {"kind": "tombstone", "ark": ark, "item": None, "tombstone": stone}
+	else:
+		where = resolve(ark)
 	if where["kind"] == "unknown":
 		raise frappe.PageDoesNotExistError
 	if where["kind"] == "book":  # back on the portal since the link was made

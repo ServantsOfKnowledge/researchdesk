@@ -20,6 +20,7 @@ from frappe.utils import cint, get_fullname
 
 from sok_resdesk import access
 from sok_resdesk.core import annotations as core
+from sok_resdesk.core import wikidata
 
 DT = "RD Annotation"
 MANAGERS = ("System Manager", "ResDesk Manager")
@@ -36,6 +37,9 @@ FIELDS = [
 	"body",
 	"tags",
 	"link",
+	"entity",
+	"entity_label",
+	"entity_description",
 	"exact",
 	"prefix",
 	"suffix",
@@ -170,7 +174,28 @@ def _clean(values: dict, book: dict, existing=None) -> dict:
 	link = link.strip()
 	if link and not link.startswith(("https://", "http://")):
 		frappe.throw(_("A link must start with https://"))
+	entity_in = values.get("entity") if "entity" in values else None
+	if entity_in is None and kind == "Link" and wikidata.qid(link):
+		entity_in = link  # a link to a Wikidata page says what the passage is about
+	if entity_in is None:
+		entity = existing.entity if existing else ""
+		names = (existing.entity_label, existing.entity_description) if existing else ("", "")
+	else:
+		entity = wikidata.qid(entity_in) or ""
+		if entity_in and not entity:
+			frappe.throw(_("Choose a Wikidata item (a Q-number such as Q2724213)."))
+		names = (
+			(existing.entity_label, existing.entity_description)
+			if existing and existing.entity == entity
+			else ("", "")
+		)
+		if entity and not names[0]:
+			found = describe([entity]).get(entity) or {}
+			names = (found.get("label") or "", found.get("description") or "")
 	out = {
+		"entity": entity,
+		"entity_label": (names[0] or entity)[:140] if entity else "",
+		"entity_description": (names[1] or "")[:140] if entity else "",
 		"kind": kind,
 		"visibility": visibility,
 		"research_group": group,
@@ -210,6 +235,7 @@ def add(
 	visibility: str = "Private",
 	research_group: str = "",
 	page_label: str = "",
+	entity: str = "",
 ) -> dict:
 	"""A new note on a passage (start, end in the page text) or a region (x,y,w,h in percent)."""
 	book = _book(item_id)
@@ -224,6 +250,7 @@ def add(
 			"link": link,
 			"visibility": visibility,
 			"research_group": research_group,
+			"entity": entity,
 		},
 		book,
 	)
@@ -274,7 +301,7 @@ def edit(name: str, **values) -> dict:
 	values = {
 		k: v
 		for k, v in values.items()
-		if k in ("kind", "body", "tags", "link", "visibility", "research_group")
+		if k in ("kind", "body", "tags", "link", "visibility", "research_group", "entity")
 	}
 	doc.update(_clean(values, book, existing=doc))
 	doc.save(ignore_permissions=True)
@@ -294,6 +321,164 @@ def review(name: str, decision: str) -> None:
 	if decision not in ("Approved", "Rejected"):
 		frappe.throw(_("Approve or reject."))
 	frappe.db.set_value(DT, name, "review_status", decision)
+	book_notes_changed(frappe.db.get_value(DT, name, "item"))
+
+
+# -- notes as data: Wikidata items, tags, and the books they find -----------------------------------
+
+
+def _http_json(url: str) -> dict:
+	import requests
+
+	resp = requests.get(
+		url,
+		timeout=8,
+		headers={"User-Agent": "SOK-ResearchDesk (+https://github.com/ServantsOfKnowledge/researchdesk)"},
+	)
+	resp.raise_for_status()
+	return resp.json()
+
+
+def describe(ids: list[str], language: str = "en") -> dict[str, dict]:
+	"""{Q: {label, description}} from Wikidata (cached a week); {} when it can't be reached."""
+	ids = [q for q in dict.fromkeys(wikidata.qid(i) for i in ids) if q]
+	out, missing = {}, []
+	cache = frappe.cache()
+	for q in ids:
+		hit = cache.get_value(f"resdesk:wikidata:{language}:{q}")
+		if hit:
+			out[q] = hit
+		else:
+			missing.append(q)
+	if missing:
+		try:
+			found = wikidata.parse_entities(_http_json(wikidata.entities_url(missing, language)), language)
+		except Exception:
+			found = {}
+		for q, v in found.items():
+			cache.set_value(f"resdesk:wikidata:{language}:{q}", v, expires_in_sec=7 * 86400)
+			out[q] = v
+	return out
+
+
+@frappe.whitelist(methods=["GET"])
+@rate_limit(limit=60, seconds=60)
+def wikidata_search(q: str, language: str = "") -> list[dict]:
+	"""Wikidata items matching what a reader typed, for "About" on a note (logged-in readers)."""
+	if frappe.session.user == "Guest":
+		frappe.throw(_("Log in to add notes."), frappe.PermissionError)
+	q = (q or "").strip()[:100]
+	if len(q) < 2:
+		return []
+	direct = wikidata.qid(q)
+	if direct:
+		found = describe([direct])
+		return [{"id": direct, **found.get(direct, {"label": direct, "description": ""})}]
+	lang = wikidata.search_language(q, (language or "en")[:8])
+	key = f"resdesk:wikidata-search:{lang}:{q.lower()}"
+	hits = frappe.cache().get_value(key)
+	if hits is None:
+		try:
+			hits = wikidata.parse_search(_http_json(wikidata.search_url(q, lang)))
+		except Exception:
+			frappe.throw(
+				_("Wikidata could not be reached just now. Try again, or paste the item's Q-number.")
+			)
+		frappe.cache().set_value(key, hits, expires_in_sec=86400)
+	return hits
+
+
+def public_labels(item_id: str) -> dict:
+	"""The tags and Wikidata items of a book's public notes (approved): searched with the book."""
+	rows = frappe.db.sql(
+		f"""select tags, entity, entity_label from `tab{DT}`
+		where item = %s and visibility = 'Public' and review_status = 'Approved'""",
+		item_id,
+		as_dict=True,
+	)
+	tags, entities, labels = [], [], []
+	for r in rows:
+		tags.extend(core.split_tags(r.tags))
+		if r.entity:
+			entities.append(r.entity)
+			if r.entity_label:
+				labels.append(r.entity_label)
+	return {
+		"note_tags": list(dict.fromkeys(tags))[:200],
+		"note_entities": list(dict.fromkeys(entities))[:200],
+		"note_entity_names": list(dict.fromkeys(labels))[:200],
+	}
+
+
+def _counts_publicly(doc) -> bool:
+	return bool(doc) and doc.visibility == "Public" and doc.review_status == "Approved"
+
+
+def on_change(doc, method=None) -> None:
+	"""A public note added, changed or gone: the book's search entry follows (tags, Wikidata)."""
+	before = doc.get_doc_before_save() if method == "on_update" else None
+	if _counts_publicly(doc) or _counts_publicly(before):
+		book_notes_changed(doc.item)
+
+
+def book_notes_changed(item_id: str | None) -> None:
+	if not item_id:
+		return
+	frappe.enqueue(
+		"sok_resdesk.search.update_item_fields",
+		queue="short",
+		names=[item_id],
+		enqueue_after_commit=True,
+		job_id=f"resdesk-notes-{item_id}",
+		deduplicate=True,
+	)
+
+
+def _public_notes(where: str, params: dict, limit: int = 500) -> list[dict]:
+	"""Approved public notes matching `where`, on books this visitor may read, with page links."""
+	rows = frappe.db.sql(
+		f"""select {", ".join("a." + f for f in FIELDS)}, i.title as book_title, i.persistent_id,
+		i.visibility as book_visibility, i.year, i.language_label
+		from `tab{DT}` a join `tabRD Item` i on i.name = a.item
+		where i.published = 1 and a.visibility = 'Public' and a.review_status = 'Approved' and {where}
+		order by i.title, a.item, a.leaf, a.pos_start limit %(limit)s""",
+		{**params, "limit": limit},
+		as_dict=True,
+	)
+	rows = [r for r in rows if access.can_read(r.book_visibility)]
+	return _with_citation(rows)
+
+
+def notes_about(entity: str) -> list[dict]:
+	"""Public notes about a Wikidata item (the portal's /library/entity/Q… page)."""
+	q = wikidata.qid(entity)
+	return _public_notes("a.entity = %(q)s", {"q": q}) if q else []
+
+
+def notes_tagged(tag: str) -> list[dict]:
+	"""Public notes with a tag (the portal's /library/tag/… page)."""
+	tag = (tag or "").strip()
+	if not tag:
+		return []
+	notes = _public_notes("a.tags like %(like)s", {"like": f"%{tag}%"})
+	return [n for n in notes if tag.lower() in [t.lower() for t in n.get("tags") or []]]
+
+
+def by_book(notes: list[dict]) -> list[dict]:
+	"""Notes grouped by book, in order: [{item, title, citation, notes}]."""
+	out: list[dict] = []
+	for n in notes:
+		if not out or out[-1]["item"] != n["item"]:
+			out.append(
+				{
+					"item": n["item"],
+					"title": n.get("book_title"),
+					"citation": n.get("book_citation"),
+					"notes": [],
+				}
+			)
+		out[-1]["notes"].append(n)
+	return out
 
 
 # -- my notes, exports and the W3C collection ---------------------------------------------------------
@@ -317,7 +502,10 @@ def _notes_for(
 	if item:
 		where.append("a.item = %(item)s")
 	if q:
-		where.append("(a.body like %(q)s or a.exact like %(q)s or a.tags like %(q)s or i.title like %(q)s)")
+		where.append(
+			"(a.body like %(q)s or a.exact like %(q)s or a.tags like %(q)s or a.entity_label like %(q)s"
+			" or a.entity = %(q_exact)s or i.title like %(q)s)"
+		)
 	return frappe.db.sql(
 		f"""select {", ".join("a." + f for f in FIELDS)}, i.title as book_title, i.persistent_id
 		from `tab{DT}` a join `tabRD Item` i on i.name = a.item
@@ -326,6 +514,7 @@ def _notes_for(
 		{
 			**params,
 			"q": f"%{q}%",
+			"q_exact": q.strip().upper(),
 			"kind": kind,
 			"item": item,
 			"limit": min(cint(limit) or 200, 2000),
@@ -394,11 +583,18 @@ def _url(method: str) -> str:
 	return f"{base_url()}/api/method/sok_resdesk.annotations.{method}"
 
 
+def annotation_iri(item_id: str, name: str) -> str:
+	"""A note's address in the Web Annotation Protocol (annotation_protocol.py): GET, PUT, DELETE."""
+	from sok_resdesk.annotation_protocol import annotation_iri as iri
+
+	return iri(item_id, name)
+
+
 def _w3c(note: dict) -> dict:
 	return core.to_w3c(
 		{
 			**note,
-			"id": f"{_url('get')}?name={note['name']}",
+			"id": annotation_iri(note["item"], note["name"]),
 			"start": note.get("pos_start"),
 			"end": note.get("pos_end"),
 			"creator": note.get("author") or "",

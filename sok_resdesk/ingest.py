@@ -224,7 +224,9 @@ def _ingest_one(
 	data = ia.metadata(item_id)
 	meta, files = data.get("metadata", {}), data.get("files", [])
 	record = normalize_ia_item(item_id, meta, files)
+	first_pass = cint(frappe.db.get_value("RD Item", item_id, "details_pending"))
 	name, created = upsert_item(record, raw=meta, profile=profile)
+	created = created or bool(first_pass)  # listed by the first pass, but new to this run
 
 	pages: list[dict] = []
 	if fetch_text and record["has_page_text"]:
@@ -380,6 +382,7 @@ def plan_run(
 			)
 
 		query = profile.build_query()
+		records: dict[str, dict] = {}  # identifier -> archive.org's search record (first pass)
 		limit = cint(profile.max_items) if limit_override is None else cint(limit_override)
 		only_new = run.triggered_by == "Scheduler" or not cint(profile.update_existing)
 		skipped = 0
@@ -415,12 +418,19 @@ def plan_run(
 				f"{matching:,} items match on IA; taking {'all' if not limit else f'up to {limit:,}'}",
 				verbose,
 			)
-			ids = list(dict.fromkeys(ia.iter_identifiers(query, limit=limit)))
+			if cint(profile.get("catalogue_first", 1)):
+				records = _list_records(ia, query, limit, run_name, verbose)
+			ids = list(records) if records else list(dict.fromkeys(ia.iter_identifiers(query, limit=limit)))
 		if only_new and ids:
 			existing: set[str] = set()
 			for i in range(0, len(ids), 1000):
 				existing.update(
-					frappe.get_all("RD Item", filters={"name": ("in", ids[i : i + 1000])}, pluck="name")
+					frappe.get_all(
+						"RD Item",
+						# books from an earlier first pass whose details never came are not done
+						filters={"name": ("in", ids[i : i + 1000]), "details_pending": 0},
+						pluck="name",
+					)
 				)
 			skipped = len(existing)
 			ids = [i for i in ids if i not in existing]
@@ -432,6 +442,9 @@ def plan_run(
 				skipped += len(done)
 				_log(run_name, f"{len(done):,} books were already done since this run started", verbose)
 
+		if records and ids:
+			if catalogue_first(run_name, [records[i] for i in ids if i in records], profile.name, verbose):
+				return []  # cancelled while cataloguing
 		size = max(1, cint(settings().get("batch_size")) or 50)
 		batches = [ids[i : i + size] for i in range(0, len(ids), size)]
 		frappe.db.sql(
@@ -476,6 +489,72 @@ def plan_run(
 		frappe.db.commit()
 		frappe.log_error("Research Desk: ingest planning failed", traceback.format_exc())
 		return []
+
+
+def _list_records(ia: IAClient, query: str, limit: int, run_name: str, verbose: bool) -> dict[str, dict]:
+	"""Every matching book's search record, thousands per request: the fuller list of fields,
+	else the core one, else nothing (the run then lists identifiers only, as before)."""
+	from sok_resdesk.core.ia import CATALOGUE_FIELDS, CATALOGUE_FIELDS_CORE
+
+	for fields in (CATALOGUE_FIELDS, CATALOGUE_FIELDS_CORE):
+		try:
+			out: dict[str, dict] = {}
+			for row in ia.iter_records(query, limit=limit, fields=fields):
+				if row.get("identifier"):
+					out.setdefault(row["identifier"], row)
+			_log(run_name, f"{len(out):,} search records fetched from archive.org in bulk", verbose)
+			return out
+		except IAError as e:
+			_log(run_name, f"bulk listing with fields {fields[:40]}… failed: {str(e)[:200]}", verbose)
+	return {}
+
+
+CATALOGUE_CHUNK = 500  # books catalogued and sent to search together in the first pass
+
+
+def catalogue_first(run_name: str, rows: list[dict], profile: str, verbose: bool = False) -> bool:
+	"""The first pass: catalogue every new book from its search record and send it to search, so
+	the portal lists them all within minutes. Each is marked details_pending; the batches then
+	fetch its full record and page text. Returns True if the run was cancelled meanwhile."""
+	from sok_resdesk.capacity import BookLimitReached
+	from sok_resdesk.core.ia import files_from_formats
+	from sok_resdesk.search import IndexBuffer
+
+	new = [r for r in rows if not frappe.db.exists("RD Item", r["identifier"])]
+	if not new:
+		return False
+	_log(run_name, f"cataloguing {len(new):,} new books from their search records first", verbose)
+	done = failed = 0
+	for start in range(0, len(new), CATALOGUE_CHUNK):
+		if _status(run_name) == "Cancelled":
+			_log(run_name, "cancelled while cataloguing", verbose)
+			return True
+		buffer = IndexBuffer(flush_books=CATALOGUE_CHUNK)
+		for row in new[start : start + CATALOGUE_CHUNK]:
+			item_id = row["identifier"]
+			try:
+				record = normalize_ia_item(item_id, row, files_from_formats(item_id, row.get("format")))
+				name, _created = upsert_item(record, raw=None, profile=profile, quick=True)
+				frappe.db.commit()
+				buffer.add(item_to_record(frappe.get_doc("RD Item", name)), [], replace_pages=False)
+				done += 1
+			except BookLimitReached:
+				frappe.db.rollback()
+				_log(run_name, "book limit reached while cataloguing: the rest wait", verbose)
+				_flush_index(buffer, run_name, 0, verbose)
+				return False
+			except Exception as e:
+				frappe.db.rollback()
+				failed += 1  # its batch will try it again in full
+				if failed <= 20:
+					_log(run_name, f"first pass: {item_id} left for its batch ({str(e)[:150]})", verbose)
+		_flush_index(buffer, run_name, 0, verbose)
+		_log(
+			run_name,
+			f"catalogued {done:,} of {len(new):,} (on the portal now; details and text follow)",
+			verbose,
+		)
+	return False
 
 
 WINDOW_MIN, WINDOW_MAX = 4, 40  # batches of one run in the queue at a time
@@ -586,8 +665,8 @@ def _already_done(item_id: str, since, only_new: bool) -> bool:
 	"""Another run (or an earlier try of this one) has already brought this book in, so it
 	isn't fetched again: it was ingested after this run started, or it is in the catalogue
 	and this run only takes new books."""
-	row = frappe.db.sql("select last_ingested from `tabRD Item` where name=%s", item_id)
-	if not row:
+	row = frappe.db.sql("select last_ingested, details_pending from `tabRD Item` where name=%s", item_id)
+	if not row or cint(row[0][1]):  # not in, or only catalogued by the first pass
 		return False
 	return only_new or bool(since and row[0][0] and row[0][0] >= since)
 

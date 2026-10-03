@@ -26,7 +26,7 @@ researchdesk/
     │                                           helpdocs.py (docs as help pages)  collections.py (rules, slugs)  metaio.py (export formats, spreadsheet)  push.py (IA, Koha, Wikidata, webhook clients)
     │                                           ark.py (ARKs, check character)  ocfl.py (preservation copies)  replica.py (second copy: folder, S3)  bagit.py (BagIt bags)
     │                                           ocrquality.py (OCR scores)  ocr_engine.py (Tesseract by zone, several languages)  zones.py (page zones)  scandata.py (OCR page ↔ page image)
-    │                                           translit.py (romanised words → Indic spellings)  annotations.py (W3C anchoring)  capacity.py  quiet.py  schema.py  updates.py  equipment.py (programs, packages, versions)
+    │                                           translit.py (romanised words → Indic spellings)  groundtruth.py (OCR training sets)  wikidata.py  datacite.py (DOI records)  annotations.py (W3C anchoring)  capacity.py  quiet.py  schema.py  updates.py  equipment.py (programs, packages, versions)
     ├── catalogue.py        settings, upsert RD Item, record <-> dict
     ├── ingest.py           ingest jobs, scheduler, whitelisted actions
     ├── ia_sync.py          keeping profiles in step with archive.org (new, changed, removed books)
@@ -41,7 +41,10 @@ researchdesk/
     ├── pagetext.py         page text versions: proofreading, validation, history
     ├── reocr.py            re-OCR of a page (zones) or of whole books
     ├── page_order.py       putting each page's text with its own image (books from before 0.24.1)
-    ├── annotations.py      readers' notes on pages, research groups, exports
+    ├── annotations.py      readers' notes on pages, research groups, exports, Wikidata items and tags
+    ├── annotation_protocol.py  the W3C Web Annotation Protocol for other annotation tools
+    ├── groundtruth.py      ground-truth sets: proofread pages with their images, licence-gated
+    ├── datacite.py         DOIs from DataCite for chosen collections
     ├── dashboard.py        the numbers on the Research Desk workspace
     ├── analytics.py        usage statistics (built-in, PostHog, Plausible, Umami)
     ├── curation.py         curated collections: membership, rules, counts

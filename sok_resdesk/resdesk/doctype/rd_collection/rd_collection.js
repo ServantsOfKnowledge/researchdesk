@@ -37,6 +37,14 @@ frappe.ui.form.on("RD Collection", {
 				)
 			)
 		);
+		// DOIs from DataCite for its public books (Settings → DOIs)
+		if (frm.doc.give_dois) {
+			frm.add_custom_button(__("Register DOIs"), () =>
+				frappe.call({ method: "sok_resdesk.datacite.register_collection", args: { collection: frm.doc.name } }).then((r) =>
+					frappe.msgprint(__("Sending {0} books to DataCite in the background. Their DOIs appear on their forms; failures go to the error log.", [r.message.books]))
+				)
+			);
+		}
 	},
 	title(frm) {
 		if (frm.is_new() && frm.doc.title && !frm.doc.slug) {

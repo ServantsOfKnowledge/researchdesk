@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-30 14:00:00.000000",
- "modified": "2026-10-05 09:00:00.000000",
+ "modified": "2026-10-08 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Collection",
@@ -15,6 +15,7 @@
   "published",
   "featured",
   "preserve",
+  "give_dois",
   "column_break_c",
   "cover_image",
   "curator",
@@ -64,6 +65,13 @@
    "label": "Preserve",
    "default": "0",
    "description": "Keep the library's own copies of the books in this collection (when Settings → Preservation → Preserve is set to collections marked Preserve)."
+  },
+  {
+   "fieldname": "give_dois",
+   "fieldtype": "Check",
+   "label": "Give DOIs",
+   "default": "0",
+   "description": "Give this collection's public books DOIs from DataCite (Settings → DOIs)."
   },
   {
    "fieldname": "column_break_c",

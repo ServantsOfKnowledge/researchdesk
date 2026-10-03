@@ -33,9 +33,11 @@ someone. More on searching: [Searching](searching.md).
 
 ## Collections
 
-**Browse collections** (or **All collections**) on the home page lists the groups of books the
-library has put together, such as a subject, an author or a course. Each collection has its own
-page with the same search and filters, limited to that collection.
+**Browse collections** (or **All collections**) on the home page lists every collection on one
+page: each main collection as a heading with all its sub-collections under it (a deeper one shows
+the path to it, *Kannada books › Kannada poetry*), and the collections that stand alone under
+**More collections**. The links at the top jump to each group. Each collection has its own page
+with the same search and filters, limited to that collection.
 
 ![A collection page](../sok_resdesk/public/images/guide/portal-collection.png)
 
@@ -83,8 +85,15 @@ Logged in, you can keep notes in **Page & text**:
   and **OCR error** (the text doesn't match the page: the library's proofreaders see it).
 - **Mark a region** of the page image (a figure, a stamp, a margin note): press **Mark a region**
   and drag a box over it.
+- **About** (optional): what the passage is about, a person, place, work or idea on Wikidata.
+  Type a name (in English or in its own script: ಪುರಂದರ ದಾಸ works) and pick it from the list.
 - **Who can see it**: only you (the start), a research group you belong to, or everyone once the
   library has looked at it.
+
+Public notes become a way in: a note's Wikidata item and tags are links. **Purandara Dasa**
+opens `/library/entity/Q…`, every page readers say is about him, book by book; a tag opens
+`/library/tag/…`, every page with that tag. Books are also found by searching for the names and
+tags in their public notes.
 
 Notes show as coloured marks in the text and boxes on the image; click one to find it in the list
 under the page. **Show notes** hides them while you read. Your notes stay with their words even
@@ -93,6 +102,11 @@ when the page text is corrected later; a note whose words are gone says so.
 **My notes** (`/library/notes`) lists your notes on every book, and your groups', to search, open
 at their page, and export with the page's citation: as Markdown (for your writing), a spreadsheet,
 or W3C Web Annotations (for other annotation tools).
+
+Annotation tools that speak the **W3C Web Annotation Protocol** can read a book's notes and add
+yours directly: the book's page names its notes' address (`rel="…oa#annotationService"`), and
+your login or an API key lets the tool write. Notes added that way are private until you share
+them in Page & text.
 
 ## Proofreading
 

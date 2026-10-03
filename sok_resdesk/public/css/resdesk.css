@@ -358,3 +358,30 @@
 .rd-proof__langs { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; font-size: .88rem; margin: 6px 0; }
 .rd-proof__langs label { display: inline-flex; gap: 4px; align-items: center; }
 .rd-zone-list select[data-zlang] { max-width: 11em; }
+
+/* Ground truth (/library/ground-truth) */
+.rd-gt-list { list-style: none; padding: 0; margin: 16px 0; display: grid; gap: 12px; }
+.rd-gt { border: 1px solid var(--border-color, #e2e2e2); border-radius: 8px; padding: 12px 16px; }
+.rd-gt h2 { font-size: 1.1rem; margin: 0 0 4px; }
+.rd-gt .btn { margin-right: 8px; }
+.rd-gt__sum code { word-break: break-all; font-size: .8em; }
+
+/* Notes as data: Wikidata items and tags (/library/entity/Q…, /library/tag/…, the page reader) */
+.rd-notes-book { margin: 20px 0; }
+.rd-notes-book h2 { font-size: 1.1rem; margin: 0 0 2px; }
+a.rd-chip { text-decoration: none; }
+.rd-chip--entity { border-color: var(--rd-accent, #2a6cb0); }
+.rd-chip--entity::before { content: "◆ "; font-size: .7em; vertical-align: 1px; }
+.rd-entity-pick { position: relative; }
+.rd-entity-pick__list { list-style: none; margin: 2px 0 0; padding: 0; border: 1px solid var(--border-color, #ddd); border-radius: 6px; background: var(--card-bg, #fff); max-height: 220px; overflow: auto; }
+.rd-entity-pick__list li button { display: block; width: 100%; text-align: left; padding: 6px 8px; border: 0; background: none; cursor: pointer; }
+.rd-entity-pick__list li button:hover, .rd-entity-pick__list li button:focus { background: var(--subtle-fg, #f3f3f3); }
+.rd-entity-pick__list small { display: block; color: var(--text-muted, #666); }
+
+/* All collections on one page: a group per top-level collection, its sub-collections under it */
+.rd-coll-jump { position: sticky; top: 0; z-index: 2; background: var(--rd-bg); padding: 8px 0; }
+.rd-coll-group { margin: 18px 0 8px; scroll-margin-top: 56px; }
+.rd-coll-group__head { border-bottom: 1px solid var(--rd-border); margin-bottom: 8px; padding-bottom: 4px; }
+.rd-coll-group__head h2 { font-size: 1.2rem; margin: 0; }
+.rd-coll-group__head p { margin: 2px 0 0; font-size: .9rem; }
+.rd-coll-card__trail { font-size: .75rem; margin: 0 0 2px; }

@@ -3,6 +3,8 @@
 import csv
 import io
 
+import pytest
+
 from sok_resdesk.core import annotations as an
 
 TEXT = "ಕನಕದಾಸರ ಕೀರ್ತನೆಗಳು. Kanakadasa sang of Udupi; Udupi Krishna faced him."
@@ -52,6 +54,16 @@ def test_w3c_annotation():
 	assert kinds == {"TextQuoteSelector", "TextPositionSelector"}
 	purposes = [b["purpose"] for b in w["body"]]
 	assert purposes == ["commenting", "tagging", "tagging", "identifying"]  # tags de-duplicated
+	assert w["body"][-1] == {
+		"type": "SpecificResource",
+		"source": "https://www.wikidata.org/wiki/Q1352279",
+		"purpose": "identifying",
+	}
+	# what the passage is about: the Wikidata item, once, as linked data names it
+	about = an.to_w3c({**note, "entity": "Q1352279"}, "p")
+	assert [b.get("source") for b in about["body"] if b.get("type") == "SpecificResource"] == [
+		"http://www.wikidata.org/entity/Q1352279"
+	]
 	r = an.to_w3c({"kind": "Highlight", "region": "xywh=percent:1,2,3,4"}, "p", image_url="img.jpg")
 	assert r["motivation"] == "highlighting" and r["target"]["source"] == "img.jpg"
 	assert r["target"]["selector"]["type"] == "FragmentSelector" and "body" not in r
@@ -83,3 +95,100 @@ def test_exports():
 	rows = list(csv.reader(io.StringIO(an.to_csv(notes))))
 	assert rows[0] == list(an.CSV_COLUMNS) and rows[2][3] == "(region)" and len(rows) == 4
 	assert an.split_tags(["a", " b ", "a", ""]) == ["a", "b"]
+
+
+def test_leaf_of_a_target():
+	assert an.leaf_of("https://lib.example/library/item/x?page=12&view=text") == 12
+	assert an.leaf_of("https://lib.example/ark:/12345/r7b2/n7") == 7
+	assert an.leaf_of("https://archive.org/details/x/page/n3") == 3
+	assert an.leaf_of("https://archive.org/download/x/page/n4.jpg") == 4
+	assert an.leaf_of("https://lib.example/library/item/x") is None
+
+
+def test_a_web_annotation_from_another_tool_becomes_a_note():
+	note = an.from_w3c(
+		{
+			"@context": "http://www.w3.org/ns/anno.jsonld",
+			"type": "Annotation",
+			"motivation": "commenting",
+			"body": [
+				{
+					"type": "TextualBody",
+					"value": "Same verse as in the 1890 edition",
+					"purpose": "commenting",
+				},
+				{"type": "TextualBody", "value": "haridasa", "purpose": "tagging"},
+				{
+					"type": "SpecificResource",
+					"source": "http://www.wikidata.org/entity/Q2724213",
+					"purpose": "identifying",
+				},
+				"https://example.org/edition-1890",
+			],
+			"target": {
+				"source": "https://lib.example/library/item/x?page=5&view=text",
+				"selector": [
+					{"type": "TextQuoteSelector", "exact": "Udupi", "prefix": "of ", "suffix": " Krishna"},
+					{"type": "TextPositionSelector", "start": 42, "end": 47},
+				],
+			},
+		}
+	)
+	assert note["kind"] == "Comment" and note["leaf"] == 5 and note["entity"] == "Q2724213"
+	assert note["body"] == "Same verse as in the 1890 edition" and note["tags"] == "haridasa"
+	assert note["link"] == "https://example.org/edition-1890"
+	assert (note["exact"], note["start"], note["end"]) == ("Udupi", 42, 47)
+	region = an.from_w3c(
+		{
+			"type": "Annotation",
+			"motivation": "highlighting",
+			"target": {
+				"source": "https://archive.org/download/x/page/n2.jpg",
+				"selector": {"type": "FragmentSelector", "value": "xywh=percent:10,10,20,20"},
+			},
+		}
+	)
+	assert region["kind"] == "Highlight" and region["region"] == "xywh=percent:10,10,20,20"
+
+
+@pytest.mark.parametrize(
+	"bad",
+	[
+		{"type": "Note"},
+		{"type": "Annotation"},
+		{"type": "Annotation", "target": "https://lib.example/library/item/x"},
+		{"type": "Annotation", "target": {"source": "https://lib.example/library/item/x?page=1"}},
+		{
+			"type": "Annotation",
+			"target": {"source": "x?page=1", "selector": {"type": "FragmentSelector", "value": "t=1"}},
+		},
+	],
+)
+def test_annotations_that_cannot_be_notes_say_why(bad):
+	with pytest.raises(an.AnnotationError):
+		an.from_w3c(bad)
+
+
+def test_a_round_trip_keeps_the_note():
+	w = an.to_w3c(
+		{"kind": "Tag", "tags": "a, b", "entity": "Q1", "exact": "x", "start": 1, "end": 2},
+		"https://lib.example/library/item/x?page=9&view=text",
+	)
+	back = an.from_w3c(w)
+	assert (back["kind"], back["tags"], back["entity"], back["leaf"], back["exact"]) == (
+		"Tag",
+		"a, b",
+		"Q1",
+		9,
+		"x",
+	)
+
+
+def test_collection_pages():
+	c = an.collection("https://l/c/", "Notes", 250, 100)
+	assert c["type"] == ["BasicContainer", "AnnotationCollection"] and c["total"] == 250
+	assert c["first"].endswith("?page=0") and c["last"].endswith("?page=2")
+	p = an.collection_page([{"id": "a"}], "https://l/c/", 1, 250, 100, embed=False)
+	assert p["items"] == ["a"] and p["startIndex"] == 100 and p["partOf"]["total"] == 250
+	assert p["next"].endswith("?page=2&iris=1") and p["prev"].endswith("?page=0&iris=1")
+	assert "first" not in an.collection("https://l/c/", "Notes", 0, 100)

@@ -403,6 +403,25 @@ Every setting:
 | Smallest Collection to Show | Only make a page for archive.org collections with at least this many of your books. |
 | Skip These archive.org Collections | archive.org collection identifiers that should not get a page, one per line (for example a big general collection most of your books are also in). |
 
+**Ground Truth**
+
+| Setting | What it does |
+|---|---|
+| Licence for Ground Truth | Under which licence the library shares its corrected texts. Until one is chosen, sets are made for the library's own use only and none can be put on the portal. CC0: no conditions; CC-BY: credit; CC-BY-SA: credit and share alike. Choices: *CC0-1.0*, *CC-BY-4.0*, *CC-BY-SA-4.0*. |
+| Credit Line | How reusers should credit the set, e.g. <i>Servants of Knowledge and its volunteer proofreaders</i>. |
+| Name the Proofreaders | Put each page's proofreader and validator (their full names, never their emails) in the set's manifest. Ask them first. |
+
+**DOIs (DataCite)**
+
+| Setting | What it does |
+|---|---|
+| Give DOIs | Register DOIs for the books of collections marked Give DOIs, every night and from a collection's form. |
+| DataCite Test System | Use DataCite's test system (api.test.datacite.org) while trying this out: its DOIs never resolve and never show in citations. Untick once the library's production account is ready. |
+| DOI Prefix | The prefix DataCite gave the library, e.g. <i>10.12345</i>. |
+| DataCite Repository ID | The repository's ID in DataCite Fabrica, e.g. <i>SOK.LIBRARY</i>. |
+| DataCite Repository Password | The repository's password in DataCite Fabrica. Kept encrypted. |
+| DOI Shoulder | Put before each book's identifier in its DOI: 10.12345/<b>rd.</b>kanakadasa1950. Never change it once DOIs are given. |
+
 **Usage Statistics**
 
 | Setting | What it does |

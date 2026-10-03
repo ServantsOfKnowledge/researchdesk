@@ -61,6 +61,8 @@ def item_to_record(doc) -> dict:
 		"thumbnail_url": _absolute(doc.thumbnail_url or ""),
 		"ark": doc.ark or "",
 		"persistent_id": (doc.get("persistent_id") or "") if _arks_on() else "",
+		# only a DOI that resolves is cited (DataCite's test system makes ones that don't)
+		"doi": doc.get("doi") if doc.get("doi_state") == "Findable" else "",
 		"has_fulltext": bool(doc.has_fulltext),
 		"has_page_text": bool(doc.has_page_text),
 		"on_archive_org": (bool(doc.on_archive_org) or doc.source == "Internet Archive")
@@ -72,7 +74,18 @@ def item_to_record(doc) -> dict:
 		"curated_collections": [r.collection for r in doc.get("curated_collections") or []],
 		"set_specs": [c for c in (doc.collections or "").splitlines() if c.strip()]
 		+ [f"rd:{r.collection}" for r in doc.get("curated_collections") or []],
+		**_note_labels(doc.item_id),
 	}
+
+
+def _note_labels(item_id: str) -> dict:
+	"""Tags and Wikidata items from the book's public notes (searched with the book)."""
+	try:
+		from sok_resdesk.annotations import public_labels
+
+		return public_labels(item_id)
+	except Exception:  # e.g. during install, before the notes table exists
+		return {}
 
 
 def _arks_on() -> bool:
@@ -158,8 +171,12 @@ DESCRIPTIVE = (
 )
 
 
-def upsert_item(record: dict, raw: dict | None = None, profile: str | None = None) -> tuple[str, bool]:
-	"""Create or update an RD Item from a normalised record. Returns (name, created)."""
+def upsert_item(
+	record: dict, raw: dict | None = None, profile: str | None = None, quick: bool = False
+) -> tuple[str, bool]:
+	"""Create or update an RD Item from a normalised record. Returns (name, created).
+	`quick`: catalogued from archive.org's search record only (ingest's first pass); its full
+	record and page text follow in the background (details_pending)."""
 	exists = frappe.db.exists("RD Item", record["item_id"])
 	if not exists:
 		from sok_resdesk.capacity import check_room
@@ -226,7 +243,7 @@ def upsert_item(record: dict, raw: dict | None = None, profile: str | None = Non
 
 	alts = record.get("alt_creators") or []
 	if locked:
-		return _save_ingested(doc, exists, raw, profile, record)
+		return _save_ingested(doc, exists, raw, profile, record, quick)
 	doc.set("creators", [])
 	seen = set()
 	for i, name in enumerate(record.get("creators") or []):
@@ -244,10 +261,10 @@ def upsert_item(record: dict, raw: dict | None = None, profile: str | None = Non
 			seen.add(name)
 			doc.append("subjects", {"subject": name})
 
-	return _save_ingested(doc, exists, raw, profile, record)
+	return _save_ingested(doc, exists, raw, profile, record, quick)
 
 
-def _save_ingested(doc, exists, raw, profile, record) -> tuple[str, bool]:
+def _save_ingested(doc, exists, raw, profile, record, quick: bool = False) -> tuple[str, bool]:
 	if raw is not None:
 		doc.raw_metadata = json.dumps(raw, ensure_ascii=False)[:500000]
 	if profile:
@@ -259,7 +276,11 @@ def _save_ingested(doc, exists, raw, profile, record) -> tuple[str, bool]:
 		doc.visibility, doc.visibility_set_by = initial_visibility(record, profile)
 		for c in collections_for_new_item({**record, "item_type": doc.item_type}, profile):
 			doc.append("curated_collections", {"collection": c})
-	doc.last_ingested = now_datetime()
+	if quick:
+		doc.details_pending = 1  # last_ingested stays empty: the book is not fully in yet
+	else:
+		doc.details_pending = 0
+		doc.last_ingested = now_datetime()
 	doc.flags.skip_search_index = True  # the ingest job indexes with page text itself
 	if exists:
 		doc.save(ignore_permissions=True)

@@ -58,6 +58,9 @@ class RDItem(Document):
 		from sok_resdesk.identifiers import leave_tombstone
 
 		leave_tombstone(self)
+		from sok_resdesk.datacite import on_item_trash
+
+		on_item_trash(self)
 
 	def on_update(self):
 		# collection counts follow the Collections field

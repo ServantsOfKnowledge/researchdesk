@@ -29,6 +29,18 @@ METADATA_URL = "https://archive.org/metadata/{identifier}"
 DOWNLOAD_URL = "https://archive.org/download/{identifier}/{filename}"
 
 SCRAPE_FIELDS = "identifier,title,addeddate"
+# The catalogue fields the scrape API returns with each identifier (as `ia search -f` does), so a
+# whole collection is catalogued from a few requests (up to 10,000 books each) instead of one
+# metadata request per book. CORE are fields every item's search record has; if archive.org
+# refuses the fuller list, the core one is asked for instead.
+CATALOGUE_FIELDS_CORE = (
+	"identifier,title,creator,date,year,language,publisher,subject,description,collection,"
+	"mediatype,format,imagecount,licenseurl,rights,volume,addeddate,publicdate"
+)
+CATALOGUE_FIELDS = CATALOGUE_FIELDS_CORE + ",isbn,identifier-ark,access-restricted-item,ocr,scanningcenter"
+# archive.org's names for the formats that carry page text (see files_from_formats)
+PAGE_TEXT_FORMATS = {"OCR Search Text", "hOCR"}
+FULL_TEXT_FORMATS = {"DjVuTXT", "OCR Search Text"}
 
 
 class IAError(Exception):
@@ -123,6 +135,35 @@ class IAClient:
 			if not cursor:
 				return
 
+	def iter_records(
+		self, query: str, limit: int = 0, page_size: int = 5000, fields: str = CATALOGUE_FIELDS
+	) -> Iterator[dict]:
+		"""Yield each matching item's catalogue fields (the search record), following the scrape
+		cursor: thousands of books per request."""
+		cursor = None
+		seen = 0
+		page_size = max(100, min(page_size, 10000))
+		while True:
+			params = {"q": query, "fields": fields, "count": page_size, "sorts": "addeddate desc"}
+			if cursor:
+				params["cursor"] = cursor
+			resp = self._get(SCRAPE_URL, params=params)
+			if resp.status_code != 200:
+				raise IAError(f"IA search failed ({resp.status_code}): {resp.text[:200]}")
+			data = resp.json()
+			if data.get("error"):
+				raise IAError(f"IA search refused the fields: {str(data['error'])[:200]}")
+			for item in data.get("items", []):
+				if isinstance(item.get("description"), str):
+					item["description"] = item["description"][:2000]  # the full record replaces it later
+				yield item
+				seen += 1
+				if limit and seen >= limit:
+					return
+			cursor = data.get("cursor")
+			if not cursor:
+				return
+
 	def metadata(self, identifier: str) -> dict:
 		resp = self._get(METADATA_URL.format(identifier=identifier))
 		if resp.status_code != 200:
@@ -190,3 +231,15 @@ class IAClient:
 				data = self._download(identifier, name)
 				return data.decode("utf-8", errors="replace") if data else ""
 		return ""
+
+
+def files_from_formats(identifier: str, formats) -> list[dict]:
+	"""The text files an item has, as far as its search record's formats tell (before its full
+	file list is fetched): enough for normalize_ia_item to know whether it has page text."""
+	formats = set(formats if isinstance(formats, list) else [formats] if formats else [])
+	files = []
+	if formats & PAGE_TEXT_FORMATS:
+		files.append({"name": f"{identifier}_hocr_searchtext.txt.gz"})
+	if formats & FULL_TEXT_FORMATS:
+		files.append({"name": f"{identifier}_djvu.txt"})
+	return files

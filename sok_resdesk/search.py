@@ -42,6 +42,8 @@ BOOK_SETTINGS = {
 		"publisher",
 		"description",
 		"item_id",
+		"note_entity_names",
+		"note_tags",
 		"text_excerpt",
 	],
 	"filterableAttributes": [
@@ -59,6 +61,8 @@ BOOK_SETTINGS = {
 		"visibility",
 		"curated",
 		"item_type",
+		"note_tags",
+		"note_entities",
 	],
 	"sortableAttributes": ["year", "title_sort", "indexed_at"],
 	"displayedAttributes": ["*"],
@@ -230,6 +234,10 @@ def book_document(record: dict, excerpt: str = "") -> dict:
 		"curated": record.get("curated_collections") or [],
 		"item_type": record.get("item_type") or "Book",
 		"thumbnail_url": record.get("thumbnail_url"),
+		# readers' public notes: their tags and the Wikidata items they say the pages are about
+		"note_tags": record.get("note_tags") or [],
+		"note_entities": record.get("note_entities") or [],
+		"note_entity_names": record.get("note_entity_names") or [],
 		"text_excerpt": excerpt[:5000],
 		"indexed_at": int(now_datetime().timestamp()),
 	}
@@ -758,7 +766,7 @@ def build_filter(filters: dict | None) -> list:
 	for field, values in (filters or {}).items():
 		if field in ("year_from", "year_to"):
 			continue
-		if field not in FACETS + ["language", "item_id", "access_status"]:  # noqa: RUF005
+		if field not in FACETS + ["language", "item_id", "access_status", "note_tags", "note_entities"]:  # noqa: RUF005
 			continue
 		if isinstance(values, str):
 			values = [values]

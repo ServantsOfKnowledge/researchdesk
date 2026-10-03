@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.30.0 (2026-10-08): Sharing the loop, and a catalogue in minutes
+
+- **Catalogue first, details later**: an archive.org ingest asks archive.org's search for every
+  matching book with its catalogue fields, 5,000 books a request (as `ia search -f` does), and
+  catalogues and indexes them all straight away, so a whole collection is on the portal in
+  minutes; each book's full record and page text follow in the background (*Details Still
+  Coming*). Falls back to the core fields, then to book-by-book, if archive.org refuses fields.
+  On by default (profile → *Catalogue First, Details Later*)
+- **Collections page**: every collection on one page, each main collection with its
+  sub-collections under it, jump links at the top
+- **Ground truth**: proofread pages with their images (and each part a proofreader drew) as an
+  open set for training and testing OCR: zip with `.gt.txt` texts, manifest with checksums,
+  Frictionless Data Package. Licence chosen in Settings (CC0, CC BY, CC BY-SA); without one,
+  sets are for the library's own use only. Sets on the portal at `/library/ground-truth`
+- **Notes as data**: a note can say what it is about (a Wikidata item, searched as you type, in
+  any script); public notes list their pages on `/library/entity/Q…` and `/library/tag/…`, and
+  their names and tags are searched with the book; Q-numbers in exports and W3C bodies
+- **W3C Web Annotation Protocol**: other annotation tools read a book's notes (paged
+  AnnotationCollection) and add, change or delete their own (ETags, If-Match); discovery link on
+  each book page
+- **DOIs (DataCite)**, optional: books of collections marked *Give DOIs* get DOIs pointing at
+  their permanent link, sent again when their metadata changes; test system first; DOIs in
+  every citation format, Zotero tags, Dublin Core, MODS, OAI-PMH and JSON-LD; deleted books'
+  DOIs lead to their tombstone; a *DOIs* line on the Server page
+- docs, API, tours, tests
+
 ## 0.29.0 (2026-10-07): OCR in several languages
 
 - Pages are read with several Tesseract models at once (e.g. `kan+san+eng`, the main language

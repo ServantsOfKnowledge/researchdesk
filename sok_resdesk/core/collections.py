@@ -47,3 +47,35 @@ def matches(record: dict, rules: list[dict]) -> bool:
 		elif value in have:
 			return True
 	return False
+
+
+def group_tree(cards: list[dict]) -> dict:
+	"""Collections for one page that shows them all: {"groups": [{"parent", "children"}],
+	"single": [...]}. Each top-level collection with sub-collections is a group, its
+	descendants listed under it in order (depth-first, each with its `depth` and `trail` of
+	parent titles); top-level collections without any are listed together. Cards keep the order
+	they come in (sort order, then title)."""
+	by_parent: dict[str | None, list[dict]] = {}
+	names = {c["name"] for c in cards}
+	for c in cards:
+		parent = c.get("part_of") if c.get("part_of") in names else None
+		by_parent.setdefault(parent, []).append(c)
+
+	def descend(name: str, depth: int, trail: list[str], seen: set[str]) -> list[dict]:
+		out = []
+		for child in by_parent.get(name, []):
+			if child["name"] in seen:  # a loop in part_of: show each collection once
+				continue
+			seen.add(child["name"])
+			out.append({**child, "depth": depth, "trail": trail})
+			out.extend(descend(child["name"], depth + 1, [*trail, child.get("title") or child["name"]], seen))
+		return out
+
+	groups, single = [], []
+	for top in by_parent.get(None, []):
+		children = descend(top["name"], 1, [], {top["name"]})
+		if children:
+			groups.append({"parent": top, "children": children})
+		else:
+			single.append(top)
+	return {"groups": groups, "single": single}

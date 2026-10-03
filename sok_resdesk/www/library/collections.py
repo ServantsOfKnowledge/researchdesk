@@ -13,7 +13,12 @@ def get_context(context):
 	context.show_sidebar = 0
 	context.portal_title = s.portal_title or "SOK Research Desk"
 	context.title = f"Collections · {context.portal_title}"
-	# sub-collections are listed on the page of the collection they belong to
-	context.collections = [c for c in collection_cards() if not c.part_of]
+	# every collection on one page: each top-level collection with its sub-collections under it
+	from sok_resdesk.core.collections import group_tree
+
+	cards = collection_cards()
+	tree = group_tree(cards)
+	context.groups, context.single = tree["groups"], tree["single"]
+	context.collections = cards
 	context.metatags = {"title": context.title, "description": s.portal_tagline or ""}
 	return context

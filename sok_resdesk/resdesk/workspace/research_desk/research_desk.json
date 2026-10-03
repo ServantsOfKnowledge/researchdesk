@@ -111,6 +111,16 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "link_count": 0,
+   "onboard": 0,
+   "label": "Ground Truth",
+   "link_to": "RD Ground Truth",
+   "link_type": "DocType",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Creators",
    "link_count": 0,
    "link_to": "RD Creator",
@@ -325,7 +335,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-06 12:00:00.000000",
+ "modified": "2026-10-08 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "ResDesk",
  "name": "Research Desk",

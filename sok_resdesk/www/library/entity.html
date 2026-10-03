@@ -1,0 +1,19 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block head_include %}<link rel="alternate" type="text/html" href="{{ wikidata_url }}" title="Wikidata">{% endblock %}
+
+{% block page_content %}
+<div class="rd rd-entity">
+	<nav class="rd-crumbs"><a href="{{ library_url() }}">← {{ portal_title }}</a></nav>
+	<h1 class="rd-page-title">{{ label }}</h1>
+	<p>{% if description %}{{ description }} · {% endif %}<a href="{{ wikidata_url }}" rel="noopener">Wikidata {{ entity }}</a></p>
+	{% if books %}
+	<p class="rd-muted">{{ _("Pages readers' notes say are about {0}: {1} notes in {2} books.").format(label, count, books|length) }}</p>
+	{% include "templates/includes/rd_notes_by_book.html" %}
+	{% else %}
+	<p class="rd-muted">{{ _("No public notes are about {0} yet. Select words on a page, add a note and choose what it is about.").format(label) }}</p>
+	{% endif %}
+</div>
+{% endblock %}

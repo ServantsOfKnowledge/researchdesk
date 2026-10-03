@@ -150,6 +150,7 @@ def dublin_core(record: dict, base_url: str = "") -> str:
 		_x("dc:format", f"{record['page_count']} pages" if record.get("page_count") else ""),
 		_x("dc:identifier", url_for(record, base_url)),
 		_x("dc:identifier", record.get("ark")),
+		_x("dc:identifier", f"https://doi.org/{record['doi']}" if record.get("doi") else ""),
 		_x("dc:identifier", f"ISBN {record['isbn']}" if record.get("isbn") else ""),
 		_x("dc:language", record.get("language")),
 		_x("dc:relation", record.get("series")),
@@ -218,6 +219,7 @@ def mods(record: dict, base_url: str = "") -> str:
 		)
 	p.append(_x("identifier", record.get("isbn"), ' type="isbn"'))
 	p.append(_x("identifier", record.get("ark"), ' type="ark"'))
+	p.append(_x("identifier", record.get("doi"), ' type="doi"'))
 	p.append(_x("identifier", record["item_id"], ' type="local"'))
 	usage = ' usage="primary display"'
 	p.append(
@@ -351,6 +353,7 @@ EXPORT_KEYS = (
 	"source_url",
 	"thumbnail_url",
 	"ark",
+	"doi",
 	"has_fulltext",
 	"has_page_text",
 	"on_archive_org",

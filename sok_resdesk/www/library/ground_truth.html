@@ -1,0 +1,33 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="rd rd-groundtruth">
+	<nav class="rd-crumbs"><a href="{{ library_url() }}">← {{ portal_title }}</a></nav>
+	<h1 class="rd-page-title">{{ _("OCR ground truth") }}</h1>
+	<p>{{ _("Page images from the library's books with the text that is truly on them, corrected by our proofreaders. They are free to download, for training OCR for Indian languages and for measuring how well an OCR engine reads them.") }}</p>
+	{% if sets %}
+	<ul class="rd-gt-list">
+		{% for s in sets %}
+		<li class="rd-gt">
+			<h2>{{ s.title }}</h2>
+			<p>{{ _("{0} pages and {1} page parts from {2} books").format(s.page_count, s.zone_count, s.book_count) }}{% if s.languages %} · {{ _("languages") }}: {{ s.languages }}{% endif %} · {{ _("made") }} {{ frappe.utils.formatdate(s.made_on) }}</p>
+			<p><a class="btn btn-primary btn-sm" href="{{ s.download }}">{{ _("Download") }} ({{ s.file_size }})</a>
+				<span class="rd-muted">{{ _("Licence") }}: <a href="{{ s.licence_url }}" rel="license">{{ s.licence_name }}</a></span></p>
+			<p class="rd-muted rd-gt__sum">SHA-256: <code>{{ s.sha256 }}</code></p>
+		</li>
+		{% endfor %}
+	</ul>
+	{% if attribution %}<p>{{ _("Please credit") }}: <b>{{ attribution }}</b></p>{% endif %}
+	<h2>{{ _("What is in a set") }}</h2>
+	<ul>
+		<li>{{ _("Each page image (pages/…jpg) with its corrected text (…gt.txt, UTF-8), keeping the page's lines.") }}</li>
+		<li>{{ _("Each part of a page a proofreader drew (a column, a heading, a footnote), cut out with its own text (zones/…).") }}</li>
+		<li>{{ _("A manifest (CSV and JSON Lines) with the book, page, language and checksums, and a Frictionless Data Package description.") }}</li>
+	</ul>
+	{% else %}
+	<p class="rd-muted">{{ _("No sets are shared yet.") }}</p>
+	{% endif %}
+</div>
+{% endblock %}

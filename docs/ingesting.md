@@ -99,6 +99,24 @@ split a large run across the queue workers instead, and follow it with
 > For `--ids-file` with Docker, copy the file in first:
 > `docker compose cp my-list.txt backend:/tmp/` then `--ids-file /tmp/my-list.txt`.
 
+## Catalogue first, details later
+
+A big collection is on the portal within minutes, not days. When a run starts, it asks
+archive.org's search for every matching book **with its catalogue fields** (title, authors,
+date, language, subjects, description, collections, page count, formats), up to 5,000 books per
+request, as the `ia search -f …` command-line tool does: 88,000 books take about 18 requests
+instead of 88,000. Every new book is catalogued from that record and sent to search straight
+away, 500 at a time (the run's log counts them), marked **Details Still Coming**.
+
+Then the batches do the slow part in the background, book by book as below: the full record and
+file list from the metadata API, the page text, page images matched by scan data. As each book
+is done its mark goes and its text becomes searchable. A run stopped in between carries on
+where it was: books still marked are fetched again, never skipped.
+
+It is on for every archive.org profile (**Catalogue First, Details Later**); untick it to go
+book by book as before. If archive.org refuses some of the fields, the run asks for the core
+ones; if that fails too, it lists identifiers only and works book by book.
+
 ## What happens to each book
 
 1. **Metadata** from `archive.org/metadata/<id>` is normalised:
