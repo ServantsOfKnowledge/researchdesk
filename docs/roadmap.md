@@ -157,10 +157,25 @@ is left, and puts every improvement straight into search.
 | 0.28 | Server → Requirements: what the server has and lacks, installs from the Desk or with the upgrade |
 | 0.29 | OCR in several languages at once; a language per page part |
 | 0.30 | Sharing the loop: ground-truth sets (licence-gated), notes linked to Wikidata, the W3C Annotation Protocol, optional DOIs; a collection on the portal in minutes (bulk catalogue first) |
+| 0.31 | Accessibility, first pass: Indic text marked for screen readers, read aloud, notes and zones without a mouse, WCAG 2.2 AA fixes, an accessibility statement |
 
 Still open from the four pillars: IIIF manifests and an image service, PRONOM format
 identification. (DOIs, the ground-truth export, Wikidata links from notes, the W3C Annotation
 Protocol and finding books by their notes' tags shipped in 0.30.)
+
+## Accessibility for every reader
+
+The library's readers include blind and low-vision people, people with print disabilities, and
+people who cannot use a mouse. Target: WCAG 2.2 AA and GIGW 3.0 (IS 17802) for the portal and our
+Desk pages, and accessible copies under the Marrakesh Treaty and Copyright Act 52(1)(zb). The full
+study and plan: docs/accessibility.md on main.
+
+- [x] First pass (0.31): language of Indic text for screen readers, read aloud, keyboard paths for
+      notes and proofreading, landmarks, labels, focus, an accessibility statement
+- [ ] Testing with blind and low-vision readers (NVDA, TalkBack, Indic voices) with a partner
+- [ ] axe-core checks in CI; reader settings (text size, spacing, dyslexia font, contrast)
+- [ ] Our Desk pages audited; fixes for Frappe's Desk contributed upstream
+- [ ] EPUB 3 / DAISY downloads of proofread books; sharing with Sugamya Pustakalaya
 
 ## Later: better search and data
 
@@ -172,7 +187,7 @@ Protocol and finding books by their notes' tags shipped in 0.30.)
 - [ ] Authority control: reconcile creators with VIAF/Wikidata; subjects with LCSH/Sears
 - [ ] Collections as data: bulk text downloads and an API for text mining
 - [ ] Saved, shared reading lists for logged-in readers
-- [ ] Portal UI in Kannada and other languages (Frappe translations), and an accessibility review
+- [ ] Portal UI in Kannada and other languages (Frappe translations)
 - [ ] More sources: Wikisource, DSpace/OAI-PMH repositories, bare PDFs with no OCR (run OCR on ingest)
 - [ ] Offline collections (Kiwix packages) for schools and places with poor connections
 - [ ] Federated search across several Research Desk libraries
