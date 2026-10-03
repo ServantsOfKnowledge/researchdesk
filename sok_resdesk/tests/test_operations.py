@@ -1799,6 +1799,7 @@ class TestSecondCopy(OpsTestCase):
 		self.assertFalse(record["on_archive_org"])
 		self.assertIn(f"sok_resdesk.api.file?item_id={name}&name={name}.pdf", record["pdf_url"])
 		frappe.local.request = Request(EnvironBuilder(path="/").get_environ())
+		frappe.local.request_ip = "127.0.0.1"  # the endpoint is rate-limited by address
 		response = api.file(name, f"{name}.pdf")
 		response.direct_passthrough = False
 		self.assertEqual(response.get_data(), b"%PDF-1.4 book")
@@ -1818,7 +1819,7 @@ class TestSecondCopy(OpsTestCase):
 		self.assertRaises(frappe.PermissionError, preservation.download_export, "../secret.zip")
 
 	def test_s3_library_is_in_the_image(self):
-		"""An S3 second copy needs boto3: Frappe brings it (for its own S3 backups)."""
+		"""An S3 second copy needs boto3, installed with Research Desk (pyproject.toml)."""
 		import importlib.util
 
 		self.assertIsNotNone(importlib.util.find_spec("boto3"), "boto3 is missing from the image")

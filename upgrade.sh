@@ -159,11 +159,11 @@ if [ "$MODE" = native ]; then
       || warn "Frappe not updated (local changes or no network); continuing with the current version"
   fi
   # Only what changed: Frappe's Python and Node packages when Frappe moved, this app's when its
-  # pyproject.toml did (it has no packages of its own today)
+  # pyproject.toml did (boto3, for S3 second copies)
   FRAPPE_CHANGED=0
   [ "$(cd apps/frappe && git rev-parse HEAD 2>/dev/null || true)" != "$FRAPPE_BEFORE" ] && FRAPPE_CHANGED=1
   if [ "$FRAPPE_CHANGED" = 1 ]; then
-    bench setup requirements frappe >/dev/null   # frappe only: our app has no extra requirements and may have any git remote
+    bench setup requirements frappe >/dev/null   # frappe only: our app (any git remote) is installed below
     ok "Frappe's Python and Node packages"
   else
     ok "Frappe unchanged: its packages are already installed"

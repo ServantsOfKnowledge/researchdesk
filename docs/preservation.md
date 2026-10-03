@@ -122,7 +122,7 @@ own, by any OCFL tool, and each can rebuild the other.
 - On the book form, **Preservation → Make Second Copy** and **Check Copy** do the same for one
   book at once.
 
-For S3 the server needs the `boto3` package (it comes with Frappe). Files are uploaded whole, with
+For S3 the server uses the `boto3` package, installed with Research Desk. Files are uploaded whole, with
 their MD5, so the service refuses a damaged upload; a file uploaded to the bucket in parts by
 another tool can't be checked this way and is reported.
 
