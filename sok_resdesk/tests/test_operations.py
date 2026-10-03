@@ -1669,25 +1669,31 @@ class TestDashboardAndStatistics(OpsTestCase):
 		cards = {c["label"]: c for g in out["groups"] for c in g["cards"]}
 		self.assertGreaterEqual(cards["Books on the portal"]["value"], 1)
 		self.assertIn("Readers", cards)
-		s = frappe.get_single("RD Settings")
-		s.analytics_provider, s.analytics_host, s.analytics_key = (
-			"PostHog",
-			"http://insecure.example",
-			"phc_x",
+
+		def choose(**values):
+			# a fresh copy each time: saving settings updates them (branding, sign-up, statistics)
+			s = frappe.get_single("RD Settings")
+			s.update(values)
+			s.save()
+
+		self.assertRaises(
+			frappe.ValidationError,
+			choose,
+			analytics_provider="PostHog",
+			analytics_host="http://insecure.example",
+			analytics_key="phc_x",
 		)
-		self.assertRaises(frappe.ValidationError, s.save)
-		s.analytics_host = "https://eu.i.posthog.com/"
-		s.save()
+		choose(
+			analytics_provider="PostHog", analytics_host="https://eu.i.posthog.com/", analytics_key="phc_x"
+		)
 		self.assertEqual(
 			analytics.config(), {"provider": "PostHog", "host": "https://eu.i.posthog.com", "key": "phc_x"}
 		)
-		s.analytics_provider = "Built-in"
-		s.save()
+		choose(analytics_provider="Built-in")
 		self.assertEqual(analytics.config(), {"provider": ""})
 		ws = frappe.get_single("Website Settings")
 		if ws.meta.has_field("enable_view_tracking"):
 			self.assertEqual(int(ws.enable_view_tracking), 1)
 			titles = [g["title"] for g in dashboard.numbers(refresh=1)["groups"]]
 			self.assertIn("Portal use", titles)
-		s.analytics_provider = "Off"
-		s.save()
+		choose(analytics_provider="Off")
