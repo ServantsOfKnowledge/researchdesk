@@ -1,13 +1,13 @@
-"""Persistent identifiers: every book gets an ARK when it is first catalogued, the portal resolves
-ARKs itself (`<portal>/ark:/<naan>/<name>`), and a book that is deleted leaves a tombstone, so a
-permanent link never ends in "page not found".
+"""Persistent identifiers: once the library switches them on (Settings → Persistent Identifiers →
+Give Books ARKs, with the NAAN the ARK Alliance gave it), every book gets an ARK, the portal
+resolves ARKs itself (`<portal>/ark:/<naan>/<name>`), and a book that is deleted leaves a
+tombstone, so a permanent link never ends in "page not found".
 
+Until then nothing is minted and nothing shows: no test identifiers ever reach a citation.
 The ARK rules themselves (minting, check characters, parsing) are in core/ark.py.
 """
 
 from __future__ import annotations
-
-import re
 
 import frappe
 from frappe import _
@@ -16,12 +16,15 @@ from frappe.utils import cint, now_datetime
 from sok_resdesk.core import ark as core
 
 MANAGERS = ("System Manager", "ResDesk Manager")
-SHOULDER = re.compile(r"^[bcdfghjkmnpqrstvwxz]+[0-9]")
+
+
+def enabled() -> bool:
+	return bool(cint(frappe.db.get_single_value("RD Settings", "ark_enabled")))
 
 
 def naan_and_shoulder() -> tuple[str, str]:
 	s = frappe.db.get_singles_dict("RD Settings")
-	naan = (s.get("ark_naan") or core.TEST_NAAN).strip()
+	naan = (s.get("ark_naan") or "").strip()
 	shoulder = (s.get("ark_shoulder") or core.DEFAULT_SHOULDER).strip()
 	return core.validate_naan(naan), core.validate_shoulder(shoulder)
 
@@ -44,7 +47,10 @@ def _reserve(shoulder: str, count: int) -> int:
 	return current
 
 
-def mint_next() -> str:
+def mint_next() -> str | None:
+	"""The next book's ARK, or None while ARKs are switched off."""
+	if not enabled():
+		return None
 	naan, shoulder = naan_and_shoulder()
 	return core.mint(naan, shoulder, _reserve(shoulder, 1))
 
@@ -56,8 +62,10 @@ def url_of(ark: str) -> str:
 
 
 def assign_missing(batch: int = 2000) -> int:
-	"""Give every book without an ARK one, oldest first (the patch for existing catalogues).
-	Returns how many were given."""
+	"""Give every book without an ARK one, oldest first: when ARKs are switched on, and daily for
+	any book whose minting failed. Returns how many were given (0 while switched off)."""
+	if not enabled():
+		return 0
 	naan, shoulder = naan_and_shoulder()
 	done = 0
 	while True:
@@ -76,62 +84,50 @@ def assign_missing(batch: int = 2000) -> int:
 		done += len(rows)
 
 
-def remint(old_naan: str, new_naan: str) -> int:
-	"""Make every ARK minted under the test NAAN again under the library's own, keeping its name
-	(only the NAAN and the check character change). Books and tombstones."""
-	core.validate_naan(new_naan)
-	changed = 0
-	for doctype in ("RD Item", "RD Tombstone"):
-		field = "persistent_id" if doctype == "RD Item" else "ark"
-		rows = frappe.db.sql(
-			f"select name, `{field}` from `tab{doctype}` where `{field}` like %s",
-			(f"ark:/{old_naan}/%",),
-		)
-		for name, old in rows:
-			m = SHOULDER.match(core.parse(old)["name"])
-			if not m:
-				continue
-			new = core.mint(new_naan, m[0], core.counter_of(old, m[0]))
-			frappe.db.sql(f"update `tab{doctype}` set `{field}`=%s where name=%s", (new, name))
-			changed += 1
-	frappe.db.commit()
-	return changed
-
-
 def on_settings_change(doc, method=None) -> None:
-	"""RD Settings: a NAAN entered in place of the test one re-mints every ARK under it."""
+	"""RD Settings: switching ARKs on gives every book already in the catalogue its ARK (in the
+	background; about a minute per 50,000 books)."""
 	before = doc.get_doc_before_save()
-	old = (before.get("ark_naan") if before else None) or core.TEST_NAAN
-	new = (doc.get("ark_naan") or core.TEST_NAAN).strip()
-	if old != new and old == core.TEST_NAAN:
+	if cint(doc.get("ark_enabled")) and not cint(before.get("ark_enabled") if before else 0):
 		frappe.enqueue(
-			"sok_resdesk.identifiers.remint",
+			"sok_resdesk.identifiers.assign_missing",
 			queue="long",
-			old_naan=old,
-			new_naan=new,
+			timeout=3 * 3600,
 			enqueue_after_commit=True,
-			job_id="resdesk-ark-remint",
+			job_id="resdesk-ark-assign",
 		)
 
 
 def validate_settings(doc) -> None:
-	"""Called from RD Settings.validate: a NAAN and shoulder ARKs can be minted with, and a real
-	NAAN stays (ARKs under it are promises to the world)."""
-	naan = (doc.get("ark_naan") or core.TEST_NAAN).strip()
+	"""Called from RD Settings.validate. ARKs go on only with a real NAAN (not the Alliance's test
+	number); once on, the NAAN and shoulder stay (ARKs under them are promises to everyone who
+	cited them)."""
+	naan = (doc.get("ark_naan") or "").strip()
 	shoulder = (doc.get("ark_shoulder") or core.DEFAULT_SHOULDER).strip()
 	try:
-		doc.ark_naan, doc.ark_shoulder = core.validate_naan(naan), core.validate_shoulder(shoulder)
+		doc.ark_shoulder = core.validate_shoulder(shoulder)
+		doc.ark_naan = core.validate_naan(naan) if naan else ""
 	except core.ArkError as e:
 		frappe.throw(str(e), title=_("Persistent Identifiers"))
 	before = doc.get_doc_before_save()
-	old = (before.get("ark_naan") if before else None) or core.TEST_NAAN
-	if old != core.TEST_NAAN and doc.ark_naan != old:
-		frappe.throw(
-			_(
-				"The ARK NAAN is {0}, and books have ARKs under it that people may have cited. It can't be changed here; ask the ARK Alliance about moving it."
-			).format(old),
-			title=_("Persistent Identifiers"),
-		)
+	was_on = cint(before.get("ark_enabled")) if before else 0
+	if cint(doc.get("ark_enabled")):
+		if not doc.ark_naan or doc.ark_naan == core.TEST_NAAN:
+			frappe.throw(
+				_(
+					"Enter the NAAN the ARK Alliance gave the library first (99999 is their test number and can't be used for real ARKs)."
+				),
+				title=_("Persistent Identifiers"),
+			)
+	if was_on and before:
+		for field, label in (("ark_naan", _("NAAN")), ("ark_shoulder", _("shoulder"))):
+			if (before.get(field) or "") != (doc.get(field) or ""):
+				frappe.throw(
+					_(
+						"Books have ARKs under this {0} ({1}), and people may have cited them, so it can't be changed here."
+					).format(label, before.get(field)),
+					title=_("Persistent Identifiers"),
+				)
 
 
 # -- tombstones ------------------------------------------------------------------------------------

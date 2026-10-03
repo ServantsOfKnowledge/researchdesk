@@ -1,13 +1,13 @@
 # Changelog
 
-## 0.20.0 (unreleased): permanent links, preservation copies, OCR quality
+## 0.20.0 (2026-10-05): permanent links, preservation copies, OCR quality, search indexing that moves
 
-- **A permanent link for every book (ARK).** Every book gets an ARK when it is catalogued
-  (books already here get one on upgrade), shown as *Permanent link* on its page and used by
-  citations, exports, OAI-PMH and pushes. The portal resolves ARKs itself
-  (`/ark:/<naan>/<name>`, `/n42` for a page, `?info` for a short record). Until the library's own
-  NAAN arrives they use the ARK Alliance's test number 99999; entering the real one in Settings →
-  Persistent Identifiers makes them again under it, keeping their names. A deleted book leaves a
+- **A permanent link for every book (ARK), switched on when the library is ready.** Settings →
+  Persistent Identifiers: enter the NAAN the ARK Alliance gives the library and tick *Give Books
+  ARKs*. Every book then gets an ARK (those already here in the background), shown as *Permanent
+  link* on its page and used by citations, exports, OAI-PMH and pushes. The portal resolves ARKs
+  itself (`/ark:/<naan>/<name>`, `/n42` for a page, `?info` for a short record). Until it is on,
+  nothing is minted or shown. Once on, the NAAN can't be changed, and a deleted book leaves a
   **tombstone**, so its link never ends in "page not found"
 - **The library's own copies of its books.** Settings → Preservation: a folder, which books (by
   collection or all), page images or not, a size budget. Each book is kept as an **OCFL** object
@@ -20,7 +20,14 @@
   (broken Indic words, mixed scripts, stray symbols): sort the Items list by it to find the books
   that most need better OCR. Books are scored as they are indexed, and those already here in the
   background from the page text kept on the server
-- New help page: *Permanent links, preservation & OCR quality*
+- **When search indexing doesn't move.** The search engine takes at most 50 waiting tasks per
+  batch (`MEILI_MAX_BATCHED_TASKS`): before, it could take on a batch too big for its memory,
+  run out, restart and start the same batch again, so the queue never moved. Workers hold back
+  while more than 300 tasks wait, so ingesting goes at the pace indexing can keep up with.
+  Background Jobs → Machine shows what the engine is working on (since when, how far), the oldest
+  waiting task and the last failure, with *Restart search engine* when it is stuck; the Server
+  page turns *Search indexing* red (and alerts) when tasks wait and nothing is worked on
+- New help page: *Permanent links, preservation & OCR quality*; Operations → *Search indexing is stuck*
 
 ## 0.19.1 (2026-10-05): Pause, Stop and the jobs list work again; failed runs retry by themselves
 

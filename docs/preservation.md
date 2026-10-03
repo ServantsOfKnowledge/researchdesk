@@ -6,30 +6,34 @@ text too poor to search.
 
 ## Permanent links (ARKs)
 
-Every book gets an **ARK** (Archival Resource Key) when it is first catalogued, such as
-`ark:/99999/b1x7k2m9q`. It is shown on the book's portal page as **Permanent link**, on the
+Once switched on, every book has an **ARK** (Archival Resource Key), such as
+`ark:/12345/b1x7k2m9q`. It is shown on the book's portal page as **Permanent link**, on the
 book in the Desk as **Permanent ARK**, and it is what citations, exports, OAI-PMH records and
 pushes to Koha, Wikidata and the Internet Archive use as the book's address.
 
-- The portal resolves ARKs itself: `https://<your portal>/ark:/99999/b1x7k2m9q` opens the book.
-- Add `/n42` for a page: `…/ark:/99999/b1x7k2m9q/n42` opens the book at leaf 42 (the 43rd page
+- The portal resolves ARKs itself: `https://<your portal>/ark:/12345/b1x7k2m9q` opens the book.
+- Add `/n42` for a page: `…/ark:/12345/b1x7k2m9q/n42` opens the book at leaf 42 (the 43rd page
   image, counted from 0 as archive.org does; printed page numbers repeat, leaves never do).
 - Add `?info` to get a short metadata record instead (who, what, when, where), as the ARK
   standard asks.
 - The name says nothing about the book, on purpose: it never has to change when a title or
   date is corrected. The last character is a check character that catches a mistyped one.
 
-### Your NAAN
+### Switching ARKs on
 
-The number after `ark:/` is the library's **NAAN**, given free by the ARK Alliance
-(arks.org → *Request a NAAN*). Until you have one, books get ARKs under `99999`, the Alliance's
-test number. When yours arrives, enter it in **Settings → Persistent Identifiers → ARK NAAN**:
-every book's ARK is made again under it, keeping its name (only the number and the check
-character change). After that the NAAN can't be changed in Settings: ARKs under it are
-promises to everyone who cited them.
+ARKs are **off** until the library has its own **NAAN**, the number after `ark:/`, given free
+by the ARK Alliance (arks.org → *Request a NAAN*). Until then nothing is minted and nothing
+shows, so no temporary identifier can end up in someone's citation.
 
-The resolver address in every ARK is your portal's address, so choose a domain you expect to
-keep.
+When the Alliance replies: **Settings → Persistent Identifiers**, enter the **ARK NAAN**, tick
+**Give Books ARKs** and save. New books get their ARK as they are catalogued, and the books
+already in the catalogue get theirs in the background (about a minute per 50,000 books). The
+Alliance's test number (99999) is not accepted.
+
+Once on, the NAAN and the shoulder can't be changed in Settings: ARKs under them are promises to
+everyone who cited them. Switching ARKs off again stops new ones and hides them from pages and
+citations, but ARKs already given out keep working. The resolver address in every ARK is your
+portal's address, so choose a domain you expect to keep.
 
 ### Tombstones
 

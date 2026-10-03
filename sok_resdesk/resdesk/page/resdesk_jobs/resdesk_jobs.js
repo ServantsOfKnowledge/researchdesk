@@ -54,6 +54,13 @@ class ResDeskJobs {
 		this.$body.on("click", "[data-release-all]", () => this.call("release_held", {}));
 		this.$body.on("click", "[data-choose-preset]", () => this.choose_preset());
 		this.$body.on("click", "[data-renice]", () => this.renice());
+		this.$body.on("click", "[data-restart-search]", () =>
+			frappe.confirm(__("Restart the search engine? Searching pauses for a minute; waiting tasks are kept and carry on."), () =>
+				frappe
+					.call({ method: "sok_resdesk.server.request_task", args: { action: "restart", args: JSON.stringify({ service: "search" }) }, freeze: true })
+					.then(() => frappe.show_alert({ message: __("Restart requested: see the Server page"), indicator: "green" }))
+			)
+		);
 		this.$body.on("click", "[data-index-missing]", () =>
 			frappe.call({ method: "sok_resdesk.search.enqueue_index_missing", freeze: true }).then((r) => {
 				frappe.show_alert({ message: __("{0} books queued for the search engine.", [r.message]), indicator: "green" });
@@ -141,6 +148,34 @@ class ResDeskJobs {
 				)
 			);
 		}
+	}
+
+	// what the search engine is working on, and what to do when its queue doesn't move
+	engine_html(I) {
+		const E = I.engine || {};
+		const esc = frappe.utils.escape_html;
+		const P = E.processing;
+		const when = (t) => (t ? frappe.datetime.comment_when(frappe.datetime.convert_to_system_tz(t.replace("T", " ").replace("Z", "").split(".")[0])) : "");
+		let html = `<p class="small text-muted" style="margin:2px 0 0">`;
+		html += P
+			? __("Working on {0} tasks ({1}) since {2}: {3}% done", [P.tasks, esc((P.types || []).join(", ")), when(P.started), P.percent])
+			: E.waiting
+			? __("Nothing is being worked on.")
+			: __("Nothing waiting.");
+		if (E.oldest_waiting) html += ` · ${__("oldest waiting since {0}", [when(E.oldest_waiting)])}`;
+		html += `</p>`;
+		if (I.stalled || I.long_batch) {
+			html += `<p class="small text-danger" style="margin:2px 0 0">${
+				I.stalled
+					? __("The search engine has tasks waiting but isn't working on any: it is stuck.")
+					: __("One batch has been running for hours: the search engine may be running out of memory and starting it again.")
+			} <button class="btn btn-xs btn-default" data-restart-search>${__("Restart search engine")}</button>
+			<a href="/app/resdesk-help/operations#search-indexing-is-stuck">${__("What to check")}</a></p>`;
+		}
+		if ((E.failed || []).length) {
+			html += `<p class="small text-muted" style="margin:2px 0 0">${__("Last failed task")}: ${esc(E.failed[0].type || "")} · ${esc(E.failed[0].error || "")}</p>`;
+		}
+		return html;
 	}
 
 	renice() {
@@ -419,7 +454,8 @@ class ResDeskJobs {
 		const idx = I
 			? `<p class="small" style="margin-top:6px">${__("Search index")}: <b>${I.listed.toLocaleString()}</b> ${__("of")} <b>${I.catalogue.toLocaleString()}</b> ${__("books listed to readers")}
 				${I.waiting ? ` · ${__("{0} jobs waiting in the search engine", [I.waiting])}` : ""}
-				${I.unsent ? `<br><span class="text-warning">${__("{0} books never reached the search engine.", [I.unsent])}</span> <button class="btn btn-xs btn-default" data-index-missing>${__("Send them")}</button>` : ""}</p>`
+				${I.unsent ? `<br><span class="text-warning">${__("{0} books never reached the search engine.", [I.unsent])}</span> <button class="btn btn-xs btn-default" data-index-missing>${__("Send them")}</button>` : ""}</p>
+				${this.engine_html(I)}`
 			: "";
 		const machine = `
 			<div class="rdj-machine">

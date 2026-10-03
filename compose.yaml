@@ -92,6 +92,9 @@ services:
       # how hard indexing may work (./resdesk.sh resources); empty = Meilisearch decides
       MEILI_MAX_INDEXING_THREADS: ${MEILI_MAX_INDEXING_THREADS:-}
       MEILI_MAX_INDEXING_MEMORY: ${MEILI_MAX_INDEXING_MEMORY:-}
+      # at most this many queued tasks in one indexing batch: smaller batches finish (and are kept)
+      # sooner, and one that runs out of memory doesn't take the whole queue back to the start
+      MEILI_EXPERIMENTAL_MAX_NUMBER_OF_BATCHED_TASKS: ${MEILI_MAX_BATCHED_TASKS:-50}
     command:
       - /bin/sh
       - -c

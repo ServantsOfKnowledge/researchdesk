@@ -469,6 +469,15 @@ def health() -> list[dict]:
 		out.append(_check("search", _("Search engine"), "ok", _("answering")))
 	except SearchError as e:
 		out.append(_check("search", _("Search engine"), "bad", str(e)[:120]))
+	else:
+		try:
+			from sok_resdesk.jobs import search_health
+
+			queue = search_health()
+			if queue:
+				out.append(queue)
+		except Exception:
+			pass  # the line above already says whether the engine answers
 
 	disk = disk_usage()
 	limit = cint(s.get("alert_disk_percent")) or 90
@@ -930,7 +939,9 @@ def ping() -> dict:
 	"""For uptime monitors (Uptime Kuma, a load balancer…): ok or degraded, nothing more."""
 	try:
 		checks = {
-			c["key"]: c["state"] for c in health() if c["key"] in ("cache", "workers", "scheduler", "search")
+			c["key"]: c["state"]
+			for c in health()
+			if c["key"] in ("cache", "workers", "scheduler", "search", "search-queue")
 		}
 	except Exception:
 		checks = {"health": "bad"}

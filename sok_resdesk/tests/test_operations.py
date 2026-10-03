@@ -30,6 +30,7 @@ SETTINGS_FIELDS = (
 	"quiet_weekdays_only",
 	"resource_preset",
 	"worker_nice",
+	"ark_enabled",
 	"ark_naan",
 	"ark_shoulder",
 	"preservation_root",
@@ -603,6 +604,11 @@ class FakeMeili:
 	def delete_by_filter(self, index, filter_):
 		self.calls.append(("delete", index, filter_))
 
+	def _req(self, method, path, **kwargs):
+		return {"total": self.waiting}  # GET /tasks: how many wait
+
+	waiting = 0
+
 
 class TestIndexBuffer(OpsTestCase):
 	def record(self, n):
@@ -632,6 +638,21 @@ class TestIndexBuffer(OpsTestCase):
 		for n in (1, 2, 3):
 			self.assertTrue(frappe.db.get_value("RD Item", f"{PREFIX}{n:04d}", "indexed_on"))
 			self.assertEqual(frappe.db.get_value("RD Item", f"{PREFIX}{n:04d}", "indexed_pages"), 4)
+
+	def test_workers_hold_back_while_the_engine_is_behind(self):
+		from sok_resdesk import search
+
+		fake, naps = FakeMeili(), []
+
+		def nap(seconds):
+			naps.append(seconds)
+			if len(naps) == 3:
+				fake.waiting = 10  # the engine caught up
+
+		fake.waiting = search.MAX_WAITING + 1
+		self.assertEqual(search.wait_for_room(fake, sleep=nap), 30)
+		fake.waiting = 0
+		self.assertEqual(search.wait_for_room(fake, sleep=nap), 0)
 
 	def test_books_not_sent_are_found(self):
 		from sok_resdesk.search import index_missing
@@ -739,7 +760,10 @@ class TestRetryByItself(OpsTestCase):
 class TestPermanentIdentifiers(OpsTestCase):
 	def setUp(self):
 		super().setUp()
-		frappe.db.set_single_value("RD Settings", {"ark_naan": "99999", "ark_shoulder": "b1"})
+		# straight into the database: Settings would (rightly) refuse the test NAAN
+		frappe.db.set_single_value(
+			"RD Settings", {"ark_enabled": 1, "ark_naan": "99999", "ark_shoulder": "b1"}
+		)
 
 	def test_new_books_get_an_ark_that_resolves(self):
 		from sok_resdesk import identifiers
@@ -761,6 +785,19 @@ class TestPermanentIdentifiers(OpsTestCase):
 			url_for(get_record(name, check_access=False), "https://lib.example"), f"https://lib.example/{pid}"
 		)
 
+	def test_switched_off_nothing_is_minted_or_shown(self):
+		from sok_resdesk import identifiers
+		from sok_resdesk.catalogue import get_record
+
+		name = _item(26)
+		frappe.db.set_single_value("RD Settings", "ark_enabled", 0)
+		self.assertIsNone(frappe.db.get_value("RD Item", _item(27), "persistent_id"))
+		self.assertEqual(identifiers.assign_missing(), 0)
+		self.assertEqual(get_record(name, check_access=False)["persistent_id"], "")  # minted before: hidden
+		# an ARK already given out keeps resolving: a permanent link never breaks
+		pid = frappe.db.get_value("RD Item", name, "persistent_id")
+		self.assertEqual(identifiers.resolve(pid)["kind"], "book")
+
 	def test_a_deleted_book_leaves_a_tombstone(self):
 		from sok_resdesk import identifiers
 
@@ -772,31 +809,32 @@ class TestPermanentIdentifiers(OpsTestCase):
 		self.assertEqual(where["kind"], "tombstone")
 		self.assertEqual(frappe.db.get_value("RD Tombstone", {"ark": pid}, "item_id"), name)
 
-	def test_books_without_an_ark_get_one_and_the_real_naan_remints_them(self):
+	def test_books_without_an_ark_get_one(self):
 		from sok_resdesk import identifiers
-		from sok_resdesk.core import ark
 
 		names = [_item(n) for n in (24, 25)]
 		frappe.db.sql("update `tabRD Item` set persistent_id=null where name in %s", (tuple(names),))
 		self.assertGreaterEqual(identifiers.assign_missing(), 2)
-		before = {n: frappe.db.get_value("RD Item", n, "persistent_id") for n in names}
-		identifiers.remint("99999", "12345")
-		for n in names:
-			after = frappe.db.get_value("RD Item", n, "persistent_id")
-			self.assertTrue(after.startswith("ark:/12345/b1") and ark.parse(after)["valid"])
-			self.assertEqual(ark.parse(after)["name"][:-1], ark.parse(before[n])["name"][:-1])
+		self.assertTrue(all(frappe.db.get_value("RD Item", n, "persistent_id") for n in names))
 
-	def test_a_real_naan_cannot_be_changed_in_settings(self):
+	def test_switching_on_needs_a_real_naan_and_then_it_stays(self):
+		frappe.db.set_single_value("RD Settings", {"ark_enabled": 0, "ark_naan": "", "ark_shoulder": "b1"})
 		s = frappe.get_single("RD Settings")
-		s.ark_naan = "12345"
+		s.ark_enabled = 1
+		self.assertRaises(frappe.ValidationError, s.save, ignore_permissions=True)  # no NAAN
+		s.reload()
+		s.ark_enabled, s.ark_naan = 1, "99999"
+		self.assertRaises(frappe.ValidationError, s.save, ignore_permissions=True)  # the test NAAN
+		s.reload()
+		s.ark_enabled, s.ark_naan = 1, "12345"
 		with mock.patch("sok_resdesk.identifiers.frappe.enqueue") as enqueue:
 			s.save(ignore_permissions=True)
-		self.assertEqual(enqueue.call_args.kwargs["new_naan"], "12345")  # test ARKs are made again
+		self.assertEqual(enqueue.call_args.kwargs["job_id"], "resdesk-ark-assign")  # the books already here
 		s = frappe.get_single("RD Settings")
 		s.ark_naan = "54321"
 		self.assertRaises(frappe.ValidationError, s.save, ignore_permissions=True)
 		s.reload()
-		s.ark_naan, s.ark_shoulder = "12345", "1b"
+		s.ark_shoulder = "c2"
 		self.assertRaises(frappe.ValidationError, s.save, ignore_permissions=True)
 
 

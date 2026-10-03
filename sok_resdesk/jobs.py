@@ -965,31 +965,99 @@ def _search_size() -> int | None:
 		return None
 
 
+STALL_SECONDS = 180  # tasks waiting with nothing being worked on for this long: stalled
+LONG_BATCH_HOURS = 3
+
+
 def _indexing() -> dict | None:
-	"""Books in the catalogue against books the search engine lists, and what it still has to
-	work through. The portal's search lists only what the engine has taken in, so while it is
-	behind readers see fewer books than the catalogue holds."""
+	"""Books in the catalogue against books the search engine lists, and what it is doing. The
+	portal's search lists only what the engine has taken in, so while it is behind readers see
+	fewer books than the catalogue holds."""
 	cached = frappe.cache.get_value("resdesk:indexing")
 	if cached is not None:
 		return cached or None
-	from sok_resdesk.search import MeiliClient
+	from sok_resdesk.search import MeiliClient, engine_status
 
 	try:
 		client = MeiliClient.from_settings()
 		listed = client.stats().get("indexes", {}).get(client.books, {}).get("numberOfDocuments", 0)
-		tasks = client._req("GET", "/tasks", params={"statuses": "enqueued,processing", "limit": 1})
-		waiting = tasks.get("total", 0)
+		engine = engine_status(client)
 	except Exception:
 		frappe.cache.set_value("resdesk:indexing", {}, expires_in_sec=5)
 		return None
 	row = {
 		"catalogue": frappe.db.count("RD Item", {"published": 1}),
 		"listed": listed,
-		"waiting": waiting,
+		"waiting": engine["waiting"],
 		"unsent": frappe.db.count("RD Item", {"published": 1, "indexed_on": ("is", "not set")}),
+		"engine": engine,
+		**_stall(engine),
 	}
 	frappe.cache.set_value("resdesk:indexing", row, expires_in_sec=5)
 	return row
+
+
+def _stall(engine: dict) -> dict:
+	"""{stalled, long_batch}: tasks waiting while nothing is worked on for STALL_SECONDS (the engine
+	is stuck: restart it), or one batch running for hours (too big for its memory: see the docs)."""
+	import time
+
+	from frappe.utils import get_datetime, now_datetime
+
+	key = "resdesk:search-idle-since"
+	idle = engine["waiting"] and not engine["processing"]
+	since = frappe.cache.get_value(key)
+	if idle and not since:
+		frappe.cache.set_value(key, time.time(), expires_in_sec=24 * 3600)
+	elif not idle and since:
+		frappe.cache.delete_value(key)
+	stalled = bool(idle and since and time.time() - since > STALL_SECONDS)
+	long_batch = False
+	started = (engine.get("processing") or {}).get("started")
+	if started:
+		try:
+			begun = get_datetime(started.replace("Z", "").split(".")[0].replace("T", " "))
+			from frappe.utils import convert_utc_to_system_timezone
+
+			begun = convert_utc_to_system_timezone(begun).replace(tzinfo=None)
+			long_batch = (now_datetime() - begun).total_seconds() > LONG_BATCH_HOURS * 3600
+		except Exception:
+			pass
+	return {"stalled": stalled, "long_batch": long_batch}
+
+
+def search_health() -> dict | None:
+	"""For the Server page: the search engine's queue, when it is stuck."""
+	row = _indexing()
+	if not row:
+		return None
+	if row["stalled"]:
+		return {
+			"key": "search-queue",
+			"label": _("Search indexing"),
+			"state": "bad",
+			"detail": _("{0} tasks waiting and none being worked on: restart the search engine").format(
+				row["waiting"]
+			),
+			"link": "/app/resdesk-jobs",
+		}
+	if row["long_batch"]:
+		return {
+			"key": "search-queue",
+			"label": _("Search indexing"),
+			"state": "warn",
+			"detail": _("one batch has been running for over {0} hours ({1} tasks waiting)").format(
+				LONG_BATCH_HOURS, row["waiting"]
+			),
+			"link": "/app/resdesk-jobs",
+		}
+	return {
+		"key": "search-queue",
+		"label": _("Search indexing"),
+		"state": "ok",
+		"detail": _("{0} tasks waiting").format(row["waiting"]) if row["waiting"] else _("up to date"),
+		"link": "/app/resdesk-jobs",
+	}
 
 
 def machine() -> dict:

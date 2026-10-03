@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-05 09:00:00.000000",
+ "modified": "2026-10-05 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -63,6 +63,7 @@
   "alert_webhook_url",
   "alert_disk_percent",
   "identifiers_section",
+  "ark_enabled",
   "ark_naan",
   "column_break_ids",
   "ark_shoulder",
@@ -434,11 +435,17 @@
    "label": "Persistent Identifiers"
   },
   {
+   "fieldname": "ark_enabled",
+   "fieldtype": "Check",
+   "label": "Give Books ARKs",
+   "default": "0",
+   "description": "Switch on when the ARK Alliance has given the library its NAAN (free: arks.org → Request a NAAN). Every book then gets a permanent ARK (the ones already here in the background), shown as Permanent link and used in citations, exports and OAI-PMH; the portal answers <portal>/ark:/… itself. Once on, the NAAN and shoulder can't be changed."
+  },
+  {
    "fieldname": "ark_naan",
    "fieldtype": "Data",
    "label": "ARK NAAN",
-   "default": "99999",
-   "description": "The number the ARK Alliance gave this library (free: arks.org). 99999 is the Alliance's test number: ARKs made with it are for trying things out. When you enter your own, every book's ARK is made again under it, keeping its name; after that the NAAN can't be changed here."
+   "description": "The number the ARK Alliance gave this library (five or more digits). Needed before Give Books ARKs can be switched on; 99999, the Alliance's test number, is not accepted."
   },
   {
    "fieldname": "column_break_ids",
@@ -449,7 +456,7 @@
    "fieldtype": "Data",
    "label": "ARK Shoulder",
    "default": "b1",
-   "description": "The prefix of the books' ARK names: letters then one digit (b1 for books). Changing it only affects books catalogued afterwards."
+   "description": "The prefix of the books' ARK names: letters then one digit (b1 for books). Fixed once ARKs are switched on."
   },
   {
    "fieldname": "preservation_section",

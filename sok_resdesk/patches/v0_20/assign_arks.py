@@ -1,7 +1,6 @@
 def execute():
-	"""Every book already in the catalogue gets its permanent ARK, oldest first (under the test NAAN
-	until the library enters its own in Settings → Persistent Identifiers; they are then made again
-	under it, keeping their names)."""
+	"""Books already in the catalogue get their ARK when the library switches ARKs on (Settings →
+	Persistent Identifiers); this only matters for a site where they are on already."""
 	from sok_resdesk.identifiers import assign_missing
 
 	assign_missing()

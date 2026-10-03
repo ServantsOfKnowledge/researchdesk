@@ -305,6 +305,72 @@ def quality_fields(pages: list[dict] | None) -> dict:
 	return {"ocr_quality": q["score"], "ocr_low_pages": q["low_pages"]}
 
 
+MAX_WAITING = 300  # search-engine tasks waiting before workers hold back (see wait_for_room)
+WAIT_UP_TO = 15 * 60  # seconds a worker holds back at most, then sends anyway
+
+
+def waiting_tasks(client: MeiliClient) -> int:
+	return client._req("GET", "/tasks", params={"statuses": "enqueued", "limit": 1}).get("total", 0)
+
+
+def wait_for_room(client: MeiliClient, sleep=None) -> int:
+	"""Back-pressure: while the search engine has more than MAX_WAITING tasks waiting, the worker
+	waits (up to WAIT_UP_TO) instead of adding more. Ingesting then goes at the pace the engine
+	can index, rather than piling up a queue it can never get through. Returns seconds waited."""
+	import time
+
+	sleep = sleep or time.sleep
+	waited = 0
+	while waited < WAIT_UP_TO:
+		try:
+			waiting = waiting_tasks(client)
+		except Exception:
+			break  # can't tell: carry on; sending reports the real error
+		if not isinstance(waiting, int) or waiting <= MAX_WAITING:
+			break
+		sleep(10)
+		waited += 10
+	return waited
+
+
+def engine_status(client: MeiliClient | None = None) -> dict:
+	"""What the search engine is doing, for Background Jobs → Machine and the Server page:
+	tasks waiting, the batch it is working on (since when, how far), the oldest waiting task,
+	and the latest failures with their errors."""
+	client = client or MeiliClient.from_settings()
+	waiting = client._req("GET", "/tasks", params={"statuses": "enqueued", "limit": 1})
+	try:
+		oldest = client._req("GET", "/tasks", params={"statuses": "enqueued", "limit": 1, "reverse": "true"})
+	except SearchError:
+		oldest = {}  # an engine too old for reverse=
+	batch = client._req("GET", "/batches", params={"statuses": "processing", "limit": 1}).get("results") or []
+	failed = client._req("GET", "/tasks", params={"statuses": "failed", "limit": 3}).get("results") or []
+	out = {
+		"waiting": waiting.get("total", 0),
+		"oldest_waiting": ((oldest.get("results") or [{}])[0]).get("enqueuedAt"),
+		"processing": None,
+		"failed": [
+			{
+				"type": t.get("type"),
+				"at": t.get("finishedAt"),
+				"error": ((t.get("error") or {}).get("message") or "")[:300],
+			}
+			for t in failed
+		],
+	}
+	if batch:
+		b = batch[0]
+		stats = b.get("stats") or {}
+		out["processing"] = {
+			"started": b.get("startedAt"),
+			"tasks": stats.get("totalNbTasks"),
+			"types": sorted((stats.get("types") or {}).keys()),
+			"indexes": sorted((stats.get("indexUids") or {}).keys()),
+			"percent": round(((b.get("progress") or {}).get("percentage") or 0), 1),
+		}
+	return out
+
+
 class IndexBuffer:
 	"""Books (and their page text) waiting to go to Meilisearch, sent together.
 
@@ -352,6 +418,7 @@ class IndexBuffer:
 		books, stale, pages, counts, quality = self.books, self.stale, self.pages, self.counts, self.quality
 		self.books, self.stale, self.pages, self.counts, self.quality = [], [], [], {}, {}
 		client = self.client = self.client or MeiliClient.from_settings()
+		wait_for_room(client)
 		client.add(client.books, books)
 		if stale:
 			filters = " OR ".join(f"item_id = {_quote(i)}" for i in stale)

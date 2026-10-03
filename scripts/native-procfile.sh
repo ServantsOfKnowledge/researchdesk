@@ -22,6 +22,8 @@ sed -i.bak '/^watch:/d' Procfile && rm -f Procfile.bak
 MEILI_EXTRA=""
 [ -n "${MEILI_MAX_INDEXING_THREADS:-}" ] && MEILI_EXTRA="$MEILI_EXTRA --max-indexing-threads $MEILI_MAX_INDEXING_THREADS"
 [ -n "${MEILI_MAX_INDEXING_MEMORY:-}" ] && MEILI_EXTRA="$MEILI_EXTRA --max-indexing-memory $MEILI_MAX_INDEXING_MEMORY"
+# at most this many queued tasks per indexing batch (default 50), as in compose.yaml
+MEILI_EXTRA="$MEILI_EXTRA --experimental-max-number-of-batched-tasks ${MEILI_MAX_BATCHED_TASKS:-50}"
 NICE="nice -n ${WORKER_NICE:-19}"
 # background workers run at low priority so the portal stays responsive. The level is exactly
 # WORKER_NICE: Frappe's own +10 for workers is turned off so the two don't add up.

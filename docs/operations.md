@@ -91,6 +91,7 @@ Fine-tune any cap (the preset becomes *custom*):
 | `WORKER_NICE` | worker priority, 0–19: 19 (the default) is gentlest on everything else; lower gives workers more CPU time when the machine is busy |
 | `MEILI_CPUS`, `MEILI_MEMORY` | the search engine |
 | `MEILI_MAX_INDEXING_THREADS`, `MEILI_MAX_INDEXING_MEMORY` | how hard the search engine indexes, e.g. `2`, `1Gb` (empty = automatic) |
+| `MEILI_MAX_BATCHED_TASKS` | at most this many waiting tasks in one indexing batch (default 50): lower it if the search engine runs out of memory ([stuck indexing](#search-indexing-is-stuck)) |
 | `DB_CPUS`, `DB_MEMORY`, `DB_BUFFER_POOL` | MariaDB, and its cache (e.g. `512M`) |
 | `GUNICORN_WORKERS` | web server processes (not capped: the portal should stay fast) |
 
@@ -364,8 +365,9 @@ Every setting:
 
 | Setting | What it does |
 |---|---|
-| ARK NAAN | The number the ARK Alliance gave this library (free: arks.org). 99999 is the Alliance's test number: ARKs made with it are for trying things out. When you enter your own, every book's ARK is made again under it, keeping its name; after that the NAAN can't be changed here. |
-| ARK Shoulder | The prefix of the books' ARK names: letters then one digit (b1 for books). Changing it only affects books catalogued afterwards. |
+| Give Books ARKs | Switch on when the ARK Alliance has given the library its NAAN (free: arks.org → Request a NAAN). Every book then gets a permanent ARK (the ones already here in the background), shown as Permanent link and used in citations, exports and OAI-PMH; the portal answers <portal>/ark:/… itself. Once on, the NAAN and shoulder can't be changed. |
+| ARK NAAN | The number the ARK Alliance gave this library (five or more digits). Needed before Give Books ARKs can be switched on; 99999, the Alliance's test number, is not accepted. |
+| ARK Shoulder | The prefix of the books' ARK names: letters then one digit (b1 for books). Fixed once ARKs are switched on. |
 
 **Preservation**
 
@@ -442,6 +444,29 @@ workspace after login. Readers can also sign up themselves, or be added with
 | Native: "Research Desk" workspace missing from the Desk | `./resdesk.sh migrate` |
 
 Errors from background jobs also appear in Desk → *Error Log*.
+
+### Search indexing is stuck
+
+The portal lists only the books the search engine has taken in. **Background Jobs → Machine**
+shows how many of the catalogue's books it lists, the tasks it has waiting, the batch it is
+working on (since when, how far) and its last failure. The Server page turns *Search indexing*
+red when tasks wait and nothing is being worked on, and orange when one batch has run for hours.
+
+1. **Look at what it says.** `./resdesk.sh logs meilisearch` (or Server → Logs → meilisearch).
+   Then whether it has been running out of memory and starting over:
+   `docker inspect -f '{{.State.OOMKilled}} {{.RestartCount}}' $(docker compose ps -q meilisearch)`.
+   `true` or a restart count that keeps growing means it is: each restart begins the same batch
+   again, so the queue never moves.
+2. **Restart it**: *Restart search engine* on the Machine card (with the updater helper) or
+   `docker compose restart meilisearch`. Waiting tasks are kept and carry on.
+3. **If it runs out of memory**, give it smaller batches and more room, then
+   `./resdesk.sh resources apply`:
+   `./resdesk.sh resources set MEILI_MAX_BATCHED_TASKS=20 MEILI_MEMORY=4g` (batches of at most 20
+   tasks, default 50; 4 GB for the search engine). On a small machine set
+   `MEILI_MAX_INDEXING_MEMORY` to about half of `MEILI_MEMORY`.
+4. **While it catches up**, workers hold back by themselves: when more than 300 tasks wait, each
+   worker waits (up to 15 minutes at a time) before sending more, so ingesting goes at the pace
+   the engine can index. **Pause All** on Background Jobs stops new work completely.
 
 ## Command reference
 
