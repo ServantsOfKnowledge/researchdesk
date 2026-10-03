@@ -496,6 +496,8 @@ def _list_records(ia: IAClient, query: str, limit: int, run_name: str, verbose: 
 	else the core one, else nothing (the run then lists identifiers only, as before)."""
 	from sok_resdesk.core.ia import CATALOGUE_FIELDS, CATALOGUE_FIELDS_CORE
 
+	if not hasattr(ia, "iter_records"):
+		return {}
 	for fields in (CATALOGUE_FIELDS, CATALOGUE_FIELDS_CORE):
 		try:
 			out: dict[str, dict] = {}
@@ -504,7 +506,7 @@ def _list_records(ia: IAClient, query: str, limit: int, run_name: str, verbose: 
 					out.setdefault(row["identifier"], row)
 			_log(run_name, f"{len(out):,} search records fetched from archive.org in bulk", verbose)
 			return out
-		except IAError as e:
+		except Exception as e:  # anything at all: the run lists identifiers instead, as before
 			_log(run_name, f"bulk listing with fields {fields[:40]}… failed: {str(e)[:200]}", verbose)
 	return {}
 

@@ -175,7 +175,7 @@ def _clean(values: dict, book: dict, existing=None) -> dict:
 	if link and not link.startswith(("https://", "http://")):
 		frappe.throw(_("A link must start with https://"))
 	entity_in = values.get("entity") if "entity" in values else None
-	if entity_in is None and kind == "Link" and wikidata.qid(link):
+	if not entity_in and kind == "Link" and wikidata.qid(link):
 		entity_in = link  # a link to a Wikidata page says what the passage is about
 	if entity_in is None:
 		entity = existing.entity if existing else ""
