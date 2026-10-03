@@ -116,7 +116,12 @@ It is a **ranking**, not an accuracy figure: it finds the books and pages that m
 OCR or proofreading. English with plausible-looking errors ("tbe" for "the") still scores
 fairly high, since it uses no dictionary.
 
+OCR Quality is a column of the Items list, and **Background Jobs → Machine** shows how many books
+are scored, with **Score now** and **Worst first** (the Items list, lowest score first).
+
 Books are scored as they are indexed. Books already in the catalogue are scored in the
-background from the page text kept on this server (no archive.org requests): the upgrade starts
-it, a daily job continues it, and **Items → ⋯ → Score OCR quality** starts it at once. Sort the
+background from the page text kept on this server (no archive.org requests), one job working
+through them all: the upgrade starts it, a daily job picks up what is left, and **Score now**
+(or **Items → ⋯ → Score OCR quality**) starts it at once. A book whose page text isn't kept on
+this server shows *Low-Quality Pages* −1 and is scored the next time it is indexed. Sort the
 Items list by **OCR Quality** (lowest first, with a filter *OCR Quality > 0*) to see the worst books.

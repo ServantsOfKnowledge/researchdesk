@@ -853,6 +853,33 @@ class TestOcrQuality(OpsTestCase):
 		self.assertGreaterEqual(frappe.db.get_value("RD Item", name, "ocr_quality"), 90)
 		self.assertNotIn(name, ocr.unscored())
 
+	def test_scoring_works_through_the_catalogue_in_one_job(self):
+		from sok_resdesk import ocr
+		from sok_resdesk.ingest import write_cached_pages
+
+		kept, missing = _item(33), _item(34)
+		for name in (kept, missing):
+			frappe.db.set_value("RD Item", name, {"has_page_text": 1, "ocr_quality": 0, "ocr_low_pages": 0})
+		write_cached_pages(kept, [{"leaf": 0, "label": "", "text": "ಕನಕದಾಸರ ಕೀರ್ತನೆಗಳು"}])
+		# one job for the whole catalogue, however big (no flood of queued jobs)
+		self.enqueued.clear()
+		self.assertGreaterEqual(ocr.queue_scoring(), 2)
+		self.assertEqual([m for m, _kw in self.enqueued], ["sok_resdesk.ocr.score_some"])
+		with mock.patch(
+			"sok_resdesk.ingest.read_cached_pages",
+			side_effect=lambda n: (
+				None if n == missing else [{"leaf": 0, "label": "", "text": "ಕನಕದಾಸರ ಕೀರ್ತನೆಗಳು"}]
+			),
+		):
+			ocr.score_some()
+		self.assertGreaterEqual(frappe.db.get_value("RD Item", kept, "ocr_quality"), 90)
+		# no page text kept: marked, not taken again, scored when next indexed
+		self.assertEqual(frappe.db.get_value("RD Item", missing, "ocr_low_pages"), -1)
+		self.assertNotIn(missing, ocr.unscored())
+		progress = ocr.progress()
+		self.assertGreaterEqual(progress["scored"], 1)
+		self.assertGreaterEqual(progress["no_text_kept"], 1)
+
 	def test_indexing_records_the_quality(self):
 		from sok_resdesk.search import IndexBuffer
 

@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-05 13:00:00.000000",
+ "modified": "2026-10-05 15:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Item",
@@ -344,7 +344,9 @@
    "label": "OCR Quality",
    "read_only": 1,
    "no_copy": 1,
-   "description": "How clean the page text is, 1 (garbage) to 100 (clean), worked out from the text itself. Sort the Items list by it (with OCR Quality above 0) to find the books that most need better OCR or proofreading. 0: not scored yet."
+   "description": "How clean the page text is, 1 (garbage) to 100 (clean), worked out from the text itself. Sort the Items list by it (with OCR Quality above 0) to find the books that most need better OCR or proofreading. 0: not scored yet.",
+   "in_list_view": 1,
+   "in_standard_filter": 1
   },
   {
    "fieldname": "ocr_low_pages",
@@ -352,7 +354,7 @@
    "label": "Low-Quality Pages",
    "read_only": 1,
    "no_copy": 1,
-   "description": "Pages with an OCR quality below 50."
+   "description": "Pages with an OCR quality below 50. -1: no page text is kept on this server for the book, so it is scored the next time it is indexed."
   },
   {
    "fieldname": "ocr_engine",

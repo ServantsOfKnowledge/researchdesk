@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.21.2 (2026-10-05): OCR quality you can see
+
+- **OCR Quality is a column of the Items list**, and Background Jobs → Machine shows how many books
+  are scored, with *Score now* and *Worst first*
+- **Fixed: scoring the books already in the catalogue stalled.** It queued a job per 200 books at
+  once (about 440 for 88,000 books), which the job queue refuses past its limit. It is now one job
+  that works through them all and queues itself again. It starts with this upgrade
+- Books whose page text isn't kept on the server are marked (−1 low-quality pages) instead of
+  being tried again every day; they are scored when next indexed
+
 ## 0.21.1 (2026-10-05): Books first by itself
 
 - **Books first happens by itself** when a new book has waited more than 15 minutes in the search

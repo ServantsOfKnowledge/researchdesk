@@ -1055,11 +1055,30 @@ def search_health() -> dict | None:
 	}
 
 
+def _ocr_progress() -> dict | None:
+	try:
+		from sok_resdesk.ocr import progress
+
+		return progress()
+	except Exception:
+		return None
+
+
+@frappe.whitelist()
+def score_ocr_now() -> dict:
+	frappe.only_for(MANAGERS)
+	from sok_resdesk.ocr import queue_scoring
+
+	n = queue_scoring()
+	return {"message": _("{0} books are being scored in the background.").format(n)}
+
+
 def machine() -> dict:
 	from sok_resdesk import priority
 
 	return {
 		"priority": priority.status(),
+		"ocr": _ocr_progress(),
 		"indexing": _indexing(),
 		"host": _host(),
 		"limits": _limits(),

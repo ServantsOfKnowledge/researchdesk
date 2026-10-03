@@ -54,6 +54,7 @@ class ResDeskJobs {
 		this.$body.on("click", "[data-release-all]", () => this.call("release_held", {}));
 		this.$body.on("click", "[data-choose-preset]", () => this.choose_preset());
 		this.$body.on("click", "[data-renice]", () => this.renice());
+		this.$body.on("click", "[data-score-ocr]", () => this.call("score_ocr_now", {}));
 		this.$body.on("click", "[data-restart-search]", () =>
 			frappe.confirm(__("Restart the search engine? Searching pauses for a minute; waiting tasks are kept and carry on."), () =>
 				frappe
@@ -171,6 +172,14 @@ class ResDeskJobs {
 				)
 			);
 		}
+	}
+
+	ocr_html(O) {
+		if (!O || !O.with_text) return "";
+		return `<p class="small" style="margin-top:6px">${__("OCR quality")}: <b>${O.scored.toLocaleString()}</b> ${__("of")} ${O.with_text.toLocaleString()} ${__("books scored")}${
+			O.no_text_kept ? ` · ${__("{0} without page text kept here (scored when next indexed)", [O.no_text_kept.toLocaleString()])}` : ""
+		}${O.waiting ? ` <button class="btn btn-xs btn-default" data-score-ocr>${__("Score now")}</button>` : ""}
+		<a href="/app/rd-item?ocr_quality=%5B%22%3E%22%2C0%5D&order_by=ocr_quality%20asc">${__("Worst first")}</a></p>`;
 	}
 
 	// Search queue: what waits in the search engine, how fast it goes, and what can be done about it
@@ -517,7 +526,7 @@ class ResDeskJobs {
 					<p class="small" style="margin-top:10px">${__("Preset in use")}: <b>${esc(preset || "–")}</b>
 						${m.requested_preset && m.requested_preset !== preset ? ` · ${__("chosen")}: <b>${esc(m.requested_preset)}</b> (${__("run")} <code>./resdesk.sh resources apply</code>)` : ""}
 						${m.native ? "" : `<button class="btn btn-xs btn-default" data-choose-preset style="margin-left:6px">${__("Change")}</button>`}</p>
-					${prio}${idx}
+					${prio}${idx}${this.ocr_html(m.ocr)}
 					<p class="small text-muted">${
 						q.enabled
 							? __("Quiet hours: {0} to {1}{2}.", [q.from, q.to, q.weekdays_only ? " " + __("on weekdays") : ""])

@@ -129,7 +129,7 @@ two files are ever served, and the PDF only when the caller may read the book.
 | `sok_resdesk.priority.set_worker_priority` (`nice`=`19`/`10`/`5`/`0`/`-5`) | choose the background workers' priority live; each worker applies it between two books (Background Jobs → Machine → Worker priority) |
 | `sok_resdesk.search.enqueue_index_missing` (`with_pages`) | queue the books that never reached the search engine; returns how many |
 | `sok_resdesk.preservation.preserve_now` (`item`) · `check_now` (`item`) · `enqueue_preservation` | make or update a book's preservation copy now; check a copy against its checksums; copy every book waiting for one (docs/preservation.md) |
-| `sok_resdesk.ocr.enqueue_scoring` (`limit`) | score the OCR quality of books not scored yet, in the background; returns how many |
+| `sok_resdesk.ocr.enqueue_scoring` (`limit`) · `sok_resdesk.jobs.score_ocr_now` | score the OCR quality of books not scored yet, in one background job; returns how many |
 | `sok_resdesk.search_queue.get_overview` | the search engine's queue: book records and page text waiting, tasks a minute, time to go, failures, page text held or pending, task history |
 | `sok_resdesk.search_queue.books_first` · `hold_page_text` (`hold`=1/0) · `clear_history` (`days`) | cancel the waiting page text so books are listed next (it is sent again later); hold or resume page text; forget finished tasks older than `days` (7) |
 | `GET /ark:/<naan>/<name>[/n<leaf>]` | a permanent ARK: redirects to the book (at that leaf); `?info` returns its who/what/when/where record as text; a deleted book's ARK leads to its tombstone |
