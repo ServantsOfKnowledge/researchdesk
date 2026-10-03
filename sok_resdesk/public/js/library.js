@@ -109,6 +109,10 @@
 		}
 		const noun = state.mode === "pages" ? "matching pages" : "books";
 		$("#rd-summary").textContent = `${(data.total || 0).toLocaleString()}${data.total_capped ? "+" : ""} ${noun}${data.took_ms != null ? ` · ${data.took_ms} ms` : ""}`;
+		// a search in Latin letters also found these spellings (search.expand_query)
+		const also = (data.also || []).map((a) => `<b lang="${a.script === "Devanagari" ? "hi" : ""}">${esc(a.q)}</b>`);
+		$("#rd-also").innerHTML = also.length ? `Also searched: ${also.join(", ")}` : "";
+		$("#rd-also").hidden = !also.length;
 		renderChips();
 		renderFacets(data.facets || {});
 		const hits = data.hits || [];

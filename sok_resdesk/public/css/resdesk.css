@@ -349,3 +349,7 @@
 .rd-help__brand:hover { text-decoration: none; }
 .rd-help__brand img { max-width: 200px; max-height: 64px; width: auto; height: auto; }
 .rd-help__brand span { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--rd-muted); }
+
+/* "Also searched: ಕನಕದಾಸ" under the result count (romanised search) */
+.rd-also { font-size: .88rem; margin-top: 2px; }
+.rd-also b { font-weight: 600; color: var(--rd-text, inherit); }

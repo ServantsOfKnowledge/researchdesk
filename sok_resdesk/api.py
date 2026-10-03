@@ -77,6 +77,8 @@ def search(q: str = "", mode: str = "books", filters=None, page: int = 1, per_pa
 		"hits": [_hit(h, mode) for h in result.get("hits", [])],
 		# true when this visitor must log in to search this way (e.g. inside the text)
 		"login_needed": bool(result.get("restricted")),
+		# Indic spellings searched too, for a query typed in Latin letters: [{script, q}]
+		"also": result.get("also") or [],
 	}
 
 
@@ -130,23 +132,35 @@ def search_inside(item_id: str, q: str, limit: int = 50):
 		frappe.throw(_("Item not found"), frappe.DoesNotExistError)
 	if not access.can_read(row.visibility):
 		return {"total": 0, "hits": [], "login_needed": True}
+	from sok_resdesk.search import expand_query, federated
+
 	client = MeiliClient.from_settings()
-	result = client.search(
-		client.pages,
-		{
-			"q": q,
-			"filter": f"item_id = {_quote(item_id)}",
-			"limit": min(cint(limit) or 50, 200),
-			"sort": ["leaf:asc"],
-			"attributesToCrop": ["text"],
-			"cropLength": 30,
-			"attributesToHighlight": ["text"],
-			"highlightPreTag": "<mark>",
-			"highlightPostTag": "</mark>",
-			"attributesToRetrieve": ["leaf", "label"],
-		},
-	)
+	limit = min(cint(limit) or 50, 200)
+	body = {
+		"q": q,
+		"filter": f"item_id = {_quote(item_id)}",
+		"limit": limit,
+		"sort": ["leaf:asc"],
+		"attributesToCrop": ["text"],
+		"cropLength": 30,
+		"attributesToHighlight": ["text"],
+		"highlightPreTag": "<mark>",
+		"highlightPostTag": "</mark>",
+		"attributesToRetrieve": ["leaf", "label"],
+	}
+	# a word typed in Latin letters also finds its spelling in the book's own script
+	language = frappe.db.get_value("RD Item", item_id, "language_label")
+	queries, also = expand_query(q, {"language_label": [language]} if language else None, client)
+	if len(queries) > 1:
+		result = federated(
+			client, client.pages, queries, {k: v for k, v in body.items() if k != "sort"}, 1, limit
+		)
+		result["hits"].sort(key=lambda h: h.get("leaf", 0))
+		result["estimatedTotalHits"] = result["totalHits"]
+	else:
+		result = client.search(client.pages, body)
 	return {
+		"also": also,
 		"total": result.get("estimatedTotalHits", 0),
 		"hits": [
 			{

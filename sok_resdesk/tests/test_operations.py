@@ -41,6 +41,7 @@ SETTINGS_FIELDS = (
 	"second_copy",
 	"second_folder",
 	"serve_from_copy",
+	"search_romanised",
 	"hold_page_text",
 	"auto_books_first",
 	"book_limit",
@@ -1823,3 +1824,74 @@ class TestSecondCopy(OpsTestCase):
 		import importlib.util
 
 		self.assertIsNotNone(importlib.util.find_spec("boto3"), "boto3 is missing from the image")
+
+
+class TestRomanisedSearch(OpsTestCase):
+	"""Romanised words, OR and phrases against the real search engine, on test indexes."""
+
+	BOOKS = [
+		("rs1", "ಕನಕದಾಸರ ಕೀರ್ತನೆಗಳು", "Kannada", "ಕನಕದಾಸರ ಕೀರ್ತನೆಗಳು ಮೊದಲನೆಯ ಭಾಗ"),
+		("rs2", "ವಚನ ಸಂಪುಟ", "Kannada", "ಬಸವಣ್ಣನವರ ವಚನಗಳು ಕರ್ನಾಟಕ"),
+		("rs3", "ಪುರಂದರ ದಾಸರ ಪದಗಳು", "Kannada", "ಪುರಂದರ ದಾಸರು ಕರ್ನಾಟಕ ಸಂಗೀತ"),
+		("rs4", "History of Kannada literature", "English", "Kanakadasa and Purandaradasa"),
+	]
+
+	def setUp(self):
+		super().setUp()
+		from sok_resdesk import search
+
+		real = search.MeiliClient.from_settings()
+		self.client = search.MeiliClient(
+			real.url, real.session.headers.get("Authorization", "")[7:], "rdtestsearch"
+		)
+		self.client.setup()
+		docs = [
+			{
+				"id": i,
+				"item_id": i,
+				"title": t,
+				"language_label": lang,
+				"visibility": "Public",
+				"text_excerpt": x,
+			}
+			for i, t, lang, x in self.BOOKS
+		]
+		self.client.wait(
+			self.client._req("POST", f"/indexes/{self.client.books}/documents", json=docs), timeout=60
+		)
+		p = mock.patch("sok_resdesk.search.MeiliClient.from_settings", return_value=self.client)
+		p.start()
+		self.addCleanup(p.stop)
+		self.addCleanup(self.drop)
+
+	def drop(self):
+		for index in (self.client.books, self.client.pages):
+			try:
+				self.client._req("DELETE", f"/indexes/{index}")
+			except Exception:
+				pass
+
+	def found(self, q, **filters):
+		from sok_resdesk import search
+
+		r = search.search(q, "books", filters or {}, 1, 20)
+		return {h["item_id"] for h in r["hits"]}, [a["q"] for a in r.get("also") or []]
+
+	def test_latin_letters_find_indic_spellings(self):
+		ids, also = self.found("kanakadasa")
+		self.assertEqual(ids, {"rs1", "rs4"})  # the Kannada book, and the English one by its own words
+		self.assertEqual(also, ["ಕನಕದಾಸ"])
+		ids, also = self.found("karnataka sangeeta")
+		self.assertIn("rs3", ids)
+		self.assertIn("ಕರ್ನಾಟಕ ಸಂಗೀತ", also)
+		self.assertEqual(self.found("history")[1], [])  # an English word gets no invented spelling
+
+	def test_or_phrases_and_exclusions(self):
+		self.assertEqual(self.found("purandara OR vachana")[0], {"rs2", "rs3", "rs4"})
+		self.assertEqual(self.found('"karnataka sangeeta"')[0], {"rs3"})
+		self.assertEqual(self.found("vachana -basavannanavara")[0], set())
+
+	def test_switched_off(self):
+		frappe.db.set_single_value("RD Settings", "search_romanised", 0)
+		frappe.clear_document_cache("RD Settings", "RD Settings")
+		self.assertEqual(self.found("vachana"), (set(), []))

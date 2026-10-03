@@ -17,7 +17,7 @@ Base: `<BASE_URL>/api/method/`
 
 | Param | Default | |
 |---|---|---|
-| `q` | `""` | query text (any script) |
+| `q` | `""` | query text (any script): `"a phrase"`, `a OR b`, `-word`; words in Latin letters also search their Indic spellings (the response's `also` lists them) |
 | `mode` | `books` | `books` or `pages` (full text inside books) |
 | `filters` | `{}` | JSON, e.g. `{"language_label":["Kannada"],"decade":["1950s"],"year_from":1900,"year_to":1950}`. Facet keys: `curated` (your collections, by web address), `item_type` (Book, Periodical, Thesis…), `language_label`, `decade`, `subjects`, `creators`, `collections` (source collections on archive.org) |
 | `page`, `per_page` | 1, 20 | `per_page` ≤ 100 |

@@ -7,8 +7,10 @@ the library keeps some books for its members.
 ## Finding books
 
 Type in the search box on the home page and press **Search**. You can type in Kannada or any
-other script, or in Latin letters: `hampi` also finds books whose title is ಹಂಪಿ… when the
-library has recorded a romanised title.
+other script, or in Latin letters as you would write the word: `kanakadasa` also finds
+ಕನಕದಾಸ, `vachana` finds ವಚನ (the line under the count says *Also searched: …*). Put words in
+"double quotes" to find them together, use `OR` for either word, and `-word` to leave a word
+out.
 
 ![The library home page with the search box](../sok_resdesk/public/images/guide/portal-home.png)
 

@@ -808,7 +808,11 @@ def search(
 				"attributesToRetrieve": ["item_id", "leaf", "label", "year", "language_label", "visibility"],
 			}
 		)
-		result = client.search(client.pages, body)
+		queries, also = expand_query(q, filters, client) if q else ([q or ""], [])
+		if len(queries) > 1:
+			result = federated(client, client.pages, queries, body, page, per_page)
+		else:
+			result = client.search(client.pages, body)
 		_attach_book_fields(client, result.get("hits", []))
 		# facet counts always come from the books index so the sidebar stays useful
 		book_filter = build_filter(filters) + ([access["books"]] if access.get("books") else [])
@@ -827,5 +831,220 @@ def search(
 		)
 		if sort in ("year:asc", "year:desc", "title_sort:asc"):
 			body["sort"] = [sort]
-		result = client.search(client.books, body)
+		queries, also = expand_query(q, filters, client) if q else ([q or ""], [])
+		if len(queries) > 1:
+			result = federated(client, client.books, queries, body, page, per_page, facets=FACETS)
+		else:
+			result = client.search(client.books, body)
+	result["also"] = also
 	return result
+
+
+# -- romanised words, OR, phrases ------------------------------------------------------------------
+# A query typed in Latin letters ("kanakadasa", "vachana") also searches the Indic spellings the
+# catalogue really holds (core/translit.py lists the likely ones; a quick probe of the books
+# index keeps those that occur, cached a week). "a OR b" searches either. Phrases in "double
+# quotes" and -words to leave out are Meilisearch's own. All the queries run as one federated
+# search: one list, best matches first, each book once.
+
+OR_SPLIT = re.compile(r"\s+(?:OR|\|)\s+")
+TOKEN = re.compile(r'-?"[^"]*"|\S+')
+SPELLING_TTL = 7 * 86400
+MAX_WORDS = 4
+MAX_SCRIPTS = 2
+
+
+def romanised_on() -> bool:
+	"""Settings → Search Engine → Find Indic Spellings (on unless switched off)."""
+	value = settings().get("search_romanised")
+	return True if value is None else bool(cint(value))
+
+
+def catalogue_scripts(client: MeiliClient | None = None) -> list[str]:
+	"""The Indic scripts of the catalogue's languages, the most common first (cached a day)."""
+	from sok_resdesk.core.translit import script_of_language
+
+	client = client or MeiliClient.from_settings()
+	key = f"resdesk:catalogue-scripts:{client.books}"
+	cached = frappe.cache.get_value(key)
+	if cached is not None:
+		return cached
+	facets = client.search(client.books, {"q": "", "limit": 0, "facets": ["language_label"]})
+	counts: dict[str, int] = {}
+	for label, n in (facets.get("facetDistribution", {}).get("language_label") or {}).items():
+		script = script_of_language(label)
+		if script:
+			counts[script] = counts.get(script, 0) + n
+	out = sorted(counts, key=counts.get, reverse=True)
+	frappe.cache.set_value(key, out, expires_in_sec=86400)
+	return out
+
+
+def _probe(client: MeiliClient, words: list[tuple[str, str]]) -> dict[tuple[str, str], list[str]]:
+	"""{(word, script): spellings the books index holds, the most used first}. Each candidate is
+	asked twice in one request: as a whole word (a trailing space turns prefix matching off) and
+	as the start of a word (Kannada words carry suffixes: ಕನಕದಾಸ → ಕನಕದಾಸರ). A spelling counts only
+	with no typo; a start shorter than three letters is too loose to count."""
+	from sok_resdesk.core.translit import candidates
+
+	found: dict[tuple[str, str], list[str]] = {}
+	todo = []
+	for word, script in words:
+		cached = frappe.cache.get_value(f"resdesk:spelling:{client.books}:{script}:{word}")
+		if cached is not None:
+			found[(word, script)] = cached
+		else:
+			todo.append((word, script))
+	for start, stop in ((0, 12), (12, 36)):  # the likely spellings first; more only when none is found
+		ask = []
+		for word, script in todo:
+			if found.get((word, script)):
+				continue
+			for cand in candidates(word, script, limit=stop)[start:]:
+				ask.append((word, script, cand, True))
+				ask.append((word, script, cand, False))
+		if not ask:
+			break
+		body = {
+			"queries": [
+				{
+					"indexUid": client.books,
+					"q": cand + (" " if whole else ""),
+					"limit": 1,
+					"showRankingScoreDetails": True,
+					"attributesToRetrieve": ["id"],
+				}
+				for _w, _s, cand, whole in ask
+			]
+		}
+		results = client._req("POST", "/multi-search", json=body).get("results", [])
+		whole_hits: dict[tuple[str, str], list[tuple[int, int, str]]] = {}
+		start_hits: dict[tuple[str, str], list[tuple[int, int, str]]] = {}
+		for n, ((word, script, cand, whole), res) in enumerate(zip(ask, results, strict=False)):
+			hits = res.get("hits") or []
+			if not hits:
+				continue
+			typos = ((hits[0].get("_rankingScoreDetails") or {}).get("typo") or {}).get("typoCount", 1)
+			if typos:
+				continue
+			if not whole and len(cand) < 3:
+				continue
+			bucket = whole_hits if whole else start_hits
+			bucket.setdefault((word, script), []).append((-res.get("estimatedTotalHits", 0), n, cand))
+		for key in {(w, s) for w, s, _c, _x in ask}:
+			ranked = sorted(whole_hits.get(key) or start_hits.get(key) or [])
+			found[key] = list(dict.fromkeys(c for _n, _i, c in ranked))[:2]
+	for word, script in todo:
+		spellings = found.get((word, script), [])
+		# none found: asked again tomorrow, when new books may hold it
+		frappe.cache.set_value(
+			f"resdesk:spelling:{client.books}:{script}:{word}",
+			spellings,
+			expires_in_sec=SPELLING_TTL if spellings else 86400,
+		)
+	return found
+
+
+def _rewrite(tokens: list[str], spell: dict[str, list[str]], which: int) -> str | None:
+	"""The query with each romanised word replaced by its `which`-th spelling (words without one
+	are left out; None when no word has one)."""
+	from sok_resdesk.core.translit import is_latin_word
+
+	out, changed = [], False
+	for tok in tokens:
+		neg = tok.startswith("-")
+		core = tok[1:] if neg else tok
+		if core.startswith('"') and core.endswith('"') and len(core) >= 2:
+			words = []
+			for w in core[1:-1].split():
+				options = spell.get(w.lower()) or []
+				if options:
+					words.append(options[min(which, len(options) - 1)])
+					changed = True
+				elif not is_latin_word(w):
+					words.append(w)
+			if words:
+				out.append(("-" if neg else "") + '"' + " ".join(words) + '"')
+			continue
+		options = spell.get(core.lower()) or []
+		if options:
+			out.append(("-" if neg else "") + options[min(which, len(options) - 1)])
+			changed = True
+		elif not is_latin_word(core):
+			out.append(tok)  # Indic words, numbers…: kept as they are
+	return " ".join(out) if changed and out else None
+
+
+def expand_query(
+	q: str, filters: dict | None = None, client: MeiliClient | None = None
+) -> tuple[list[str], list[dict]]:
+	"""The queries to run for `q` (its OR parts, and their Indic spellings) and, for the portal,
+	what else was searched: [{script, q}]."""
+	from sok_resdesk.core.translit import has_indic, is_latin_word, script_of_language
+
+	q = (q or "").strip()
+	groups = [g.strip() for g in OR_SPLIT.split(q) if g.strip()] or [q]
+	queries, also = list(groups), []
+	latin = {
+		w.lower()
+		for g in groups
+		for tok in TOKEN.findall(g)
+		for w in tok.lstrip("-").strip('"').split()
+		if is_latin_word(w)
+	}
+	if not latin or has_indic(q) or not romanised_on():
+		return queries, also
+	latin = set(sorted(latin)[: MAX_WORDS * 2])
+	client = client or MeiliClient.from_settings()
+	wanted = [script_of_language(lab) for lab in (filters or {}).get("language_label") or []]
+	scripts = [s for s in wanted if s] or catalogue_scripts(client)[:MAX_SCRIPTS]
+	if not scripts:
+		return queries, also
+	found = _probe(client, [(w, s) for w in latin for s in scripts])
+	for script in scripts:
+		spell = {w: found.get((w, script)) or [] for w in latin}
+		for g in groups:
+			tokens = TOKEN.findall(g)
+			for which in (0, 1):
+				rewritten = _rewrite(tokens, spell, which)
+				if rewritten and rewritten not in queries:
+					queries.append(rewritten)
+					also.append({"script": script.title(), "q": rewritten})
+	return queries, also
+
+
+def federated(
+	client: MeiliClient,
+	index: str,
+	queries: list[str],
+	body: dict,
+	page: int,
+	per_page: int,
+	facets: list[str] | None = None,
+) -> dict:
+	"""Several queries as one search: one list, best first, each document once. Returns the shape
+	a plain search returns (hits, totalHits, totalPages, page, facetDistribution)."""
+	per_query = {
+		k: v for k, v in body.items() if k not in ("q", "page", "hitsPerPage", "facets", "limit", "offset")
+	}
+	federation: dict = {"offset": (page - 1) * per_page, "limit": per_page}
+	if facets:
+		federation["facetsByIndex"] = {index: facets}
+		federation["mergeFacets"] = {}
+	result = client._req(
+		"POST",
+		"/multi-search",
+		json={
+			"federation": federation,
+			"queries": [{"indexUid": index, "q": q, **per_query} for q in queries],
+		},
+	)
+	total = result.get("estimatedTotalHits", 0)
+	return {
+		"hits": result.get("hits", []),
+		"totalHits": total,
+		"totalPages": -(-total // per_page) if per_page else 0,
+		"page": page,
+		"facetDistribution": result.get("facetDistribution", {}),
+		"processingTimeMs": result.get("processingTimeMs"),
+	}

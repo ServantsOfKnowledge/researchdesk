@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-07 10:00:00.000000",
+ "modified": "2026-10-07 12:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -30,6 +30,7 @@
   "index_prefix",
   "column_break_s",
   "index_pages",
+  "search_romanised",
   "max_page_chars",
   "search_status",
   "ia_section",
@@ -231,6 +232,13 @@
    "label": "Index Page-Level Full Text",
    "default": "1",
    "description": "Enables deep search inside books. Uses more disk."
+  },
+  {
+   "fieldname": "search_romanised",
+   "fieldtype": "Check",
+   "label": "Find Indic Spellings",
+   "default": "1",
+   "description": "A search typed in Latin letters (<i>vachana</i>, <i>kanakadasa</i>) also finds the words in the scripts of the catalogue's languages (ವಚನ, ಕನಕದಾಸ), using the spellings the catalogue really holds."
   },
   {
    "fieldname": "max_page_chars",

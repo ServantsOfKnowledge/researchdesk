@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.27.0 (2026-10-07): search in Latin letters, phrases and OR
+
+- **Type it as you would write it**: `kanakadasa` finds ಕನಕದಾಸ, `vachana` ವಚನ, `karnataka
+  sangeeta` ಕರ್ನಾಟಕ ಸಂಗೀತ, `dharma` धर्म. Likely spellings in the scripts of the library's
+  languages (Kannada, Devanagari, Tamil, Telugu, Malayalam, Bengali, Gujarati, Gurmukhi, Oriya)
+  are worked out (vowel length, dental or retroflex, anusvara, ṛ, y as ai…), the ones the
+  catalogue really holds are kept (a quick probe, cached), and searched together with what was
+  typed. *Also searched: ಕನಕದಾಸ* under the count; in *Inside the text* and *Search inside this
+  book* too. IAST is read exactly. Settings → Find Indic Spellings to switch it off
+- **Phrases, OR and leaving words out**: `"karnataka sangeeta"`, `purandara OR vachana`,
+  `vachana -basavanna`, combined as you like
+
 ## 0.26.0 (2026-10-07): a second copy, repair, serving from our copy, BagIt
 
 - **A second copy** of every preserved book (Settings → Preservation → Second Copy): another

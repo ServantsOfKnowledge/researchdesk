@@ -117,13 +117,18 @@
 		try {
 			const res = await fetch(`/api/method/sok_resdesk.api.search_inside?${params}`);
 			const data = (await res.json()).message || { hits: [] };
-			if (!data.hits.length) return (list.innerHTML = '<li class="rd-muted">No matches in this book’s OCR text.</li>');
-			list.innerHTML = data.hits
-				.map(
-					(h) => `<li><button type="button" class="rd-linkish" data-leaf="${h.leaf}">
+			const also = (data.also || []).length
+				? `<li class="rd-muted rd-also">Also searched: ${data.also.map((a) => `<b>${esc(a.q)}</b>`).join(", ")}</li>`
+				: "";
+			if (!data.hits.length) return (list.innerHTML = also + '<li class="rd-muted">No matches in this book’s OCR text.</li>');
+			list.innerHTML =
+				also +
+				data.hits
+					.map(
+						(h) => `<li><button type="button" class="rd-linkish" data-leaf="${h.leaf}">
 						<b>${pageLabel(h)}</b> ${safeMarked(h.snippet)}</button></li>`
-				)
-				.join("");
+					)
+					.join("");
 		} catch (e) {
 			list.innerHTML = '<li class="rd-error">Search inside is unavailable.</li>';
 		}

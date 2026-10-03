@@ -26,13 +26,32 @@ the reader there.
 
 ## Kannada and other Indian scripts
 
-- Type in the script (ಕನ್ನಡ, हिन्दी, …) or in the romanised form when the record has one:
-  `hampi` finds *ಹಂಪಿ…* books whose romanised title is on record.
+- Type in the script (ಕನ್ನಡ, हिन्दी, …), or in **Latin letters, as you would write it**:
+  `kanakadasa`, `vachana`, `karnataka sangeeta`, `dharma`. Research Desk works out the likely
+  spellings in the scripts of the library's languages (long or short vowels, ತ or ಟ, ನ or ಣ, ಂ
+  before a consonant…), keeps the ones its books really contain, and searches those too.
+  **Also searched: ಕನಕದಾಸ** under the result count says what it found. It works the same in
+  *Inside the text* and in *Search inside this book* (in the book's own script).
+- Exact spellings in IAST are read as written: `ṭīkā`, `śāstra`.
+- A romanised title on record is found as before: `hampi` finds *ಹಂಪಿ…*.
+- Settings → Search Engine → **Find Indic Spellings** switches this off.
 - The search engine tolerates small typos. That helps with OCR noise, but very short words and
   heavily damaged scans will still miss.
 - OCR quality varies with the age and print of the original. Research Desk shows what the
   Internet Archive's OCR produced; better OCR (see the [roadmap](roadmap.md)) will improve
   results without changing anything here.
+
+## Phrases, OR and leaving words out
+
+| Type | Finds |
+|---|---|
+| `karnataka sangeeta` | books (or pages) with both words |
+| `"karnataka sangeeta"` | the words together, in that order |
+| `purandara OR vachana` | either word |
+| `vachana -basavanna` | *vachana*, but not where *basavanna* is |
+| `ಕನಕ` (the last word) | also words that begin with it: ಕನಕದಾಸರ |
+
+They combine, and work with romanised words: `"purandara dasa" OR kanakadasa`.
 
 ## Links you can share
 
@@ -47,6 +66,5 @@ The address bar always reflects the current search, so you can bookmark or share
 ## Limits in this proof of concept
 
 - A search returns at most 10,000 hits (paged 20 at a time). Narrow with filters beyond that.
-- Phrase search ("exact words") and boolean operators in the portal are not exposed yet.
 - Meilisearch holds the page index in memory-mapped files. For collections beyond a few hundred
   thousand books, see [Architecture → Scaling](architecture.md#scaling-path).

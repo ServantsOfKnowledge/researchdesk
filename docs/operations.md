@@ -320,6 +320,7 @@ Every setting:
 | Meilisearch API Key | The key the installer created for the search engine. Keep it secret. |
 | Index Prefix | Lets several sites share one Meilisearch. |
 | Index Page-Level Full Text | Enables deep search inside books. Uses more disk. |
+| Find Indic Spellings | A search typed in Latin letters (<i>vachana</i>, <i>kanakadasa</i>) also finds the words in the scripts of the catalogue's languages (ವಚನ, ಕನಕದಾಸ), using the spellings the catalogue really holds. |
 | Max Characters per Page | Longer pages are cut to this length in the index, which keeps it smaller. |
 | Search Status | Filled in by Test Search Engine: whether it connected and how many books and pages the index holds. |
 
