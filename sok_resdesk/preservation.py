@@ -155,7 +155,9 @@ def _s3_client(s: dict):
 		import boto3
 		from botocore.config import Config
 	except ImportError:
-		frappe.throw(_("An S3 second copy needs the boto3 package: run the upgrade again, or pip install boto3."))
+		frappe.throw(
+			_("An S3 second copy needs the boto3 package: run the upgrade again, or pip install boto3.")
+		)
 	from frappe.utils.password import get_decrypted_password
 
 	try:
