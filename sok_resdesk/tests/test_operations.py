@@ -1908,6 +1908,12 @@ class TestRequirements(OpsTestCase):
 		)
 		python = next(i for i in report["items"] if i["key"] == "python")
 		self.assertEqual(python["state"], "ok")
+		if report["mode"] == "docker":
+			# every upgrade brings OCR with the image: Tesseract reads Kannada in it
+			from sok_resdesk.core import ocr_engine
+
+			self.assertIn("kan", ocr_engine.available())
+			self.assertEqual(next(i for i in report["items"] if i["key"] == "tesseract")["state"], "ok")
 		self.assertTrue(all(i["state"] in ("ok", "missing", "old", "warn", "off") for i in report["items"]))
 		self.assertIn(requirements.health_check()["state"], ("ok", "warn", "bad"))
 		# installing: only the known parts, only on native installs, through the helper

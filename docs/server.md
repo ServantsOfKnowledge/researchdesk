@@ -96,9 +96,11 @@ sums it up in one *Requirements* line, which also feeds the [alerts](#alerts).
 
 **Installing what is missing:**
 
-- **Docker**: everything comes with the Research Desk image, so the fix is to
-  [upgrade](#upgrading-from-the-desk). The image carries Tesseract with Kannada, Hindi, Marathi,
-  Sanskrit, Tamil, Telugu, Malayalam, Bengali, Gujarati, Punjabi, Oriya and English.
+- **Docker**: everything comes with the Research Desk image, so every upgrade installs it: the
+  fix is to [upgrade](#upgrading-from-the-desk). The image carries Tesseract with Kannada, Hindi,
+  Marathi, Sanskrit, Tamil, Telugu, Malayalam, Bengali, Gujarati, Punjabi, Oriya and English. For
+  another language (Urdu, Nepali…), the line gives the `OCR_LANGS="…"` value to put in `.env`;
+  the next upgrade rebuilds the image with it (only that layer: a few minutes).
 - **Native**, with the [updater helper](#the-updater-helper) on: **Install** on a missing line
   installs Research Desk's Python packages, or Tesseract with its language models (Homebrew on
   macOS; apt on Ubuntu/Debian). The task's progress shows on the page like an upgrade's.

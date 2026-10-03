@@ -33,8 +33,10 @@ RUN echo "{}" > sites/common_site_config.json && find apps -mindepth 1 -path "*/
 
 USER root
 # OCR for re-reading pages (reocr.py): Tesseract with the Indic models the libraries need. Its own
-# layer, cached across upgrades. Fewer models: --build-arg OCR_LANGS="kan eng"
+# layer, cached across upgrades. Other models: OCR_LANGS in .env (compose passes it), then upgrade
 ARG OCR_LANGS="kan hin mar san tam tel mal ben guj pan ori eng"
+# the list the image was built with, for Server → Requirements
+ENV RESDESK_OCR_LANGS="${OCR_LANGS}"
 RUN apt-get update -q \
  && apt-get install -y -q --no-install-recommends tesseract-ocr \
       $(for l in ${OCR_LANGS}; do echo tesseract-ocr-$l; done) \

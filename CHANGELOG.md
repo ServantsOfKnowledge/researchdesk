@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.28.1 (2026-10-07): OCR languages for Docker installs
+
+- Docker upgrades already install Tesseract with its language models in the image; the models
+  are now chosen with `OCR_LANGS` in `.env` (the upgrade rebuilds only that layer), and Server →
+  Requirements gives the exact value to set when the catalogue has a language the image lacks
+- CI checks that the image really reads Kannada
+
 ## 0.28.0 (2026-10-07): what the server has, and installing what is missing
 
 - **Requirements** on the Server page: every tool Research Desk uses, found or missing, with its

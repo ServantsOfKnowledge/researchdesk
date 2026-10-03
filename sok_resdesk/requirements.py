@@ -46,9 +46,19 @@ def system() -> str:
 	return "other"
 
 
-def _fix(part: str, mode: str, osname: str, models: list[str] | None = None) -> str:
-	"""How to put a missing tool right, on this kind of install."""
+DOCKER_OCR_LANGS = "kan hin mar san tam tel mal ben guj pan ori eng"  # compose.yaml's default
+
+
+def _fix(part: str, mode: str, osname: str, models: list[str] | None = None, add: bool = False) -> str:
+	"""How to put a missing tool right, on this kind of install. add=True: language models the
+	Docker image lacks (OCR_LANGS in .env replaces the default list, so the whole value is given)."""
 	if mode == "docker":
+		if add and models:
+			have = (os.environ.get("RESDESK_OCR_LANGS") or DOCKER_OCR_LANGS).split()
+			value = " ".join(dict.fromkeys([*have, *models]))
+			return _(
+				'Set OCR_LANGS="{0}" in .env on the server, then upgrade: the image is rebuilt with it.'
+			).format(value)
 		return _("Comes with the Research Desk image: upgrade (Server → Upgrade, or ./upgrade.sh).")
 	if part == "python":
 		return "./resdesk.sh requirements install python"
@@ -257,7 +267,7 @@ def check() -> list[dict]:
 				_("{0} books in this language").format(f"{books:,}"),
 				"ok" if model in models else ("missing" if tess else "off"),
 				model if model in models else "",
-				fix="" if model in models else _fix("ocr", mode, osname, missing_models or [model]),
+				fix="" if model in models else _fix("ocr", mode, osname, missing_models or [model], add=True),
 				install="" if model in models or mode != "native" else "ocr",
 			)
 		)

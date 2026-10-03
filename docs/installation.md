@@ -90,6 +90,7 @@ Settings you can change in `.env` before (re)running the installer:
 | `GUNICORN_WORKERS` | 2 | web workers; raise on bigger servers |
 | `QUEUE_WORKERS` | 2 | parallel ingest workers; 4 to 6 for large collections (see [Scaling](scaling.md)) |
 | `DEV_MODE` | 0 | `1` runs the code from this folder live (see below) |
+| `OCR_LANGS` | kan hin mar san tam tel mal ben guj pan ori eng | Tesseract language models built into the image for re-OCR (codes as in Debian's `tesseract-ocr-<code>` packages, e.g. `urd`, `nep`). Change it and upgrade: only that layer is rebuilt. Applies to locally built images; prebuilt images carry the default list. Server → Requirements says which models the catalogue's languages need |
 | `RESDESK_IMAGE`, `RESDESK_TAG` | (build locally) | use a prebuilt image instead of building |
 
 ### Using a prebuilt image (skip the 15-minute build)
