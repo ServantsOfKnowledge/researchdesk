@@ -2,16 +2,20 @@
 
 ## Principles
 
-1. **The Internet Archive is the store of record for scans.** Research Desk does not copy
-   images or PDFs. It links to them and embeds IA's reader. That's what lets a laptop host a
-   portal for 88,000 books.
+1. **The Internet Archive is the store of record for scans.** Research Desk links to images and
+   PDFs and embeds IA's reader, so a laptop can host a portal for 88,000 books. The library keeps
+   **its own copies** only of the books it chooses to preserve ([OCFL](preservation.md)), and can keep a second
+   copy elsewhere.
 2. **Frappe is the catalogue and the control plane**: records, people, roles, workflows,
    ingest jobs, APIs and the Desk UI.
-3. **The search engine holds the text.** Page-level OCR lives in Meilisearch only, never in
-   MariaDB, so the database stays small and fast.
+3. **The search engine holds the text.** Page-level OCR lives in Meilisearch and a compressed
+   cache on disk, never in MariaDB, so the database stays small and fast. Only the pages people
+   corrected or re-read (RD Page Text) are in the database, laid over the source text wherever a
+   page is read.
 4. **Standards at every edge**: OAI-PMH, MARCXML, Dublin Core, schema.org, Highwire tags,
-   COinS, BibTeX/RIS/CSL. There are no bespoke integrations.
-5. **Pure-Python core.** Normalisation, citations, MARC and OAI-PMH live in
+   COinS, BibTeX/RIS/CSL, W3C Web Annotation, ARK, OCFL, BagIt. There are no bespoke integrations.
+5. **Pure-Python core.** Normalisation, citations, MARC, OAI-PMH, ARKs, OCFL, the second copy,
+   BagIt, OCR quality, page zones, transliteration and annotation anchoring live in
    `sok_resdesk/core/` with no Frappe imports, so they are unit-tested in milliseconds and
    reusable elsewhere.
 
@@ -29,11 +33,13 @@
 │   MariaDB  ◀── catalogue ── Frappe ORM ──▶ search.py ──▶ Meilisearch              │
 │                                              ▲            rd_books · rd_pages      │
 │   redis-queue ──▶ queue worker ── ingest.py ─┘                                    │
-│   scheduler (profiles, archive.org sync)     │                                    │
+│                   │ re-OCR (Tesseract, Indic models) · preservation copies (OCFL)  │
+│   scheduler (profiles, archive.org sync, fixity checks, second copies)            │
 └──────────────────────────────────────────────┼────────────────────────────────────┘
                                                ▼
-                         archive.org: scrape API · metadata API · hOCR search text
+                         archive.org: scrape API · metadata API · hOCR search text · page images
                          your folders / web server: meta.xml · OCR text · PDF
+                         preservation folder · second copy (folder or S3-compatible bucket)
 ```
 
 **Native installs** run the same processes without containers: `bench start` (honcho) runs

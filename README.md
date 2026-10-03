@@ -15,9 +15,23 @@ Choose a collection, a search or a list of items on archive.org, and Research De
   the books belong to (sub-collections too) gets a portal page that keeps itself up to date
 - **catalogue** the books, cleaning up messy metadata (languages, dates, authors, subjects)
 - **index the full OCR text page by page**, so people can search *inside* 88,000+ books,
-  in Kannada, Hindi, Konkani, Tamil, English and more
-- give each book a **public page** with a reader, search inside the book, and
-  **ready-made citations**: BibTeX, BibLaTeX, RIS, CSL-JSON, APA, MLA and Chicago
+  in Kannada, Hindi, Konkani, Tamil, English and more, typing in the script or **in Latin
+  letters** (`kanakadasa` finds ಕನಕದಾಸ), with "phrases", `OR` and `-words`
+- give each book a **public page** with two readers (archive.org's book reader, and **Page &
+  text**: each page image beside its text), search inside the book, and **one Cite window** for
+  the book or the page: BibTeX, BibLaTeX, RIS, CSL-JSON, APA, MLA and Chicago, with a link
+- let readers keep **notes on pages** (highlights, comments, tags, questions, links, OCR error
+  reports; private, shared with a research group, or public after review), following the W3C Web
+  Annotation model, exported with page citations
+- **improve the text over time**: an OCR quality score for every page and book; proofreading
+  beside the page image, validated by a second person, every version kept; **re-OCR** with
+  Tesseract's Indic models, a page part by part (columns, headings) or whole books worst first
+- give every book and page a **permanent ARK** (on once the library's NAAN is assigned), with
+  tombstones so no link ever dies
+- **keep its own checked copies** of the books (OCFL, SHA-256, nightly fixity checks, PREMIS-style
+  events), a **second copy** in another folder or an S3-compatible bucket with **automatic
+  repair** from the good one, books kept on the portal **from our copy** when archive.org drops
+  them, and **BagIt** exports for handing books to another archive
 - work with **Zotero, Google Scholar and reference managers** (embedded citation metadata)
 - work **alongside Koha** and other library systems (OAI-PMH harvesting and MARCXML import),
   or on its own
@@ -36,6 +50,10 @@ Choose a collection, a search or a list of items on archive.org, and Research De
 - **help on every screen**: the documentation is built into the portal (for readers) and the
   Desk (for staff), with step-by-step tours of the main forms, a getting-started checklist for
   a new library, and first-visit tips for readers
+- manage **people and roles** on one Desk page (give or take a role with a tick, invite by
+  email, approve sign-ups), see **the library at a glance** on the Desk (books, readers, logins,
+  notes, proofreading, preservation, portal use), and count **portal use** privately (built in,
+  or PostHog, Plausible or Umami; no cookies)
 - **keep the machine usable**: resource presets for a laptop, desktop or server, low-priority
   background work, quiet hours that pause heavy work during the day, and a **book limit** worked
   out from the machine's CPUs, memory and disk, so it never takes on more than it can hold
@@ -56,8 +74,9 @@ It's built to install with one command, for librarians, educators, archivists an
 anyone else who can open a terminal. It scales to tens of thousands of books on one server
 ([measured](docs/scaling.md)).
 
-> Status: **proof of concept (v0.11)**. It works end to end and is tested against live
-> Servants of Knowledge data, but expect changes before 1.0. See [the roadmap](docs/roadmap.md).
+> Status: **v0.27**, before 1.0. It works end to end and is tested against live Servants of
+> Knowledge data, but expect changes before 1.0. What changed: [CHANGELOG](CHANGELOG.md); what
+> comes next: [the roadmap](docs/roadmap.md).
 
 ---
 
@@ -139,7 +158,7 @@ day, changed ones are refreshed, removed ones are unpublished
 | Readers | [Using the library](docs/reader-guide.md) · [Searching](docs/searching.md) · [Citations & reading lists](docs/citations.md) |
 | Library staff | [Staff guide: a tour of the Desk](docs/staff-guide.md) |
 | Librarians & educators | [Getting started](docs/getting-started.md) · [Choosing & ingesting books](docs/ingesting.md) · [Your own folders & servers](docs/local-folders.md) |
-| Library managers | [Who can see what: members-only books & reader accounts](docs/access.md) · [Collections, metadata, exports & pushing](docs/collections-and-metadata.md) |
+| Library managers | [Who can see what: members-only books & reader accounts](docs/access.md) · [Collections, metadata, exports & pushing](docs/collections-and-metadata.md) · [Permanent links, preservation & OCR quality](docs/preservation.md) |
 | Library systems staff | [Koha & interoperability](docs/koha.md) · [API](docs/api.md) |
 | System administrators | [Installation](docs/installation.md) · [Server: updates, health & backups](docs/server.md) · [Operations](docs/operations.md) · [Moving to another server](docs/moving.md) · [Scaling to 50k books](docs/scaling.md) |
 | Developers | [Architecture](docs/architecture.md) · [Development](docs/development.md) · [Roadmap](docs/roadmap.md) |
@@ -147,9 +166,11 @@ day, changed ones are refreshed, removed ones are unpublished
 ## How it fits together
 
 ```
- archive.org / your folders ──(metadata + OCR text)──▶ Ingest jobs ──▶ Frappe / MariaDB  (catalogue)
-                                                        │
+ archive.org / your folders ──(metadata + OCR text)──▶ Ingest jobs ──▶ Frappe / MariaDB  (catalogue,
+                                                        │                            notes, page texts)
                                                         └──────▶ Meilisearch       (books + pages)
+  Proofreaders ──▶ corrections, re-OCR (Tesseract) ──▶ page text versions ──▶ search, reader, citations
+  Preservation ──▶ OCFL copies + fixity ──▶ second copy (folder or S3) ⇄ repair · BagIt exports
                                                                         │
   Readers ◀── /        (search, read, cite) ◀── Frappe web + API ◀─────┘
   Koha, VuFind, aggregators ◀── OAI-PMH / MARCXML / exports (MODS, Dublin Core, JSON-LD)
@@ -163,7 +184,8 @@ Books from your own folders or web server (`meta.xml` + OCR text + PDF) go throu
 pipeline; their PDFs are streamed from your disk.
 
 Scans stay on the Internet Archive and are shown through its reader. Research Desk keeps the
-catalogue and the search index, so a laptop can hold tens of thousands of books.
+catalogue and the search index, so a laptop can hold tens of thousands of books; preservation
+copies of the books the library chooses are kept on its own storage.
 
 ## Licence
 

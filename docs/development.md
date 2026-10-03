@@ -24,16 +24,33 @@ researchdesk/
     ├── hooks.py            routes, doc events, scheduler, install hooks
     ├── core/               pure Python, no Frappe:  ia.py  folder.py  normalize.py  citations.py  marc.py  oai.py  access.py
     │                                           helpdocs.py (docs as help pages)  collections.py (rules, slugs)  metaio.py (export formats, spreadsheet)  push.py (IA, Koha, Wikidata, webhook clients)
+    │                                           ark.py (ARKs, check character)  ocfl.py (preservation copies)  replica.py (second copy: folder, S3)  bagit.py (BagIt bags)
+    │                                           ocrquality.py (OCR scores)  ocr_engine.py (Tesseract by zone)  zones.py (page zones)  scandata.py (OCR page ↔ page image)
+    │                                           translit.py (romanised words → Indic spellings)  annotations.py (W3C anchoring)  capacity.py  quiet.py  schema.py  updates.py
     ├── catalogue.py        settings, upsert RD Item, record <-> dict
     ├── ingest.py           ingest jobs, scheduler, whitelisted actions
+    ├── ia_sync.py          keeping profiles in step with archive.org (new, changed, removed books)
     ├── local_source.py     IA-style item folders on disk / NAS / web server
-    ├── search.py           Meilisearch adapter, indexing, search
+    ├── search.py           Meilisearch adapter, indexing, search (romanised words, OR, federated)
+    ├── search_queue.py     the search engine's queue: books first, page text held or paced
     ├── access.py           who can see what: members, bulk visibility, reader sign-up
+    ├── people.py           People & Roles page: roles, invitations, accounts, sign-ups
+    ├── identifiers.py      ARKs: minting, resolver, tombstones
+    ├── preservation.py     preservation copies, fixity, second copy, repair, serving from copy, BagIt
+    ├── ocr.py              OCR quality of the catalogue
+    ├── pagetext.py         page text versions: proofreading, validation, history
+    ├── reocr.py            re-OCR of a page (zones) or of whole books
+    ├── page_order.py       putting each page's text with its own image (books from before 0.24.1)
+    ├── annotations.py      readers' notes on pages, research groups, exports
+    ├── dashboard.py        the numbers on the Research Desk workspace
+    ├── analytics.py        usage statistics (built-in, PostHog, Plausible, Umami)
     ├── curation.py         curated collections: membership, rules, counts
     ├── transfer.py         metadata exports and spreadsheet imports
     ├── outbound.py         push runs to other systems, automatic pushes
     ├── jobs.py             Background Jobs page: see, pause, resume and stop runs and queued jobs
     ├── holding.py          held jobs (Pause All / Hold) and the @hold_when_paused job decorator
+    ├── priority.py         worker CPU priority (renice) from the Desk
+    ├── server.py           the Server page: versions, health, backups, the updater helper
     ├── help.py             in-app help pages and each screen's Help link (from docs/*.md)
     ├── guide.py            form tours and the getting-started checklist
     ├── portal.py           helpers for portal pages (collection cards, facet labels)
@@ -45,10 +62,13 @@ researchdesk/
     ├── patches/            data migrations between versions (listed in patches.txt)
     ├── resdesk/workspace/  the Research Desk workspace (shipped as a file so migrate keeps it)
     ├── resdesk/doctype/    DocTypes (JSON + controllers + form scripts)
-    ├── www/library/        portal pages (index = search, item = book page, collections, collection, help)
-    ├── public/             css/resdesk.css, js/library.js, js/item.js, js/basket.js, js/tips.js,
-    │                       js/desk_help.js, images/guide/ (screenshots used in docs/)
-    └── tests/              test_core.py, test_push.py, test_docs.py, unit_folder.py (pytest), test_integration.py, test_operations.py, test_server.py (Frappe)
+    ├── resdesk/page/       Desk pages: Background Jobs, Server, Help, People & Roles
+    ├── www/library/        portal pages (index = search, item = book page, collections, collection, help, notes, proofread)
+    ├── public/             css/resdesk.css, js/library.js, js/item.js (Cite window), js/reader.js (Page & text),
+    │                       js/annotate.js (notes), js/proofread.js (proofreading, zones), js/analytics.js,
+    │                       js/basket.js, js/tips.js, js/desk_help.js (help, checklist, numbers), images/guide/
+    └── tests/              unit_*.py, test_core.py, test_push.py, test_docs.py (pytest, no Frappe);
+                            test_integration.py, test_operations.py, test_server.py … (Frappe, in CI's Docker job)
 ```
 
 ## Workflow

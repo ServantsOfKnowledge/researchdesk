@@ -46,28 +46,47 @@
 - [x] Book limit from the machine's CPUs, memory and disk
 - [x] Profiles kept in step with archive.org (new, changed, removed books) and collections that mirror it
 
-## Next: better for researchers
+## v0.12 – v0.19: easier to install, run and grow (done)
 
-- [ ] Romanised ↔ Kannada query transliteration (type `vachana`, match ವಚನ) for all Indic scripts
-- [ ] Phrase search, boolean operators and "near" in the portal
-- [ ] Saved, shared, collaborative reading lists and notes for logged-in readers
-- [ ] Page-level citations (cite p. 42 with a stable link)
-- [ ] Persistent identifiers (ARK/Handle/DOI) for portal records
-- [ ] Portal UI in Kannada and other languages (Frappe translations)
+- [x] A portal page for every archive.org collection; the library at `/`; an About page
+- [x] HTTPS from Let's Encrypt, the portal's address in one command, Coolify
+- [x] Big ingests that don't stall or do work twice; failed books retried by themselves
+- [x] Worker priority from the Desk; the portal's book count kept up with the catalogue
 
-## Then: better data
+## v0.20 – v0.27: a research library (done)
 
-- [ ] Re-OCR pipeline for poor scans (Tesseract/other engines with trained Kannada models), replacing IA text in the index
+- [x] Permanent links: ARKs for every book and page (switched on once the NAAN is assigned), tombstones
+- [x] Preservation: OCFL copies with SHA-256 fixity checks and PREMIS-style events; a second copy
+      (folder or S3-compatible) with automatic repair; books kept on the portal from our copy;
+      BagIt exports
+- [x] OCR quality scores for every page and book; the search queue under control
+- [x] *Page & text*: each page image beside its text, page links, page-level citations; one Cite
+      window for the book or the page
+- [x] Notes on pages (W3C Web Annotation): private, research groups, public with review; My notes
+      with exports
+- [x] Proofreading with validation by a second person; re-OCR with Tesseract's Indic models, a
+      page part by part or whole books worst first; a proofreaders' work list
+- [x] Search in Latin letters for every Indic script (`vachana` finds ವಚನ), phrases, OR and
+      words left out
+- [x] People & Roles in the Desk, the library at a glance on login, private usage statistics
+
+## Next
+
+- [ ] Ground truth: corrected pages with their images as an open training set for Indic OCR
+- [ ] Notes linked to Wikidata people, places and works; the W3C Annotation Protocol for other tools
+- [ ] Optional DOIs (DataCite) for chosen collections
+- [ ] Portal UI in Kannada and other languages (Frappe translations), and an accessibility review
 - [ ] Authority control: reconcile creators with VIAF/Wikidata; subjects with LCSH/Sears
 - [ ] Cataloguer review queue for flagged records (no year, unknown language, duplicate titles)
-- [ ] More sources: Wikisource, DSpace/OAI-PMH repositories, bare PDFs with no OCR (run OCR on ingest)
+- [ ] More sources: Wikisource, DSpace/OAI-PMH repositories, bare PDFs with no OCR (OCR on ingest)
+- [ ] Offline collections (Kiwix packages) for schools and places with poor connections
 
 ## v1.0: library-grade
 
 - [ ] OpenSearch adapter for very large page indexes
-- [ ] IIIF manifests and a self-hosted viewer (Mirador) as an alternative to the IA embed
-- [ ] Holdings, patrons and circulation, for standalone use as a library system
+- [ ] IIIF manifests and an image service for books held locally
+- [ ] Holdings, patrons and circulation stay with Koha: Research Desk works alongside it
 - [ ] SRU/Z39.50 target for older ILS integrations
-- [ ] Usage statistics (COUNTER-style), privacy-respecting
+- [ ] Usage statistics in COUNTER form, for libraries that report them
 
 Ideas and priorities welcome: open an issue.
