@@ -65,9 +65,9 @@ inside the archive.org reader. That shared foundation (IIIF) comes first.
 
 - [ ] IIIF Presentation manifests for every book, from archive.org's images or our own copies
 - [ ] A IIIF image service for books we hold locally
-- [ ] A reader on the book page (page image + its text side by side), with the archive.org reader
+- [x] A reader on the book page (page image + its text side by side), with the archive.org reader
       still one click away
-- [ ] Page-level links: `…/item/<id>/page/42` opens that page, and the citations can name it
+- [x] Page-level links: `…/item/<id>/page/42` opens that page, and the citations can name it
 
 ### 1. Preservation
 
@@ -75,31 +75,31 @@ Today most books exist only on archive.org; if an item is darkened or removed th
 catalogue record and page text but not the book. Preservation keeps master copies we control and
 proves, on a schedule, that they are unchanged.
 
-- [ ] **Storage locations** (Settings): local disk or NAS first, then S3-compatible storage, each
+- [x] **Storage locations** (Settings): local disk or NAS first, then S3-compatible storage, each
       with a size budget that the book limit takes into account
-- [ ] **Preservation copies**, chosen by collection, profile or rule: the original files (PDF, page
+- [x] **Preservation copies**, chosen by collection, profile or rule: the original files (PDF, page
       images, OCR, metadata) fetched once and stored as **OCFL** objects (a plain, versioned
       folder layout any future system can read without Research Desk)
-- [ ] **Fixity**: a SHA-256 checksum on arrival, compared with archive.org's, and a scheduled
+- [x] **Fixity**: a SHA-256 checksum on arrival, compared with archive.org's, and a scheduled
       audit that re-checks a sample every night and every file over a cycle; failures alert on
       the Server page
-- [ ] **Preservation events** (PREMIS) on every book: fetched, checked, repaired, migrated, by whom
+- [x] **Preservation events** (PREMIS) on every book: fetched, checked, repaired, migrated, by whom
       and when, shown on the book and exportable
-- [ ] **Reading from our copy** when archive.org no longer serves a book (the sync already notices
+- [x] **Reading from our copy** when archive.org no longer serves a book (the sync already notices
       removals): the portal keeps working from the local files
-- [ ] **A second copy** elsewhere (another disk, a partner library, S3), with each book showing
+- [x] **A second copy** elsewhere (another disk, a partner library, S3), with each book showing
       *copies: 2 of 2 verified*, and repair from the good copy when one fails its check
-- [ ] **BagIt** export of a book or a collection, for handing over to another archive
+- [x] **BagIt** export of a book or a collection, for handing over to another archive
 - [ ] File-format identification (PRONOM) and a report of formats at risk
 
 ### 2. Persistent identifiers
 
-- [ ] **ARK identifiers** for every book (`ark:/<NAAN>/…`; the ARK Alliance assigns the number for
+- [x] **ARK identifiers** for every book (`ark:/<NAAN>/…`; the ARK Alliance assigns the number for
       free), minted on ingest, with a check character, and resolved by the portal itself
-- [ ] **Page-level identifiers** (`ark:/…/p42`): a citation points at the page, not just the book
-- [ ] Identifiers carried everywhere a book goes: citations, OAI-PMH, exports, and pushes to Koha,
+- [x] **Page-level identifiers** (`ark:/…/p42`): a citation points at the page, not just the book
+- [x] Identifiers carried everywhere a book goes: citations, OAI-PMH, exports, and pushes to Koha,
       Wikidata and the Internet Archive
-- [ ] **Never a dead link**: a book that is withdrawn or merged leaves a tombstone page saying what
+- [x] **Never a dead link**: a book that is withdrawn or merged leaves a tombstone page saying what
       happened and where to go
 - [ ] Optional **DOIs** (DataCite) for chosen collections, and Handles for libraries that use them
 
@@ -109,51 +109,59 @@ Much of the Indic text from archive.org is poor, and poor text cannot be searche
 measures the text, replaces the worst of it with better machine OCR, lets people correct what
 is left, and puts every improvement straight into search.
 
-- [ ] **OCR quality** for every page and book, from the text we already hold (share of real words
+- [x] **OCR quality** for every page and book, from the text we already hold (share of real words
       for its language and script, broken characters, OCR confidence): a list of the worst books,
       and a quality filter for staff
-- [ ] **Text versions with provenance**: each page keeps archive.org's text, each re-OCR and each
+- [x] **Text versions with provenance**: each page keeps archive.org's text, each re-OCR and each
       human correction, saying who or what made it; search uses the best version
-- [ ] **Re-OCR pipeline** on its own queue and workers, with pluggable engines (Tesseract with
+- [x] **Re-OCR pipeline** on its own queue and workers, with pluggable engines (Tesseract with
       Indic models first; newer engines added as they prove better on our pages), run on the
       worst books first and kept only where the score improves
-- [ ] **Proofreading**: page image and text side by side, line by line; pages move from *not
+- [x] **Proofreading**: page image and text side by side, line by line; pages move from *not
       proofread* to *proofread* to *validated* (checked by a second person), as on Wikisource
-- [ ] **Proofreaders**: a reader role and sign-up, work lists by collection and language, credit on
+- [x] **Proofreaders**: a reader role and sign-up, work lists by collection and language, credit on
       every page a person corrected, and review by staff
-- [ ] Corrections re-index the page at once and show on the portal as *proofread text*
+- [x] Corrections re-index the page at once and show on the portal as *proofread text*
 - [ ] **Ground truth**: corrected pages exported with their images as an open training set, so
       the community can build better Kannada, Konkani, Tamil and Hindi OCR, and the loop
       retrains our own engines
 
 ### 4. Annotation
 
-- [ ] **Annotations** following the W3C Web Annotation model: on a passage of page text, a region
+- [x] **Annotations** following the W3C Web Annotation model: on a passage of page text, a region
       of a page image, a whole book or a collection; as a highlight, comment, tag, question or link
-- [ ] **Private, group or public**: private by default; research groups share theirs; public ones
+- [x] **Private, group or public**: private by default; research groups share theirs; public ones
       are reviewed by staff before they show
 - [ ] **Annotations in search**: find your notes and your group's, and books by their tags
 - [ ] **Links to people, places and works** (Wikidata) from an annotation, so notes build a map of
       who and what the books talk about
 - [ ] **Export** with citations (to Zotero, as JSON-LD, Markdown or a spreadsheet), and the W3C
       Annotation Protocol so other tools (Mirador and others) can read and write them
-- [ ] Corrections and annotations meet: a reader who spots an OCR error annotates it, and it lands in
+- [x] Corrections and annotations meet: a reader who spots an OCR error annotates it, and it lands in
       the proofreading list
 
-### Release plan
+### Release plan (as shipped)
 
-| Release | Brings |
+| Release | Brought |
 |---|---|
-| 0.20 | ARK identifiers and the resolver, tombstones; OCR quality scores; storage locations and preservation copies on local disk with fixity and events |
-| 0.21 | IIIF manifests, our own reader, page links and page-level citations with ARKs |
-| 0.22 | Annotations: private and group, on text and images; the Annotation Protocol; export |
-| 0.23 | Text versions, proofreading and proofreaders; the re-OCR pipeline |
-| 0.24 | Second copies, repair, BagIt; public annotations with review; ground-truth export; DOIs |
+| 0.20 | ARK identifiers and the resolver, tombstones; OCR quality scores; preservation copies on local disk with fixity and events |
+| 0.21 | The search engine's queue under control; OCR quality visible |
+| 0.22 | Our own reader (*Page & text*: page image beside its text), page links and page-level citations |
+| 0.23 | Annotations: private, group and public with review, on text and images; My notes; exports; W3C AnnotationPage |
+| 0.24 | Text versions, proofreading with validation, proofreaders and their work list; re-OCR by zone and of whole books |
+| 0.24.1 | Each page's text with its own image (scan data); one Cite window |
+| 0.25 | People & Roles, the library at a glance, private usage statistics |
+| 0.26 | A second copy (folder or S3) with automatic repair; serving books from our copy; BagIt |
+| 0.27 | Search in Latin letters for every Indic script; phrases, OR and exclusions |
+
+Still open from the four pillars: IIIF manifests and an image service, PRONOM format
+identification, DOIs, the ground-truth export, Wikidata links from notes as data, the W3C
+Annotation Protocol, and finding books by their notes' tags.
 
 ## Later: better search and data
 
-- [ ] Romanised ↔ Kannada query transliteration (type `vachana`, match ವಚನ) for all Indic scripts
-- [ ] Phrase search, boolean operators and "near" in the portal
+- [x] Romanised ↔ Kannada query transliteration (type `vachana`, match ವಚನ) for all Indic scripts
+- [x] Phrase search and boolean operators (OR, -word) in the portal; "near" still to come
 - [ ] Search by meaning across languages, and answers to questions that cite the pages they come from
 - [ ] Cataloguing help: titles, dates and subjects read from title pages, in a review queue for
       cataloguers (with records flagged for no year, unknown language or duplicate titles)
