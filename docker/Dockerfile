@@ -27,7 +27,7 @@ FROM ${FRAPPE_IMAGE_PREFIX}/base:${FRAPPE_BRANCH} AS backend
 USER frappe
 # the whole Frappe bench (about 1 GB): the same layer as last time unless Frappe changed, so an
 # upgrade of Research Desk alone neither rebuilds nor copies it
-COPY --from=builder --chown=frappe:frappe /home/frappe/frappe-bench /home/frappe/frappe-bench
+COPY --from=builder --chown=frappe /home/frappe/frappe-bench /home/frappe/frappe-bench
 WORKDIR /home/frappe/frappe-bench
 RUN echo "{}" > sites/common_site_config.json && find apps -mindepth 1 -path "*/.git" | xargs rm -fr
 
@@ -45,11 +45,11 @@ COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY docker/start.sh /usr/local/bin/start.sh
 COPY docker/create-site.sh /usr/local/bin/create-site.sh
 RUN chmod 755 /usr/local/bin/entrypoint.sh /usr/local/bin/start.sh /usr/local/bin/create-site.sh \
-    && mkdir -p /preservation && chown frappe:frappe /preservation   # a new volume there starts writable
+    && mkdir -p /preservation && chown frappe /preservation   # a new volume there starts writable
 USER frappe
 
 # 2. This app: a few MB, the only part rebuilt when Research Desk changes (under a minute)
-COPY --chown=frappe:frappe . apps/sok_resdesk
+COPY --chown=frappe . apps/sok_resdesk
 RUN rm -rf apps/sok_resdesk/.git \
  && uv pip install --python env/bin/python -e apps/sok_resdesk \
  && sed -i -e '$a\' sites/apps.txt && echo "sok_resdesk" >> sites/apps.txt \
