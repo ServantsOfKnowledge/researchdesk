@@ -15,6 +15,7 @@ columns, a heading over two columns) that can be applied to a page or to a whole
 from __future__ import annotations
 
 import json
+import re
 
 KINDS = ("text", "skip")
 MIN_SIZE = 1.0  # percent: anything smaller is a slip of the mouse
@@ -28,15 +29,25 @@ def _clip(v: float) -> float:
 	return round(min(100.0, max(0.0, float(v))), 2)
 
 
-def zone(x: float, y: float, w: float, h: float, kind: str = "text") -> dict:
-	"""One zone, kept inside the page."""
+LANG = re.compile(r"^[a-z]{2,8}$")
+
+
+def zone(x: float, y: float, w: float, h: float, kind: str = "text", langs=None) -> dict:
+	"""One zone, kept inside the page. `langs`: the zone's own languages (codes), when they differ
+	from the book's: a Sanskrit verse in a Kannada book."""
 	if kind not in KINDS:
 		raise ZoneError(f"a zone is text or skip, not {kind!r}")
 	x, y = _clip(x), _clip(y)
 	w, h = _clip(min(float(w), 100 - x)), _clip(min(float(h), 100 - y))
 	if w < MIN_SIZE or h < MIN_SIZE:
 		raise ZoneError("a zone must be at least 1% wide and high")
-	return {"x": x, "y": y, "w": w, "h": h, "kind": kind}
+	out = {"x": x, "y": y, "w": w, "h": h, "kind": kind}
+	codes = [str(c).strip().lower() for c in (langs or [])][:4]
+	if any(not LANG.match(c) for c in codes):
+		raise ZoneError("a zone's languages are codes such as kan, san, eng")
+	if codes:
+		out["langs"] = codes
+	return out
 
 
 def clean(zones) -> list[dict]:
@@ -46,7 +57,7 @@ def clean(zones) -> list[dict]:
 		zones = json.loads(zones or "[]")
 	out = []
 	for z in (zones or [])[:40]:
-		out.append(zone(z["x"], z["y"], z["w"], z["h"], z.get("kind") or "text"))
+		out.append(zone(z["x"], z["y"], z["w"], z["h"], z.get("kind") or "text", z.get("langs")))
 	return out
 
 

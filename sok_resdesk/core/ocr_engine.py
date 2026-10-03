@@ -12,6 +12,7 @@ Pure Python apart from Pillow (for cutting the image) and the tesseract program.
 from __future__ import annotations
 
 import io
+import re
 import shutil
 import subprocess
 
@@ -49,7 +50,17 @@ LANGS = {
 	"ur": "urd",
 	"eng": "eng",
 	"en": "eng",
+	"asm": "asm",
+	"as": "asm",
 }
+# names, as catalogue labels write them ("Kannada; English")
+NAMES = {
+	"kannada": "kan", "konkani": "kan", "tulu": "kan", "hindi": "hin", "marathi": "mar",
+	"sanskrit": "san", "nepali": "nep", "tamil": "tam", "telugu": "tel", "malayalam": "mal",
+	"bengali": "ben", "bangla": "ben", "assamese": "asm", "gujarati": "guj", "punjabi": "pan",
+	"oriya": "ori", "odia": "ori", "urdu": "urd", "english": "eng",
+}  # fmt: skip
+SPLIT = re.compile(r"[,;/|+]+|\s+and\s+")
 TIMEOUT = 120  # seconds for one zone
 PSM_BLOCK = "6"  # "a single uniform block of text": what a zone is
 
@@ -69,11 +80,26 @@ def available() -> list[str]:
 	return [line.strip() for line in out.stdout.splitlines()[1:] if line.strip()]
 
 
-def models_for(language: str, have: list[str] | None = None) -> str:
-	"""The Tesseract models for a book's language, e.g. "kan+eng", keeping only those installed."""
+def models_in(*languages) -> list[str]:
+	"""The Tesseract models named by language codes, names or lists of them, in order:
+	"kan", "Kannada; English", ["kan", "san"], "kan+san". Unknown ones are left out."""
+	out = []
+	for value in languages:
+		for part in value if isinstance(value, list | tuple) else [value]:
+			for token in SPLIT.split(str(part or "")):
+				t = token.strip().lower()
+				model = LANGS.get(t) or NAMES.get(t) or (t if t in LANGS.values() else None)
+				if model and model not in out:
+					out.append(model)
+	return out
+
+
+def models_for(language, have: list[str] | None = None) -> str:
+	"""The Tesseract models for a book's language(s), e.g. "kan+san+eng", keeping only those
+	installed. The first is the main one; English is always added for the Latin words most Indic
+	books carry (titles, names, numbers)."""
 	have = available() if have is None else have
-	codes = [c.strip().lower() for c in (language or "").replace(";", ",").split(",") if c.strip()]
-	wanted = [LANGS[c] for c in codes if c in LANGS] or ["eng"]
+	wanted = models_in(language) or ["eng"]
 	if "eng" not in wanted:
 		wanted.append("eng")
 	usable = [m for m in dict.fromkeys(wanted) if m in have]
@@ -113,6 +139,7 @@ def read_page(image: bytes, zones: list[dict] | None, models: str) -> dict:
 		raise OcrError(f"The page image could not be read: {e}") from e
 	img = ImageOps.exif_transpose(img).convert("L")  # greyscale: what Tesseract reads best
 	zones = [z for z in (zones or []) if z.get("kind", "text") == "text"] or [zn.zone(0, 0, 100, 100)]
+	have = None
 	parts = []
 	for z in zones:
 		crop = img.crop(zn.pixels(z, img.width, img.height))
@@ -121,5 +148,9 @@ def read_page(image: bytes, zones: list[dict] | None, models: str) -> dict:
 			crop = crop.resize((400, max(1, int(crop.height * factor))))
 		buf = io.BytesIO()
 		crop.save(buf, format="PNG")
-		parts.append({"zone": z, "text": _tesseract(buf.getvalue(), models).strip()})
+		zone_models = models
+		if z.get("langs"):  # a zone in its own language(s): a Sanskrit verse in a Kannada book
+			have = available() if have is None else have
+			zone_models = models_for(z["langs"], have)
+		parts.append({"zone": z, "text": _tesseract(buf.getvalue(), zone_models).strip()})
 	return {"text": zn.join([p["text"] for p in parts]), "zones": parts}

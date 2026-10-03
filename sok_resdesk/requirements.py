@@ -74,16 +74,16 @@ def _fix(part: str, mode: str, osname: str, models: list[str] | None = None, add
 
 def _catalogue_models() -> list[tuple[str, int]]:
 	"""[(Tesseract model, books)] for the catalogue's languages, the most books first."""
-	from sok_resdesk.core.ocr_engine import LANGS
+	from sok_resdesk.core.ocr_engine import models_in
 
 	counts: dict[str, int] = {}
-	for code, n in frappe.db.sql(
-		"select language, count(*) from `tabRD Item` where published = 1 group by language order by 2 desc limit 40"
+	for code, label, chosen, n in frappe.db.sql(
+		"""select language, language_label, ocr_languages, count(*) from `tabRD Item` where published = 1
+		group by language, language_label, ocr_languages order by 4 desc limit 80"""
 	):
-		for c in (code or "").replace(";", ",").split(","):
-			model = LANGS.get(c.strip().lower())
-			if model:
-				counts[model] = counts.get(model, 0) + cint(n)
+		# a book in several languages counts for each ("Kannada; English"); OCR Languages win
+		for model in models_in(chosen) or models_in(code, label):
+			counts[model] = counts.get(model, 0) + cint(n)
 	return sorted(counts.items(), key=lambda kv: kv[1], reverse=True)
 
 

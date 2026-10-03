@@ -1932,3 +1932,25 @@ class TestRequirements(OpsTestCase):
 			(task.action, frappe.parse_json(task.args)), ("install_requirements", {"part": "ocr"})
 		)
 		frappe.delete_doc("RD Server Task", name, force=True, ignore_permissions=True)
+
+
+class TestOcrLanguages(OpsTestCase):
+	def test_book_languages_and_the_choice_per_run(self):
+		from sok_resdesk import reocr
+
+		book = _item(97)
+		# a book catalogued in several languages ("mul") is read in each, not in English only
+		frappe.db.set_value("RD Item", book, {"language": "mul", "language_label": "Kannada; Sanskrit"})
+		self.assertEqual(reocr.book_languages(book), ["kan", "san", "eng"])
+		# OCR Languages on the form win, in their order
+		frappe.db.set_value("RD Item", book, "ocr_languages", "Sanskrit, Kannada")
+		self.assertEqual(reocr.book_languages(book), ["san", "kan", "eng"])
+		with mock.patch("sok_resdesk.core.ocr_engine.available", return_value=["kan", "san", "eng"]):
+			self.assertEqual(reocr.models_for(book), "san+kan+eng")
+			self.assertEqual(reocr.models_for(book, ["kan", "san"]), "kan+san+eng")  # chosen for this run
+			frappe.db.set_value("RD Item", book, "visibility", "Public")
+			reocr.ocr_page(book, 1, None, '["kan", "san"]')
+			method, kw = self.enqueued[-1]
+			self.assertEqual((method, kw["languages"]), ("sok_resdesk.reocr.ocr_page_job", ["kan", "san"]))
+			reocr.enqueue_book(book, "Whole page", '["san"]')
+			self.assertEqual(self.enqueued[-1][1]["languages"], ["san"])

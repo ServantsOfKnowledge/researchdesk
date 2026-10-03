@@ -72,3 +72,40 @@ def test_columns_are_read_apart_when_zoned():
 def test_a_bad_image_is_an_ocr_error():
 	with pytest.raises(ocr_engine.OcrError):
 		ocr_engine.read_page(b"not an image", None, "kan+eng")
+
+
+def test_languages_from_codes_names_and_lists():
+	from sok_resdesk.core.ocr_engine import models_for, models_in
+
+	assert models_in("Kannada; English") == ["kan", "eng"]
+	assert models_in("kan+san") == ["kan", "san"]
+	assert models_in(["kn", "Sanskrit"], "english") == ["kan", "san", "eng"]
+	assert models_in("mul") == []  # "several languages" names none: the labels do
+	have = ["kan", "san", "eng"]
+	assert models_for("Kannada, Sanskrit", have) == "kan+san+eng"  # the main one first, English last
+	assert models_for("Urdu; Kannada", have) == "kan+eng"  # only what is installed
+
+
+def test_a_zone_can_have_its_own_languages(monkeypatch):
+	"""A Sanskrit verse in a Kannada page: that zone is read with san, the rest with the page's."""
+	import io
+
+	from PIL import Image
+
+	from sok_resdesk.core import ocr_engine
+	from sok_resdesk.core import zones as zn
+
+	asked = []
+	monkeypatch.setattr(ocr_engine, "_tesseract", lambda png, models: asked.append(models) or "x")
+	monkeypatch.setattr(ocr_engine, "available", lambda: ["kan", "san", "eng"])
+	buf = io.BytesIO()
+	Image.new("L", (400, 400), 255).save(buf, format="PNG")
+	page = [zn.zone(0, 0, 100, 50), zn.zone(0, 50, 100, 50, langs=["san"])]
+	ocr_engine.read_page(buf.getvalue(), page, "kan+eng")
+	assert asked == ["kan+eng", "san+eng"]
+	assert zn.clean([{"x": 0, "y": 0, "w": 50, "h": 50, "langs": ["san"]}])[0]["langs"] == ["san"]
+	try:
+		zn.clean([{"x": 0, "y": 0, "w": 50, "h": 50, "langs": ["san; rm -rf"]}])
+		raise AssertionError("an odd language code was let through")
+	except zn.ZoneError:
+		pass

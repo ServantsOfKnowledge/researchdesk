@@ -281,6 +281,13 @@ see, search finds and citations quote. Re-ingesting a book never undoes a correc
   Hindi, Marathi, Sanskrit, Tamil, Telugu, Malayalam, Bengali, Gujarati, Punjabi, Oriya, plus
   English; installed in the Docker image). In Proofread mode a page is read **part by part**:
   the proofreader draws its columns, headings and side notes, in reading order.
+- **Several languages.** A page is read with all the book's languages at once: its language,
+  any languages named in its language label ("Kannada and English", "Sanskrit; Kannada"), and
+  English, which most books carry somewhere. Set **OCR Languages** on a book's form (e.g.
+  `kan, san, eng`; codes or names, the main one first) when it needs a different list. The
+  **Re-OCR this book** window lets you tick the languages for that run, and in Proofread mode
+  each part of a page can have its own. (Before 0.29 a book catalogued as *multiple languages*
+  was read in English only.)
   For whole books, in the background: **Re-OCR this book** on a book's form, or Items → **Re-OCR
   the worst books** (the poorest OCR quality first). Choose the layout most pages have (*Whole
   page*, *Two columns*, *Three columns*, *Heading and two columns*). A new text is kept only where

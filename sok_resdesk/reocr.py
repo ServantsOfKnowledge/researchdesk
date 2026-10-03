@@ -56,13 +56,25 @@ def page_image(item_id: str, leaf: int) -> bytes:
 	return resp.content
 
 
-def models_for(item_id: str) -> str:
-	language = frappe.db.get_value("RD Item", item_id, "language") or ""
-	return ocr_engine.models_for(language)
+def book_languages(item_id: str) -> list[str]:
+	"""The models a book is read with: its OCR Languages when staff set them, else every language
+	it is catalogued in ("Kannada; English" for a book in several), English last."""
+	row = (
+		frappe.db.get_value("RD Item", item_id, ["ocr_languages", "language", "language_label"], as_dict=True)
+		or {}
+	)
+	chosen = ocr_engine.models_in(row.get("ocr_languages") or "")
+	langs = chosen or ocr_engine.models_in(row.get("language") or "", row.get("language_label") or "")
+	return [*[m for m in langs if m != "eng"], "eng"]
 
 
-def read(item_id: str, leaf: int, zones: list | None = None) -> dict:
-	models = models_for(item_id)
+def models_for(item_id: str, languages=None) -> str:
+	"""Tesseract's model list for this run: the languages chosen for it, else the book's."""
+	return ocr_engine.models_for(ocr_engine.models_in(languages) if languages else book_languages(item_id))
+
+
+def read(item_id: str, leaf: int, zones: list | None = None, languages=None) -> dict:
+	models = models_for(item_id, languages)
 	result = ocr_engine.read_page(page_image(item_id, leaf), zones, models)
 	result["engine"] = engine_name(models)
 	result["quality"] = ocrquality.page_quality(result["text"])["score"]
@@ -73,7 +85,7 @@ def read(item_id: str, leaf: int, zones: list | None = None) -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
-def ocr_page(item_id: str, leaf: int, zones=None) -> dict:
+def ocr_page(item_id: str, leaf: int, zones=None, languages=None) -> dict:
 	"""Read one page (in its zones) in the background; ocr_result says when it is ready."""
 	from sok_resdesk.pagetext import _check
 
@@ -91,15 +103,23 @@ def ocr_page(item_id: str, leaf: int, zones=None) -> dict:
 		item_id=item_id,
 		leaf=cint(leaf),
 		zones=zones,
+		languages=_languages(languages),
 		user=frappe.session.user,
 	)
 	return {"key": key}
 
 
-def ocr_page_job(key: str, item_id: str, leaf: int, zones: list, user: str) -> None:
+def _languages(value) -> list[str]:
+	"""Languages chosen for a run (a list or its JSON, or "kan+san"), as Tesseract models."""
+	if isinstance(value, str) and value.strip().startswith("["):
+		value = frappe.parse_json(value)
+	return ocr_engine.models_in(value or [])
+
+
+def ocr_page_job(key: str, item_id: str, leaf: int, zones: list, user: str, languages=None) -> None:
 	frappe.cache.set_value(RESULT_KEY + key, {"status": "running"}, expires_in_sec=3600)
 	try:
-		r = read(item_id, leaf, zones)
+		r = read(item_id, leaf, zones, languages)
 		out = {
 			"status": "done",
 			"text": r["text"],
@@ -133,13 +153,13 @@ def _state(item_id: str, text: str) -> None:
 
 
 @hold_when_paused("long")
-def reocr_book(item_id: str, preset: str = "Whole page") -> dict:
+def reocr_book(item_id: str, preset: str = "Whole page", languages=None) -> dict:
 	"""Read every page of a book again; keep the new text where it is better. Returns counts."""
 	from sok_resdesk.ingest import fetch_pages
 	from sok_resdesk.pagetext import HUMAN, current, save
 
 	zones = zn.presets().get(preset) or zn.presets()["Whole page"]
-	models = models_for(item_id)
+	models = models_for(item_id, languages)
 	engine = engine_name(models)
 	pages = {p["leaf"]: p for p in fetch_pages(item_id)}
 	versions = current(item_id)
@@ -202,23 +222,28 @@ def reocr_book(item_id: str, preset: str = "Whole page") -> dict:
 
 
 @hold_when_paused("long")
-def reocr_books(names: list[str], preset: str = "Whole page") -> None:
+def reocr_books(names: list[str], preset: str = "Whole page", languages=None) -> None:
 	"""One book at a time, then the rest in a new job (so a long list never fills the queue)."""
 	if not names:
 		return
 	try:
-		reocr_book(names[0], preset)
+		reocr_book(names[0], preset, languages)
 	except Exception:
 		frappe.db.rollback()
 		frappe.log_error(title=f"Research Desk: re-OCR of {names[0]} failed")
 		_state(names[0], _("failed: see the Error Log"))
 	if names[1:]:
 		frappe.enqueue(
-			"sok_resdesk.reocr.reocr_books", queue="long", timeout=6 * 3600, names=names[1:], preset=preset
+			"sok_resdesk.reocr.reocr_books",
+			queue="long",
+			timeout=6 * 3600,
+			names=names[1:],
+			preset=preset,
+			languages=languages,
 		)
 
 
-def _queue(names: list[str], preset: str) -> int:
+def _queue(names: list[str], preset: str, languages=None) -> int:
 	if preset not in zn.presets():
 		frappe.throw(_("Choose a layout: {0}").format(", ".join(zn.presets())))
 	if not ocr_engine.available():
@@ -226,15 +251,21 @@ def _queue(names: list[str], preset: str) -> int:
 	for name in names:
 		_state(name, _("waiting to be read again"))
 	frappe.enqueue(
-		"sok_resdesk.reocr.reocr_books", queue="long", timeout=6 * 3600, names=names, preset=preset
+		"sok_resdesk.reocr.reocr_books",
+		queue="long",
+		timeout=6 * 3600,
+		names=names,
+		preset=preset,
+		languages=languages or None,
 	)
 	return len(names)
 
 
 @frappe.whitelist(methods=["POST"])
-def enqueue_book(item_id: str, preset: str = "Whole page") -> dict:
+def enqueue_book(item_id: str, preset: str = "Whole page", languages=None) -> dict:
+	"""`languages`: the languages to read with this time (default: the book's OCR Languages)."""
 	frappe.only_for(MANAGERS)
-	_queue([item_id], preset)
+	_queue([item_id], preset, _languages(languages))
 	return {"message": _("{0} is being read again in the background.").format(item_id)}
 
 
@@ -257,4 +288,26 @@ def enqueue_worst(count: int = 20, preset: str = "Whole page") -> dict:
 def engine_status() -> dict:
 	"""For the Desk: whether OCR can run here, and with which language models."""
 	have = ocr_engine.available()
-	return {"installed": bool(have), "models": have, "presets": list(zn.presets())}
+	return {
+		"installed": bool(have),
+		"models": have,
+		"presets": list(zn.presets()),
+		"names": model_names(have),
+	}
+
+
+def model_names(models: list[str]) -> dict[str, str]:
+	"""{model: language name} for the pickers (osd and the like are left out)."""
+	from sok_resdesk.requirements import LANGUAGE_NAMES
+
+	return {m: LANGUAGE_NAMES.get(m, m) for m in models if m not in ("osd", "equ")}
+
+
+@frappe.whitelist(methods=["GET"])
+def languages(item_id: str) -> dict:
+	"""For the Proofread and Re-OCR pickers: the book's languages and the ones installed here."""
+	from sok_resdesk.pagetext import _check
+
+	_check(item_id)
+	have = ocr_engine.available()
+	return {"book": [m for m in book_languages(item_id) if m in have], "available": model_names(have)}

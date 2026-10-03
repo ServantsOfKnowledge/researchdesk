@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.29.0 (2026-10-07): OCR in several languages
+
+- Pages are read with several Tesseract models at once (e.g. `kan+san+eng`, the main language
+  first): the book's language, the languages named in its language label ("Kannada and
+  English"), and English, which most books carry somewhere
+- **OCR Languages** on the book's form overrides the list (codes or names: `kan, san, eng`)
+- Proofread mode: **Read with** checkboxes for the page, and a language of its own for each part
+  (a Sanskrit verse, an English footnote); Re-OCR this book: choose the languages for the run
+- Fixed: books catalogued as multiple languages (`mul`) were read in English only
+- Server → Requirements counts the models these languages need
+- API: `reocr.languages`; `ocr_page`, `enqueue_book` take `languages`
+
 ## 0.28.1 (2026-10-07): OCR languages for Docker installs
 
 - Docker upgrades already install Tesseract with its language models in the image; the models

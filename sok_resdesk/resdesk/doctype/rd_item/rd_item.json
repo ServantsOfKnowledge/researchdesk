@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-07 10:00:00.000000",
+ "modified": "2026-10-07 16:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Item",
@@ -57,6 +57,7 @@
   "page_order",
   "ocr_engine",
   "ocr_language",
+  "ocr_languages",
   "scanning_centre",
   "added_on_source",
   "section_local",
@@ -402,6 +403,12 @@
    "fieldtype": "Data",
    "label": "OCR Language",
    "read_only": 1
+  },
+  {
+   "fieldname": "ocr_languages",
+   "fieldtype": "Data",
+   "label": "OCR Languages",
+   "description": "The languages to read this book's pages in when it is re-OCRed, the main one first, e.g. <code>Kannada, Sanskrit, English</code> or <code>kan, san</code>. Empty: the book's catalogue languages. English is always added."
   },
   {
    "fieldname": "scanning_centre",

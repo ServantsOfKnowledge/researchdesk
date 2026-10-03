@@ -11,6 +11,8 @@
 		String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
 	let itemId, page = null, on = false, zones = [], presets = {}, versions = [], me = "", original = "";
+	// OCR languages: the book's (ticked at the start) and those installed on the server
+	let langs = { book: [], available: {} }, runLangs = [];
 
 	function csrf() {
 		return (window.frappe && frappe.csrf_token) || (document.cookie.match(/csrf_token=([^;]+)/) || [])[1] || "";
@@ -71,11 +73,26 @@
 					.map(
 						(z, i) => `<li data-z="${i}"><b>${z.kind === "skip" ? "×" : i + 1}</b>
 				<select data-kind="${i}"><option value="text" ${z.kind === "text" ? "selected" : ""}>read</option><option value="skip" ${z.kind === "skip" ? "selected" : ""}>skip</option></select>
+				<select data-zlang="${i}" title="This part's language, when it differs from the page's" ${z.kind === "skip" ? "hidden" : ""}><option value="">page's languages</option>${Object.entries(langs.available)
+					.map(([m, n]) => `<option value="${esc(m)}" ${(z.langs || [])[0] === m ? "selected" : ""}>${esc(n)}</option>`)
+					.join("")}</select>
 				<button type="button" data-up="${i}" title="Earlier" ${i ? "" : "disabled"}>↑</button><button type="button" data-down="${i}" title="Later" ${i < zones.length - 1 ? "" : "disabled"}>↓</button>
 				<button type="button" data-del="${i}" title="Remove">✕</button></li>`
 					)
 					.join("")
 			: `<li class="rd-muted">No zones: the whole page is read as one block. Draw a box for each column or part.</li>`;
+	}
+
+	// "Read with": the languages Tesseract reads this page in (the main one first, English added)
+	function drawLangs() {
+		const box = $("#rd-proof-langs");
+		if (!box) return;
+		const all = Object.entries(langs.available);
+		box.innerHTML = all.length
+			? `<span class="rd-muted">Read with:</span> ${all
+					.map(([m, n]) => `<label><input type="checkbox" data-lang="${esc(m)}" ${runLangs.includes(m) ? "checked" : ""}> ${esc(n)}</label>`)
+					.join(" ")}`
+			: "";
 	}
 
 	function editor() {
@@ -90,6 +107,7 @@
 				<button class="rd-btn" type="button" id="rd-zone-clear">Clear</button>
 				<button class="rd-btn rd-btn--primary" type="button" id="rd-zone-ocr">OCR the zones</button>
 				<span class="rd-muted" id="rd-proof-msg"></span>
+				<div class="rd-proof__langs" id="rd-proof-langs"></div>
 				<ol class="rd-zone-list" id="rd-zone-list"></ol>
 			</div>
 			<textarea id="rd-proof-text" spellcheck="false" lang="${esc($("#rd-pages-text").getAttribute("lang") || "")}"></textarea>
@@ -111,7 +129,13 @@
 		$("#rd-proof").hidden = false;
 		$("#rd-proof-text").value = original = page.text || "";
 		$("#rd-proof-msg").textContent = "";
-		const h = await call("pagetext", "history", { item_id: itemId, leaf: page.leaf });
+		const [h, l] = await Promise.all([
+			call("pagetext", "history", { item_id: itemId, leaf: page.leaf }),
+			call("reocr", "languages", { item_id: itemId }).catch(() => ({ book: [], available: {} })),
+		]);
+		langs = l || { book: [], available: {} };
+		runLangs = langs.book.slice();
+		drawLangs();
 		presets = h.presets || {};
 		me = h.me;
 		versions = h.versions || [];
@@ -213,7 +237,12 @@
 		msg.textContent = "Reading the page…";
 		$("#rd-zone-ocr").disabled = true;
 		try {
-			const { key } = await call("reocr", "ocr_page", { item_id: itemId, leaf: page.leaf, zones }, true);
+			const { key } = await call(
+				"reocr",
+				"ocr_page",
+				{ item_id: itemId, leaf: page.leaf, zones, languages: JSON.stringify(runLangs) },
+				true
+			);
 			let r;
 			for (let i = 0; i < 120; i++) {
 				await new Promise((res) => setTimeout(res, i < 5 ? 1000 : 2000));
@@ -297,6 +326,19 @@
 		$("#rd-pages").addEventListener("change", (e) => {
 			const k = e.target.closest("[data-kind]");
 			if (k) (zones[+k.dataset.kind].kind = k.value), drawZones();
+			const zl = e.target.closest("[data-zlang]");
+			if (zl) {
+				const z = zones[+zl.dataset.zlang];
+				if (zl.value) z.langs = [zl.value];
+				else delete z.langs;
+			}
+			const lg = e.target.closest("[data-lang]");
+			if (lg) {
+				const m = lg.dataset.lang;
+				// keep the book's order (its main language first), then what was added
+				runLangs = lg.checked ? [...runLangs, m] : runLangs.filter((x) => x !== m);
+				if (!runLangs.length) (runLangs = [m]), (lg.checked = true);
+			}
 			if (e.target.id === "rd-zone-preset" && e.target.value) {
 				zones = JSON.parse(JSON.stringify(presets[e.target.value] || []));
 				e.target.value = "";

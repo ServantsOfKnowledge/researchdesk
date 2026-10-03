@@ -118,7 +118,12 @@ When the page's text is poor, or its columns run into each other, have it read a
    right. A layout (*Two columns*, *Three columns*, *Heading and two columns*) draws the usual
    ones for you.
 2. Mark a part **skip** to leave it out (a picture, a stamp, a page number).
-3. **OCR the zones**: each part is read on its own with the book's language, and the text comes
+3. **Read with** the languages the page is in: the book's languages are ticked, with English
+   (many Indian books have English titles, notes or references alongside the main language).
+   Tick more, or fewer; the first one ticked is the main one. A part in a different language (a
+   Sanskrit verse in a Kannada book, an English footnote) can have **its own language**: choose it
+   in the part's list.
+4. **OCR the zones**: each part is read on its own with its languages, and the text comes
    back into the editor, part by part, to check and save. Nothing is saved until you do.
 
 **Proofreading** (`/library/proofread`) is the proofreaders' work list: the pages readers

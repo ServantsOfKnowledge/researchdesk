@@ -41,9 +41,13 @@ frappe.ui.form.on("RD Item", {
 		frm.add_custom_button(
 			__("Re-OCR this book"),
 			() =>
-				frappe.call({ method: "sok_resdesk.reocr.engine_status" }).then((r) => {
+				Promise.all([
+					frappe.call({ method: "sok_resdesk.reocr.engine_status" }),
+					frappe.call({ method: "sok_resdesk.reocr.languages", args: { item_id: frm.doc.name } }),
+				]).then(([r, l]) => {
 					const st = r.message;
 					if (!st.installed) return frappe.msgprint(__("The OCR engine (Tesseract) isn't installed on this server."));
+					const book = (l.message && l.message.book) || [];
 					frappe.prompt(
 						[
 							{
@@ -54,9 +58,17 @@ frappe.ui.form.on("RD Item", {
 								default: "Whole page",
 								description: __("Columns are read one by one, so they don't mix. Pages people have proofread are left alone; a page keeps its new text only if it reads better. For pages with their own layout, draw zones in Page & text → Proofread."),
 							},
+							{
+								fieldname: "languages",
+								fieldtype: "MultiCheck",
+								label: __("Read in"),
+								columns: 3,
+								options: Object.entries(st.names || {}).map(([m, n]) => ({ label: n, value: m, checked: book.includes(m) })),
+								description: __("The book's languages are ticked (OCR Languages on the form, else its catalogue languages). Add any the pages also use, e.g. Sanskrit verses; English is always included."),
+							},
 						],
 						(v) =>
-							frappe.call({ method: "sok_resdesk.reocr.enqueue_book", args: { item_id: frm.doc.name, preset: v.preset } }).then((x) => {
+							frappe.call({ method: "sok_resdesk.reocr.enqueue_book", args: { item_id: frm.doc.name, preset: v.preset, languages: JSON.stringify(v.languages || []) } }).then((x) => {
 								frappe.show_alert({ message: x.message.message, indicator: "green" });
 								frm.reload_doc();
 							}),
