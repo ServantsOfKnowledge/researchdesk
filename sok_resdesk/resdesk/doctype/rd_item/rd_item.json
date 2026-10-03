@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-05 09:00:00.000000",
+ "modified": "2026-10-05 13:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Item",
@@ -80,6 +80,8 @@
   "indexed_pages",
   "column_break_s",
   "indexed_on",
+  "pages_pending",
+  "page_task",
   "raw_metadata"
  ],
  "fields": [
@@ -342,7 +344,7 @@
    "label": "OCR Quality",
    "read_only": 1,
    "no_copy": 1,
-   "description": "How clean the page text is, 0 (garbage) to 100 (clean), worked out from the text itself. Sort the Items list by it to find the books that most need better OCR or proofreading. Empty: not scored yet (no page text kept)."
+   "description": "How clean the page text is, 1 (garbage) to 100 (clean), worked out from the text itself. Sort the Items list by it (with OCR Quality above 0) to find the books that most need better OCR or proofreading. 0: not scored yet."
   },
   {
    "fieldname": "ocr_low_pages",
@@ -531,6 +533,23 @@
    "fieldtype": "Datetime",
    "label": "Indexed On",
    "read_only": 1
+  },
+  {
+   "fieldname": "pages_pending",
+   "fieldtype": "Check",
+   "label": "Page Text Pending",
+   "read_only": 1,
+   "no_copy": 1,
+   "search_index": 1,
+   "description": "The book is listed on the portal, but its page text waits to be sent to the search engine (Background Jobs → Search queue)."
+  },
+  {
+   "fieldname": "page_task",
+   "fieldtype": "Int",
+   "label": "Page Text Task",
+   "read_only": 1,
+   "no_copy": 1,
+   "hidden": 1
   },
   {
    "fieldname": "raw_metadata",

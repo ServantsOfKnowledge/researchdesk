@@ -69,6 +69,25 @@ class ResDeskJobs {
 		);
 		this.$body.on("click", "[data-discard-all]", () => this.call("release_held", { discard: 1 }, __("Discard all held jobs? They won't run.")));
 		this.$body.on("click", "[data-cancel-search]", () => this.cancel_search());
+		const q = (method, args, confirm_text) => {
+			const go = () =>
+				frappe.call({ method: `sok_resdesk.search_queue.${method}`, args: args || {}, freeze: true }).then((r) => {
+					if (r.message && r.message.message) frappe.show_alert({ message: r.message.message, indicator: "green" }, 10);
+					this.refresh();
+				});
+			confirm_text ? frappe.confirm(confirm_text, go) : go();
+		};
+		this.$body.on("click", "[data-books-first]", () =>
+			q(
+				"books_first",
+				{},
+				__("Cancel the page text waiting in the search engine, so the books behind it are listed next? The page text is sent again in the background: nothing is lost.")
+			)
+		);
+		this.$body.on("click", "[data-hold-pages]", (e) => q("hold_page_text", { hold: $(e.currentTarget).data("hold-pages") }));
+		this.$body.on("click", "[data-clear-history]", () =>
+			q("clear_history", {}, __("Clear the search engine's record of tasks finished more than a week ago? Nothing in the index changes."))
+		);
 		this.$body.on("click", "[data-retry-run]", (e) => this.call("retry_run", { run: $(e.currentTarget).data("retry-run") }));
 		this.start();
 	}
@@ -98,6 +117,10 @@ class ResDeskJobs {
 	}
 
 	refresh(quiet) {
+		frappe.call({ method: "sok_resdesk.search_queue.get_overview", type: "GET" }).then((r) => {
+			this.queue = r.message;
+			if (this.data) this.render();
+		});
 		frappe.call({
 			method: "sok_resdesk.jobs.overview",
 			callback: (r) => {
@@ -148,6 +171,31 @@ class ResDeskJobs {
 				)
 			);
 		}
+	}
+
+	// Search queue: what waits in the search engine, how fast it goes, and what can be done about it
+	queue_html() {
+		const Q = this.queue;
+		if (!Q) return `<p class="text-muted">${__("Loading…")}</p>`;
+		if (Q.error) return `<p class="text-danger">${frappe.utils.escape_html(Q.error)}</p>`;
+		const n = (x) => (x || 0).toLocaleString();
+		const eta = Q.eta_minutes == null ? "" : Q.eta_minutes < 90 ? __("about {0} minutes", [Q.eta_minutes]) : __("about {0} hours", [Math.round(Q.eta_minutes / 60)]);
+		const rows = `<table class="table table-sm rdj-table small" style="max-width:520px"><tbody>
+			<tr><td>${__("Book records waiting")}</td><td><b>${n(Q.waiting_books)}</b></td></tr>
+			<tr><td>${__("Page text waiting")}</td><td><b>${n(Q.waiting_pages)}</b>${Q.waiting_other ? ` · ${__("other")} ${n(Q.waiting_other)}` : ""}</td></tr>
+			<tr><td>${__("Getting through")}</td><td>${__("{0} tasks a minute", [Q.done_per_minute])}${Q.waiting && eta ? ` · ${__("{0} to go", [eta])}` : ""}${Q.failed_lately ? ` · <span class="text-danger">${__("{0} failed in the last half hour", [Q.failed_lately])}</span>` : ""}</td></tr>
+			<tr><td>${__("Page text held back")}</td><td>${Q.held ? `<b class="text-warning">${__("on hold")}</b> · ` : ""}${__("{0} books waiting to send", [n(Q.pages_pending)])}</td></tr>
+			<tr><td>${__("Task history")}</td><td>${__("{0} finished tasks remembered", [n(Q.history)])}</td></tr>
+		</tbody></table>`;
+		const hint = Q.waiting_pages > 20 && Q.waiting_books
+			? `<p class="small text-warning">${__("Book records are queued behind page text: Books first lists them within minutes.")}</p>`
+			: "";
+		return `${rows}${hint}<div style="display:flex;gap:6px;flex-wrap:wrap">
+			<button class="btn btn-xs ${Q.waiting_pages ? "btn-primary" : "btn-default"}" data-books-first ${Q.waiting_pages ? "" : "disabled"}>${__("Books first")}</button>
+			<button class="btn btn-xs btn-default" data-hold-pages="${Q.held ? 0 : 1}">${Q.held ? __("Resume page text") : __("Hold page text")}</button>
+			<button class="btn btn-xs btn-default" data-clear-history>${__("Clear finished tasks")}</button>
+			<button class="btn btn-xs btn-default" data-cancel-search ${Q.waiting ? "" : "disabled"}>${__("Cancel all waiting")}</button>
+		</div>`;
 	}
 
 	// what the search engine is working on, and what to do when its queue doesn't move
@@ -268,7 +316,7 @@ class ResDeskJobs {
 		this.call(
 			"cancel_search_tasks",
 			{},
-			__("Cancel the search engine's pending indexing? Searches keep working with what is already indexed; use Rebuild Search Index later to complete it.")
+			__("Cancel everything waiting in the search engine? Books and page text already indexed stay searchable. What is cancelled is kept track of: page text is sent again in the background, and the book records count as not sent (Send them, on the Machine card).")
 		);
 	}
 
@@ -493,16 +541,7 @@ class ResDeskJobs {
 
 		const search = !d.search.ok
 			? `<p class="text-danger">${__("Search engine not reachable")}: ${esc(d.search.error || "")}</p>`
-			: d.search.pending
-			? `<p>${__("{0} indexing tasks pending ({1} in progress). The search engine is busy updating its index; this uses CPU until it finishes.", [
-					d.search.pending,
-					d.search.processing,
-			  ])}</p>
-				<table class="table table-sm rdj-table"><tbody>${d.search.tasks
-					.map((t) => `<tr><td>${esc(t.type)}</td><td>${esc(t.index)}</td><td>${esc(t.status)}</td><td class="text-muted small">${esc(t.enqueued_at)}</td></tr>`)
-					.join("")}</tbody></table>
-				<button class="btn btn-xs btn-default" data-cancel-search>${__("Cancel pending indexing")}</button>`
-			: `<p class="text-muted">${__("Idle.")}</p>`;
+			: this.queue_html();
 
 		const recent = d.recent_runs.length
 			? `<table class="table table-sm rdj-table"><tbody>${d.recent_runs
@@ -548,7 +587,7 @@ class ResDeskJobs {
 			<div class="rdj-card"><h4>${__("Held jobs")}</h4>${held}</div>
 			<div class="rdj-card"><h4>${__("Machine")}</h4>${machine}</div>
 			<div class="rdj-card"><h4>${__("Scheduled ingests")}</h4>${schedules}</div>
-			<div class="rdj-card"><h4>${__("Search engine")}</h4>${search}</div>
+			<div class="rdj-card"><h4>${__("Search queue")}</h4>${search}</div>
 			<div class="rdj-card"><h4>${__("Recent runs")}</h4>${recent}</div>
 			<p class="text-muted small">${__("Updated")} ${esc(d.now)} · ${__("refreshes every 5 seconds")}</p>
 		`);

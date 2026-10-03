@@ -38,6 +38,7 @@ SETTINGS_FIELDS = (
 	"preserve_page_images",
 	"preservation_budget_gb",
 	"fixity_days",
+	"hold_page_text",
 	"book_limit",
 	"mirror_all_collections",
 	"mirror_min_books",
@@ -844,7 +845,7 @@ class TestOcrQuality(OpsTestCase):
 		from sok_resdesk.ingest import write_cached_pages
 
 		name = _item(31)
-		frappe.db.set_value("RD Item", name, {"has_page_text": 1, "ocr_quality": None})
+		frappe.db.set_value("RD Item", name, {"has_page_text": 1, "ocr_quality": 0, "ocr_low_pages": 0})
 		write_cached_pages(name, [{"leaf": 0, "label": "", "text": "ಕನಕದಾಸರ ಕೀರ್ತನೆಗಳು ಮತ್ತು ಪದಗಳು"}])
 		self.assertIn(name, ocr.unscored())
 		self.assertEqual(ocr.score_batch([name]), 1)
@@ -934,3 +935,118 @@ class TestPreservation(OpsTestCase):
 		self.assertNotIn(name, preservation.wanted())
 		frappe.db.set_single_value("RD Settings", "preserve_books", "Off")
 		self.assertEqual(preservation.wanted(), [])
+
+
+class FakeQueue(FakeMeili):
+	"""A search engine with tasks waiting: the oldest page-text task is uid 100, the oldest book
+	record task uid 105, both enqueued at `since`."""
+
+	def __init__(self, since):
+		super().__init__()
+		self.since, self.cancelled = since, []
+		self.uid = 200
+
+	def add(self, index, documents, wait=False):
+		super().add(index, documents)
+		self.uid += 1
+		return {"taskUid": self.uid}
+
+	def _req(self, method, path, **kwargs):
+		params = kwargs.get("params") or {}
+		if method == "GET" and path == "/tasks" and params.get("reverse"):
+			uid = 100 if params.get("indexUids") == self.pages else 105
+			return {"results": [{"uid": uid, "enqueuedAt": self.since}]}
+		if method == "POST" and path == "/tasks/cancel":
+			self.cancelled.append(params["indexUids"])
+			return {"taskUid": 999}
+		return {"total": 0}
+
+	def wait(self, task, timeout=60):
+		return {"details": {"canceledTasks": 7}}
+
+
+class TestSearchQueue(OpsTestCase):
+	def setUp(self):
+		super().setUp()
+		frappe.db.set_single_value("RD Settings", "hold_page_text", 0)
+		# books sent before the waiting tasks (done) and among them (cancelled)
+		self.done, self.waiting, self.unknown = _item(51), _item(52), _item(53)
+		frappe.db.set_value("RD Item", self.done, {"indexed_pages": 10, "page_task": 90, "pages_pending": 0})
+		frappe.db.set_value(
+			"RD Item", self.waiting, {"indexed_pages": 10, "page_task": 120, "pages_pending": 0}
+		)
+		# sent before page tasks were recorded: matched by when it was sent
+		frappe.db.set_value(
+			"RD Item",
+			self.unknown,
+			{"indexed_pages": 10, "page_task": 0, "indexed_on": frappe.utils.now_datetime()},
+		)
+		import datetime as dt
+
+		since = (dt.datetime.now(dt.UTC) - dt.timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M:%S.000000Z")
+		self.fake = FakeQueue(since)
+		p = mock.patch("sok_resdesk.search_queue.MeiliClient.from_settings", return_value=self.fake)
+		p.start()
+		self.addCleanup(p.stop)
+		p = mock.patch("sok_resdesk.search_queue.time.sleep")
+		p.start()
+		self.addCleanup(p.stop)
+
+	def pending(self, name):
+		return frappe.db.get_value("RD Item", name, "pages_pending")
+
+	def test_books_first_cancels_page_text_and_keeps_track_of_it(self):
+		from sok_resdesk import search_queue
+
+		frappe.set_user("Administrator")
+		result = search_queue.books_first()
+		self.assertEqual(self.fake.cancelled, [self.fake.pages])  # book records are left alone
+		self.assertEqual(result["cancelled"], 7)
+		self.assertEqual(
+			(self.pending(self.done), self.pending(self.waiting), self.pending(self.unknown)), (0, 1, 1)
+		)
+		self.assertFalse(frappe.db.get_single_value("RD Settings", "hold_page_text"))  # back as it was
+		self.assertTrue(any(m == "sok_resdesk.search_queue.send_pending" for m, _kw in self.enqueued))
+
+	def test_cancelling_everything_loses_nothing(self):
+		from sok_resdesk import jobs
+
+		frappe.set_user("Administrator")
+		result = jobs.cancel_search_tasks()
+		self.assertEqual(self.fake.cancelled, [self.fake.pages, self.fake.books])
+		self.assertEqual(self.pending(self.waiting), 1)
+		# book records sent since the oldest cancelled one count as not sent (Send them)
+		from sok_resdesk.search import index_missing
+
+		self.assertIn(self.unknown, index_missing())
+		self.assertGreaterEqual(result["unsent"], 1)
+
+	def test_pending_page_text_is_sent_and_cleared_unless_held(self):
+		from sok_resdesk import search_queue
+
+		frappe.db.set_value("RD Item", self.waiting, {"pages_pending": 1, "has_page_text": 1})
+		pages = [{"leaf": 0, "label": "", "text": "ಕನಕದಾಸರ ಕೀರ್ತನೆಗಳು"}]
+		with (
+			mock.patch("sok_resdesk.search.MeiliClient.from_settings", return_value=self.fake),
+			mock.patch("sok_resdesk.ingest.fetch_pages", return_value=pages),
+		):
+			frappe.db.set_single_value("RD Settings", "hold_page_text", 1)
+			self.assertEqual(search_queue.send_pending(), 0)  # held: nothing goes
+			self.assertEqual(self.pending(self.waiting), 1)
+			frappe.db.set_single_value("RD Settings", "hold_page_text", 0)
+			search_queue.send_pending()
+		self.assertEqual(self.pending(self.waiting), 0)
+		self.assertEqual(frappe.db.get_value("RD Item", self.waiting, "page_task"), self.fake.uid)
+
+	def test_held_page_text_waits_while_books_still_go(self):
+		from sok_resdesk.catalogue import item_to_record
+		from sok_resdesk.search import IndexBuffer
+
+		frappe.db.set_single_value("RD Settings", "hold_page_text", 1)
+		buf = IndexBuffer(FakeMeili())
+		buf.add(
+			item_to_record(frappe.get_doc("RD Item", self.done)), [{"leaf": 0, "label": "", "text": "ಕನಕ"}]
+		)
+		buf.flush()
+		self.assertEqual([c[1] for c in buf.client.calls], ["rd_books"])  # the book record only
+		self.assertEqual(self.pending(self.done), 1)

@@ -113,7 +113,7 @@ two files are ever served, and the PDF only when the caller may read the book.
 | `sok_resdesk.jobs.retry_failed_jobs` (`job_id`, optional) | retry one failed background job, or all of them; ingest batches go back into their run |
 | `sok_resdesk.jobs.clear_failed_jobs` | forget every failed background job (System Manager) |
 | `sok_resdesk.jobs.stop_all` (`force`, `pause`, `search`) | stop all Research Desk background work |
-| `sok_resdesk.jobs.cancel_job` (`job_id`) · `set_paused` (`paused`) · `cancel_search_tasks` | single job, schedules, search indexing |
+| `sok_resdesk.jobs.cancel_job` (`job_id`) · `set_paused` (`paused`) · `cancel_search_tasks` | single job, schedules, cancel what waits in the search engine (keeping track of it: page text is sent again, book records count as not sent) |
 | `sok_resdesk.curation.create` (`title`, `description`) | make a collection, returns its name (web address) |
 | `sok_resdesk.curation.bulk` (`action`=`add`/`remove`, `collection`, and one of `names`, `filters`, `profile`, `language`, `search`, `source_collection`, `everything=1`) | add or remove many books; over 200 run in the background |
 | `sok_resdesk.curation.apply_rules` (`collection`) | add every book matching the collection's rules |
@@ -130,6 +130,8 @@ two files are ever served, and the PDF only when the caller may read the book.
 | `sok_resdesk.search.enqueue_index_missing` (`with_pages`) | queue the books that never reached the search engine; returns how many |
 | `sok_resdesk.preservation.preserve_now` (`item`) · `check_now` (`item`) · `enqueue_preservation` | make or update a book's preservation copy now; check a copy against its checksums; copy every book waiting for one (docs/preservation.md) |
 | `sok_resdesk.ocr.enqueue_scoring` (`limit`) | score the OCR quality of books not scored yet, in the background; returns how many |
+| `sok_resdesk.search_queue.get_overview` | the search engine's queue: book records and page text waiting, tasks a minute, time to go, failures, page text held or pending, task history |
+| `sok_resdesk.search_queue.books_first` · `hold_page_text` (`hold`=1/0) · `clear_history` (`days`) | cancel the waiting page text so books are listed next (it is sent again later); hold or resume page text; forget finished tasks older than `days` (7) |
 | `GET /ark:/<naan>/<name>[/n<leaf>]` | a permanent ARK: redirects to the book (at that leaf); `?info` returns its who/what/when/where record as text; a deleted book's ARK leads to its tombstone |
 | `sok_resdesk.capacity.get_status` | the book limit: books and pages in the catalogue, the limit, room left, and what the machine's CPUs, memory and disk can each hold |
 | `sok_resdesk.server.status` | everything on the Server page: versions, updates, health, backups, helper, recent tasks |

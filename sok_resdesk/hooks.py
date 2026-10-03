@@ -71,7 +71,12 @@ scheduler_events = {
 		# runs that lost their workers: marked Interrupted and carried on by themselves
 		# + the Server page's alerts when a part stops working (RD Settings → Server & Updates).
 		# One key, one list: a second "*/10 * * * *" entry would silently replace the first.
-		"*/10 * * * *": ["sok_resdesk.ingest.mark_interrupted_runs", "sok_resdesk.server.watch"],
+		"*/10 * * * *": [
+			"sok_resdesk.ingest.mark_interrupted_runs",
+			"sok_resdesk.server.watch",
+			# page text that waited (Books first, Hold page text) goes when the engine has room
+			"sok_resdesk.search_queue.every_ten_minutes",
+		],
 		# automatic backups, at night (server time zone)
 		"30 2 * * *": ["sok_resdesk.server.scheduled_backup"],
 		# preservation copies and their fixity checks, after the backup (Settings → Preservation)
@@ -88,5 +93,9 @@ scheduler_events = {
 		# OCR quality for books not scored yet, from the page text kept here
 		"sok_resdesk.ocr.daily",
 	],
-	"weekly": ["sok_resdesk.ingest.run_scheduled_weekly"],
+	"weekly": [
+		"sok_resdesk.ingest.run_scheduled_weekly",
+		# the search engine's record of finished tasks, kept to the last week
+		"sok_resdesk.search_queue.weekly",
+	],
 }

@@ -3,13 +3,16 @@
 # The Server page's update check (and ./upgrade.sh) find releases by their v* tag, so a version
 # that is merged but not tagged is invisible to every install. scripts/release.sh makes the tag
 # on a maintainer's machine; this does the same from GitHub, so a release never waits for one.
-#   - on every push to main: if sok_resdesk/__init__.py's version has no tag, tag it
+#   - after CI passes on main: if sok_resdesk/__init__.py's version has no tag, tag it (a version
+#     whose tests fail is never released: installs would offer it as an upgrade)
 #   - by hand (Actions → Release → Run workflow): the same, for the current main
 # The version must also head CHANGELOG.md ("## X.Y.Z (date): …"); its section is the release notes.
 name: Release
 
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -23,11 +26,14 @@ concurrency:
 
 jobs:
   tag:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # the commit CI tested (by hand: the current main)
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - name: Version and tag
         id: v
         run: |
@@ -59,7 +65,7 @@ jobs:
           V='${{ steps.v.outputs.version }}'
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "v$V" -m "v$V" "$GITHUB_SHA"
+          git tag -a "v$V" -m "v$V" "$(git rev-parse HEAD)"
           git push origin "refs/tags/v$V"
           gh release create "v$V" --verify-tag --title "v$V" --notes-file "$RUNNER_TEMP/notes.md"
       - name: Build the Docker image for the tag

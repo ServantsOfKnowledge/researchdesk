@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.21.0 (2026-10-05): the search queue, under control
+
+- **Background Jobs → Search queue** shows what waits in the search engine (book records and page
+  text separately), how many tasks a minute it gets through, how long it has to go, failures,
+  page text held back and the size of its task history
+- **Books first**: cancels the page text waiting in the search engine, so the book records queued
+  behind it are listed next: new books reach the portal within minutes instead of after hours of
+  page text. The page text is sent again in the background, from the text kept on the server, at
+  the pace the engine keeps up with. Nothing is lost
+- **Hold page text / Resume page text**: books keep being catalogued and listed while their page
+  text waits; resuming sends it
+- **Clear finished tasks**, and weekly by itself: the search engine's record of finished tasks no
+  longer grows without end
+- **Fixed: cancelling search-engine work lost books.** *Cancel pending indexing* (and *Stop
+  everything* with search) cancelled every waiting task outright, book records included, leaving
+  books in the catalogue that never reached the portal. Cancelling now keeps track of what it
+  cancels: page text is sent again, book records count as not sent (*Send them*)
+- **Fixed: books already in the catalogue were never given an OCR quality** (0.20 looked for
+  empty scores, but the database keeps them at 0). They are scored after this upgrade; 0 now
+  means *not scored yet*
+
 ## 0.20.0 (2026-10-05): permanent links, preservation copies, OCR quality, search indexing that moves
 
 - **A permanent link for every book (ARK), switched on when the library is ready.** Settings →

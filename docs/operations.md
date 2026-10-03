@@ -445,6 +445,23 @@ workspace after login. Readers can also sign up themselves, or be added with
 
 Errors from background jobs also appear in Desk → *Error Log*.
 
+### The search queue
+
+The portal lists only what the search engine has taken in, and the engine works through its
+tasks strictly in order. **Background Jobs → Search queue** shows what waits (book records and
+page text separately), how many tasks a minute it gets through and how long it has to go, the
+page text held back, and how many finished tasks it still remembers.
+
+| Button | What it does |
+|---|---|
+| **Books first** | cancels the page text waiting in the engine, so the book records behind it are next: new books reach the portal within minutes. The books whose page text was cancelled are marked *Page Text Pending* and their text is sent again in the background, from the text kept on this server, as fast as the engine keeps up. Nothing is lost |
+| **Hold page text** / **Resume page text** | while held, books are still catalogued and listed on the portal, and their page text waits (marked pending). Resume sends it. Useful during busy hours, or while the engine recovers |
+| **Clear finished tasks** | forgets the record of tasks finished more than a week ago (done weekly by itself): on a big catalogue it grows to gigabytes |
+| **Cancel all waiting** | cancels everything waiting, book records too, keeping track of it: page text is sent again, and the book records count as not sent (*Send them* on the Machine card) |
+
+Page text that waits is sent every 10 minutes, a few books at a time, whenever the engine has
+fewer than 150 tasks waiting.
+
 ### Search indexing is stuck
 
 The portal lists only the books the search engine has taken in. **Background Jobs → Machine**

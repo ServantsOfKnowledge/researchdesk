@@ -274,20 +274,20 @@ def index_record(
 	pages = pages or []
 	excerpt = " ".join(p["text"] for p in pages[:6])
 	client.add(client.books, [book_document(record, excerpt)])
-	count = 0
+	count, uid = 0, None
 	if pages and cint(s.index_pages):
 		if replace_pages:  # new books have no old pages to remove
 			client.delete_by_filter(client.pages, f"item_id = {_quote(record['item_id'])}")
 		docs = page_documents(record, pages, cint(s.max_page_chars) or 6000)
 		for i in range(0, len(docs), 500):
-			client.add(client.pages, docs[i : i + 500])
+			uid = _task_uid(client.add(client.pages, docs[i : i + 500])) or uid
 		count = len(docs)
 	frappe.db.set_value(
 		"RD Item",
 		record["item_id"],
 		{
 			"indexed_on": now_datetime(),
-			**({"indexed_pages": count} if pages else {}),
+			**({"indexed_pages": count, "pages_pending": 0, "page_task": uid or 0} if pages else {}),
 			**quality_fields(pages),
 		},
 		update_modified=False,
@@ -420,16 +420,40 @@ class IndexBuffer:
 		client = self.client = self.client or MeiliClient.from_settings()
 		wait_for_room(client)
 		client.add(client.books, books)
-		if stale:
-			filters = " OR ".join(f"item_id = {_quote(i)}" for i in stale)
-			client.delete_by_filter(client.pages, filters)
-		for i in range(0, len(pages), self.PAGE_CHUNK):
-			client.add(client.pages, pages[i : i + self.PAGE_CHUNK])
+		held = pages_held()  # Background Jobs → Search queue → Hold page text
+		page_task: dict[str, int] = {}  # item -> the last task carrying its pages
+		if not held:
+			if stale:
+				filters = " OR ".join(f"item_id = {_quote(i)}" for i in stale)
+				client.delete_by_filter(client.pages, filters)
+			for i in range(0, len(pages), self.PAGE_CHUNK):
+				chunk = pages[i : i + self.PAGE_CHUNK]
+				uid = _task_uid(client.add(client.pages, chunk))
+				if uid is not None:
+					for doc in chunk:
+						page_task[doc["item_id"]] = uid
 		now = now_datetime()
 		for item_id, count in counts.items():
-			values = {"indexed_on": now} | ({} if count is None else {"indexed_pages": count})
-			values |= quality.get(item_id) or {}
+			values = {"indexed_on": now} | (quality.get(item_id) or {})
+			if count is not None and held:
+				values["pages_pending"] = 1  # sent when page text is resumed (search_queue)
+			elif count is not None:
+				values |= {
+					"indexed_pages": count,
+					"pages_pending": 0,
+					"page_task": page_task.get(item_id) or 0,
+				}
 			frappe.db.set_value("RD Item", item_id, values, update_modified=False)
+
+
+def _task_uid(task) -> int | None:
+	uid = task.get("taskUid") if isinstance(task, dict) else None
+	return uid if isinstance(uid, int) else None
+
+
+def pages_held() -> bool:
+	# read fresh: a worker in the middle of a long run must notice Hold at once
+	return bool(frappe.db.get_single_value("RD Settings", "hold_page_text", cache=False))
 
 
 def index_missing(limit: int = 0) -> list[str]:

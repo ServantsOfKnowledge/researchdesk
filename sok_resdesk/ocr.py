@@ -18,9 +18,12 @@ BATCH = 200
 
 
 def unscored(limit: int = 0) -> list[str]:
+	"""Books with page text and no score yet. Frappe keeps whole-number fields at 0, never empty, so
+	"not scored" is a quality of 0 with no low pages: a book that really scores 0 has at least one
+	low page."""
 	return frappe.get_all(
 		"RD Item",
-		filters={"has_page_text": 1, "ocr_quality": ("is", "not set")},
+		filters={"has_page_text": 1, "ocr_quality": 0, "ocr_low_pages": 0},
 		pluck="name",
 		order_by="creation asc",
 		limit=limit or None,

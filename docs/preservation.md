@@ -101,7 +101,7 @@ packages for handing a collection to another archive ([roadmap](roadmap.md)).
 
 ## OCR quality
 
-Each book has an **OCR Quality** from 0 (garbage) to 100 (clean), and the number of
+Each book has an **OCR Quality** from 1 (garbage) to 100 (clean; 0 means not scored yet), and the number of
 **Low-Quality Pages** (below 50). They are worked out from the page text itself, in Kannada,
 Devanagari, Tamil, Telugu, Malayalam, Bengali, Gujarati, Gurmukhi, Oriya and Latin script, by
 looking at what broken OCR leaves behind:
@@ -119,4 +119,4 @@ fairly high, since it uses no dictionary.
 Books are scored as they are indexed. Books already in the catalogue are scored in the
 background from the page text kept on this server (no archive.org requests): the upgrade starts
 it, a daily job continues it, and **Items → ⋯ → Score OCR quality** starts it at once. Sort the
-Items list by **OCR Quality** (lowest first) to see the worst books.
+Items list by **OCR Quality** (lowest first, with a filter *OCR Quality > 0*) to see the worst books.

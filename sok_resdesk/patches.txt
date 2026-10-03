@@ -16,3 +16,4 @@ sok_resdesk.patches.v0_16.sok_name
 sok_resdesk.patches.v0_19.books_count_limit
 sok_resdesk.patches.v0_20.assign_arks
 sok_resdesk.patches.v0_20.score_ocr
+sok_resdesk.patches.v0_20.score_ocr #0.21: run again now that unscored books are found

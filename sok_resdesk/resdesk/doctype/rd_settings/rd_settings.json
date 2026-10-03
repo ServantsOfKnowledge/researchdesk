@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-05 10:00:00.000000",
+ "modified": "2026-10-05 12:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -41,6 +41,7 @@
   "pause_scheduled_ingest",
   "pause_background",
   "held_jobs",
+  "hold_page_text",
   "machine_section",
   "resource_preset",
   "worker_nice",
@@ -282,6 +283,14 @@
    "fieldname": "held_jobs",
    "fieldtype": "Long Text",
    "label": "Held Jobs",
+   "hidden": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "hold_page_text",
+   "fieldtype": "Check",
+   "label": "Hold Page Text",
+   "default": "0",
    "hidden": 1,
    "read_only": 1
   },

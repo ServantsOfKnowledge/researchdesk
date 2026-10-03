@@ -546,18 +546,13 @@ def set_paused(paused: int = 1) -> dict:
 
 @frappe.whitelist()
 def cancel_search_tasks() -> dict:
-	"""Cancel Meilisearch indexing work that hasn't finished. The books stay in the catalogue;
-	run a re-index later to make their text searchable again."""
+	"""Cancel the indexing work waiting in the search engine, keeping track of it: page text is
+	sent again later and book records count as not sent (search_queue.cancel_waiting). It used
+	to cancel everything outright, which left books in the catalogue that never reached search."""
 	frappe.only_for(MANAGERS)
-	from sok_resdesk.search import MeiliClient
+	from sok_resdesk.search_queue import cancel_waiting
 
-	client = MeiliClient.from_settings()
-	client._req("POST", "/tasks/cancel", params={"statuses": "enqueued,processing"})
-	return {
-		"message": _(
-			"Pending search-engine tasks cancelled. Run Rebuild Search Index later if search results look incomplete."
-		)
-	}
+	return cancel_waiting(include_books=True)
 
 
 @frappe.whitelist()
