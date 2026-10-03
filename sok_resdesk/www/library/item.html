@@ -116,6 +116,13 @@
 					<button class="rd-btn" type="button" id="rd-pages-cite">{{ _("Cite this page") }}</button>
 					<button class="rd-btn" type="button" id="rd-pages-book">{{ _("Open in book reader") }}</button>
 				</div>
+				<div class="rd-notes-bar" id="rd-notes-bar" data-login="/login">
+					<label class="rd-notes-toggle"><input type="checkbox" id="rd-notes-show" checked> {{ _("Show notes") }}</label>
+					<button class="rd-btn" type="button" id="rd-notes-region" hidden>{{ _("Mark a region") }}</button>
+					<span class="rd-muted" id="rd-notes-hint"></span>
+					<span class="rd-pages__spacer"></span>
+					<a class="rd-notes-mine" href="/library/notes" hidden id="rd-notes-mine">{{ _("My notes") }}</a>
+				</div>
 				<div class="rd-pages__cite is-hidden" id="rd-pages-citebox">
 					<div class="rd-tabs" role="tablist" id="rd-pages-cite-tabs"></div>
 					<pre class="rd-page-cite" id="rd-pages-cite-text"></pre>
@@ -125,6 +132,7 @@
 					<figure class="rd-pages__image" id="rd-pages-image"></figure>
 					<div class="rd-pages__text" id="rd-pages-text" lang="{{ item.language or '' }}"></div>
 				</div>
+				<section class="rd-notes" id="rd-notes" aria-live="polite"></section>
 			</div>
 			{% endif %}
 			{% endif %}
@@ -181,4 +189,5 @@
 <script src="/assets/sok_resdesk/js/basket.js"></script>
 <script src="/assets/sok_resdesk/js/item.js"></script>
 <script src="/assets/sok_resdesk/js/reader.js"></script>
+<script src="/assets/sok_resdesk/js/annotate.js"></script>
 {% endblock %}

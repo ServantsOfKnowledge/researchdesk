@@ -68,6 +68,26 @@ words you searched for marked.
 Scans are old books, and the text read from them by machine (OCR) has mistakes. If a search
 inside the book misses a word you can see on the page, try a shorter form of the word.
 
+## Notes on the pages
+
+Logged in, you can keep notes in **Page & text**:
+
+- **Select some words** of the page text: a small bar offers **Highlight** (saved at once),
+  **Comment**, **Tag**, **Question**, **Link** (to a Wikidata page, say, about the person or place)
+  and **OCR error** (the text doesn't match the page: the library's proofreaders see it).
+- **Mark a region** of the page image (a figure, a stamp, a margin note): press **Mark a region**
+  and drag a box over it.
+- **Who can see it**: only you (the start), a research group you belong to, or everyone once the
+  library has looked at it.
+
+Notes show as coloured marks in the text and boxes on the image; click one to find it in the list
+under the page. **Show notes** hides them while you read. Your notes stay with their words even
+when the page text is corrected later; a note whose words are gone says so.
+
+**My notes** (`/library/notes`) lists your notes on every book, and your groups', to search, open
+at their page, and export with the page's citation: as Markdown (for your writing), a spreadsheet,
+or W3C Web Annotations (for other annotation tools).
+
 ## Citing a book
 
 **Cite this book** gives the reference ready to paste in APA, MLA or Chicago style, or as a

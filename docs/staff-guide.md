@@ -199,3 +199,18 @@ to it follows; set *Home Page* back to `library` to return.
 | ResDesk Reader | the portal only: read members-only books |
 
 Give staff a role under **Users** in the Desk ([more](operations.md#users-and-roles)).
+
+## Readers' notes
+
+Readers keep notes on the pages of books in **Page & text** (see the reader guide). In the Desk:
+
+- **Annotations** (Research Desk → *Annotations*) lists every note. Notes made public wait for a
+  manager: filter **Review** = *Pending*, open one, read it on its page (**Open on its Page**) and
+  **Approve** or **Reject** it. Only approved ones show to other readers.
+- **OCR error** reports reach the managers whoever made them, private or not: filter **Kind** =
+  *OCR error* to see where the page text needs correcting (proofreading, next release).
+- **Research Groups** (Research Desk → *Research Groups*): a class, a project or a reading circle.
+  Add the readers as members; they can then share notes with the group.
+
+A book's approved public notes are also published as W3C Web Annotations, for other tools:
+`/api/method/sok_resdesk.annotations.collection?item_id=<id>`.

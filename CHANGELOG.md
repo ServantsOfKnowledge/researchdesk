@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.23.0 (2026-10-05): notes on the pages
+
+- **Notes in Page & text** for logged-in readers: select words to **Highlight**, **Comment**,
+  **Tag**, ask a **Question**, **Link** (e.g. to Wikidata) or report an **OCR error**; or **Mark a
+  region** of the page image. Shown as coloured marks and boxes, listed under the page, hidden
+  with *Show notes*
+- **Who can see a note**: only its author, a **research group** (made by staff in the Desk, with
+  its members), or everyone after a manager **approves** it (Annotations → Review)
+- **Notes stay with their words**: kept by position and by quote (W3C), so a note finds its words
+  again after the page text is corrected; one whose words are gone says so
+- **My notes** (`/library/notes`): search your notes and your groups', open them at their page,
+  and **export** them with page citations as Markdown, a spreadsheet or W3C Web Annotations
+- **OCR error** reports always reach the managers: the start of proofreading (0.24)
+- A book's approved public notes are published as a W3C AnnotationPage for other tools
+- Fixed on the portal: the `hidden` attribute could be overridden by other styles
+
 ## 0.22.0 (2026-10-05): Page & text, next to the book reader
 
 - **Page & text**, a second reader on every book page beside the book reader (archive.org's,

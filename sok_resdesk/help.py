@@ -36,6 +36,8 @@ SCREEN_HELP = {
 	"resdesk-server": ("server", "the-server-page"),
 	"RD Server Task": ("server", "upgrading-from-the-desk"),
 	"RD Tombstone": ("preservation", "tombstones"),
+	"RD Annotation": ("staff-guide", "readers-notes"),
+	"RD Research Group": ("staff-guide", "readers-notes"),
 	"RD Preservation Event": ("preservation", "preservation-events"),
 	"research-desk": ("staff-guide", "the-research-desk-workspace"),
 }

@@ -1176,3 +1176,137 @@ class TestPageReader(OpsTestCase):
 		self.assertEqual(c["page"], "p. 2")
 		self.assertTrue(c["url"].endswith(f"/library/item/{self.name}?page=5&view=text"))
 		self.assertIn("SP  - 2", c["formats"]["ris"])
+
+
+class TestAnnotations(OpsTestCase):
+	A, B = "rdtest-reader-a@example.com", "rdtest-reader-b@example.com"
+	TEXT = "Kanakadasa sang of Udupi; Udupi Krishna faced him through the window."
+
+	def setUp(self):
+		super().setUp()
+		from sok_resdesk.ingest import write_cached_pages
+
+		for email in (self.A, self.B):
+			if not frappe.db.exists("User", email):
+				frappe.get_doc(
+					{
+						"doctype": "User",
+						"email": email,
+						"first_name": email.split("@")[0],
+						"send_welcome_email": 0,
+						"user_type": "Website User",
+					}
+				).insert(ignore_permissions=True)
+		self.book = _item(71)
+		frappe.db.set_value("RD Item", self.book, {"has_page_text": 1, "visibility": "Public"})
+		write_cached_pages(self.book, [{"leaf": 2, "label": "1", "text": self.TEXT}])
+		frappe.db.commit()
+		self.addCleanup(self.cleanup)
+
+	def cleanup(self):
+		frappe.set_user("Administrator")
+		frappe.db.delete("RD Annotation", {"item": self.book})
+		frappe.db.delete("RD Research Group Member", {"parent": "rdtest circle"})
+		frappe.db.delete("RD Research Group", {"name": "rdtest circle"})
+		frappe.db.commit()
+
+	def add(self, user, **kw):
+		from sok_resdesk import annotations
+
+		frappe.set_user(user)
+		start = kw.pop("start", self.TEXT.index("Udupi Krishna"))
+		args = {
+			"kind": "Comment",
+			"body": "a note",
+			"start": start,
+			"end": start + 5,
+			"page_label": "1",
+			**kw,
+		}
+		return annotations.add(self.book, 2, **args)
+
+	def seen_by(self, user):
+		from sok_resdesk import annotations
+
+		frappe.set_user(user)
+		return {n["body"] for n in annotations.page_notes(self.book, 2)["notes"]}
+
+	def test_who_sees_what(self):
+		from sok_resdesk import annotations
+
+		self.add(self.A, body="private")
+		frappe.set_user("Administrator")
+		frappe.get_doc(
+			{
+				"doctype": "RD Research Group",
+				"group_name": "rdtest circle",
+				"members": [{"user": self.A}, {"user": self.B}],
+			}
+		).insert(ignore_permissions=True)
+		self.add(self.A, body="for the circle", visibility="Group", research_group="rdtest circle")
+		public = self.add(self.A, body="for everyone", visibility="Public")
+		self.assertEqual(public["review_status"], "Pending")
+		self.add(self.B, kind="OCR error", body="Udupi is misread")
+		self.assertEqual(self.seen_by(self.A), {"private", "for the circle", "for everyone"})
+		self.assertEqual(self.seen_by(self.B), {"for the circle", "Udupi is misread"})
+		self.assertEqual(self.seen_by("Guest"), set())
+		# managers see what waits for review and every OCR error report
+		self.assertEqual(self.seen_by("Administrator"), {"for everyone", "Udupi is misread"})
+		frappe.set_user("Administrator")
+		annotations.review(public["name"], "Approved")
+		self.assertIn("for everyone", self.seen_by(self.B))
+		self.assertIn("for everyone", self.seen_by("Guest"))
+		w3c = frappe.parse_json(annotations.collection(self.book).get_data(as_text=True))
+		self.assertEqual([i["body"]["value"] for i in w3c["items"]], ["for everyone"])
+
+	def test_only_readers_add_and_only_authors_change(self):
+		from sok_resdesk import annotations
+
+		frappe.set_user("Guest")
+		self.assertRaises(
+			frappe.PermissionError, annotations.add, self.book, 2, "Comment", "x", start=0, end=5
+		)
+		note = self.add(self.A, body="mine")
+		frappe.set_user(self.B)
+		self.assertRaises(frappe.PermissionError, annotations.edit, note["name"], body="not yours")
+		self.assertRaises(frappe.PermissionError, annotations.remove, note["name"])
+		frappe.set_user(self.A)
+		self.assertEqual(annotations.edit(note["name"], body="changed")["body"], "changed")
+		# a group the author isn't in is refused; an empty comment too; links must be web addresses
+		self.assertRaises(frappe.ValidationError, self.add, self.A, visibility="Group", research_group="nope")
+		self.assertRaises(frappe.ValidationError, self.add, self.A, body="  ")
+		self.assertRaises(frappe.ValidationError, self.add, self.A, kind="Link", link="javascript:alert(1)")
+		self.assertRaises(frappe.ValidationError, self.add, self.A, start=5, end=500)
+		annotations.remove(note["name"])
+		self.assertFalse(frappe.db.exists("RD Annotation", note["name"]))
+
+	def test_notes_follow_their_words_after_the_text_is_corrected(self):
+		from sok_resdesk import annotations
+		from sok_resdesk.ingest import write_cached_pages
+
+		note = self.add(self.A, body="the second Udupi")
+		write_cached_pages(self.book, [{"leaf": 2, "label": "1", "text": "Corrected: " + self.TEXT}])
+		frappe.set_user(self.A)
+		moved = annotations.page_notes(self.book, 2)["notes"][0]
+		self.assertEqual(moved["pos_start"], note["pos_start"] + len("Corrected: "))
+		self.assertFalse(moved["detached"])
+		write_cached_pages(self.book, [{"leaf": 2, "label": "1", "text": "Nothing like it any more."}])
+		self.assertTrue(annotations.page_notes(self.book, 2)["notes"][0]["detached"])
+
+	def test_my_notes_and_exports(self):
+		from sok_resdesk import annotations
+
+		self.add(self.A, body="see the 1890 edition", tags="edition, udupi")
+		self.add(self.A, region="10,20,30,40", body="a stamp")
+		frappe.set_user(self.A)
+		found = annotations.mine(q="1890")["notes"]
+		self.assertEqual([n["body"] for n in found], ["see the 1890 edition"])
+		self.assertTrue(found[0]["url"].endswith(f"{self.book}?page=2&view=text"))
+		self.assertEqual(found[0]["page"], "p. 1")
+		md = annotations.export("markdown").get_data(as_text=True)
+		self.assertIn("“Udupi”: see the 1890 edition #edition #udupi", md)
+		self.assertIn("(a region of the page image): a stamp", md)
+		csv_text = annotations.export("csv").get_data(as_text=True)
+		self.assertEqual(csv_text.count("\n"), 3)
+		frappe.set_user("Guest")
+		self.assertRaises(frappe.PermissionError, annotations.mine)

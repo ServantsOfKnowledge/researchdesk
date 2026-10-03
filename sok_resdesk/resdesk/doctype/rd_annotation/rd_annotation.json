@@ -1,0 +1,198 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-10-05 16:00:00.000000",
+ "modified": "2026-10-05 16:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Annotation",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "description": "A reader's note on a page of a book: a highlight, comment, tag, question, link or OCR error report, on a passage of the page text or a region of the page image. Private, shared with a research group, or public after review.",
+ "field_order": [
+  "item",
+  "leaf",
+  "page_label",
+  "kind",
+  "column_break_a",
+  "visibility",
+  "research_group",
+  "review_status",
+  "section_body",
+  "body",
+  "tags",
+  "link",
+  "section_target",
+  "exact",
+  "prefix",
+  "suffix",
+  "column_break_t",
+  "pos_start",
+  "pos_end",
+  "region"
+ ],
+ "fields": [
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Item",
+   "options": "RD Item",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "leaf",
+   "fieldtype": "Int",
+   "label": "Leaf",
+   "description": "The page image, counted from 0."
+  },
+  {
+   "fieldname": "page_label",
+   "fieldtype": "Data",
+   "label": "Printed Page"
+  },
+  {
+   "fieldname": "kind",
+   "fieldtype": "Select",
+   "label": "Kind",
+   "options": "Highlight\nComment\nTag\nQuestion\nLink\nOCR error",
+   "default": "Comment",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_a",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "visibility",
+   "fieldtype": "Select",
+   "label": "Who Can See It",
+   "options": "Private\nGroup\nPublic",
+   "default": "Private",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "research_group",
+   "fieldtype": "Link",
+   "label": "Research Group",
+   "options": "RD Research Group",
+   "depends_on": "eval:doc.visibility=='Group'"
+  },
+  {
+   "fieldname": "review_status",
+   "fieldtype": "Select",
+   "label": "Review",
+   "options": "\nPending\nApproved\nRejected",
+   "in_standard_filter": 1,
+   "depends_on": "eval:doc.visibility=='Public'",
+   "description": "Public notes show on the portal once a manager approves them."
+  },
+  {
+   "fieldname": "section_body",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "body",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  },
+  {
+   "fieldname": "tags",
+   "fieldtype": "Data",
+   "label": "Tags"
+  },
+  {
+   "fieldname": "link",
+   "fieldtype": "Data",
+   "label": "Link",
+   "options": "URL",
+   "description": "e.g. the Wikidata page of a person, place or work the passage is about."
+  },
+  {
+   "fieldname": "section_target",
+   "fieldtype": "Section Break",
+   "label": "Where on the Page",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "exact",
+   "fieldtype": "Small Text",
+   "label": "Quoted Text",
+   "read_only": 1
+  },
+  {
+   "fieldname": "prefix",
+   "fieldtype": "Data",
+   "label": "Text Before",
+   "read_only": 1
+  },
+  {
+   "fieldname": "suffix",
+   "fieldtype": "Data",
+   "label": "Text After",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_t",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "pos_start",
+   "fieldtype": "Int",
+   "label": "From Character",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pos_end",
+   "fieldtype": "Int",
+   "label": "To Character",
+   "read_only": 1
+  },
+  {
+   "fieldname": "region",
+   "fieldtype": "Data",
+   "label": "Region of the Page Image",
+   "read_only": 1,
+   "description": "xywh=percent:x,y,width,height"
+  }
+ ],
+ "links": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "track_changes": 1,
+ "title_field": "body",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 0,
+   "share": 0
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 0,
+   "share": 0
+  }
+ ]
+}

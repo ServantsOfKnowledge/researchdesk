@@ -1,0 +1,76 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="rd rd-mynotes">
+	<nav class="rd-crumbs"><a href="{{ library_url() }}">← {{ portal_title }}</a></nav>
+	<h1 class="rd-page-title">{{ _("My notes") }}</h1>
+	<p class="rd-muted">{{ _("Your notes on the library's books, and your research groups'. Add notes in Page & text on a book page: select some words, or mark a region of the page image.") }}
+		{% if groups %}{{ _("Your groups") }}: {% for g in groups %}<span class="rd-chip">{{ g.title }}</span>{% endfor %}{% endif %}</p>
+	<form class="rd-mynotes__filters" id="rd-mynotes-form" autocomplete="off">
+		<input type="search" name="q" placeholder="{{ _('Search notes, quotes, tags and titles') }}">
+		<select name="kind">
+			<option value="">{{ _("Every kind") }}</option>
+			{% for k in ["Highlight", "Comment", "Tag", "Question", "Link", "OCR error"] %}<option value="{{ k }}">{{ _(k) }}</option>{% endfor %}
+		</select>
+		<label><input type="checkbox" name="mine_only" value="1"> {{ _("Only mine") }}</label>
+		<button class="rd-btn" type="submit">{{ _("Search") }}</button>
+	</form>
+	<p class="rd-actions">{{ _("Export") }}:
+		<a class="rd-btn" data-export="markdown" href="#">{{ _("Markdown") }}</a>
+		<a class="rd-btn" data-export="csv" href="#">{{ _("Spreadsheet (CSV)") }}</a>
+		<a class="rd-btn" data-export="jsonld" href="#">{{ _("W3C Web Annotations (JSON-LD)") }}</a>
+	</p>
+	<div id="rd-mynotes-list"><p class="rd-muted">{{ _("Loading…") }}</p></div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+(function () {
+	const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+	const form = document.getElementById("rd-mynotes-form");
+	const list = document.getElementById("rd-mynotes-list");
+	const params = () => {
+		const p = new URLSearchParams(new FormData(form));
+		if (!p.get("mine_only")) p.delete("mine_only");
+		return p;
+	};
+	async function load() {
+		const r = await fetch(`/api/method/sok_resdesk.annotations.mine?${params()}`, { headers: { Accept: "application/json" } });
+		const notes = ((await r.json()).message || {}).notes || [];
+		if (!notes.length) {
+			list.innerHTML = `<p class="rd-muted">{{ _("No notes yet.") }}</p>`;
+			return;
+		}
+		let html = "", book = null;
+		for (const n of notes) {
+			if (n.book_title !== book) {
+				if (book !== null) html += "</ul>";
+				book = n.book_title;
+				html += `<h2 class="rd-mynotes__book">${esc(book)}</h2><ul class="rd-note-list">`;
+			}
+			const vis = n.visibility === "Public" ? (n.review_status === "Pending" ? "{{ _('Public, waiting for review') }}" : "{{ _('Public') }}") : n.visibility === "Group" ? "{{ _('Group') }}" : "{{ _('Only you') }}";
+			html += `<li class="rd-note"><div class="rd-note__head"><span class="rd-note__kind rd-note__kind--${esc(n.kind.replace(/\s/g, "-").toLowerCase())}">${esc(n.kind)}</span>
+				<a href="${esc(n.url)}">${esc(n.page || "")}</a><span class="rd-muted">${esc(n.mine ? vis : `${n.author} · ${vis}`)}</span></div>
+				${n.exact ? `<blockquote>${esc(n.exact)}</blockquote>` : n.region ? `<p class="rd-muted">{{ _("A region of the page image") }}</p>` : ""}
+				${n.body ? `<p>${esc(n.body)}</p>` : ""}
+				${(n.tags || []).map((t) => `<span class="rd-chip">${esc(t)}</span>`).join(" ")}
+				${n.link ? `<p><a href="${esc(n.link)}" target="_blank" rel="noopener nofollow">${esc(n.link)}</a></p>` : ""}</li>`;
+		}
+		list.innerHTML = html + "</ul>";
+	}
+	form.addEventListener("submit", (e) => (e.preventDefault(), load()));
+	document.querySelectorAll("[data-export]").forEach((a) =>
+		a.addEventListener("click", (e) => {
+			e.preventDefault();
+			const p = params();
+			p.set("format", a.dataset.export);
+			location.href = `/api/method/sok_resdesk.annotations.export?${p}`;
+		})
+	);
+	load();
+})();
+</script>
+{% endblock %}

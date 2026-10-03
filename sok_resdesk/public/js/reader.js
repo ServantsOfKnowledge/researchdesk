@@ -93,6 +93,8 @@
 		if (mark) mark.scrollIntoView({ block: "center", behavior: "smooth" });
 		else $("#rd-pages-text").scrollTop = 0;
 		if (!$("#rd-pages-citebox").classList.contains("is-hidden")) showCite();
+		// annotate.js draws the page's notes over this
+		document.dispatchEvent(new CustomEvent("rd-page-shown", { detail: { leaf: d.leaf, label: d.label, text: d.text || "", q: state.q, image: d.image } }));
 		if (active()) remember(d.leaf);
 		if (push) pane.scrollIntoView({ behavior: "smooth", block: "start" });
 	}
@@ -171,6 +173,6 @@
 	}
 
 	// search inside the book (item.js) opens its hits here while this reader is showing
-	window.RDPages = { active, go: (leaf, q) => go(leaf, q, true) };
+	window.RDPages = { active, go: (leaf, q) => go(leaf, q, true), state: () => ({ ...state }), esc };
 	document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", init) : init();
 })();

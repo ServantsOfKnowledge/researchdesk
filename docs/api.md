@@ -134,6 +134,11 @@ two files are ever served, and the PDF only when the caller may read the book.
 | `sok_resdesk.search_queue.books_first` · `hold_page_text` (`hold`=1/0) · `clear_history` (`days`) | cancel the waiting page text so books are listed next (it is sent again later); hold or resume page text; forget finished tasks older than `days` (7) |
 | `sok_resdesk.api.page` (`item_id`, `leaf`) | one page for the page reader: image address, text, printed number, last leaf (text needs read access) |
 | `sok_resdesk.api.cite_page` (`item_id`, `leaf`, `label`) | one page's citation in every format, and its link |
+| `sok_resdesk.annotations.page_notes` (`item_id`, `leaf`) | the notes on one page this visitor may see (anchored in the page text as it is now), and what they may do |
+| `sok_resdesk.annotations.add` (`item_id`, `leaf`, `kind`, `body`, `tags`, `link`, `start`+`end` or `region`=`x,y,w,h` in percent, `visibility`=`Private`/`Group`/`Public`, `research_group`, `page_label`) · `edit` (`name`, fields) · `remove` (`name`) | add, change or delete a note (logged in; only its author changes it) |
+| `sok_resdesk.annotations.mine` (`q`, `kind`, `item`, `mine_only`) · `export` (`format`=`markdown`/`csv`/`jsonld`, same filters) | My notes, and my groups'; exported with page citations |
+| `sok_resdesk.annotations.review` (`name`, `decision`=`Approved`/`Rejected`) | managers: approve or reject a public note |
+| `sok_resdesk.annotations.collection` (`item_id`, `leaf`) · `get` (`name`) | a book's approved public notes as a W3C AnnotationPage; one note as a W3C Web Annotation |
 | `GET /ark:/<naan>/<name>[/n<leaf>]` | a permanent ARK: redirects to the book (with a leaf: that page in the page reader); `?info` returns its who/what/when/where record as text; a deleted book's ARK leads to its tombstone |
 | `sok_resdesk.capacity.get_status` | the book limit: books and pages in the catalogue, the limit, room left, and what the machine's CPUs, memory and disk can each hold |
 | `sok_resdesk.server.status` | everything on the Server page: versions, updates, health, backups, helper, recent tasks |
