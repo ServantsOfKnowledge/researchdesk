@@ -227,6 +227,10 @@ def command_for(action: str, args: dict, env: dict) -> list[str] | None:
 			return None
 		return ["docker", "compose", "restart", *DOCKER_PARTS[part]]
 	if action == "apply_resources":
+		workers = args.get("workers")
+		if workers is not None:
+			n = int(workers) if str(workers).isdigit() else 0
+			return ["./resdesk.sh", "resources", "set", f"QUEUE_WORKERS={n}"] if 1 <= n <= 16 else None
 		preset = args.get("preset")
 		return ["./resdesk.sh", "resources", preset] if preset in ("light", "standard", "server") else None
 	if action == "server_backup":

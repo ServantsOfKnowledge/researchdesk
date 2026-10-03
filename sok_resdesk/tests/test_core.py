@@ -568,6 +568,16 @@ def test_updater_helper_commands():
 		"light",
 	]
 	assert agent.command_for("apply_resources", {"preset": "huge"}, docker) is None
+	# a number of parallel workers chosen in Settings, on Docker and native installs alike
+	assert agent.command_for("apply_resources", {"workers": 6}, docker) == [
+		"./resdesk.sh",
+		"resources",
+		"set",
+		"QUEUE_WORKERS=6",
+	]
+	assert agent.command_for("apply_resources", {"workers": 6}, native)[-1] == "QUEUE_WORKERS=6"
+	for bad in (0, 17, "4; rm -rf /", -1):
+		assert agent.command_for("apply_resources", {"workers": bad}, docker) is None
 	assert agent.command_for("server_backup", {}, native) == ["./resdesk.sh", "backup"]
 	# installing tools: native installs only, and only the two known parts
 	assert agent.command_for("install_requirements", {"part": "ocr"}, native) == [

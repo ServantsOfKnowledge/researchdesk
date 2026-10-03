@@ -1,6 +1,7 @@
 """Install / migrate hooks: roles, default settings, a sample ingest profile, desk workspace."""
 
 import frappe
+from frappe import _
 
 ROLES = {
 	"ResDesk Manager": "Configures the portal, runs ingests, manages the catalogue.",
@@ -45,6 +46,7 @@ SAMPLE_PROFILES = [
 
 def after_install():
 	create_roles()
+	allow_large_uploads()
 	apply_default_settings()
 	create_sample_profiles()
 	create_workspace()
@@ -90,8 +92,76 @@ def add_help_to_top_bar():
 	frappe.db.set_default("resdesk_help_link_added", "1")
 
 
+UPLOAD_MB = 100  # metadata files and spreadsheets for ingest and imports can be large
+
+
+MAX_UPLOAD_MB = 1000  # the web proxies let requests this big through (compose.yaml, docker/proxy)
+
+
+def allow_large_uploads() -> None:
+	"""Uploads up to Settings → Largest Upload (default UPLOAD_MB), as System Settings → Max File
+	Size, which Frappe checks; the web proxies in front let up to MAX_UPLOAD_MB through."""
+	from frappe.utils import cint
+
+	wanted = cint(frappe.db.get_single_value("RD Settings", "max_upload_mb")) or UPLOAD_MB
+	if cint(frappe.db.get_single_value("System Settings", "max_file_size")) != wanted:
+		frappe.db.set_single_value("System Settings", "max_file_size", wanted)
+
+
+def validate_machine(doc) -> None:
+	"""RD Settings.validate: workers and the upload limit within what the machine allows."""
+	from frappe.utils import cint
+
+	from sok_resdesk.server import MAX_WORKERS
+
+	if doc.get("queue_workers") and not 1 <= cint(doc.queue_workers) <= MAX_WORKERS:
+		frappe.throw(_("Parallel Workers: choose 1 to {0}.").format(MAX_WORKERS))
+	if doc.get("max_upload_mb") and not 1 <= cint(doc.max_upload_mb) <= MAX_UPLOAD_MB:
+		frappe.throw(_("Largest Upload: choose 1 to {0} MB.").format(MAX_UPLOAD_MB))
+
+
+def apply_machine(doc) -> None:
+	"""RD Settings.on_update: the upload limit at once; a new number of workers through the
+	updater helper (or the command to run, when there is no helper)."""
+	from frappe.utils import cint
+
+	allow_large_uploads()
+	before = doc.get_doc_before_save()
+	workers = cint(doc.get("queue_workers"))
+	if not workers or (before and cint(before.get("queue_workers")) == workers):
+		return
+	from sok_resdesk import server
+
+	command = f"./resdesk.sh resources set QUEUE_WORKERS={workers}"
+	try:
+		if server.helper_configured() and server.helper_connected():
+			server.request_task("apply_resources", {"workers": workers})
+			frappe.msgprint(
+				_("Setting {0} parallel workers on the server: Server → Tasks shows when it is done.").format(
+					workers
+				),
+				indicator="green",
+			)
+			return
+	except Exception as e:  # not allowed (only administrators restart parts), or Desk control off
+		frappe.clear_last_message()
+		reason = str(e)
+	else:
+		reason = _("the updater helper isn't running")
+	frappe.msgprint(
+		_("{0} parallel workers saved. To put it into effect, run on the server: {1} ({2})").format(
+			workers, f"<code>{command}</code>", reason
+		),
+		indicator="orange",
+	)
+
+
 def after_migrate():
 	create_roles()
+	try:
+		allow_large_uploads()
+	except Exception:
+		frappe.log_error("Research Desk: could not raise the upload size limit")
 	try:
 		from sok_resdesk.resdesk.doctype.rd_settings.rd_settings import apply_branding
 

@@ -618,7 +618,7 @@ def _run_jobs(run: str) -> list[dict]:
 
 
 def _pause_ingest(run: str, who: str) -> bool:
-	from sok_resdesk.ingest import _log, _status, hold_work, take_waiting
+	from sok_resdesk.ingest import CATALOGUE, _log, _status, hold_work, take_waiting
 
 	if _status(run, lock=True) not in ("Queued", "Running"):
 		frappe.db.rollback()
@@ -632,12 +632,15 @@ def _pause_ingest(run: str, who: str) -> bool:
 		if j["method"].endswith("plan_run"):
 			plan = True
 		else:
-			items += j["args"].get("item_ids") or []
+			ids = j["args"].get("item_ids") or []
+			if ids[:1] != [CATALOGUE]:  # a first-pass part: its books have batches of their own
+				items += ids
 			batches += 1
 	_status(run, lock=True)
 	waiting = take_waiting(run)  # batches not yet queued are kept too
 	for batch in waiting:
-		items += batch
+		if batch[:1] != [CATALOGUE]:
+			items += batch
 	batches += len(waiting)
 	hold_work(run, items, plan=plan)
 	frappe.db.sql(

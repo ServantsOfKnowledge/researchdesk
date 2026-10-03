@@ -444,3 +444,136 @@ class TestMetadataFileIngest(SharingTestCase):
 		log = frappe.db.get_value("RD Ingest Run", run.name, "log")
 		self.assertIn("2 records in the metadata file", log)
 		self.assertIn("1 lines left out", log)
+
+
+class TestParallelFirstPass(SharingTestCase):
+	def test_the_first_pass_runs_in_parts_ahead_of_the_batches(self):
+		from sok_resdesk import ingest
+
+		frappe.db.set_single_value("RD Settings", "book_limit", "No limit")
+		rows = [{"identifier": f"{PREFIX}{n:04d}", "title": f"Book {n}"} for n in range(600, 603)]
+		f = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "rdtest-parts.jsonl",
+				"content": "\n".join(json.dumps(r) for r in rows),
+				"is_private": 1,
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(lambda: frappe.delete_doc("File", f.name, force=True))
+		name = ingest.ensure_profile(
+			"rdtest parts",
+			scope_type="Metadata File",
+			metadata_file=f.file_url,
+			fetch_fulltext=0,
+			max_items=0,
+		)
+		run = ingest.create_run(frappe.get_doc("RD Ingest Profile", name), "Manual")
+		with (
+			mock.patch.object(ingest, "CATALOGUE_CHUNK", 2),
+			mock.patch("sok_resdesk.search.MeiliClient"),
+			mock.patch("sok_resdesk.ingest._feed"),
+		):
+			ingest.plan_run(run.name)  # in the background: parts and batches wait on the run
+		waiting = ingest.waiting_batches(run.name)
+		self.assertEqual([b[0] for b in waiting[:2]], [ingest.CATALOGUE, ingest.CATALOGUE])  # parts first
+		self.assertEqual(sum(len(b) for b in waiting[2:]), 3)  # then the books' own batches
+		self.assertFalse(frappe.db.exists("RD Item", f"{PREFIX}0600"))  # nothing catalogued yet
+		with mock.patch("sok_resdesk.search.IndexBuffer.flush"), mock.patch("sok_resdesk.ingest._feed"):
+			for n, part in enumerate(waiting[:2], start=1):
+				ingest.run_batch(run.name, part, batch_no=n)
+		self.assertEqual(frappe.db.get_value("RD Item", f"{PREFIX}0602", "details_pending"), 1)
+		self.assertFalse(
+			os.listdir(ingest._parts_dir())
+			and any(n.startswith(frappe.scrub(run.name)) for n in os.listdir(ingest._parts_dir()))
+		)
+		self.assertIn(
+			"first pass part 1: 2 books catalogued", frappe.db.get_value("RD Ingest Run", run.name, "log")
+		)
+
+
+class TestMachineSettings(SharingTestCase):
+	def setUp(self):
+		super().setUp()
+		self._machine = {
+			f: frappe.db.get_single_value("RD Settings", f) for f in ("queue_workers", "max_upload_mb")
+		}
+		self._max = frappe.db.get_single_value("System Settings", "max_file_size")
+		self.addCleanup(self._back)
+
+	def _back(self):
+		frappe.db.set_single_value("RD Settings", self._machine)
+		frappe.db.set_single_value("System Settings", "max_file_size", self._max)
+		frappe.db.commit()
+
+	def test_upload_limit_and_workers_from_settings(self):
+		from sok_resdesk import setup
+
+		s = frappe.get_doc("RD Settings")
+		s.max_upload_mb = 250
+		with mock.patch("sok_resdesk.server.helper_configured", return_value=False):
+			s.save()
+		self.assertEqual(frappe.db.get_single_value("System Settings", "max_file_size"), 250)
+		s = frappe.get_doc("RD Settings")
+		s.queue_workers = 6
+		with mock.patch("sok_resdesk.server.helper_configured", return_value=False):
+			s.save()  # no helper: saved, and the command to run is shown
+		self.assertIn("QUEUE_WORKERS=6", str(frappe.message_log))
+		s = frappe.get_doc("RD Settings")
+		s.queue_workers = 40
+		self.assertRaises(frappe.ValidationError, s.save)
+		s = frappe.get_doc("RD Settings")
+		s.max_upload_mb = 5000
+		self.assertRaises(frappe.ValidationError, s.save)
+		frappe.db.set_single_value("RD Settings", "max_upload_mb", 0)
+		setup.allow_large_uploads()  # empty: the default
+		self.assertEqual(frappe.db.get_single_value("System Settings", "max_file_size"), setup.UPLOAD_MB)
+
+
+class TestLongIdentifierLists(SharingTestCase):
+	def test_eighty_thousand_identifiers_are_queued_not_searched(self):
+		from sok_resdesk import ingest
+
+		ids = [f"{PREFIX}L{n:05d}" for n in range(80000)]
+		name = ingest.ensure_profile(
+			"rdtest long list",
+			scope_type="Identifier List",
+			identifiers="\n".join(ids),
+			max_items=0,
+			catalogue_first=0,
+		)
+		profile = frappe.get_doc("RD Ingest Profile", name)
+		self.assertEqual(profile.build_query(), "80,000 identifiers listed on the profile")
+		self.assertEqual(ingest.count_profile(name)["count"], 80000)  # counted here, not on archive.org
+		run = ingest.create_run(profile, "Manual")  # the run's query fits its column
+		with mock.patch("sok_resdesk.search.MeiliClient"), mock.patch("sok_resdesk.ingest._feed"):
+			ingest.plan_run(run.name)
+		row = frappe.db.get_value(
+			"RD Ingest Run", run.name, ["total_found", "chunks_total", "status"], as_dict=True
+		)
+		self.assertEqual(row.total_found, 80000)
+		self.assertGreater(row.chunks_total, 1)
+		self.assertEqual(row.status, "Running")
+
+	def test_listed_books_get_their_records_a_hundred_at_a_time(self):
+		from sok_resdesk import ingest
+
+		class FakeIA:
+			def __init__(self):
+				self.queries = []
+
+			def iter_records(self, query, limit=0, page_size=5000, fields=""):
+				self.queries.append(query)
+				for ident in query.removeprefix("identifier:(").removesuffix(")").split(" OR "):
+					yield {"identifier": ident, "title": ident.upper()}
+
+		ia = FakeIA()
+		ids = [f"b{n}" for n in range(250)]
+		with (
+			mock.patch("sok_resdesk.ingest._log"),
+			mock.patch("sok_resdesk.ingest._status", return_value="Running"),
+		):
+			records = ingest._records_for_ids(ia, ids, "run", False)
+		self.assertEqual(len(ia.queries), 3)  # 100 + 100 + 50
+		self.assertEqual(len(records), 250)
+		self.assertEqual(records["b7"]["title"], "B7")

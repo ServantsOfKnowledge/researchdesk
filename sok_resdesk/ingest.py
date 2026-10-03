@@ -160,6 +160,8 @@ def count_profile(profile: str) -> dict:
 		count = sum(1 for _ in open_profile_store(doc).iter_items())
 	elif doc.scope_type == "Metadata File":
 		count = len(read_metadata_file(doc)["rows"])
+	elif doc.scope_type == "Identifier List":
+		count = len(doc.identifier_list())
 	else:
 		count = client().count(query)
 	frappe.db.set_value("RD Ingest Profile", profile, "matching_count", count)
@@ -266,7 +268,7 @@ def create_run(profile_doc, triggered_by: str = "Manual"):
 			"doctype": "RD Ingest Run",
 			"profile": profile_doc.name,
 			"status": "Queued",
-			"query": profile_doc.build_query(),
+			"query": profile_doc.build_query()[:10000],
 			"triggered_by": triggered_by,
 		}
 	).insert(ignore_permissions=True)
@@ -385,6 +387,7 @@ def plan_run(
 
 		query = profile.build_query()
 		records: dict[str, dict] = {}  # identifier -> archive.org's search record (first pass)
+		catalogue_parts: list[list] = []  # the first pass's parts, queued ahead of the batches
 		limit = cint(profile.max_items) if limit_override is None else cint(limit_override)
 		only_new = run.triggered_by == "Scheduler" or not cint(profile.update_existing)
 		skipped = 0
@@ -425,6 +428,13 @@ def plan_run(
 				ids.append([item_id, loc])
 			_log(run_name, f"{len(ids):,} item folders found", verbose)
 			only_new = False
+		elif profile.scope_type == "Identifier List":
+			# the list is the run's books: no search for them (80,000 identifiers would make an
+			# address archive.org refuses); their catalogue records come in groups of 100
+			ids = profile.identifier_list()[: limit or None]
+			_log(run_name, f"{len(ids):,} identifiers listed on the profile", verbose)
+			if cint(profile.get("catalogue_first", 1)):
+				records = _records_for_ids(ia, ids, run_name, verbose)
 		else:
 			matching = ia.count(query)
 			_log(run_name, f"Query: {query}", verbose)
@@ -463,12 +473,27 @@ def plan_run(
 			# a bare identifier says nothing to catalogue: those books come in book by book
 			rows = [records[i] for i in ids if i in records and not only_identifiers(records[i])]
 			fetch_text = bool(cint(profile.fetch_fulltext))
-			if catalogue_first(run_name, rows, profile.name, verbose, fetch_text=fetch_text):
-				return []  # cancelled while cataloguing
-			# books the file described completely (and whose text isn't wanted) are done: no batch
-			done = (
-				_complete_now([r["identifier"] for r in rows if "_files" in r]) if not fetch_text else set()
-			)
+			if foreground:
+				if catalogue_first(run_name, rows, profile.name, verbose, fetch_text=fetch_text):
+					return []  # cancelled while cataloguing
+				# books the file described completely (and whose text isn't wanted) are done: no batch
+				done = (
+					_complete_now([r["identifier"] for r in rows if "_files" in r])
+					if not fetch_text
+					else set()
+				)
+			else:
+				# in the background the first pass runs in parts on every queue worker at once,
+				# ahead of the batches (they are queued first)
+				new = _new_only(rows)
+				catalogue_parts = _write_catalogue_parts(run_name, new)
+				done = {r["identifier"] for r in new if "_files" in r} if not fetch_text else set()
+				_log(
+					run_name,
+					f"first pass: {len(new):,} new books to catalogue in {len(catalogue_parts)} parts, "
+					"on every worker at once",
+					verbose,
+				)
 			if done:
 				ids = [i for i in ids if i not in done]
 				_log(
@@ -477,7 +502,7 @@ def plan_run(
 					verbose,
 				)
 		size = max(1, cint(settings().get("batch_size")) or 50)
-		batches = [ids[i : i + size] for i in range(0, len(ids), size)]
+		batches = catalogue_parts + [ids[i : i + size] for i in range(0, len(ids), size)]
 		frappe.db.sql(
 			f"update `{RUN}` set total_found=%s, skipped_count=%s, processed=%s, chunks_total=%s, pending_chunks=%s, "
 			"limit_skipped=0, waiting_work=null "
@@ -572,7 +597,94 @@ def read_metadata_file(profile) -> dict:
 		frappe.throw(str(e))
 
 
+def _records_for_ids(ia: IAClient, ids: list[str], run_name: str, verbose: bool) -> dict[str, dict]:
+	"""Search records of listed books, IDS_IN_ONE_QUERY identifiers a request (80,000 books: 800
+	requests instead of 80,000). A group archive.org refuses is left out: its books come in one by
+	one."""
+	from sok_resdesk.core.ia import CATALOGUE_FIELDS_CORE
+	from sok_resdesk.resdesk.doctype.rd_ingest_profile.rd_ingest_profile import IDS_IN_ONE_QUERY
+
+	if not hasattr(ia, "iter_records"):
+		return {}
+	out: dict[str, dict] = {}
+	failed = 0
+	for start in range(0, len(ids), IDS_IN_ONE_QUERY):
+		if start and start % (IDS_IN_ONE_QUERY * 50) == 0:
+			if _status(run_name) == "Cancelled":
+				break
+			_log(run_name, f"search records of {start:,} of {len(ids):,} listed books fetched", verbose)
+		group = ids[start : start + IDS_IN_ONE_QUERY]
+		query = "identifier:(" + " OR ".join(group) + ")"
+		try:
+			for row in ia.iter_records(query, fields=CATALOGUE_FIELDS_CORE):
+				if row.get("identifier"):
+					out.setdefault(row["identifier"], row)
+		except Exception as e:
+			failed += 1
+			if failed <= 5:
+				_log(
+					run_name,
+					f"search records for {len(group)} listed books not fetched: {str(e)[:150]}",
+					verbose,
+				)
+	_log(run_name, f"{len(out):,} of {len(ids):,} listed books found in archive.org's search", verbose)
+	return out
+
+
 CATALOGUE_CHUNK = 500  # books catalogued and sent to search together in the first pass
+
+
+CATALOGUE = "@catalogue"  # a batch that is a part of the first pass: [CATALOGUE, file name]
+
+
+def _parts_dir() -> str:
+	return frappe.get_site_path("private", "resdesk-runs")
+
+
+def _new_only(rows: list[dict]) -> list[dict]:
+	"""The rows whose books are not in the catalogue yet."""
+	ids = [r["identifier"] for r in rows]
+	have: set[str] = set()
+	for i in range(0, len(ids), 1000):
+		have.update(frappe.get_all("RD Item", filters={"name": ("in", ids[i : i + 1000])}, pluck="name"))
+	return [r for r in rows if r["identifier"] not in have]
+
+
+def _write_catalogue_parts(run_name: str, rows: list[dict]) -> list[list]:
+	"""The first pass in parts of CATALOGUE_CHUNK records, each in a file the part's job reads
+	(job arguments stay small). Returns the parts as batches: [CATALOGUE, file name]."""
+	os.makedirs(_parts_dir(), exist_ok=True)
+	parts = []
+	for n, start in enumerate(range(0, len(rows), CATALOGUE_CHUNK), start=1):
+		name = f"{frappe.scrub(run_name)}-{n:05d}.jsonl.gz"
+		with gzip.open(os.path.join(_parts_dir(), name), "wt", encoding="utf-8") as f:
+			for row in rows[start : start + CATALOGUE_CHUNK]:
+				f.write(json.dumps(row, ensure_ascii=False) + "\n")
+		parts.append([CATALOGUE, name])
+	return parts
+
+
+def catalogue_part(run_name: str, name: str, batch_no: int = 0, verbose: bool = False) -> None:
+	"""One part of the first pass, in a background job beside the others."""
+	path = os.path.join(_parts_dir(), os.path.basename(name))
+	try:
+		if _status(run_name) in ("Cancelled", "Paused") or not os.path.isfile(path):
+			return  # the books come in through their own batches anyway
+		with gzip.open(path, "rt", encoding="utf-8") as f:
+			rows = [json.loads(line) for line in f if line.strip()]
+		profile = frappe.db.get_value("RD Ingest Run", run_name, "profile")
+		fetch_text = bool(cint(frappe.db.get_value("RD Ingest Profile", profile, "fetch_fulltext")))
+		catalogue_first(run_name, rows, profile, verbose, fetch_text=fetch_text, part=batch_no)
+	except Exception as e:
+		frappe.db.rollback()
+		_log(
+			run_name,
+			f"first pass part {batch_no} failed ({str(e)[:200]}): its books come in one by one",
+			verbose,
+		)
+	finally:
+		if os.path.isfile(path):
+			os.remove(path)
 
 
 def _complete_now(names: list[str]) -> set[str]:
@@ -588,7 +700,12 @@ def _complete_now(names: list[str]) -> set[str]:
 
 
 def catalogue_first(
-	run_name: str, rows: list[dict], profile: str, verbose: bool = False, fetch_text: bool = True
+	run_name: str,
+	rows: list[dict],
+	profile: str,
+	verbose: bool = False,
+	fetch_text: bool = True,
+	part: int = 0,
 ) -> bool:
 	"""The first pass: catalogue every new book from its search record and send it to search, so
 	the portal lists them all within minutes. Each is marked details_pending; the batches then
@@ -600,11 +717,13 @@ def catalogue_first(
 	new = [r for r in rows if not frappe.db.exists("RD Item", r["identifier"])]
 	if not new:
 		return False
-	_log(run_name, f"cataloguing {len(new):,} new books from their search records first", verbose)
+	if not part:
+		_log(run_name, f"cataloguing {len(new):,} new books from their search records first", verbose)
 	done = failed = 0
 	for start in range(0, len(new), CATALOGUE_CHUNK):
-		if _status(run_name) == "Cancelled":
-			_log(run_name, "cancelled while cataloguing", verbose)
+		if _status(run_name) in ("Cancelled", "Paused"):
+			if not part:
+				_log(run_name, "stopped while cataloguing", verbose)
 			return True
 		buffer = IndexBuffer(flush_books=CATALOGUE_CHUNK)
 		for row in new[start : start + CATALOGUE_CHUNK]:
@@ -631,10 +750,18 @@ def catalogue_first(
 				failed += 1  # its batch will try it again in full
 				if failed <= 20:
 					_log(run_name, f"first pass: {item_id} left for its batch ({str(e)[:150]})", verbose)
-		_flush_index(buffer, run_name, 0, verbose)
+		_flush_index(buffer, run_name, part, verbose)
+		if not part:
+			_log(
+				run_name,
+				f"catalogued {done:,} of {len(new):,} (on the portal now; details and text follow)",
+				verbose,
+			)
+	if part:
 		_log(
 			run_name,
-			f"catalogued {done:,} of {len(new):,} (on the portal now; details and text follow)",
+			f"first pass part {part}: {done:,} books catalogued"
+			+ (f", {failed} left for their batches" if failed else ""),
 			verbose,
 		)
 	return False
@@ -756,7 +883,11 @@ def _already_done(item_id: str, since, only_new: bool) -> bool:
 
 def run_batch(run_name: str, item_ids: list, batch_no: int = 0, verbose: bool = False) -> None:
 	"""Ingest one batch. Items are IA identifiers, or [identifier, folder] pairs for folder
-	sources. Safe to run many at once."""
+	sources, or [CATALOGUE, file] for a part of the first pass. Safe to run many at once."""
+	if item_ids and item_ids[0] == CATALOGUE:
+		catalogue_part(run_name, item_ids[1], batch_no, verbose)
+		_close_batch(run_name, verbose)
+		return
 	from sok_resdesk import ia_sync, priority
 	from sok_resdesk.search import IndexBuffer
 

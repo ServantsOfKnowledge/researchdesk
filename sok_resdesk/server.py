@@ -32,6 +32,8 @@ AGENT_CACHE = "resdesk_agent_facts"
 SEEN_WITHIN = 90  # seconds: the helper counts as connected when it synced this recently
 
 # what the helper may be asked to do: action -> (who may ask, one at a time with the others)
+MAX_WORKERS = 16  # parallel background workers that can be chosen in the Desk
+
 ACTIONS = {
 	"upgrade": (ADMINS, True),
 	"restart": (ADMINS, True),
@@ -196,6 +198,11 @@ def _check_args(action: str, args: dict) -> dict:
 			frappe.throw(_("Unknown part: {0}").format(service))
 		return {"service": service}
 	if action == "apply_resources":
+		if args.get("workers") not in (None, ""):
+			workers = cint(args.get("workers"))
+			if not 1 <= workers <= MAX_WORKERS:
+				frappe.throw(_("Choose 1 to {0} workers.").format(MAX_WORKERS))
+			return {"workers": workers}
 		preset = args.get("preset") or ""
 		if preset not in ("light", "standard", "server"):
 			frappe.throw(_("Choose light, standard or server."))
@@ -260,6 +267,8 @@ def _describe(action: str, args: dict) -> str:
 	if action == "restart":
 		return _("Restart {0}").format(args["service"])
 	if action == "apply_resources":
+		if args.get("workers"):
+			return _("Run {0} parallel workers").format(args["workers"])
 		return _("Apply the {0} preset").format(args["preset"])
 	if action == "logs":
 		return _("Logs: {0}").format(args["service"])

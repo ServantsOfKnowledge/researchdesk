@@ -7,6 +7,8 @@ from frappe.model.document import Document
 
 from sok_resdesk.core.ia import IAClient, IAError
 
+IDS_IN_ONE_QUERY = 100  # identifiers per archive.org search (a longer address is refused)
+
 
 class RDIngestProfile(Document):
 	def validate(self):
@@ -21,6 +23,12 @@ class RDIngestProfile(Document):
 	def is_folder(self) -> bool:
 		return self.source == "Folder or Server"
 
+	def identifier_list(self) -> list[str]:
+		"""The profile's identifiers, once each, in order (one per line; commas and spaces too)."""
+		import re
+
+		return list(dict.fromkeys(t for t in re.split(r"[\s,]+", self.identifiers or "") if t))
+
 	def build_query(self) -> str:
 		"""IA query, or a description of the folder/server for folder sources."""
 		if self.is_folder:
@@ -32,6 +40,12 @@ class RDIngestProfile(Document):
 			if not where:
 				raise IAError("Upload a metadata file, or give the path of one on the server")
 			return f"records in {where}"
+		if self.scope_type == "Identifier List":
+			ids = self.identifier_list()
+			if not ids:
+				raise IAError("Identifier list is empty")
+			if len(ids) > IDS_IN_ONE_QUERY:  # far too long for one archive.org search: listed as is
+				return f"{len(ids):,} identifiers listed on the profile"
 		return IAClient.build_query(
 			self.scope_type,
 			collection=self.ia_collection or "",

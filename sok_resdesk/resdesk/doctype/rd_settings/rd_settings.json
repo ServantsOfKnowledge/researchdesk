@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-08 10:00:00.000000",
+ "modified": "2026-10-09 12:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -45,6 +45,8 @@
   "hold_page_text",
   "machine_section",
   "resource_preset",
+  "queue_workers",
+  "max_upload_mb",
   "worker_nice",
   "auto_books_first",
   "book_limit",
@@ -344,6 +346,21 @@
    "label": "Resource Preset",
    "options": "\nlight\nstandard\nserver",
    "description": "How much of the machine Research Desk may use: light (a laptop), standard, or server (a dedicated machine). Docker's limits can only be changed outside the app, so after choosing, run ./resdesk.sh resources apply on the server."
+  },
+  {
+   "fieldname": "queue_workers",
+   "fieldtype": "Int",
+   "label": "Parallel Workers",
+   "non_negative": 1,
+   "description": "How many background jobs run at once: ingest batches and first-pass parts, so how many books come in together (1 to 16; 4 to 6 stay polite to archive.org when page text is fetched). Saving applies it through the updater helper; without the helper, the Desk shows the command to run. Empty: as set on the server."
+  },
+  {
+   "fieldname": "max_upload_mb",
+   "fieldtype": "Int",
+   "label": "Largest Upload (MB)",
+   "default": "100",
+   "non_negative": 1,
+   "description": "The largest file people can upload in the Desk: metadata files for ingest, spreadsheets, attachments (1 to 1000)."
   },
   {
    "fieldname": "worker_nice",

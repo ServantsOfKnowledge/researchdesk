@@ -24,6 +24,9 @@ class RDSettings(Document):
 		from sok_resdesk.datacite import validate_settings as validate_dois
 
 		validate_dois(self)
+		from sok_resdesk.setup import validate_machine
+
+		validate_machine(self)
 
 	def on_update(self):
 		apply_branding(self)
@@ -33,6 +36,9 @@ class RDSettings(Document):
 		from sok_resdesk.analytics import apply_settings as apply_analytics
 
 		apply_analytics(self)
+		from sok_resdesk.setup import apply_machine
+
+		apply_machine(self)
 
 
 DEFAULT_LOGO = "/assets/sok_resdesk/images/resdesk-logo.svg"

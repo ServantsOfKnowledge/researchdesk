@@ -13,11 +13,11 @@ Desk → Research Desk → **Ingest Profiles**.
 
 | Field | Meaning |
 |---|---|
-| **Choose By** | *Collection*, *Search Query* or *Identifier List* |
+| **Choose By** | *Collection*, *Search Query*, *Identifier List* or *Metadata File* ([below](#importing-a-metadata-file-the-fastest-way)) |
 | **IA Collection** | the collection's identifier: the part after `archive.org/details/` |
 | **Narrow With** | optional archive.org search terms added to the collection |
 | **IA Search Query** | any archive.org advanced-search query |
-| **Identifiers** | one archive.org identifier per line |
+| **Identifiers** | one archive.org identifier per line (or separated by commas or spaces); any number: a list of 80,000 is taken as the run's books, its catalogue records fetched 100 at a time. A list is never kept in step with archive.org |
 | **Maximum Items** | stop after this many items (`0` = no limit). Start with 50 to 500. |
 | **Fetch Full Text** | download page-level OCR text for full-text search (recommended) |
 | **Refresh Items Already in Catalogue** | re-fetch items you already have (to pick up corrected metadata) |
@@ -108,6 +108,12 @@ request, as the `ia search -f …` command-line tool does: 88,000 books take abo
 instead of 88,000. Every new book is catalogued from that record and sent to search straight
 away, 500 at a time (the run's log counts them), marked **Details Still Coming**.
 
+In the background (the Desk's **Run Ingest**, or `--background`), the first pass itself is split
+into parts of 500 books that run on **every queue worker at once**, queued ahead of the batches:
+with four workers, four parts are catalogued together. Each part logs one line ("first pass part
+12: 500 books catalogued"). Paused or stopped, the parts still waiting are dropped: their books
+come in through their own batches.
+
 Then the batches do the slow part in the background, book by book as below: the full record and
 file list from the metadata API, the page text, page images matched by scan data. As each book
 is done its mark goes and its text becomes searchable. A run stopped in between carries on
@@ -135,8 +141,8 @@ ia search "collection:ServantsOfKnowledge" --itemlist | xargs -n1 ia metadata > 
 gzip sok.jsonl          # optional: files may be gzip-compressed
 ```
 
-Then an ingest profile with **Choose By** = *Metadata File*: upload the file under **Metadata
-File**, or, for a big one, put it in the library folder (`LIBRARY_DIR` in `.env`) and give its
+Then an ingest profile with **Choose By** = *Metadata File*: upload the file (up to 100 MB; raise it in **Settings → Machine Resources → Largest
+Upload**) under **Metadata File**, or, for a big one, put it in the library folder (`LIBRARY_DIR` in `.env`) and give its
 path under **Or a File on the Server** (`/library-source/sok.jsonl.gz`). **Count** says how many
 records it holds; **Start** catalogues them all and sends them to search, 500 at a time, without
 a single request to archive.org. From the terminal:
@@ -179,6 +185,13 @@ collection profile for that).
 Access-restricted (lending-library) items are catalogued, but their text is not fetched.
 
 ## Large ingests run in parallel
+
+**More books at once: more workers.** Batches and first-pass parts run one per queue worker, so the
+number of workers is how many books come in together. Set it in the Desk: **Settings → Machine
+Resources → Parallel Workers** (1 to 16). Saving applies it through the updater helper (Server →
+Tasks shows it); without the helper the Desk shows the command to run on the server,
+`./resdesk.sh resources set QUEUE_WORKERS=6`. Cataloguing from a metadata file asks nothing of archive.org, so more workers only cost
+this machine; page text does ask archive.org, and 4 to 6 workers stay polite.
 
 Every ingest is planned first: the list of identifiers is fetched, books already in the
 catalogue are skipped, and the rest are split into batches (**RD Settings → Books per

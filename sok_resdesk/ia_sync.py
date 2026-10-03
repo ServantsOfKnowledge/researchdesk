@@ -26,7 +26,8 @@ CHECK_BY_NAME = 5000  # up to this many books, look them up by name instead of l
 def is_sync_run(run, profile) -> bool:
 	return bool(
 		not profile.is_folder
-		and profile.get("scope_type") != "Metadata File"  # a file doesn't change on archive.org
+		# a file, or a fixed list of books, has no new books to find on archive.org
+		and profile.get("scope_type") not in ("Metadata File", "Identifier List")
 		and cint(profile.keep_in_sync)
 		and profile.synced_on
 		and run.triggered_by in ("Scheduler", "Sync")

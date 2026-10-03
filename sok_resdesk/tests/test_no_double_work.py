@@ -155,7 +155,7 @@ class TestFeeding(IntegrationTestCase):
 	"""Batches go into the queue a few at a time, so a big run neither fills the queue nor
 	holds up everything else."""
 
-	profile = "Feeding test profile"
+	profile = "Feeding test search profile"
 
 	@classmethod
 	def setUpClass(cls):
@@ -166,8 +166,9 @@ class TestFeeding(IntegrationTestCase):
 					"doctype": "RD Ingest Profile",
 					"profile_name": cls.profile,
 					"source": "Internet Archive",
-					"scope_type": "Identifier List",
-					"identifiers": "a",
+					# a search, so the (stand-in) archive.org lists the books: a list is taken as is
+					"scope_type": "Search Query",
+					"ia_query": "collection:feeding-test",
 				}
 			).insert(ignore_permissions=True)
 		cls.batch_size = frappe.db.get_single_value("RD Settings", "batch_size")

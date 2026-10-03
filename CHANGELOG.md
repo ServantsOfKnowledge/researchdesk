@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.33.0 (2026-10-09): The first pass on every worker; workers and upload size in the Desk
+
+- **Parallel first pass**: in the background, cataloguing from archive.org's search records or a
+  metadata file is split into parts of 500 books that run on every queue worker at once, queued
+  ahead of the batches (each part logs one line); paused or stopped, waiting parts are dropped
+  and their books come in through their batches
+- **In the Desk, Settings → Machine Resources**:
+  - **Parallel Workers** (1 to 16): how many batches and first-pass parts run at once; saving
+    applies it through the updater helper, or shows the command to run without one
+  - **Largest Upload (MB)**, default 100 (up to 1000): metadata files, spreadsheets; it sets
+    Frappe's Max File Size, and the web proxies now let up to 1 GB through (compose.yaml,
+    docker/proxy, scripts/https.sh)
+- **Long identifier lists** (tens of thousands): the list is taken as the run's books instead of
+  one archive.org search (which failed with "Data too long for column 'query'" and would be
+  refused by archive.org anyway); catalogue records are fetched 100 identifiers a request for the
+  first pass; Check Count counts the list; lists are not kept in step with archive.org
+- docs: more workers for more books at once
+
 ## 0.32.0 (2026-10-09): Ingest from a metadata file
 
 - **Import a metadata file** to build a catalogue without asking archive.org book by book: an
