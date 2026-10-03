@@ -10,16 +10,7 @@
 			.then((r) => r.json())
 			.then((b) => b.message);
 
-	const FORMATS = [
-		["apa", "APA"],
-		["mla", "MLA"],
-		["chicago", "Chicago"],
-		["bibtex", "BibTeX"],
-		["ris", "RIS"],
-		["csl-json", "CSL-JSON"],
-	];
-
-	let pane, itemId, state = { leaf: 0, last: 0, label: "", q: "" }, cites = {}, citeFmt = "apa";
+	let pane, itemId, state = { leaf: 0, last: 0, label: "", q: "", shown: false }, cites = {};
 
 	function active() {
 		return pane && !pane.classList.contains("is-hidden");
@@ -68,7 +59,7 @@
 			$("#rd-pages-text").innerHTML = `<p class="rd-muted">${esc("Log in to read this book.")}</p>`;
 			return;
 		}
-		state = { ...state, leaf: d.leaf, last: d.last, label: d.label };
+		state = { ...state, leaf: d.leaf, last: d.last, label: d.label, shown: true };
 		cites = {};
 		$("#rd-pages-n").value = d.leaf + 1;
 		$("#rd-pages-n").max = d.last + 1;
@@ -92,7 +83,6 @@
 		const mark = $("#rd-pages-text mark");
 		if (mark) mark.scrollIntoView({ block: "center", behavior: "smooth" });
 		else $("#rd-pages-text").scrollTop = 0;
-		if (!$("#rd-pages-citebox").classList.contains("is-hidden")) showCite();
 		// annotate.js draws the page's notes over this
 		document.dispatchEvent(new CustomEvent("rd-page-shown", { detail: { ...d, text: d.text || "", q: state.q } }));
 		if (active()) remember(d.leaf);
@@ -102,14 +92,6 @@
 	async function citation() {
 		if (!cites.formats) cites = await api("cite_page", { item_id: itemId, leaf: state.leaf, label: state.label });
 		return cites;
-	}
-
-	async function showCite() {
-		const c = await citation();
-		$("#rd-pages-cite-tabs").innerHTML = FORMATS.map(
-			([k, label]) => `<button type="button" class="rd-tab${k === citeFmt ? " is-active" : ""}" data-pfmt="${k}">${label}</button>`
-		).join("");
-		$("#rd-pages-cite-text").textContent = c.formats[citeFmt] || "";
 	}
 
 	async function copy(text, btn) {
@@ -145,11 +127,6 @@
 		pane.addEventListener("click", (e) => {
 			const step = e.target.closest("[data-step]");
 			if (step) go(state.leaf + Number(step.dataset.step));
-			const fmt = e.target.closest("[data-pfmt]");
-			if (fmt) {
-				citeFmt = fmt.dataset.pfmt;
-				showCite();
-			}
 			if (e.target.closest("[data-to-book]")) {
 				e.preventDefault();
 				toBook(state.leaf);
@@ -157,12 +134,6 @@
 		});
 		$("#rd-pages-n").addEventListener("change", (e) => go(Number(e.target.value) - 1));
 		$("#rd-pages-link").addEventListener("click", async (e) => copy((await citation()).url, e.target));
-		$("#rd-pages-cite").addEventListener("click", () => {
-			const box = $("#rd-pages-citebox");
-			box.classList.toggle("is-hidden");
-			if (!box.classList.contains("is-hidden")) showCite();
-		});
-		$("#rd-pages-cite-copy").addEventListener("click", (e) => copy($("#rd-pages-cite-text").textContent, e.target));
 		$("#rd-pages-book").addEventListener("click", () => toBook(state.leaf));
 		document.addEventListener("keydown", (e) => {
 			if (!active() || e.target.closest("input, textarea, select, [contenteditable]")) return;
@@ -173,6 +144,7 @@
 	}
 
 	// search inside the book (item.js) opens its hits here while this reader is showing
-	window.RDPages = { active, go: (leaf, q) => go(leaf, q, true), state: () => ({ ...state }), esc };
+	// the Cite window (item.js) cites the page showing here
+	window.RDPages = { active, go: (leaf, q) => go(leaf, q, true), state: () => ({ ...state }), esc, citation };
 	document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", init) : init();
 })();

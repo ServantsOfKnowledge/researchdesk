@@ -195,6 +195,10 @@ def ingest_local_one(
 	name, created = upsert_item(record, raw=meta, profile=profile.name)
 	if pages and cache_enabled():
 		write_cached_pages(item_id, pages)
+	if pages:
+		from sok_resdesk.ingest import PAGE_ORDER
+
+		frappe.db.set_value("RD Item", name, "page_order", PAGE_ORDER, update_modified=False)
 	try:
 		record = item_to_record(frappe.get_doc("RD Item", name))
 		from sok_resdesk.pagetext import apply

@@ -55,7 +55,7 @@ cause. Details: [Server](server.md#how-the-updater-helper-works).
 
 | DocType | Purpose | Key fields |
 |---|---|---|
-| **RD Item** | one book/document | `item_id` (= IA identifier, the document name), title, alt_title, creators (table), year, language (ISO 639-3), publisher, subjects (multi-select), collections (source), curated_collections, item_type, lock_metadata ("Keep My Edits"), removed_from_source, licence, access, visibility (Public / Login to read / Login to find) and visibility_set_by, page_count, has_page_text, ark (archive.org's), persistent_id (this library's permanent ARK), ocr_quality and ocr_low_pages, preservation_status / preserved_on / preserved_version / preserved_bytes / fixity_checked_on, raw_metadata (JSON) |
+| **RD Item** | one book/document | `item_id` (= IA identifier, the document name), title, alt_title, creators (table), year, language (ISO 639-3), publisher, subjects (multi-select), collections (source), curated_collections, item_type, lock_metadata ("Keep My Edits"), removed_from_source, licence, access, visibility (Public / Login to read / Login to find) and visibility_set_by, page_count, has_page_text, ark (archive.org's), persistent_id (this library's permanent ARK), ocr_quality and ocr_low_pages, reocr_state and pages_proofread (re-OCR and proofreading), page_order (page text matched to the page images by the scan data), preservation_status / preserved_on / preserved_version / preserved_bytes / fixity_checked_on, raw_metadata (JSON) |
 | RD Item Creator | child table | creator → RD Creator, role, name_as_given |
 | RD Item Subject | child table | subject → RD Subject |
 | **RD Creator** | authority-lite person record | full_name, alt_name (romanised), VIAF, Wikidata |
@@ -107,6 +107,7 @@ without touching the portal or API.
 - Each book commits on its own and is retried on lock/duplicate conflicts between workers, so a
   failure only loses that book.
 - Page text is cached compressed on disk, so re-indexing never needs archive.org.
+- Page text is matched to the page images with the book's scan data (`core/scandata.py`): archive.org's OCR counts every leaf scanned, its page images (`…/page/n<leaf>.jpg`) and PDF only the pages the book shows. `leaf` everywhere (search, notes, page links, citations, proofreading) counts the pages shown.
 - Politeness: fixed delay, back-off on 429/5xx, identifying User-Agent.
 - Idempotent: re-running a profile skips items already present (unless *Refresh* is set).
 

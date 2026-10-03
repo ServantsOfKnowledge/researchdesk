@@ -76,24 +76,41 @@ def write_cached_pages(item_id: str, pages: list[dict]) -> None:
 
 
 def fetch_pages(
-	item_id: str, ia: IAClient | None = None, page_numbers: dict | None = None, refresh: bool = False
+	item_id: str,
+	ia: IAClient | None = None,
+	page_numbers: dict | None = None,
+	refresh: bool = False,
+	files: list[dict] | None = None,
 ) -> list[dict]:
 	"""Page texts for one book, as readers should see them: archive.org's (or the folder's) text,
 	with the pages that were re-read or corrected replaced by their current version (pagetext.py)."""
 	from sok_resdesk.pagetext import apply
 
-	return apply(item_id, _source_pages(item_id, ia, page_numbers, refresh))
+	return apply(item_id, _source_pages(item_id, ia, page_numbers, refresh, files))
+
+
+# Page order of the text: 0 = counted by OCR page (before 0.24.1: a page's text could sit next
+# to the following page's image), 1 = counted by page shown, as the page images are (scandata.py)
+PAGE_ORDER = 1
 
 
 def _source_pages(
-	item_id: str, ia: IAClient | None = None, page_numbers: dict | None = None, refresh: bool = False
+	item_id: str,
+	ia: IAClient | None = None,
+	page_numbers: dict | None = None,
+	refresh: bool = False,
+	files: list[dict] | None = None,
 ) -> list[dict]:
 	"""Page texts as the source has them: local cache first, then the Internet Archive."""
 	use_cache = cache_enabled()
 	if use_cache and not refresh:
 		cached = read_cached_pages(item_id)
 		if cached is not None:
-			return cached
+			if cint(frappe.db.get_value("RD Item", item_id, "page_order")) >= PAGE_ORDER:
+				return cached
+			from sok_resdesk.page_order import fix_book
+
+			return fix_book(item_id, cached, ia)  # cached in the old order: put right once
 	local = frappe.db.get_value("RD Item", item_id, ["source", "local_store", "local_path"], as_dict=True)
 	if local and local.source == "Local":
 		from sok_resdesk.local_source import sections_from_text, store_for_item
@@ -105,19 +122,28 @@ def _source_pages(
 		pages, _src = store.page_texts(item_id, local.local_path, data.get("page_numbers"))
 		if not pages:
 			pages = sections_from_text(store.book_text(item_id, local.local_path))
-		if use_cache and pages:
-			write_cached_pages(item_id, pages)
+		_fetched(item_id, pages, use_cache)
 		return pages
 	ia = ia or client()
-	if page_numbers is None:
+	if files is None:  # callers that have the metadata pass both
 		try:
-			page_numbers = ia.metadata(item_id).get("page_numbers")
+			data = ia.metadata(item_id)
+			page_numbers = data.get("page_numbers") if page_numbers is None else page_numbers
+			files = data.get("files") or []
 		except IAError:
-			page_numbers = None
-	pages = ia.page_texts(item_id, page_numbers)
-	if use_cache and pages:
-		write_cached_pages(item_id, pages)
+			files = []
+	pages = ia.page_texts(item_id, page_numbers, files)
+	_fetched(item_id, pages, use_cache)
 	return pages
+
+
+def _fetched(item_id: str, pages: list[dict], use_cache: bool) -> None:
+	if not pages:
+		return
+	if use_cache:
+		write_cached_pages(item_id, pages)
+	if frappe.db.exists("RD Item", item_id):
+		frappe.db.set_value("RD Item", item_id, "page_order", PAGE_ORDER, update_modified=False)
 
 
 # -- whitelisted UI actions ---------------------------------------------------------
@@ -202,7 +228,7 @@ def _ingest_one(
 
 	pages: list[dict] = []
 	if fetch_text and record["has_page_text"]:
-		pages = fetch_pages(item_id, ia, data.get("page_numbers"), refresh=refresh)
+		pages = fetch_pages(item_id, ia, data.get("page_numbers"), refresh=refresh, files=files)
 	try:
 		record = item_to_record(frappe.get_doc("RD Item", name))
 		if buffer is not None:

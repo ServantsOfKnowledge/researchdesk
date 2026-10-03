@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-05 18:00:00.000000",
+ "modified": "2026-10-06 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Item",
@@ -54,6 +54,7 @@
   "ocr_low_pages",
   "reocr_state",
   "pages_proofread",
+  "page_order",
   "ocr_engine",
   "ocr_language",
   "scanning_centre",
@@ -373,6 +374,16 @@
    "read_only": 1,
    "no_copy": 1,
    "description": "Pages corrected by people (proofread or validated)."
+  },
+  {
+   "fieldname": "page_order",
+   "fieldtype": "Int",
+   "label": "Page order",
+   "hidden": 1,
+   "read_only": 1,
+   "no_copy": 1,
+   "default": "0",
+   "description": "1: page text counted by page shown, as the page images are (0.24.1); 0: not checked yet; -1: could not be checked"
   },
   {
    "fieldname": "ocr_engine",

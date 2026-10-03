@@ -106,7 +106,21 @@
 .rd-item__alt { font-size: 1.1rem; color: var(--rd-muted); margin: 2px 0 6px; }
 .rd-item__creators { margin: 4px 0; font-size: 1.05rem; }
 .rd-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.rd-item__grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; }
+/* the reader takes the page's whole width; the book's details follow it (#rd-about) */
+.rd-item__main { min-width: 0; }
+.rd-book-about { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; margin-top: 24px; scroll-margin-top: 70px; }
+.rd-book-about .rd-card { margin-bottom: 0; }
+.rd-btn--plain { border-color: transparent; background: none; }
+/* the Cite window: the book, or the page showing in Page & text */
+.rd-cite-dialog { width: min(680px, calc(100vw - 32px)); max-height: calc(100vh - 48px); border: 1px solid var(--rd-border); border-radius: 12px; padding: 16px 18px; background: var(--rd-bg); color: inherit; box-shadow: 0 12px 40px rgba(0,0,0,.25); }
+.rd-cite-dialog::backdrop { background: rgba(0,0,0,.35); }
+.rd-cite-dialog__head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 8px; }
+.rd-cite-dialog__head h2 { font-size: 1.1rem; margin: 0; }
+.rd-cite-scope { margin-bottom: 4px; }
+.rd-cite-scope .rd-tab { font-size: .9rem; padding: 5px 12px; }
+.rd-cite-scope .rd-tab:disabled { opacity: .5; cursor: not-allowed; }
+.rd-cite-where { font-size: .85rem; margin: 2px 0 8px; overflow-wrap: anywhere; min-height: 1em; }
+.rd-cite-dialog .rd-cite { max-height: 40vh; }
 .rd-reader iframe { width: 100%; height: 78vh; min-height: 480px; border: 1px solid var(--rd-border); border-radius: 8px; background: var(--rd-soft); }
 /* two readers: the book reader (archive.org's) and the page reader (image + text) */
 .rd-views { display: flex; gap: 4px; margin: 4px 0 8px; border-bottom: 1px solid var(--rd-border); }
@@ -117,10 +131,7 @@
 .rd-pages__where input { width: 5em; padding: 4px 6px; border: 1px solid var(--rd-border); border-radius: 6px; background: var(--rd-bg); color: inherit; }
 .rd-pages__label { color: var(--rd-muted, #666); font-size: .9rem; }
 .rd-pages__spacer { flex: 1; }
-.rd-pages__cite { border: 1px solid var(--rd-border); border-radius: 8px; padding: 8px; margin-bottom: 8px; }
-.rd-pages__cite.is-hidden { display: none; }
-.rd-page-cite { white-space: pre-wrap; word-break: break-word; font-size: .8rem; max-height: 200px; overflow: auto; background: var(--rd-soft); padding: 10px; border-radius: 6px; margin: 0 0 6px; }
-.rd-pages__body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; height: 74vh; min-height: 440px; }
+.rd-pages__body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; height: 80vh; min-height: 480px; }
 .rd-pages__image { margin: 0; overflow: auto; border: 1px solid var(--rd-border); border-radius: 8px; background: var(--rd-soft); display: flex; align-items: flex-start; justify-content: center; }
 .rd-pages__image img { max-width: 100%; height: auto; display: block; }
 .rd-pages__image .rd-image-frame { margin: 0 auto; }
@@ -216,7 +227,7 @@
 .rd-desc { margin-top: 12px; font-size: .92rem; }
 
 @media (max-width: 900px) {
-	.rd-layout, .rd-item__grid { grid-template-columns: 1fr; }
+	.rd-layout, .rd-book-about { grid-template-columns: 1fr; }
 	.rd-facets { order: 2; }
 	.rd-count { margin-left: 0; }
 	.rd-item__head { flex-direction: column; }

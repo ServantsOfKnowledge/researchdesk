@@ -92,6 +92,8 @@ scheduler_events = {
 		"sok_resdesk.identifiers.assign_missing",
 		# OCR quality for books not scored yet, from the page text kept here
 		"sok_resdesk.ocr.daily",
+		# books whose page text was counted by OCR page rather than page shown (before 0.24.1)
+		"sok_resdesk.page_order.daily",
 	],
 	"weekly": [
 		"sok_resdesk.ingest.run_scheduled_weekly",

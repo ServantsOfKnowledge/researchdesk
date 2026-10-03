@@ -129,6 +129,66 @@ TOURS: dict[str, list[tuple[str, str, str]]] = {
 			"Ticked for you when you edit: re-ingesting won't overwrite your corrections.",
 		),
 	],
+	"RD Research Group": [
+		(
+			"group_name",
+			"Name the group",
+			"A class, a project or a reading circle, e.g. <i>Haridasa seminar 2026</i>.",
+		),
+		(
+			"description",
+			"What it is for",
+			"A line or two; members see the group's name when they share a note.",
+		),
+		(
+			"members",
+			"Members",
+			"Add the readers (they need an account). Members can share notes on pages with the group.",
+		),
+	],
+	"RD Annotation": [
+		("kind", "The note", "Highlight, comment, tag, question, link, or an <b>OCR error</b> report."),
+		(
+			"visibility",
+			"Who sees it",
+			"Private (its author), a research group, or Public: public notes show to everyone once approved.",
+		),
+		(
+			"review_status",
+			"Review",
+			"For public notes: read it on its page (<b>Open on its Page</b>), then <b>Approve</b> or "
+			"<b>Reject</b>.",
+		),
+		(
+			"body",
+			"What the reader wrote",
+			"Notes stay with their words even after the page text is corrected.",
+		),
+	],
+	"RD Page Text": [
+		(
+			"status",
+			"Where the page stands",
+			"<b>Machine</b>: a re-OCR nobody checked. <b>Proofread</b>: corrected by a person. "
+			"<b>Validated</b>: checked again, unchanged, by a second person.",
+		),
+		(
+			"is_current",
+			"The current version",
+			"What readers see, search finds and citations quote. Older versions stay; proofreaders bring one "
+			"back with <b>Make current</b> in the portal.",
+		),
+		(
+			"text",
+			"The page's text",
+			"Proofreaders edit it in the portal (Page & text → Proofread), next to the image.",
+		),
+		(
+			"zones",
+			"How it was read",
+			"The parts of the page read by OCR, in reading order (columns, headings).",
+		),
+	],
 	"RD Settings": [
 		("portal_title", "Your library's name", "Shown on the portal, in the browser tab and in citations."),
 		("portal_tagline", "Tagline", "One line under the name on the portal home page."),
@@ -191,6 +251,14 @@ STEPS = [
 		"Group books your way, by hand or with rules. Each collection gets its own page on the portal.",
 		{"label": "Make a collection", "tour": "RD Collection", "route": ["Form", "RD Collection", "new"]},
 		"collection",
+	),
+	(
+		"readers",
+		"Readers' notes and proofreading",
+		"Readers keep notes on pages and report OCR errors; proofreaders correct the text. Give volunteers "
+		"the ResDesk Proofreader role, make research groups, and review public notes here.",
+		{"label": "Open Annotations", "route": ["List", "RD Annotation"]},
+		"visited",
 	),
 	(
 		"guide",

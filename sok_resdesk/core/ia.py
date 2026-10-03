@@ -21,6 +21,8 @@ from collections.abc import Iterator
 
 import requests
 
+from sok_resdesk.core import scandata
+
 SCRAPE_URL = "https://archive.org/services/search/v1/scrape"
 ADVANCED_URL = "https://archive.org/advancedsearch.php"
 METADATA_URL = "https://archive.org/metadata/{identifier}"
@@ -154,10 +156,21 @@ class IAClient:
 				size += len(block)
 		return {"bytes": size, "md5": md5.hexdigest()}
 
-	def page_texts(self, identifier: str, page_numbers: dict | None = None) -> list[dict]:
+	def scan_leaves(self, identifier: str, files: list[dict]) -> list:
+		"""The item's scan data (core/scandata.py): which leaves the book shows."""
+		name = scandata.file_name(identifier, [f.get("name", "") for f in files or []])
+		if not name:
+			return []
+		data = self._download(identifier, name)
+		return scandata.parse(scandata.from_zip(data) if name.endswith(".zip") else data)
+
+	def page_texts(
+		self, identifier: str, page_numbers: dict | None = None, files: list[dict] | None = None
+	) -> list[dict]:
 		"""Return [{leaf, label, text}] for every page with OCR text.
 
-		`leaf` is the 0-based page index BookReader uses (…/page/n{leaf}).
+		`leaf` is the 0-based page index BookReader uses (…/page/n{leaf}): the OCR counts every
+		leaf scanned, so the scan data (from `files`) says which ones the book shows.
 		`label` is the printed page number when IA detected one.
 		"""
 		raw_text = self._download(identifier, f"{identifier}_hocr_searchtext.txt.gz")
@@ -166,16 +179,8 @@ class IAClient:
 			return []
 		text = gzip.decompress(raw_text).decode("utf-8", errors="replace")
 		index = json.loads(gzip.decompress(raw_index))
-		labels = {}
-		for n, page in enumerate((page_numbers or {}).get("pages", []) or []):
-			labels[n] = str(page.get("pageNumber") or "")
-		pages = []
-		for leaf, entry in enumerate(index):
-			start, end = entry[0], entry[1]
-			page_text = text[start:end].strip()
-			if page_text:
-				pages.append({"leaf": leaf, "label": labels.get(leaf, ""), "text": page_text})
-		return pages
+		leaves = self.scan_leaves(identifier, files) if files else []
+		return scandata.pages([text[e[0] : e[1]] for e in index], page_numbers, leaves)
 
 	def djvu_text(self, identifier: str, files: list[dict]) -> str:
 		"""Fallback: whole-book plain text when page-level text is unavailable."""

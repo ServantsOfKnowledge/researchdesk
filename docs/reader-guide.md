@@ -46,8 +46,11 @@ Click a title to open its page. You'll find:
 - **Search inside this book**: type a word and press **Find** to list every page where it
   appears (click one to jump there);
 - **Download PDF**, when the library can share the file;
-- the book's **details**: authors, date, publisher, language, subjects, collections and rights;
-- **Cite this book** and **Add to my list** (below).
+- **Cite** and **Add to my list** (below);
+- under the reader, the book's **details** (identifier, date, subjects, collections, rights) and
+  **about this book**; **Details ↓** at the top jumps there.
+
+The reader takes the whole width of the page, so the pages are as large as your screen allows.
 
 ![A book page: reader, search inside, details and citation](../sok_resdesk/public/images/guide/portal-book.png)
 
@@ -58,8 +61,9 @@ Click a title to open its page. You'll find:
 beside it (*p. 39*).
 
 - **Copy page link** copies a link that opens this book at this page, in Page & text.
-- **Cite this page** gives the reference of this page in APA, MLA, Chicago, BibTeX, RIS or
-  CSL-JSON, with its page number and a link to it.
+- **Cite this page** opens the **Cite** window at this page: its reference in APA, MLA, Chicago,
+  BibTeX, RIS or CSL-JSON, with its page number and a link to it. Switch to **This book** in the
+  same window for the whole book.
 - **Open in book reader** switches to the book reader at the same page.
 
 While Page & text is showing, the pages found by **Search inside this book** open here, with the
@@ -121,9 +125,14 @@ poorest OCR, each opening at its page in Proofread mode. Filter by language.
 
 ## Citing a book
 
-**Cite this book** gives the reference ready to paste in APA, MLA or Chicago style, or as a
-file for your reference manager: BibTeX, RIS or CSL-JSON (Zotero, Mendeley, EndNote, JabRef,
-Overleaf). **Copy** copies it; **Download** saves it.
+**Cite** (at the top of a book's page) opens one window for both:
+
+- **This book**: the reference ready to paste in APA, MLA or Chicago style, or as a file for
+  your reference manager: BibTeX, RIS or CSL-JSON (Zotero, Mendeley, EndNote, JabRef, Overleaf).
+- **This page**: the page showing in Page & text, with its printed page number (*p. 42*, or
+  *leaf 7* when none is printed) and a link that opens the book at that page.
+
+**Copy** copies the reference, **Copy link** its link, and **Download** saves the book's as a file.
 
 With the Zotero Connector in your browser, its button on a book page saves the complete record.
 More on citing: [Citations & reading lists](citations.md).

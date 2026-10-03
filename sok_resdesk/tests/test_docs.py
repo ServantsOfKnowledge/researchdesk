@@ -175,7 +175,7 @@ def test_checklist_steps_are_valid():
 	pages = {p.name for p in (APP / "resdesk" / "page").iterdir() if p.is_dir()}
 	for key, _title, _desc, action, _when in _literal(APP / "guide.py", "STEPS"):
 		route = action["route"]
-		if route[0] == "Form":
+		if route[0] in ("Form", "List"):
 			_doctype(route[1])  # exists
 		else:
 			assert route[0].replace("-", "_") in pages, f"checklist {key}: no page {route[0]}"

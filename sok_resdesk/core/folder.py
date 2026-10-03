@@ -39,6 +39,8 @@ from urllib.parse import quote, unquote, urljoin, urlparse
 
 import requests
 
+from sok_resdesk.core import scandata
+
 META_SUFFIX = "_meta.xml"
 SERVABLE = {".pdf", ".jpg", ".jpeg", ".png", ".gif", ".txt", ".epub", ".webp"}
 MAX_SCAN_DEPTH = 6
@@ -74,16 +76,13 @@ def parse_meta_xml(data: bytes) -> dict:
 # -- page text ------------------------------------------------------------------------------
 
 
-def pages_from_searchtext(text_gz: bytes, index_gz: bytes, page_numbers: dict | None = None) -> list[dict]:
+def pages_from_searchtext(
+	text_gz: bytes, index_gz: bytes, page_numbers: dict | None = None, leaves: list | None = None
+) -> list[dict]:
+	"""`leaves`: the scan data (core/scandata.py), so each text goes with its page image."""
 	text = gzip.decompress(text_gz).decode("utf-8", errors="replace")
 	index = json.loads(gzip.decompress(index_gz))
-	labels = _labels(page_numbers)
-	pages = []
-	for leaf, entry in enumerate(index):
-		page_text = text[entry[0] : entry[1]].strip()
-		if page_text:
-			pages.append({"leaf": leaf, "label": labels.get(leaf, ""), "text": page_text})
-	return pages
+	return scandata.pages([text[e[0] : e[1]] for e in index], page_numbers, leaves)
 
 
 class _HocrParser(HTMLParser):
@@ -128,31 +127,25 @@ class _HocrParser(HTMLParser):
 		self.line = []
 
 
-def pages_from_hocr(html: bytes, page_numbers: dict | None = None) -> list[dict]:
+def pages_from_hocr(html: bytes, page_numbers: dict | None = None, leaves: list | None = None) -> list[dict]:
 	parser = _HocrParser()
 	chunk = 1 << 20
 	text = html.decode("utf-8", errors="replace")
 	for i in range(0, len(text), chunk):
 		parser.feed(text[i : i + chunk])
 	parser.close()
-	labels = _labels(page_numbers)
-	return [
-		{"leaf": leaf, "label": labels.get(leaf, ""), "text": "\n".join(lines)}
-		for leaf, lines in enumerate(parser.pages)
-		if lines
-	]
+	return scandata.pages(["\n".join(lines) for lines in parser.pages], page_numbers, leaves)
 
 
-def pages_from_djvu_xml(data: bytes, page_numbers: dict | None = None) -> list[dict]:
-	labels = _labels(page_numbers)
-	pages = []
-	leaf = -1
+def pages_from_djvu_xml(
+	data: bytes, page_numbers: dict | None = None, leaves: list | None = None
+) -> list[dict]:
+	texts: list[str] = []
 	words: list[str] = []
 	lines: list[str] = []
 	for event, el in ET.iterparse(_BytesIO(data), events=("start", "end")):
 		tag = el.tag
 		if event == "start" and tag == "OBJECT":
-			leaf += 1
 			lines = []
 		elif event == "end":
 			if tag == "WORD":
@@ -166,23 +159,15 @@ def pages_from_djvu_xml(data: bytes, page_numbers: dict | None = None) -> list[d
 				if words:
 					lines.append(" ".join(words))
 					words = []
-				if lines:
-					pages.append({"leaf": leaf, "label": labels.get(leaf, ""), "text": "\n".join(lines)})
+				texts.append("\n".join(lines))
 				el.clear()
-	return pages
+	return scandata.pages(texts, page_numbers, leaves)
 
 
 def _BytesIO(data: bytes):
 	import io
 
 	return io.BytesIO(data)
-
-
-def _labels(page_numbers: dict | None) -> dict[int, str]:
-	labels = {}
-	for n, page in enumerate((page_numbers or {}).get("pages", []) or []):
-		labels[n] = str(page.get("pageNumber") or "")
-	return labels
 
 
 # -- stores ---------------------------------------------------------------------------------
@@ -234,19 +219,29 @@ class ItemStore:
 				page_numbers = None
 		return {"metadata": meta, "files": [{"name": f} for f in files], "page_numbers": page_numbers}
 
+	def scan_leaves(self, identifier: str, loc: str, files: set[str] | None = None) -> list:
+		"""The item's scan data (core/scandata.py): which leaves the book shows."""
+		files = files if files is not None else set(self.list_files(loc))
+		name = scandata.file_name(identifier, sorted(files))
+		if not name:
+			return []
+		data = self.read(loc, name)
+		return scandata.parse(scandata.from_zip(data) if name.endswith(".zip") else data)
+
 	def page_texts(
 		self, identifier: str, loc: str, page_numbers: dict | None = None
 	) -> tuple[list[dict], str]:
 		"""Best available page text. Returns (pages, source-file-used)."""
 		files = set(self.list_files(loc))
 		i = identifier
+		leaves = self.scan_leaves(identifier, loc, files)
 		if f"{i}_hocr_searchtext.txt.gz" in files and f"{i}_hocr_pageindex.json.gz" in files:
 			text, index = (
 				self.read(loc, f"{i}_hocr_searchtext.txt.gz"),
 				self.read(loc, f"{i}_hocr_pageindex.json.gz"),
 			)
 			if text and index:
-				return pages_from_searchtext(text, index, page_numbers), "hocr_searchtext"
+				return pages_from_searchtext(text, index, page_numbers, leaves), "hocr_searchtext"
 		for name, gz in (
 			(f"{i}_hocr.html", False),
 			(f"{i}_hocr.html.gz", True),
@@ -256,13 +251,13 @@ class ItemStore:
 			if name in files:
 				data = self.read(loc, name)
 				if data:
-					return pages_from_hocr(gzip.decompress(data) if gz else data, page_numbers), name.split(
-						"_"
-					)[-1]
+					return pages_from_hocr(
+						gzip.decompress(data) if gz else data, page_numbers, leaves
+					), name.split("_")[-1]
 		if f"{i}_djvu.xml" in files:
 			data = self.read(loc, f"{i}_djvu.xml")
 			if data:
-				return pages_from_djvu_xml(data, page_numbers), "djvu.xml"
+				return pages_from_djvu_xml(data, page_numbers, leaves), "djvu.xml"
 		return [], ""
 
 	def book_text(self, identifier: str, loc: str) -> str:

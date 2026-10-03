@@ -1,4 +1,4 @@
-// Research Desk item page: citation tabs, copy/download, search inside, reader jumps.
+// Research Desk item page: the Cite window (book or page), my list, search inside, reader jumps.
 (function () {
 	const $ = (sel) => document.querySelector(sel);
 	const root = () => $("#rd-item");
@@ -10,29 +10,74 @@
 		return esc(s).replace(/&lt;mark&gt;/g, "<mark>").replace(/&lt;\/mark&gt;/g, "</mark>");
 	}
 
+	// One Cite window for the book and for the page showing in Page & text (reader.js)
 	function initCite() {
-		const tabs = document.querySelectorAll(".rd-tab");
+		const dlg = $("#rd-cite");
+		if (!dlg) return;
 		const itemId = root().dataset.item;
-		tabs.forEach((t) =>
-			t.addEventListener("click", () => {
-				tabs.forEach((x) => x.classList.toggle("is-active", x === t));
-				document.querySelectorAll(".rd-cite").forEach((p) => p.classList.toggle("is-hidden", p.dataset.fmt !== t.dataset.fmt));
-				$("#rd-download").href = `/api/method/sok_resdesk.api.cite?item_id=${encodeURIComponent(itemId)}&format=${t.dataset.fmt}&download=1`;
-			})
-		);
-		$("#rd-copy").addEventListener("click", async () => {
-			const text = document.querySelector(".rd-cite:not(.is-hidden)").textContent;
-			try {
-				await navigator.clipboard.writeText(text);
-				$("#rd-copy").textContent = "Copied ✓";
-				setTimeout(() => ($("#rd-copy").textContent = "Copy"), 1500);
-			} catch (e) {
-				const r = document.createRange();
-				r.selectNodeContents(document.querySelector(".rd-cite:not(.is-hidden)"));
-				getSelection().removeAllRanges();
-				getSelection().addRange(r);
+		let scope = "book", fmt = "apa", page = null;
+		const pageText = $("#rd-cite-page-text");
+
+		function paint() {
+			dlg.querySelectorAll("[data-scope]").forEach((t) => t.classList.toggle("is-active", t.dataset.scope === scope));
+			dlg.querySelectorAll("[data-fmt]").forEach((t) => {
+				if (t.tagName === "BUTTON") t.classList.toggle("is-active", t.dataset.fmt === fmt);
+			});
+			dlg.querySelectorAll("pre.rd-cite[data-fmt]").forEach((p) => p.classList.toggle("is-hidden", scope !== "book" || p.dataset.fmt !== fmt));
+			pageText.classList.toggle("is-hidden", scope !== "page");
+			if (scope === "page") pageText.textContent = page ? page.formats[fmt] || "" : "…";
+			$("#rd-cite-where").textContent = scope === "page" && page ? `${page.page} · ${page.url}` : "";
+			$("#rd-download").hidden = scope !== "book";
+			$("#rd-download").href = `/api/method/sok_resdesk.api.cite?item_id=${encodeURIComponent(itemId)}&format=${fmt}&download=1`;
+		}
+
+		async function show(want) {
+			const pages = window.RDPages;
+			const pageTab = $("#rd-cite-page-tab");
+			const canPage = !!(pages && pageTab && pages.state().shown);
+			if (pageTab) {
+				pageTab.disabled = !canPage;
+				pageTab.title = canPage ? "" : "Open a page in Page & text to cite it";
+			}
+			scope = want === "page" && canPage ? "page" : "book";
+			page = null;
+			paint();
+			if (!dlg.open) dlg.showModal ? dlg.showModal() : dlg.setAttribute("open", "");
+			if (scope === "page") {
+				page = await pages.citation();
+				paint();
+			}
+		}
+
+		document.addEventListener("click", (e) => {
+			const opener = e.target.closest("#rd-cite-open, #rd-pages-cite, [data-cite-open]");
+			if (opener) return show(opener.dataset.scope);
+			if (!dlg.contains(e.target)) return;
+			const s = e.target.closest(".rd-cite-scope [data-scope]");
+			if (s && !s.disabled) show(s.dataset.scope);
+			const f = e.target.closest("button[data-fmt]");
+			if (f) {
+				fmt = f.dataset.fmt;
+				paint();
 			}
 		});
+		dlg.addEventListener("click", (e) => {
+			if (e.target === dlg) dlg.close(); // a click on the backdrop
+		});
+		const copy = async (text, btn) => {
+			const was = btn.textContent;
+			try {
+				await navigator.clipboard.writeText(text);
+				btn.textContent = "Copied ✓";
+			} catch (e) {
+				prompt("Copy:", text);
+			}
+			setTimeout(() => (btn.textContent = was), 1500);
+		};
+		$("#rd-copy").addEventListener("click", (e) =>
+			copy(dlg.querySelector("pre.rd-cite:not(.is-hidden)").textContent, e.target)
+		);
+		$("#rd-copy-link").addEventListener("click", (e) => copy(scope === "page" && page ? page.url : dlg.dataset.url, e.target));
 	}
 
 	function initList() {

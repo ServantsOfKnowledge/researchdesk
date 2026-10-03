@@ -64,6 +64,7 @@ def _item(n: int) -> str:
 		"collection": ["ServantsOfKnowledge"],
 	}
 	upsert_item(normalize_ia_item(identifier, meta, []), raw=meta)
+	frappe.db.set_value("RD Item", identifier, "page_order", 1)  # its page order is checked
 	return identifier
 
 
@@ -1499,3 +1500,93 @@ class TestProofreading(OpsTestCase):
 		self.assertIn("Waiting for a second look", html)
 		frappe.set_user(self.R)
 		self.assertNotIn("Waiting for a second look", get_response_content("library/proofread"))
+
+
+class TestPageOrder(OpsTestCase):
+	"""archive.org's OCR counts a colour card the book doesn't show: texts move to their image."""
+
+	SCAN = (
+		b"<book><pageData>"
+		b"<page leafNum='0'><addToAccessFormats>false</addToAccessFormats></page>"
+		b"<page leafNum='1'><addToAccessFormats>true</addToAccessFormats></page>"
+		b"<page leafNum='2'><addToAccessFormats>true</addToAccessFormats></page>"
+		b"</pageData></book>"
+	)
+
+	class IA:
+		def __init__(self, scan):
+			self.scan = scan
+
+		def metadata(self, identifier):
+			return {"metadata": {}, "files": [{"name": f"{identifier}_scandata.xml"}]}
+
+		def scan_leaves(self, identifier, files):
+			from sok_resdesk.core import scandata
+
+			return scandata.parse(self.scan)
+
+		def page_texts(self, identifier, page_numbers=None, files=None):
+			from sok_resdesk.core import scandata
+
+			return scandata.pages(
+				["card", "Title page", "Chapter one"], page_numbers, self.scan_leaves(identifier, files)
+			)
+
+	def test_old_order_is_put_right_and_notes_follow_their_words(self):
+		from sok_resdesk.ingest import fetch_pages, write_cached_pages
+
+		book = _item(91)
+		frappe.db.set_value("RD Item", book, {"has_page_text": 1, "visibility": "Public", "page_order": 0})
+		# as cached before: counted by OCR page, the colour card being page 0
+		write_cached_pages(
+			book,
+			[
+				{"leaf": 0, "label": "", "text": "card"},
+				{"leaf": 1, "label": "", "text": "Title page"},
+				{"leaf": 2, "label": "", "text": "Chapter one"},
+			],
+		)
+		note = frappe.get_doc(
+			{
+				"doctype": "RD Annotation",
+				"item": book,
+				"leaf": 2,
+				"kind": "Comment",
+				"body": "on chapter one",
+				"exact": "Chapter",
+				"pos_start": 0,
+				"pos_end": 7,
+			}
+		).insert(ignore_permissions=True)
+		region = frappe.get_doc(
+			{
+				"doctype": "RD Annotation",
+				"item": book,
+				"leaf": 2,
+				"kind": "Comment",
+				"body": "a stamp",
+				"region": "1,1,10,10",
+			}
+		).insert(ignore_permissions=True)
+		with mock.patch("sok_resdesk.ingest.client", return_value=self.IA(self.SCAN)):
+			pages = fetch_pages(book)
+		self.assertEqual([(p["leaf"], p["text"]) for p in pages], [(0, "Title page"), (1, "Chapter one")])
+		self.assertEqual(frappe.db.get_value("RD Item", book, "page_order"), 1)
+		self.assertEqual(frappe.db.get_value("RD Annotation", note.name, "leaf"), 1)
+		self.assertEqual(frappe.db.get_value("RD Annotation", region.name, "leaf"), 2)  # drawn on the image
+		self.assertIn("sok_resdesk.page_order.reindex_book", [m for m, _ in self.enqueued])
+		frappe.db.delete("RD Annotation", {"item": book})
+
+	def test_books_with_nothing_left_out_are_only_marked(self):
+		from sok_resdesk.ingest import fetch_pages, write_cached_pages
+
+		book = _item(92)
+		frappe.db.set_value("RD Item", book, {"has_page_text": 1, "page_order": 0})
+		write_cached_pages(book, [{"leaf": 0, "label": "", "text": "Title page"}])
+		with mock.patch(
+			"sok_resdesk.ingest.client",
+			return_value=self.IA(b"<book><pageData><page leafNum='0'/></pageData></book>"),
+		):
+			self.assertEqual(fetch_pages(book)[0]["leaf"], 0)
+		self.assertEqual(frappe.db.get_value("RD Item", book, "page_order"), 1)
+		self.assertNotIn("sok_resdesk.page_order.reindex_book", [m for m, _ in self.enqueued])

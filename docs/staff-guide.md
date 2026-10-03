@@ -29,8 +29,9 @@ Branding), or the Servants of Knowledge logo until you set one.
 Every Research Desk screen has a **Help** menu at the top:
 
 - **Help for this screen** opens this documentation at the right section, inside the Desk.
-- **Take the tour** (on the main forms) walks through the important fields one at a time. Press
-  **Next** to move on, or **Close** to stop.
+- **Take the tour** (on the main forms: ingest profiles, books, collections, settings, exports,
+  imports, push targets, research groups, annotations and page texts) walks through the
+  important fields one at a time. Press **Next** to move on, or **Close** to stop.
 - **All help pages** lists everything, for staff and for readers.
 
 ![Take the tour: an ingest profile, one field at a time](../sok_resdesk/public/images/guide/desk-tour.png)
@@ -41,8 +42,9 @@ The same pages are on GitHub, and readers have their own help on the portal at `
 
 ### The getting-started checklist
 
-Six steps take a new library from an empty install to a working portal: name and logo, a first
-selection of books, watching the ingest, access, a first collection, and this guide. Each step's
+Seven steps take a new library from an empty install to a working portal: name and logo, a first
+selection of books, watching the ingest, access, a first collection, readers' notes and proofreading,
+and this guide. Each step's
 button opens the right screen, often with its tour. Steps tick themselves when the library has
 done them some other way (a logo is set, an ingest has finished, a collection exists). **Skip**
 sets a step aside; **Hide checklist** folds the block away once you don't need it. A line

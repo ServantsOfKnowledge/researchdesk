@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.24.1 (2026-10-06): each page's text with its own image, a wider reader, one Cite
+
+- Fixed: in Page & text, a page's text could sit next to the following page's image. archive.org's
+  OCR counts every leaf scanned (a colour card, a blank cover…), its page images only the pages the
+  book shows: the text is now matched to its image with the book's scan data (scandata.xml), for
+  archive.org books and IA-style folders. Books already in the catalogue are put right the first
+  time their pages are opened, and the rest in the background (one archive.org request a book;
+  their search pages and readers' notes move with their text)
+- **The reader takes the page's whole width**; the book's details and description are under it
+  (**Details ↓** at the top)
+- **One Cite window** for the book and the page (*This book* / *This page*), from **Cite** at the
+  top or **Cite this page** in Page & text: every format, Copy, Copy link, Download
+- On-screen guide: tours of Annotations, Research Groups and Page Texts, and a getting-started
+  step for readers' notes and proofreading
+- Desk Help: space between its menu and the Desk sidebar
+
 ## 0.24.0 (2026-10-05): proofreading and re-OCR, part by part
 
 - **Proofread** in Page & text: the page text becomes an editor beside its image; **Save as

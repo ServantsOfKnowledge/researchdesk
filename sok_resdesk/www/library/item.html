@@ -46,7 +46,9 @@
 				{% if can_read and item.access_status == "Open" and pdf_url %}
 				<a class="rd-btn" href="{{ pdf_url }}">{{ _("Download PDF") }}</a>
 				{% endif %}
+				<button class="rd-btn" type="button" id="rd-cite-open" data-scope="book">{{ _("Cite") }}</button>
 				<button class="rd-btn" type="button" id="rd-add-list">{{ _("Add to my list") }}</button>
+				<a class="rd-btn rd-btn--plain" href="#rd-about">{{ _("Details") }} ↓</a>
 				{% if item.on_archive_org and can_read %}
 				<a class="rd-btn" href="https://archive.org/details/{{ item.item_id }}" target="_blank" rel="noopener">{{ _("Internet Archive") }} ↗</a>
 				{% endif %}
@@ -61,7 +63,7 @@
 		</div>
 	</header>
 
-	<div class="rd-item__grid">
+	<div class="rd-item__main">
 		<section class="rd-reader" id="rd-reader">
 			{% if not can_read %}
 			<div class="rd-card rd-locked">
@@ -114,7 +116,7 @@
 					<span class="rd-pages__status" id="rd-pages-status"></span>
 					<span class="rd-pages__spacer"></span>
 					<button class="rd-btn" type="button" id="rd-pages-link">{{ _("Copy page link") }}</button>
-					<button class="rd-btn" type="button" id="rd-pages-cite">{{ _("Cite this page") }}</button>
+					<button class="rd-btn" type="button" id="rd-pages-cite" data-scope="page">{{ _("Cite this page") }}</button>
 					<button class="rd-btn" type="button" id="rd-pages-book">{{ _("Open in book reader") }}</button>
 				</div>
 				<div class="rd-notes-bar" id="rd-notes-bar" data-login="/login">
@@ -124,11 +126,6 @@
 					<span class="rd-pages__spacer"></span>
 					<a class="rd-notes-mine" href="/library/notes" hidden id="rd-notes-mine">{{ _("My notes") }}</a>
 					<button class="rd-btn" type="button" id="rd-proof-btn" hidden>{{ _("Proofread") }}</button>
-				</div>
-				<div class="rd-pages__cite is-hidden" id="rd-pages-citebox">
-					<div class="rd-tabs" role="tablist" id="rd-pages-cite-tabs"></div>
-					<pre class="rd-page-cite" id="rd-pages-cite-text"></pre>
-					<button class="rd-btn" type="button" id="rd-pages-cite-copy">{{ _("Copy") }}</button>
 				</div>
 				<div class="rd-pages__body">
 					<figure class="rd-pages__image" id="rd-pages-image"></figure>
@@ -140,25 +137,8 @@
 			{% endif %}
 		</section>
 
-		<aside class="rd-side">
-			<section class="rd-card">
-				<h2>{{ _("Cite this book") }}</h2>
-				<div class="rd-tabs" role="tablist">
-					{% for key, label in formats %}
-					<button type="button" role="tab" class="rd-tab{% if loop.first %} is-active{% endif %}" data-fmt="{{ key }}">{{ label.split(' ')[0] }}</button>
-					{% endfor %}
-				</div>
-				{% for key, label in formats %}
-				<pre class="rd-cite{% if not loop.first %} is-hidden{% endif %}" data-fmt="{{ key }}">{{ cites[key] }}</pre>
-				{% endfor %}
-				<div class="rd-actions">
-					<button class="rd-btn" type="button" id="rd-copy">{{ _("Copy") }}</button>
-					<a class="rd-btn" id="rd-download" href="/api/method/sok_resdesk.api.cite?item_id={{ item.item_id | urlencode }}&format=bibtex&download=1">{{ _("Download") }}</a>
-					<a class="rd-btn" href="/api/method/sok_resdesk.api.marcxml?item_ids={{ item.item_id | urlencode }}">MARCXML</a>
-				</div>
-			</section>
-
-			<section class="rd-card">
+		<section class="rd-book-about" id="rd-about">
+			<div class="rd-card rd-book-about__details">
 				<h2>{{ _("Details") }}</h2>
 				<dl class="rd-meta">
 					<dt>{{ _("Identifier") }}</dt><dd><code>{{ item.item_id }}</code></dd>
@@ -179,10 +159,43 @@
 					{% if item.licence_url %}<dt>{{ _("Licence") }}</dt><dd><a href="{{ item.licence_url }}" rel="license">{{ item.licence_url }}</a></dd>{% endif %}
 					{% if item.rights %}<dt>{{ _("Rights") }}</dt><dd>{{ item.rights }}</dd>{% endif %}
 				</dl>
-				{% if item.description %}<p class="rd-desc">{{ item.description }}</p>{% endif %}
-			</section>
-		</aside>
+			</div>
+			<div class="rd-card rd-book-about__text">
+				<h2>{{ _("About this book") }}</h2>
+				{% if item.description %}<p class="rd-desc">{{ item.description }}</p>{% else %}<p class="rd-muted">{{ _("No description yet.") }}</p>{% endif %}
+				<div class="rd-actions">
+					<button class="rd-btn" type="button" data-scope="book" data-cite-open>{{ _("Cite this book") }}</button>
+					<a class="rd-btn" href="/api/method/sok_resdesk.api.marcxml?item_ids={{ item.item_id | urlencode }}">MARCXML</a>
+				</div>
+			</div>
+		</section>
 	</div>
+
+	<dialog class="rd-cite-dialog" id="rd-cite" aria-labelledby="rd-cite-title" data-url="{{ portal_url }}">
+		<form method="dialog" class="rd-cite-dialog__head">
+			<h2 id="rd-cite-title">{{ _("Cite") }}</h2>
+			<button class="rd-btn rd-btn--plain" value="close" aria-label="{{ _('Close') }}">✕</button>
+		</form>
+		<div class="rd-tabs rd-cite-scope" role="tablist" aria-label="{{ _('What to cite') }}">
+			<button type="button" role="tab" class="rd-tab is-active" data-scope="book">{{ _("This book") }}</button>
+			{% if page_reader and can_read %}<button type="button" role="tab" class="rd-tab" data-scope="page" id="rd-cite-page-tab">{{ _("This page") }}</button>{% endif %}
+		</div>
+		<p class="rd-muted rd-cite-where" id="rd-cite-where"></p>
+		<div class="rd-tabs" role="tablist" aria-label="{{ _('Format') }}">
+			{% for key, label in formats %}
+			<button type="button" role="tab" class="rd-tab{% if loop.first %} is-active{% endif %}" data-fmt="{{ key }}">{{ label.split(' ')[0] }}</button>
+			{% endfor %}
+		</div>
+		{% for key, label in formats %}
+		<pre class="rd-cite{% if not loop.first %} is-hidden{% endif %}" data-fmt="{{ key }}">{{ cites[key] }}</pre>
+		{% endfor %}
+		<pre class="rd-cite rd-cite--page is-hidden" id="rd-cite-page-text"></pre>
+		<div class="rd-actions">
+			<button class="rd-btn rd-btn--primary" type="button" id="rd-copy">{{ _("Copy") }}</button>
+			<button class="rd-btn" type="button" id="rd-copy-link">{{ _("Copy link") }}</button>
+			<a class="rd-btn" id="rd-download" href="/api/method/sok_resdesk.api.cite?item_id={{ item.item_id | urlencode }}&format=apa&download=1">{{ _("Download") }}</a>
+		</div>
+	</dialog>
 </div>
 {% endblock %}
 

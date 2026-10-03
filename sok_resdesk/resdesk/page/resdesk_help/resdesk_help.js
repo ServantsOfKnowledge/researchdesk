@@ -85,8 +85,10 @@ class ResDeskHelp {
 			: "";
 		this.$body.html(`
 			<style>
-				.rdh { display:grid; grid-template-columns: 250px minmax(0,1fr); gap: 28px; padding: 8px 0 60px; }
-				.rdh-nav { position: sticky; top: 70px; align-self: start; max-height: calc(100vh - 90px); overflow:auto; font-size: 13px; }
+				/* room on both sides: the Desk's own sidebar sits right next to this page */
+				.rdh { display:grid; grid-template-columns: 250px minmax(0,1fr); gap: 32px; padding: 16px 24px 60px; }
+				.rdh-nav { position: sticky; top: 70px; align-self: start; max-height: calc(100vh - 90px); overflow:auto; font-size: 13px;
+					padding: 4px 16px 12px 4px; border-right: 1px solid var(--border-color); }
 				.rdh-nav h6 { text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); margin: 16px 0 6px; font-size: 11px; }
 				.rdh-nav ul { list-style:none; padding:0; margin:0; }
 				.rdh-nav li { margin: 3px 0; }
@@ -103,7 +105,7 @@ class ResDeskHelp {
 				.rdh-body table { margin: 12px 0; font-size: 13px; }
 				.rdh-body pre { background: var(--subtle-fg); padding: 12px; border-radius: 8px; overflow: auto; }
 				.rdh-body img { max-width: 100%; height: auto; border: 1px solid var(--border-color); border-radius: 8px; margin: 8px 0; }
-				@media (max-width: 900px) { .rdh { grid-template-columns: 1fr; } .rdh-nav { position: static; max-height: none; } }
+				@media (max-width: 900px) { .rdh { grid-template-columns: 1fr; padding: 12px 16px 48px; } .rdh-nav { position: static; max-height: none; border-right: 0; border-bottom: 1px solid var(--border-color); } }
 			</style>
 			<aside class="rdh-nav">${brand}${nav}${toc}</aside>
 			<article class="rdh-body">${p.html}</article>`);
