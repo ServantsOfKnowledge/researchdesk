@@ -19,6 +19,8 @@
 - **Fixed: runs that lost their workers never carried on.** Two schedules shared the same
   `*/10 * * * *` key in `hooks.py`, so the Server page's watcher replaced the job that carries
   interrupted runs on (a check now guards against it)
+- **Releases tag themselves**: a `release.yml` workflow tags and publishes the version on `main`
+  when it has no `v*` tag yet (installs find releases by tag), and starts the image build
 - Faster: the home page's book and collection counts are worked out once a minute rather than on
   every view; the page-text cache is compressed at a lighter level (3x quicker to write)
 

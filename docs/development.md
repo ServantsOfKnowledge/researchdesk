@@ -173,3 +173,9 @@ The in-app help, tours and checklist:
    `./upgrade.sh` (latest tag), and the
    `docker-image.yml` workflow publishes `ghcr.io/servantsofknowledge/researchdesk:X.Y.Z` and
    `:latest` for amd64 and arm64.
+
+If a version reaches `main` without its tag (a merge on GitHub, a push that couldn't carry tags),
+the `release.yml` workflow tags it: on every push to `main`, when `__version__` has no `v*` tag
+it creates the tag and a GitHub release (notes from the changelog entry) and starts the image
+build. **Actions → Release → Run workflow** does the same by hand. Installs only see releases
+by their tag, so an untagged version is invisible to the Server page and `./upgrade.sh`.
