@@ -116,7 +116,8 @@ is left, and puts every improvement straight into search.
       human correction, saying who or what made it; search uses the best version
 - [x] **Re-OCR pipeline** on its own queue and workers, with pluggable engines (Tesseract with
       Indic models first; newer engines added as they prove better on our pages), run on the
-      worst books first and kept only where the score improves
+      worst books first and kept only where the score improves; several languages at once (the
+      book's languages and English, or a language per page part)
 - [x] **Proofreading**: page image and text side by side, line by line; pages move from *not
       proofread* to *proofread* to *validated* (checked by a second person), as on Wikisource
 - [x] **Proofreaders**: a reader role and sign-up, work lists by collection and language, credit on
@@ -153,6 +154,8 @@ is left, and puts every improvement straight into search.
 | 0.25 | People & Roles, the library at a glance, private usage statistics |
 | 0.26 | A second copy (folder or S3) with automatic repair; serving books from our copy; BagIt |
 | 0.27 | Search in Latin letters for every Indic script; phrases, OR and exclusions |
+| 0.28 | Server → Requirements: what the server has and lacks, installs from the Desk or with the upgrade |
+| 0.29 | OCR in several languages at once; a language per page part |
 
 Still open from the four pillars: IIIF manifests and an image service, PRONOM format
 identification, DOIs, the ground-truth export, Wikidata links from notes as data, the W3C
