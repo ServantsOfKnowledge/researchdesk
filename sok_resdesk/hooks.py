@@ -20,6 +20,9 @@ add_to_apps_screen = [
 
 # Public portal ---------------------------------------------------------------
 
+# permanent ARKs resolve on the portal itself: /ark:/<naan>/<name>[/n<leaf>] (identifiers.py)
+page_renderer = ["sok_resdesk.identifiers.ArkPage"]
+
 website_route_rules = [
 	{"from_route": "/library/item/<item_id>", "to_route": "library/item"},
 	{"from_route": "/library/collection/<collection>", "to_route": "library/collection"},
@@ -54,7 +57,9 @@ doc_events = {
 	"RD Collection": {"on_trash": "sok_resdesk.curation.on_collection_trash"},
 	# a profile's portal collection (Keep in Step with archive.org)
 	"RD Ingest Profile": {"on_update": "sok_resdesk.ia_sync.on_profile_update"},
-	"RD Settings": {"on_update": "sok_resdesk.ia_sync.on_settings_update"},
+	"RD Settings": {
+		"on_update": ["sok_resdesk.ia_sync.on_settings_update", "sok_resdesk.identifiers.on_settings_change"]
+	},
 }
 
 # Scheduled ingest (profiles set to Daily / Weekly) ---------------------------
@@ -69,6 +74,8 @@ scheduler_events = {
 		"*/10 * * * *": ["sok_resdesk.ingest.mark_interrupted_runs", "sok_resdesk.server.watch"],
 		# automatic backups, at night (server time zone)
 		"30 2 * * *": ["sok_resdesk.server.scheduled_backup"],
+		# preservation copies and their fixity checks, after the backup (Settings → Preservation)
+		"15 3 * * *": ["sok_resdesk.preservation.daily"],
 	},
 	"hourly": ["sok_resdesk.ingest.run_scheduled_hourly"],
 	"daily": [
@@ -76,6 +83,10 @@ scheduler_events = {
 		# profiles set to Manual but kept in step with archive.org
 		"sok_resdesk.ia_sync.run_daily",
 		"sok_resdesk.server.scheduled_update_check",
+		# books that came in without an ARK (minting failed) get one
+		"sok_resdesk.identifiers.assign_missing",
+		# OCR quality for books not scored yet, from the page text kept here
+		"sok_resdesk.ocr.daily",
 	],
 	"weekly": ["sok_resdesk.ingest.run_scheduled_weekly"],
 }

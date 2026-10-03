@@ -43,6 +43,22 @@ class RDItem(Document):
 		if changed:
 			self.lock_metadata = 1
 
+	def before_insert(self):
+		# the permanent ARK, given once (Settings → Persistent Identifiers)
+		if not self.get("persistent_id"):
+			from sok_resdesk.identifiers import mint_next
+
+			try:
+				self.persistent_id = mint_next()
+			except Exception:
+				# never stop a book coming in over its identifier: the daily job gives it one
+				frappe.log_error(title="Research Desk: could not give a book its ARK")
+
+	def on_trash(self):
+		from sok_resdesk.identifiers import leave_tombstone
+
+		leave_tombstone(self)
+
 	def on_update(self):
 		# collection counts follow the Collections field
 		before = self.get_doc_before_save()

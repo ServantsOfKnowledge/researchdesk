@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-30 14:00:00.000000",
- "modified": "2026-10-02 14:00:00.000000",
+ "modified": "2026-10-05 09:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Collection",
@@ -14,6 +14,7 @@
   "slug",
   "published",
   "featured",
+  "preserve",
   "column_break_c",
   "cover_image",
   "curator",
@@ -56,6 +57,13 @@
    "fieldtype": "Check",
    "label": "Featured on the Home Page",
    "default": "0"
+  },
+  {
+   "fieldname": "preserve",
+   "fieldtype": "Check",
+   "label": "Preserve",
+   "default": "0",
+   "description": "Keep the library's own copies of the books in this collection (when Settings → Preservation → Preserve is set to collections marked Preserve)."
   },
   {
    "fieldname": "column_break_c",

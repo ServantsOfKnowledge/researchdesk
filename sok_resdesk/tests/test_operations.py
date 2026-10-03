@@ -30,6 +30,13 @@ SETTINGS_FIELDS = (
 	"quiet_weekdays_only",
 	"resource_preset",
 	"worker_nice",
+	"ark_naan",
+	"ark_shoulder",
+	"preservation_root",
+	"preserve_books",
+	"preserve_page_images",
+	"preservation_budget_gb",
+	"fixity_days",
 	"book_limit",
 	"mirror_all_collections",
 	"mirror_min_books",
@@ -727,3 +734,165 @@ class TestRetryByItself(OpsTestCase):
 			for _ in range(4):
 				ingest._retry_failed_runs(now_datetime(), add_to_date)
 		self.assertEqual(retry.call_count, ingest.AUTO_RETRY)
+
+
+class TestPermanentIdentifiers(OpsTestCase):
+	def setUp(self):
+		super().setUp()
+		frappe.db.set_single_value("RD Settings", {"ark_naan": "99999", "ark_shoulder": "b1"})
+
+	def test_new_books_get_an_ark_that_resolves(self):
+		from sok_resdesk import identifiers
+		from sok_resdesk.core import ark
+
+		name = _item(21)
+		pid = frappe.db.get_value("RD Item", name, "persistent_id")
+		self.assertTrue(pid.startswith("ark:/99999/b1"))
+		self.assertTrue(ark.parse(pid)["valid"])
+		self.assertNotEqual(pid, frappe.db.get_value("RD Item", _item(22), "persistent_id"))
+		where = identifiers.resolve(f"https://library.example/{pid}/n7")
+		self.assertEqual((where["kind"], where["item"].name, where["leaf"]), ("book", name, 7))
+		self.assertEqual(identifiers.resolve(pid[:-1] + ("b" if pid[-1] != "b" else "c"))["kind"], "unknown")
+		# citations and records point at the permanent link
+		from sok_resdesk.catalogue import get_record
+		from sok_resdesk.core.citations import url_for
+
+		self.assertEqual(
+			url_for(get_record(name, check_access=False), "https://lib.example"), f"https://lib.example/{pid}"
+		)
+
+	def test_a_deleted_book_leaves_a_tombstone(self):
+		from sok_resdesk import identifiers
+
+		name = _item(23)
+		pid = frappe.db.get_value("RD Item", name, "persistent_id")
+		frappe.delete_doc("RD Item", name, force=True, ignore_permissions=True)
+		self.addCleanup(lambda: frappe.db.delete("RD Tombstone", {"ark": pid}))
+		where = identifiers.resolve(pid)
+		self.assertEqual(where["kind"], "tombstone")
+		self.assertEqual(frappe.db.get_value("RD Tombstone", {"ark": pid}, "item_id"), name)
+
+	def test_books_without_an_ark_get_one_and_the_real_naan_remints_them(self):
+		from sok_resdesk import identifiers
+		from sok_resdesk.core import ark
+
+		names = [_item(n) for n in (24, 25)]
+		frappe.db.sql("update `tabRD Item` set persistent_id=null where name in %s", (tuple(names),))
+		self.assertGreaterEqual(identifiers.assign_missing(), 2)
+		before = {n: frappe.db.get_value("RD Item", n, "persistent_id") for n in names}
+		identifiers.remint("99999", "12345")
+		for n in names:
+			after = frappe.db.get_value("RD Item", n, "persistent_id")
+			self.assertTrue(after.startswith("ark:/12345/b1") and ark.parse(after)["valid"])
+			self.assertEqual(ark.parse(after)["name"][:-1], ark.parse(before[n])["name"][:-1])
+
+	def test_a_real_naan_cannot_be_changed_in_settings(self):
+		s = frappe.get_single("RD Settings")
+		s.ark_naan = "12345"
+		with mock.patch("sok_resdesk.identifiers.frappe.enqueue") as enqueue:
+			s.save(ignore_permissions=True)
+		self.assertEqual(enqueue.call_args.kwargs["new_naan"], "12345")  # test ARKs are made again
+		s = frappe.get_single("RD Settings")
+		s.ark_naan = "54321"
+		self.assertRaises(frappe.ValidationError, s.save, ignore_permissions=True)
+		s.reload()
+		s.ark_naan, s.ark_shoulder = "12345", "1b"
+		self.assertRaises(frappe.ValidationError, s.save, ignore_permissions=True)
+
+
+class TestOcrQuality(OpsTestCase):
+	def test_books_are_scored_from_kept_page_text(self):
+		from sok_resdesk import ocr
+		from sok_resdesk.ingest import write_cached_pages
+
+		name = _item(31)
+		frappe.db.set_value("RD Item", name, {"has_page_text": 1, "ocr_quality": None})
+		write_cached_pages(name, [{"leaf": 0, "label": "", "text": "ಕನಕದಾಸರ ಕೀರ್ತನೆಗಳು ಮತ್ತು ಪದಗಳು"}])
+		self.assertIn(name, ocr.unscored())
+		self.assertEqual(ocr.score_batch([name]), 1)
+		self.assertGreaterEqual(frappe.db.get_value("RD Item", name, "ocr_quality"), 90)
+		self.assertNotIn(name, ocr.unscored())
+
+	def test_indexing_records_the_quality(self):
+		from sok_resdesk.search import IndexBuffer
+
+		name = _item(32)
+		from sok_resdesk.catalogue import item_to_record
+
+		buf = IndexBuffer(FakeMeili())
+		buf.add(
+			item_to_record(frappe.get_doc("RD Item", name)),
+			[{"leaf": 0, "label": "", "text": "ಕನ X ಡ ಾಕ ್ಕ ■■ ���"}],
+		)
+		buf.flush()
+		self.assertLess(frappe.db.get_value("RD Item", name, "ocr_quality"), 50)
+		self.assertEqual(frappe.db.get_value("RD Item", name, "ocr_low_pages"), 1)
+
+
+class TestPreservation(OpsTestCase):
+	"""Copies, checks and events on real files; only the archive.org download is replaced."""
+
+	def setUp(self):
+		super().setUp()
+		self.root = tempfile.mkdtemp()
+		frappe.db.set_single_value(
+			"RD Settings", {"preservation_root": self.root, "preserve_books": "Every book", "fixity_days": 1}
+		)
+		self.content = {"book.pdf": b"%PDF-1.4 book", "book_meta.xml": b"<metadata/>"}
+
+		def fetch(item_id, staging, with_images):
+			out = {}
+			for name, data in self.content.items():
+				path = os.path.join(staging, name)
+				with open(path, "wb") as f:
+					f.write(data)
+				out[name] = path
+			return out
+
+		p = mock.patch("sok_resdesk.preservation._fetch_ia", side_effect=fetch)
+		p.start()
+		self.addCleanup(p.stop)
+		self.addCleanup(lambda: frappe.db.delete("RD Preservation Event", {"item": ("like", f"{PREFIX}%")}))
+
+	def test_copy_check_and_history(self):
+		from sok_resdesk import preservation
+		from sok_resdesk.core import ocfl
+
+		name = _item(41)
+		self.assertIn(name, preservation.wanted())
+		first = preservation.preserve(name)
+		self.assertEqual((first["version"], first["changed"]), ("v1", True))
+		row = frappe.db.get_value("RD Item", name, ["preservation_status", "preserved_bytes"], as_dict=True)
+		self.assertEqual(row.preservation_status, "Preserved")
+		self.assertEqual(int(row.preserved_bytes), sum(len(v) for v in self.content.values()))
+		self.assertNotIn(name, preservation.wanted())
+		# the same files again: no new version, no new event
+		self.assertFalse(preservation.preserve(name)["changed"])
+		self.assertEqual(frappe.db.count("RD Preservation Event", {"item": name}), 1)
+		# a changed file at the source: a new version holding only that file
+		self.content["book.pdf"] = b"%PDF-1.4 book, corrected"
+		self.assertEqual(preservation.preserve(name)["version"], "v2")
+		# bit rot in the copy: the check finds it, records it and marks the book
+		path = ocfl.head_files(self.root, name)["book_meta.xml"]
+		with open(path, "wb") as f:
+			f.write(b"<metadata>?</metadata>")
+		with mock.patch("sok_resdesk.server.send_alert") as alert:
+			result = preservation.audit()
+		self.assertEqual(result["failed"], 1)
+		alert.assert_called_once()
+		self.assertEqual(frappe.db.get_value("RD Item", name, "preservation_status"), "Failed check")
+		self.assertTrue(
+			frappe.db.exists(
+				"RD Preservation Event", {"item": name, "event_type": "Fixity check", "outcome": "Failure"}
+			)
+		)
+		self.assertEqual(preservation.health_check()["state"], "bad")
+
+	def test_only_collections_marked_preserve_when_asked(self):
+		from sok_resdesk import preservation
+
+		name = _item(42)
+		frappe.db.set_single_value("RD Settings", "preserve_books", preservation.IN_COLLECTIONS)
+		self.assertNotIn(name, preservation.wanted())
+		frappe.db.set_single_value("RD Settings", "preserve_books", "Off")
+		self.assertEqual(preservation.wanted(), [])

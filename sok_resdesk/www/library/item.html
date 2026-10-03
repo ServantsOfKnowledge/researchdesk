@@ -121,7 +121,8 @@
 				<h2>{{ _("Details") }}</h2>
 				<dl class="rd-meta">
 					<dt>{{ _("Identifier") }}</dt><dd><code>{{ item.item_id }}</code></dd>
-					{% if item.ark %}<dt>ARK</dt><dd><code>{{ item.ark }}</code></dd>{% endif %}
+					{% if item.persistent_id %}<dt>{{ _("Permanent link") }}</dt><dd><a href="/{{ item.persistent_id }}"><code>{{ item.persistent_id }}</code></a></dd>{% endif %}
+					{% if item.ark %}<dt>{{ _("ARK at archive.org") }}</dt><dd><code>{{ item.ark }}</code></dd>{% endif %}
 					{% if item.date_raw %}<dt>{{ _("Date") }}</dt><dd>{{ item.date_raw }}</dd>{% endif %}
 					{% if item.series %}<dt>{{ _("Series") }}</dt><dd>{{ item.series }}</dd>{% endif %}
 					{% if item.isbn %}<dt>ISBN</dt><dd>{{ item.isbn }}</dd>{% endif %}

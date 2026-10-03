@@ -136,6 +136,24 @@ class IAClient:
 			return None
 		return resp.content
 
+	def download_file(self, identifier: str, filename: str, dest: str) -> dict:
+		"""Stream one file of an item to `dest` (big scans don't go through memory).
+		Returns {"bytes", "md5"} so the caller can compare with the md5 archive.org lists."""
+		import hashlib
+		from urllib.parse import quote
+
+		url = DOWNLOAD_URL.format(identifier=identifier, filename=quote(filename))
+		resp = self._get(url, stream=True)
+		if resp.status_code != 200:
+			raise IAError(f"{identifier}/{filename}: HTTP {resp.status_code}")
+		md5, size = hashlib.md5(), 0
+		with open(dest, "wb") as f:
+			for block in resp.iter_content(1 << 20):
+				f.write(block)
+				md5.update(block)
+				size += len(block)
+		return {"bytes": size, "md5": md5.hexdigest()}
+
 	def page_texts(self, identifier: str, page_numbers: dict | None = None) -> list[dict]:
 		"""Return [{leaf, label, text}] for every page with OCR text.
 

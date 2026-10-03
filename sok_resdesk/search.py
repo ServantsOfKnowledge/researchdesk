@@ -285,10 +285,24 @@ def index_record(
 	frappe.db.set_value(
 		"RD Item",
 		record["item_id"],
-		{"indexed_on": now_datetime(), **({"indexed_pages": count} if pages else {})},
+		{
+			"indexed_on": now_datetime(),
+			**({"indexed_pages": count} if pages else {}),
+			**quality_fields(pages),
+		},
 		update_modified=False,
 	)
 	return count
+
+
+def quality_fields(pages: list[dict] | None) -> dict:
+	"""OCR quality of a book's pages, as RD Item fields (nothing when it has no page text)."""
+	from sok_resdesk.core.ocrquality import book_quality
+
+	q = book_quality(pages or [])
+	if q["score"] is None:
+		return {}
+	return {"ocr_quality": q["score"], "ocr_low_pages": q["low_pages"]}
 
 
 class IndexBuffer:
@@ -310,6 +324,7 @@ class IndexBuffer:
 		self.stale: list[str] = []  # books whose old pages go before the new ones arrive
 		self.pages: list[dict] = []
 		self.counts: dict[str, int | None] = {}  # item -> pages indexed (None: no page text sent)
+		self.quality: dict[str, dict] = {}  # item -> its OCR quality fields
 
 	def add(self, record: dict, pages: list[dict], replace_pages: bool = True) -> int:
 		"""Queue one book (nothing is sent yet: see due and flush). Returns its page count."""
@@ -323,6 +338,7 @@ class IndexBuffer:
 				self.stale.append(record["item_id"])
 			self.pages.extend(docs)
 		self.counts[record["item_id"]] = len(docs) if pages else None
+		self.quality[record["item_id"]] = quality_fields(pages)
 		return len(docs)
 
 	@property
@@ -333,8 +349,8 @@ class IndexBuffer:
 		"""Send what is waiting: the books first, so they are listed before their page text is."""
 		if not self.books:
 			return
-		books, stale, pages, counts = self.books, self.stale, self.pages, self.counts
-		self.books, self.stale, self.pages, self.counts = [], [], [], {}
+		books, stale, pages, counts, quality = self.books, self.stale, self.pages, self.counts, self.quality
+		self.books, self.stale, self.pages, self.counts, self.quality = [], [], [], {}, {}
 		client = self.client = self.client or MeiliClient.from_settings()
 		client.add(client.books, books)
 		if stale:
@@ -345,6 +361,7 @@ class IndexBuffer:
 		now = now_datetime()
 		for item_id, count in counts.items():
 			values = {"indexed_on": now} | ({} if count is None else {"indexed_pages": count})
+			values |= quality.get(item_id) or {}
 			frappe.db.set_value("RD Item", item_id, values, update_modified=False)
 
 

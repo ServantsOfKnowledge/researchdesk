@@ -360,6 +360,23 @@ Every setting:
 | Alert Webhook URL | Also post alerts as JSON to this address, for example a Slack, Mattermost or Discord incoming webhook (the text is in "text"). |
 | Alert When Disk Is This Full (%) | Warn when the disk holding Research Desk's data is this full. |
 
+**Persistent Identifiers**
+
+| Setting | What it does |
+|---|---|
+| ARK NAAN | The number the ARK Alliance gave this library (free: arks.org). 99999 is the Alliance's test number: ARKs made with it are for trying things out. When you enter your own, every book's ARK is made again under it, keeping its name; after that the NAAN can't be changed here. |
+| ARK Shoulder | The prefix of the books' ARK names: letters then one digit (b1 for books). Changing it only affects books catalogued afterwards. |
+
+**Preservation**
+
+| Setting | What it does |
+|---|---|
+| Preservation Folder | Where the library's own copies of its books are kept (a disk or NAS folder the server can write to, e.g. /preservation in Docker). Empty: no copies are kept. Each book is stored as an OCFL object: plain files and a checksum inventory any future system can read. |
+| Preserve | Which books get a copy. Copies are made a few hundred a night (Background Jobs shows them); a book ingested again gets a new version only if a file changed. Choices: *Off*, *Books in collections marked Preserve*, *Every book*. |
+| Include Page Images | Also keep the original scans from archive.org, not only the PDF, OCR and metadata. Much larger (often 10-50 times), but the copy is then complete enough to make new OCR from. |
+| Space for Copies (GB) | The most the copies may take. 0: as much as the disk allows (the last 5% of the disk is never used). |
+| Check Every (days) | Every copy is checked against its checksums at least this often: each night a share of them is checked. A copy that fails is marked and alerts on the Server page. |
+
 **Collections from archive.org**
 
 | Setting | What it does |

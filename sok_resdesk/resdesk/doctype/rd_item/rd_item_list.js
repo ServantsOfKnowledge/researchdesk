@@ -15,6 +15,12 @@ frappe.listview_settings["RD Item"] = {
 		}[doc.visibility || "Public"];
 	},
 	onload(listview) {
+		// OCR quality: sort by it (lowest first) to find the books that most need better text
+		listview.page.add_menu_item(__("Score OCR quality"), () =>
+			frappe.call({ method: "sok_resdesk.ocr.enqueue_scoring", freeze: true }).then((r) =>
+				frappe.show_alert({ message: __("{0} books are being scored in the background.", [r.message]), indicator: "green" })
+			)
+		);
 		const ask = (label, args, count) => {
 			const d = new frappe.ui.Dialog({
 				title: label,

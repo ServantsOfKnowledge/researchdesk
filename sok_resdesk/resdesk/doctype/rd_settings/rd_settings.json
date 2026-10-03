@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-02 15:00:00.000000",
+ "modified": "2026-10-05 09:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -62,6 +62,17 @@
   "alert_emails",
   "alert_webhook_url",
   "alert_disk_percent",
+  "identifiers_section",
+  "ark_naan",
+  "column_break_ids",
+  "ark_shoulder",
+  "preservation_section",
+  "preservation_root",
+  "preserve_books",
+  "preserve_page_images",
+  "column_break_pres",
+  "preservation_budget_gb",
+  "fixity_days",
   "ia_collections_section",
   "mirror_all_collections",
   "mirror_min_books",
@@ -416,6 +427,74 @@
    "default": "90",
    "non_negative": 1,
    "description": "Warn when the disk holding Research Desk's data is this full."
+  },
+  {
+   "fieldname": "identifiers_section",
+   "fieldtype": "Section Break",
+   "label": "Persistent Identifiers"
+  },
+  {
+   "fieldname": "ark_naan",
+   "fieldtype": "Data",
+   "label": "ARK NAAN",
+   "default": "99999",
+   "description": "The number the ARK Alliance gave this library (free: arks.org). 99999 is the Alliance's test number: ARKs made with it are for trying things out. When you enter your own, every book's ARK is made again under it, keeping its name; after that the NAAN can't be changed here."
+  },
+  {
+   "fieldname": "column_break_ids",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ark_shoulder",
+   "fieldtype": "Data",
+   "label": "ARK Shoulder",
+   "default": "b1",
+   "description": "The prefix of the books' ARK names: letters then one digit (b1 for books). Changing it only affects books catalogued afterwards."
+  },
+  {
+   "fieldname": "preservation_section",
+   "fieldtype": "Section Break",
+   "label": "Preservation"
+  },
+  {
+   "fieldname": "preservation_root",
+   "fieldtype": "Data",
+   "label": "Preservation Folder",
+   "description": "Where the library's own copies of its books are kept (a disk or NAS folder the server can write to, e.g. /preservation in Docker). Empty: no copies are kept. Each book is stored as an OCFL object: plain files and a checksum inventory any future system can read."
+  },
+  {
+   "fieldname": "preserve_books",
+   "fieldtype": "Select",
+   "label": "Preserve",
+   "options": "Off\nBooks in collections marked Preserve\nEvery book",
+   "default": "Off",
+   "description": "Which books get a copy. Copies are made a few hundred a night (Background Jobs shows them); a book ingested again gets a new version only if a file changed."
+  },
+  {
+   "fieldname": "preserve_page_images",
+   "fieldtype": "Check",
+   "label": "Include Page Images",
+   "default": "0",
+   "description": "Also keep the original scans from archive.org, not only the PDF, OCR and metadata. Much larger (often 10-50 times), but the copy is then complete enough to make new OCR from."
+  },
+  {
+   "fieldname": "column_break_pres",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "preservation_budget_gb",
+   "fieldtype": "Int",
+   "label": "Space for Copies (GB)",
+   "non_negative": 1,
+   "description": "The most the copies may take. 0: as much as the disk allows (the last 5% of the disk is never used)."
+  },
+  {
+   "fieldname": "fixity_days",
+   "fieldtype": "Int",
+   "label": "Check Every (days)",
+   "default": "30",
+   "non_negative": 1,
+   "description": "Every copy is checked against its checksums at least this often: each night a share of them is checked. A copy that fails is marked and alerts on the Server page."
   },
   {
    "fieldname": "ia_collections_section",

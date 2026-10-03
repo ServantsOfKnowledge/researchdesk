@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.20.0 (unreleased): permanent links, preservation copies, OCR quality
+
+- **A permanent link for every book (ARK).** Every book gets an ARK when it is catalogued
+  (books already here get one on upgrade), shown as *Permanent link* on its page and used by
+  citations, exports, OAI-PMH and pushes. The portal resolves ARKs itself
+  (`/ark:/<naan>/<name>`, `/n42` for a page, `?info` for a short record). Until the library's own
+  NAAN arrives they use the ARK Alliance's test number 99999; entering the real one in Settings →
+  Persistent Identifiers makes them again under it, keeping their names. A deleted book leaves a
+  **tombstone**, so its link never ends in "page not found"
+- **The library's own copies of its books.** Settings → Preservation: a folder, which books (by
+  collection or all), page images or not, a size budget. Each book is kept as an **OCFL** object
+  (an open standard: plain files and a checksum inventory, readable without Research Desk), each
+  file checked against archive.org's md5 as it arrives, a new version only when a file changed.
+  Every night a share of the copies is **checked against their checksums**; a failure marks the
+  book, is recorded as a **Preservation Event** and alerts on the Server page. In Docker the
+  folder is `/preservation` (a volume, or `PRESERVATION_DIR` for a disk or NAS)
+- **OCR quality for every book**, 0 to 100 with its low-quality pages, from the text itself
+  (broken Indic words, mixed scripts, stray symbols): sort the Items list by it to find the books
+  that most need better OCR. Books are scored as they are indexed, and those already here in the
+  background from the page text kept on the server
+- New help page: *Permanent links, preservation & OCR quality*
+
 ## 0.19.1 (2026-10-05): Pause, Stop and the jobs list work again; failed runs retry by themselves
 
 - **Fixed: Pause (and Stop, and the jobs list) failed with "signal only works in main thread of

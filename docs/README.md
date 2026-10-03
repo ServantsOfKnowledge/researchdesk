@@ -15,6 +15,7 @@ The same pages are inside the app: **Help** on the portal (for readers) and **He
 5. [Citations & reading lists](citations.md): formats, Zotero, sharing a bibliography
 6. [Who can see what](access.md): members-only books, public catalogue or internal library, reader sign-up and approval, bulk changes
 7. [Collections, metadata & pushing](collections-and-metadata.md): curated collections, editing details, exports (spreadsheet, MARCXML, MODS, Dublin Core, JSON-LD, IA), spreadsheet imports, pushing to Internet Archive, Koha, Wikidata or a webhook
+   - [Permanent links, preservation & OCR quality](preservation.md): ARKs for every book and page, tombstones, the library's own checked copies (OCFL), preservation events, OCR quality scores
 8. [Koha & interoperability](koha.md): OAI-PMH harvesting, MARCXML import, standalone mode
 9. [API](api.md): public HTTP endpoints
 10. [Server: updates, health & backups](server.md): the Server page in the Desk: new releases, health of every part, the book limit, backups, logs, alerts; upgrading and restarting from the Desk with the updater helper

@@ -35,7 +35,8 @@ USER root
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY docker/start.sh /usr/local/bin/start.sh
 COPY docker/create-site.sh /usr/local/bin/create-site.sh
-RUN chmod 755 /usr/local/bin/entrypoint.sh /usr/local/bin/start.sh /usr/local/bin/create-site.sh
+RUN chmod 755 /usr/local/bin/entrypoint.sh /usr/local/bin/start.sh /usr/local/bin/create-site.sh \
+    && mkdir -p /preservation && chown frappe:frappe /preservation   # a new volume there starts writable
 USER frappe
 
 # 2. This app: a few MB, the only part rebuilt when Research Desk changes (under a minute)

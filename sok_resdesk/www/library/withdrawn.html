@@ -1,0 +1,26 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="rd">
+	<nav class="rd-crumbs"><a href="{{ library_url() }}">← {{ portal_title }}</a></nav>
+	<h1 class="rd-page-title">{{ _("This book is no longer available here") }}</h1>
+	<p><code>{{ ark }}</code></p>
+	{% if stone %}
+	<dl class="rd-meta">
+		{% if stone.title %}<dt>{{ _("Title") }}</dt><dd>{{ stone.title }}</dd>{% endif %}
+		{% if stone.creators %}<dt>{{ _("Authors") }}</dt><dd>{{ stone.creators }}</dd>{% endif %}
+		{% if stone.year %}<dt>{{ _("Year") }}</dt><dd>{{ stone.year }}</dd>{% endif %}
+		<dt>{{ _("What happened") }}</dt><dd>{{ _(stone.reason) }}{% if stone.withdrawn_on %}, {{ frappe.format(stone.withdrawn_on, {"fieldtype": "Date"}) }}{% endif %}</dd>
+		{% if stone.note %}<dt>{{ _("Note") }}</dt><dd>{{ stone.note }}</dd>{% endif %}
+	</dl>
+	{% if replaced_by %}
+	<p><a class="btn btn-primary" href="/library/item/{{ replaced_by | urlencode }}">{{ _("Go to the record that replaces it") }}</a></p>
+	{% endif %}
+	{% elif hidden %}
+	<p class="rd-muted">{{ _("The library has taken this book off the portal for now. Its permanent link stays valid and will lead to it again if it comes back.") }}</p>
+	{% endif %}
+	<p><a href="{{ library_url() }}">{{ _("Search the library") }}</a></p>
+</div>
+{% endblock %}

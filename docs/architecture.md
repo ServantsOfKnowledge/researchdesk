@@ -55,7 +55,7 @@ cause. Details: [Server](server.md#how-the-updater-helper-works).
 
 | DocType | Purpose | Key fields |
 |---|---|---|
-| **RD Item** | one book/document | `item_id` (= IA identifier, the document name), title, alt_title, creators (table), year, language (ISO 639-3), publisher, subjects (multi-select), collections (source), curated_collections, item_type, lock_metadata ("Keep My Edits"), removed_from_source, licence, access, visibility (Public / Login to read / Login to find) and visibility_set_by, page_count, has_page_text, ark, raw_metadata (JSON) |
+| **RD Item** | one book/document | `item_id` (= IA identifier, the document name), title, alt_title, creators (table), year, language (ISO 639-3), publisher, subjects (multi-select), collections (source), curated_collections, item_type, lock_metadata ("Keep My Edits"), removed_from_source, licence, access, visibility (Public / Login to read / Login to find) and visibility_set_by, page_count, has_page_text, ark (archive.org's), persistent_id (this library's permanent ARK), ocr_quality and ocr_low_pages, preservation_status / preserved_on / preserved_version / preserved_bytes / fixity_checked_on, raw_metadata (JSON) |
 | RD Item Creator | child table | creator → RD Creator, role, name_as_given |
 | RD Item Subject | child table | subject → RD Subject |
 | **RD Creator** | authority-lite person record | full_name, alt_name (romanised), VIAF, Wikidata |
@@ -64,7 +64,7 @@ cause. Details: [Server](server.md#how-the-updater-helper-works).
 | **RD Ingest Run** | one execution | status, counts, log |
 | **RD Settings** | single | portal, branding, OAI, Meilisearch, IA politeness, machine resources, server & updates (update checks, backups, alerts), guest access, reader sign-up, access rules |
 | RD Access Rule | child table of settings | match_on (collection, subject, language, creator, source, profile), value, visibility |
-| **RD Collection** | a curated collection | title, slug (the name and web address), published, featured, cover, curator, description, rules, item_count, mirror_of (the archive.org collection it follows), part_of (the collection it belongs to) |
+| **RD Collection** | a curated collection | title, slug (the name and web address), published, featured, preserve, cover, curator, description, rules, item_count, mirror_of (the archive.org collection it follows), part_of (the collection it belongs to) |
 | RD Collection Rule | child table | match_on (source collection, subject, language, creator, source, profile, document type), how (is exactly / contains), value |
 | RD Item Collection | child table of RD Item (`curated_collections`) | collection |
 | **RD Export** | one metadata export | format, which books, status, file |
@@ -75,6 +75,8 @@ cause. Details: [Server](server.md#how-the-updater-helper-works).
 | **RD Reader Request** | a sign-up waiting for approval | user, status (Pending / Approved / Rejected); approving adds the ResDesk Reader role |
 | **RD About Page** | single | the introduction page at `/about`: on/off and its top-bar label, page title and search description, headline, tagline, introduction (rich text), image, live numbers, two buttons, steps, highlight cards, featured collections, a free-form part |
 | RD About Item | child table of RD About Page (`steps`, `highlights`) | title, text (plain, `**bold**`), link, link text |
+| **RD Tombstone** | what is left of a deleted or merged book, so its ARK still answers | ark, item_id, title, authors, year, reason (Deleted / Withdrawn / Merged), replaced_by, note for readers |
+| **RD Preservation Event** | a book's preservation history (PREMIS-style) | item, event (Ingestion / Fixity check / Replication / Repair / Deletion), outcome, when, copy version, by, detail |
 | **RD Server Task** | an upgrade, restart, resource preset, server backup, update check or log request from the Server page, carried out by the updater helper | action, arguments (checked), status (Queued / Running / Succeeded / Failed / Cancelled), requested by, log, summary |
 
 `raw_metadata` keeps the untouched source record, so re-normalising later never needs a

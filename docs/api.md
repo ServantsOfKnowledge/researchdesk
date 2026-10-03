@@ -128,6 +128,9 @@ two files are ever served, and the PDF only when the caller may read the book.
 | `sok_resdesk.guide.checklist` · `checklist_mark` (`key`, `what`=`done`/`skipped`/`hide`/`show`) · `restart_checklist` | the getting-started checklist on the workspace (`show` brings a hidden one back, keeping its ticks; `restart_checklist` starts it afresh) |
 | `sok_resdesk.priority.set_worker_priority` (`nice`=`19`/`10`/`5`/`0`/`-5`) | choose the background workers' priority live; each worker applies it between two books (Background Jobs → Machine → Worker priority) |
 | `sok_resdesk.search.enqueue_index_missing` (`with_pages`) | queue the books that never reached the search engine; returns how many |
+| `sok_resdesk.preservation.preserve_now` (`item`) · `check_now` (`item`) · `enqueue_preservation` | make or update a book's preservation copy now; check a copy against its checksums; copy every book waiting for one (docs/preservation.md) |
+| `sok_resdesk.ocr.enqueue_scoring` (`limit`) | score the OCR quality of books not scored yet, in the background; returns how many |
+| `GET /ark:/<naan>/<name>[/n<leaf>]` | a permanent ARK: redirects to the book (at that leaf); `?info` returns its who/what/when/where record as text; a deleted book's ARK leads to its tombstone |
 | `sok_resdesk.capacity.get_status` | the book limit: books and pages in the catalogue, the limit, room left, and what the machine's CPUs, memory and disk can each hold |
 | `sok_resdesk.server.status` | everything on the Server page: versions, updates, health, backups, helper, recent tasks |
 | `sok_resdesk.server.check_updates` | look for a newer release and Frappe patch now (also daily) |

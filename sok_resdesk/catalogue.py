@@ -60,6 +60,7 @@ def item_to_record(doc) -> dict:
 		"source_url": doc.source_url or "",
 		"thumbnail_url": _absolute(doc.thumbnail_url or ""),
 		"ark": doc.ark or "",
+		"persistent_id": doc.get("persistent_id") or "",
 		"has_fulltext": bool(doc.has_fulltext),
 		"has_page_text": bool(doc.has_page_text),
 		"on_archive_org": bool(doc.on_archive_org) or doc.source == "Internet Archive",

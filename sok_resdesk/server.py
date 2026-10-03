@@ -487,6 +487,12 @@ def health() -> list[dict]:
 	from sok_resdesk.capacity import health_check
 
 	out.append(health_check())
+	try:
+		from sok_resdesk.preservation import health_check as preservation_check
+
+		out.append(preservation_check())
+	except Exception as e:
+		out.append(_check("preservation", _("Preservation copies"), "warn", str(e)[:120]))
 
 	day = add_to_date(now_datetime(), days=-1)
 	errors = frappe.db.count("Error Log", {"creation": (">", day)})

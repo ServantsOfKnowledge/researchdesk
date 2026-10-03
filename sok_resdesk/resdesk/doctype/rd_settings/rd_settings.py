@@ -12,6 +12,9 @@ class RDSettings(Document):
 			self.base_url = self.base_url.rstrip("/")
 		if self.index_prefix:
 			self.index_prefix = frappe.scrub(self.index_prefix)
+		from sok_resdesk.identifiers import validate_settings
+
+		validate_settings(self)
 
 	def on_update(self):
 		apply_branding(self)

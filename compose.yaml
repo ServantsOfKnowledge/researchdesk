@@ -36,6 +36,10 @@ x-backend: &backend
     # Your folder of IA-style item folders (local disk, USB or a mounted NAS share),
     # read-only. Set LIBRARY_DIR in .env; ingest profiles see it as /library-source.
     - ${LIBRARY_DIR:-./library}:/library-source:ro
+    # The library's own copies of its books (Settings → Preservation → Preservation Folder:
+    # /preservation). A Docker volume unless PRESERVATION_DIR names a host folder (a disk or NAS
+    # mount, writable by uid 1000).
+    - ${PRESERVATION_DIR:-preservation-data}:/preservation
   depends_on:
     configurator:
       condition: service_completed_successfully
@@ -256,6 +260,7 @@ services:
       - websocket
 
 volumes:
+  preservation-data:
   db-data:
   redis-queue-data:
   meili-data:

@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-02 12:00:00.000000",
+ "modified": "2026-10-05 09:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Item",
@@ -46,9 +46,12 @@
   "section_digital",
   "source_url",
   "ark",
+  "persistent_id",
   "has_fulltext",
   "has_page_text",
   "column_break_d",
+  "ocr_quality",
+  "ocr_low_pages",
   "ocr_engine",
   "ocr_language",
   "scanning_centre",
@@ -62,6 +65,13 @@
   "local_thumb",
   "text_source",
   "source_signature",
+  "section_preservation",
+  "preservation_status",
+  "preserved_version",
+  "column_break_pres",
+  "preserved_on",
+  "fixity_checked_on",
+  "preserved_bytes",
   "section_system",
   "ingest_profile",
   "lock_metadata",
@@ -297,8 +307,18 @@
   {
    "fieldname": "ark",
    "fieldtype": "Data",
-   "label": "ARK",
+   "label": "ARK at archive.org",
    "read_only": 1
+  },
+  {
+   "fieldname": "persistent_id",
+   "fieldtype": "Data",
+   "label": "Permanent ARK",
+   "read_only": 1,
+   "unique": 1,
+   "no_copy": 1,
+   "in_standard_filter": 1,
+   "description": "This library's permanent identifier for the book, given when it is first catalogued and never changed. It works as a link: <portal>/ark:/… opens this book, and …/n42 its leaf 42."
   },
   {
    "fieldname": "has_fulltext",
@@ -315,6 +335,22 @@
   {
    "fieldname": "column_break_d",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ocr_quality",
+   "fieldtype": "Int",
+   "label": "OCR Quality",
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "How clean the page text is, 0 (garbage) to 100 (clean), worked out from the text itself. Sort the Items list by it to find the books that most need better OCR or proofreading. Empty: not scored yet (no page text kept)."
+  },
+  {
+   "fieldname": "ocr_low_pages",
+   "fieldtype": "Int",
+   "label": "Low-Quality Pages",
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "Pages with an OCR quality below 50."
   },
   {
    "fieldname": "ocr_engine",
@@ -397,6 +433,55 @@
    "label": "Source Signature",
    "read_only": 1,
    "hidden": 1
+  },
+  {
+   "fieldname": "section_preservation",
+   "fieldtype": "Section Break",
+   "label": "Preservation",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "preservation_status",
+   "fieldtype": "Select",
+   "label": "Preservation",
+   "options": "\nPreserved\nFailed check\nMissing",
+   "read_only": 1,
+   "no_copy": 1,
+   "in_standard_filter": 1,
+   "description": "The library's own copy of the book (Settings → Preservation): Preserved and passing its checks, Failed check (a file changed or went missing) or Missing."
+  },
+  {
+   "fieldname": "preserved_version",
+   "fieldtype": "Data",
+   "label": "Copy Version",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "column_break_pres",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "preserved_on",
+   "fieldtype": "Datetime",
+   "label": "Preserved On",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "fixity_checked_on",
+   "fieldtype": "Datetime",
+   "label": "Fixity Checked On",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "preserved_bytes",
+   "fieldtype": "Float",
+   "label": "Copy Size (bytes)",
+   "read_only": 1,
+   "no_copy": 1,
+   "precision": "0"
   },
   {
    "fieldname": "section_system",

@@ -116,6 +116,10 @@ def cite_types(item: dict) -> tuple[str, str, str, str]:
 
 
 def url_for(item: dict, base_url: str = "") -> str:
+	"""The book's link for citations and records: its permanent ARK on the portal when it has
+	one (it never breaks), else the portal page, else archive.org."""
+	if base_url and item.get("persistent_id"):
+		return f"{base_url.rstrip('/')}/{item['persistent_id']}"
 	if base_url:
 		return f"{base_url.rstrip('/')}/library/item/{item['item_id']}"
 	return item.get("source_url") or f"https://archive.org/details/{item['item_id']}"

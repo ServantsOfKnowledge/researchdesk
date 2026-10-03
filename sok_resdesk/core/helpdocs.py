@@ -49,6 +49,13 @@ PAGES = [
 		"For library staff",
 	),
 	Page("access", "access.md", "Who can see what", "staff", "For library staff"),
+	Page(
+		"preservation",
+		"preservation.md",
+		"Permanent links, preservation & OCR quality",
+		"staff",
+		"For library staff",
+	),
 	Page("koha", "koha.md", "Koha & interoperability", "staff", "For library staff"),
 	Page(
 		"getting-started", "getting-started.md", "Getting started (installing)", "staff", "For administrators"
