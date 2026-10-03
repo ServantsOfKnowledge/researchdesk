@@ -570,6 +570,8 @@ Maintenance
   ./resdesk.sh coolify import FILE          on a Coolify server: load an export (also: list, export, bench)
   ./resdesk.sh update [v0.4.0]          upgrade (same as ./upgrade.sh; --check to just look)
   ./resdesk.sh updater on|off|status    let the Server page in the Desk upgrade, restart and back up
+  ./resdesk.sh requirements             how well this server is equipped: every tool, found or missing
+  ./resdesk.sh requirements install python|ocr   install Python packages, or Tesseract + models (native)
   ./resdesk.sh password [new]           reset the Administrator password
   ./resdesk.sh dev on|off               developer mode (Docker); native is always live
   ./resdesk.sh console | shell | bench …  for developers
@@ -591,4 +593,5 @@ The Research Desk commands behind it (`./resdesk.sh <command>` runs `bench --sit
 | `jobs` | What is running in the background; pause, resume or stop it. | `--stop` Stop this ingest run (e.g. RUN-00042)<br>`--stop-all` Cancel all runs and queued Research Desk jobs, pause schedules<br>`--now` With --stop/--stop-all: kill running jobs instead of letting them finish the current book<br>`--pause` Pause scheduled ingests<br>`--resume` Resume scheduled ingests<br>`--pause-run` Pause this ingest or push run (it keeps its place)<br>`--resume-run` Resume a paused run<br>`--pause-all` Pause all runs, hold waiting jobs, pause schedules<br>`--resume-all` Undo --pause-all: everything carries on |
 | `resource-preset` | The resource preset chosen in the Desk (read by ./resdesk.sh resources apply). | `--set` Record the preset in use (./resdesk.sh resources does this) |
 | `relink-folders` | Point books and profiles at the book folders' new place (after moving; see docs/moving.md). | `--from` Where the book folders were, e.g. /Users/om/library<br>`--to` Where they are now (default: the library folder) |
+| `requirements` | How well this server is equipped: every tool Research Desk uses, found or missing. |  |
 <!-- /generated:commands -->

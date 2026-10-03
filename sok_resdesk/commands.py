@@ -547,4 +547,28 @@ def relink_folders_cmd(context, old_root, new_root):
 		frappe.destroy()
 
 
+@resdesk.command("requirements")
+@pass_context
+def requirements_cmd(context):
+	"""How well this server is equipped: every tool Research Desk uses, found or missing."""
+	frappe = _connect(context)
+	try:
+		from sok_resdesk.requirements import check
+
+		marks = {"ok": "✓", "missing": "✗", "old": "✗", "warn": "!", "off": "·"}
+		group = None
+		for i in check():
+			if i["group"] != group:
+				group = i["group"]
+				click.echo(f"\n{group}")
+			need = f" (needs {i['need']})" if i["need"] and i["state"] == "old" else ""
+			click.echo(
+				f"  {marks.get(i['state'], '?')} {i['label']}: {i['found'] or i['state']}{need}  · {i['purpose']}"
+			)
+			if i["state"] in ("missing", "old") and i["fix"]:
+				click.echo(f"      → {i['fix']}")
+	finally:
+		frappe.destroy()
+
+
 commands = [resdesk]

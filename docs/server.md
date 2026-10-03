@@ -76,6 +76,40 @@ ingest profile says when a profile matches more books than there is room for. Ma
 alert at 90% and again at the limit. To make room: add disk, memory or CPUs (Docker Desktop:
 Settings → Resources), raise the limit in Settings, or remove books you don't need.
 
+## Requirements
+
+The **Requirements** card lists every tool Research Desk uses and how well this server has it:
+what it is for, what was found (and its version), what is needed, and how to put it right.
+**Check again** looks afresh; otherwise the list is worked out at most every ten minutes.
+
+| Group | Checked |
+|---|---|
+| Core | Python (3.11+), Frappe (16), MariaDB (10.6+), Redis, the updater helper; on native installs `git` and `uv` |
+| Search | Meilisearch, and its version: search in Latin letters and `OR` need 1.11 or newer |
+| OCR and proofreading | Pillow, Tesseract (4+), and a Tesseract language model for each language in the catalogue, with how many books it covers |
+| Preservation | the preservation folder (writable, free space), `boto3` for an S3 second copy, the second copy's folder or bucket (reachable) |
+| Network and disk | archive.org reachable; free disk space |
+
+A line is **ok**, **missing**, **too old**, **check** (works, but worth a look) or **not needed
+now** (for a feature that is off, such as boto3 without an S3 second copy). The **Health** list
+sums it up in one *Requirements* line, which also feeds the [alerts](#alerts).
+
+**Installing what is missing:**
+
+- **Docker**: everything comes with the Research Desk image, so the fix is to
+  [upgrade](#upgrading-from-the-desk). The image carries Tesseract with Kannada, Hindi, Marathi,
+  Sanskrit, Tamil, Telugu, Malayalam, Bengali, Gujarati, Punjabi, Oriya and English.
+- **Native**, with the [updater helper](#the-updater-helper) on: **Install** on a missing line
+  installs Research Desk's Python packages, or Tesseract with its language models (Homebrew on
+  macOS; apt on Ubuntu/Debian). The task's progress shows on the page like an upgrade's.
+  apt needs administrator rights: the helper can use them only when `sudo` asks no password for
+  its user; otherwise the task stops and shows the command to run.
+- **Native, by hand**: each line shows its command (with **Copy**), e.g.
+  `./resdesk.sh requirements install ocr`, `sudo apt-get install tesseract-ocr tesseract-ocr-kan`
+  or `brew install tesseract tesseract-lang`.
+
+On the server, `./resdesk.sh requirements` prints the same list.
+
 ## Checking for updates
 
 Once a day Research Desk looks on GitHub for a newer release and for Frappe patch releases, and

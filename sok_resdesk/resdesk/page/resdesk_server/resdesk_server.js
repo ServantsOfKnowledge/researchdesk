@@ -64,6 +64,23 @@ class ResDeskServer {
 			)
 		);
 		on("[data-copy]", ($b) => frappe.utils.copy_to_clipboard($b.data("copy")));
+		on("[data-req-refresh]", () => this.load_requirements(1));
+		on("[data-req-install]", ($b) => {
+			const part = $b.data("req-install");
+			const what = part === "ocr" ? __("Tesseract and its language models") : __("Research Desk's Python packages");
+			frappe.confirm(__("Install {0} on this server, through the updater helper?", [what]), () =>
+				frappe.call({
+					method: "sok_resdesk.requirements.install",
+					args: { part },
+					freeze: true,
+					callback: (r) => {
+						frappe.show_alert({ message: __("Started {0}. Its progress shows below.", [r.message]), indicator: "blue" }, 6);
+						this.watch(r.message);
+						this.req = null;
+					},
+				})
+			);
+		});
 		this.$body.on("change", "[data-log-file]", (e) => this.load_logs("files", $(e.currentTarget).val()));
 		this.refresh();
 		this.start();
@@ -519,6 +536,9 @@ class ResDeskServer {
 			<div class="rds-grid">
 				<div>
 					<div class="rds-card"><h4>${__("Health")}</h4>${health}</div>
+					<div class="rds-card" id="requirements"><h4>${__("Requirements")}
+						<button class="btn btn-xs btn-default" data-req-refresh style="margin-left:auto">${__("Check again")}</button></h4>
+						<div class="rds-req">${this.req ? "" : `<p class="text-muted small">${__("Checking…")}</p>`}</div></div>
 					<div class="rds-card"><h4>${__("Book limit")}</h4>${capacity}</div>
 					<div class="rds-card"><h4>${__("Updates")}</h4>${updates}</div>
 					<div class="rds-card"><h4>${__("Services")}</h4>${services}</div>
@@ -537,5 +557,48 @@ class ResDeskServer {
 		if (this.task_doc) this.render_task();
 		if (this.log_data) this.render_logs();
 		else this.load_logs(this.log_view.source, this.log_view.name);
+		if (this.req) this.render_requirements();
+		else if (!this.req_loading) this.load_requirements(0);
+	}
+
+	// ---- requirements: what the server has, and installing what is missing ----------------
+	load_requirements(refresh) {
+		this.req_loading = true;
+		frappe.call({
+			method: "sok_resdesk.requirements.report",
+			args: { refresh: refresh ? 1 : 0 },
+			callback: (r) => {
+				this.req = r.message;
+				this.req_loading = false;
+				this.render_requirements();
+			},
+			error: () => (this.req_loading = false),
+		});
+	}
+
+	render_requirements() {
+		const esc = frappe.utils.escape_html;
+		const d = this.req;
+		const pill = { ok: ["green", __("ok")], missing: ["red", __("missing")], old: ["orange", __("too old")], warn: ["orange", __("check")], off: ["gray", __("not needed now")] };
+		let group = null;
+		const rows = d.items
+			.map((i) => {
+				const [color, word] = pill[i.state] || ["gray", i.state];
+				const head = i.group !== group ? `<tr><th colspan="3" class="text-muted small" style="padding-top:12px">${esc((group = i.group))}</th></tr>` : "";
+				const bad = ["missing", "old"].includes(i.state);
+				const action = !bad || !i.fix
+					? ""
+					: i.install && d.can_install
+						? `<button class="btn btn-xs btn-primary" data-req-install="${esc(i.install)}">${__("Install")}</button>`
+						: `<div class="rds-cmd"><code>${esc(i.fix)}</code>${i.fix.startsWith("./") || i.fix.startsWith("sudo") || i.fix.startsWith("brew") ? `<button class="btn btn-xs btn-default" data-copy="${esc(i.fix)}">${__("Copy")}</button>` : ""}</div>`;
+				return `${head}<tr><td><b>${esc(i.label)}</b><div class="text-muted small">${esc(i.purpose)}</div></td>
+					<td><span class="indicator-pill ${color}">${word}</span><div class="small">${esc(i.found || "")}${i.need && bad ? ` · ${__("needs")} ${esc(i.need)}` : ""}</div></td>
+					<td>${action}</td></tr>`;
+			})
+			.join("");
+		const s = d.summary;
+		const intro = `<p class="small">${__("{0} in place · {1} missing or too old · {2} to check", [s.ok, s.missing, s.warn])}
+			· ${d.mode === "docker" ? __("Docker install: tools come with the image (upgrade to update them).") : d.can_install ? __("Native install: missing tools can be installed from here.") : __("Native install: turn on the updater helper to install from here, or run the commands shown.")}</p>`;
+		this.$body.find(".rds-req").html(`${intro}<table class="table table-sm rds-table"><tbody>${rows}</tbody></table>`);
 	}
 }

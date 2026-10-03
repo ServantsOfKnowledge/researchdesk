@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.28.0 (2026-10-07): what the server has, and installing what is missing
+
+- **Requirements** on the Server page: every tool Research Desk uses, found or missing, with its
+  version, what it is for and how to fix it: Python, Frappe, MariaDB, Redis, the updater helper,
+  git and uv (native), Meilisearch (1.11+ for Latin-letter search and OR), Pillow, Tesseract and a
+  language model for each language in the catalogue (with its number of books), the preservation
+  folder, boto3 and the second copy's folder or bucket, archive.org and disk space
+- **Install from the Desk** on native installs, through the updater helper: Python packages, or
+  Tesseract with its language models (Homebrew; apt when sudo needs no password, else the command
+  to run). Docker: tools come with the image, so the fix is Upgrade
+- One *Requirements* line in Health (and its alerts); `./resdesk.sh requirements [install
+  python|ocr]` on the server
+
 ## 0.27.0 (2026-10-07): search in Latin letters, phrases and OR
 
 - **Type it as you would write it**: `kanakadasa` finds ಕನಕದಾಸ, `vachana` ವಚನ, `karnataka

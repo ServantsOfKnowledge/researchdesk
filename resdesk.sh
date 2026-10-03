@@ -101,6 +101,9 @@ case "$cmd" in
   jobs)     bench resdesk jobs "$@" ;;
   screenshots) python3 scripts/screenshots.py --url "http://localhost:${HTTP_PORT:-8080}" "$@" ;;
   docs)     python3 scripts/gen_docs.py "$@" ;;
+  requirements)
+    # what the server has and what is missing; install tools on native installs (docs/server.md#requirements)
+    if [ "${1:-}" = install ]; then bash scripts/requirements.sh "$@"; else bench resdesk requirements; fi ;;
 
   resources)
     # Caps for the background workers, search engine and database (docs/operations.md#resources)
@@ -405,6 +408,8 @@ Maintenance
   ./resdesk.sh coolify import FILE          on a Coolify server: load an export (also: list, export, bench)
   ./resdesk.sh update [v0.4.0]          upgrade (same as ./upgrade.sh; --check to just look)
   ./resdesk.sh updater on|off|status    let the Server page in the Desk upgrade, restart and back up
+  ./resdesk.sh requirements             how well this server is equipped: every tool, found or missing
+  ./resdesk.sh requirements install python|ocr   install Python packages, or Tesseract + models (native)
   ./resdesk.sh password [new]           reset the Administrator password
   ./resdesk.sh dev on|off               developer mode (Docker); native is always live
   ./resdesk.sh console | shell | bench …  for developers

@@ -37,6 +37,7 @@ ACTIONS = {
 	"restart": (ADMINS, True),
 	"apply_resources": (ADMINS, True),
 	"server_backup": (ADMINS, True),
+	"install_requirements": (ADMINS, True),
 	"check_updates": (MANAGERS, False),
 	"logs": (MANAGERS, False),
 }
@@ -45,6 +46,7 @@ LABELS = {
 	"restart": "Restart",
 	"apply_resources": "Apply Resource Preset",
 	"server_backup": "Server Backup",
+	"install_requirements": "Install Requirements",
 	"check_updates": "Check for Updates",
 	"logs": "Show Logs",
 }
@@ -198,6 +200,11 @@ def _check_args(action: str, args: dict) -> dict:
 		if preset not in ("light", "standard", "server"):
 			frappe.throw(_("Choose light, standard or server."))
 		return {"preset": preset}
+	if action == "install_requirements":
+		part = args.get("part") or ""
+		if part not in ("python", "ocr"):
+			frappe.throw(_("Choose python or ocr."))
+		return {"part": part}
 	if action == "logs":
 		service = args.get("service") or "backend"
 		if service not in LOG_SERVICES:
@@ -256,6 +263,10 @@ def _describe(action: str, args: dict) -> str:
 		return _("Apply the {0} preset").format(args["preset"])
 	if action == "logs":
 		return _("Logs: {0}").format(args["service"])
+	if action == "install_requirements":
+		return _("Install: {0}").format(
+			{"python": _("Python packages"), "ocr": _("Tesseract and its language models")}[args["part"]]
+		)
 	return _(LABELS[action])
 
 
@@ -502,6 +513,12 @@ def health() -> list[dict]:
 		out.append(preservation_check())
 	except Exception as e:
 		out.append(_check("preservation", _("Preservation copies"), "warn", str(e)[:120]))
+	try:
+		from sok_resdesk.requirements import health_check as requirements_check
+
+		out.append(requirements_check())
+	except Exception as e:
+		out.append(_check("requirements", _("Requirements"), "warn", str(e)[:120]))
 
 	day = add_to_date(now_datetime(), days=-1)
 	errors = frappe.db.count("Error Log", {"creation": (">", day)})

@@ -148,6 +148,7 @@ two files are ever served, and the PDF only when the caller may read the book.
 | `sok_resdesk.reocr.enqueue_book` (`item_id`, `preset`) · `enqueue_worst` (`count`, `preset`) · `engine_status` | managers: re-OCR a book, or the books with the poorest OCR, keeping the better text; whether Tesseract is installed and with which models |
 | `sok_resdesk.people.overview` · `users` (`role`, `q`, `show_disabled`) | managers: each role with its count and sign-ups waiting; people with their Research Desk roles |
 | `sok_resdesk.people.set_role` (`user`, `role`, `on`) · `set_enabled` (`user`, `enabled`) · `invite` (`emails`, `roles`, `full_name`, `send_welcome`) · `decide` (`names`, `status`) | managers: give or take a role, switch an account off or on, invite people, approve or reject sign-ups |
+| `sok_resdesk.requirements.report` (`refresh`) · `install` (`part`=`python`/`ocr`) | admins: every tool Research Desk uses, found or missing, with what it is for and how to fix it; install Python packages or Tesseract with its models through the updater helper (native installs) |
 | `sok_resdesk.dashboard.numbers` (`refresh`) | managers: the workspace numbers (cached five minutes) |
 | `sok_resdesk.analytics.config` | the usage statistics service portal pages load (public) |
 | `GET /ark:/<naan>/<name>[/n<leaf>]` | a permanent ARK: redirects to the book (with a leaf: that page in the page reader); `?info` returns its who/what/when/where record as text; a deleted book's ARK leads to its tombstone |
