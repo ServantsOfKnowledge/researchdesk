@@ -117,7 +117,10 @@ def cite_types(item: dict) -> tuple[str, str, str, str]:
 
 def url_for(item: dict, base_url: str = "") -> str:
 	"""The book's link for citations and records: its permanent ARK on the portal when it has
-	one (it never breaks), else the portal page, else archive.org."""
+	one (it never breaks), else the portal page, else archive.org. A page citation (with_page)
+	links to that page."""
+	if item.get("page_url"):
+		return item["page_url"]
 	if base_url and item.get("persistent_id"):
 		return f"{base_url.rstrip('/')}/{item['persistent_id']}"
 	if base_url:
@@ -136,6 +139,30 @@ def cite_key(item: dict) -> str:
 	key = f"{who}{item.get('year') or ''}{word}".lower()
 	key = re.sub(r"[^a-z0-9]", "", key)
 	return key or re.sub(r"[^A-Za-z0-9_-]", "", item["item_id"])[:40]
+
+
+def with_page(item: dict, leaf: int, label: str = "", base_url: str = "") -> dict:
+	"""The record for citing one page: `leaf` is the page image (from 0), `label` the number printed
+	on it when there is one. Its link opens that page in the portal's page reader (through the
+	book's ARK when it has one: …/ark:/…/n<leaf>)."""
+	leaf = max(0, int(leaf))
+	if base_url and item.get("persistent_id"):
+		url = f"{base_url.rstrip('/')}/{item['persistent_id']}/n{leaf}"
+	elif base_url:
+		url = f"{base_url.rstrip('/')}/library/item/{item['item_id']}?page={leaf}&view=text"
+	else:
+		url = f"https://archive.org/details/{item['item_id']}/page/n{leaf}"
+	return {**item, "cite_page": (label or "").strip(), "cite_leaf": leaf, "page_url": url}
+
+
+def page_phrase(item: dict) -> str:
+	"""How a page is named in a citation: "p. 42", or "leaf 7" when no number is printed on it."""
+	label = item.get("cite_page") or ""
+	if label:
+		return f"p. {label}" if label[:1].isdigit() else label
+	if item.get("cite_leaf") is not None:
+		return f"leaf {item['cite_leaf']}"
+	return ""
 
 
 def _bib_escape(text: str) -> str:
@@ -165,6 +192,8 @@ def to_bibtex(item: dict, base_url: str = "", biblatex: bool = False) -> str:
 		fields.append(("isbn", item["isbn"]))
 	if item.get("page_count"):
 		fields.append(("pagetotal", str(item["page_count"])))
+	if page_phrase(item):
+		fields.append(("pages", _bib_escape(item.get("cite_page") or page_phrase(item))))
 	fields.append(("url", url_for(item, base_url)))
 	fields.append(("urldate", date.today().isoformat()))
 	if item.get("on_archive_org", True):
@@ -204,6 +233,8 @@ def to_ris(item: dict, base_url: str = "") -> str:
 		lines.append(f"KW  - {s}")
 	if item.get("description"):
 		lines.append(f"AB  - {item['description'][:2000]}")
+	if page_phrase(item):
+		lines.append(f"SP  - {item.get('cite_page') or page_phrase(item)}")
 	lines.append(f"UR  - {url_for(item, base_url)}")
 	lines.append(f"Y2  - {date.today().isoformat()}")
 	lines.append("DB  - Servants of Knowledge Research Desk")
@@ -230,6 +261,8 @@ def to_csl(item: dict, base_url: str = "") -> dict:
 		"archive": "Internet Archive",
 		"archive_location": item["item_id"],
 	}
+	if page_phrase(item):
+		csl["page"] = item.get("cite_page") or page_phrase(item)
 	if item.get("alt_title"):
 		csl["title-short"] = item["alt_title"]
 	if item.get("year"):
@@ -280,6 +313,8 @@ def to_apa(item: dict, base_url: str = "") -> str:
 		parts.append(f"{title}.")
 	if item.get("publisher"):
 		parts.append(f"{item['publisher']}.")
+	if page_phrase(item):
+		parts.append(f"{page_phrase(item)}.")
 	parts.append(url_for(item, base_url))
 	return " ".join(parts)
 
@@ -297,7 +332,9 @@ def to_mla(item: dict, base_url: str = "") -> str:
 	parts.append(f"{display_title(item)}.")
 	pub = ", ".join(str(x) for x in (item.get("publisher"), item.get("year")) if x)
 	if pub:
-		parts.append(f"{pub}.")
+		parts.append(f"{pub}{', ' + page_phrase(item) if page_phrase(item) else ''}.")
+	elif page_phrase(item):
+		parts.append(f"{page_phrase(item)}.")
 	parts.append(f"Internet Archive, {url_for(item, base_url).replace('https://', '')}.")
 	return " ".join(p.replace("..", ".") for p in parts)
 
@@ -311,7 +348,9 @@ def to_chicago(item: dict, base_url: str = "") -> str:
 	place_pub = ": ".join(x for x in (item.get("place"), item.get("publisher")) if x)
 	tail = ", ".join(str(x) for x in (place_pub, item.get("year")) if x)
 	if tail:
-		parts.append(f"{tail}.")
+		parts.append(f"{tail}{', ' + page_phrase(item).removeprefix('p. ') if page_phrase(item) else ''}.")
+	elif page_phrase(item):
+		parts.append(f"{page_phrase(item).removeprefix('p. ')}.")
 	parts.append(f"{url_for(item, base_url)}.")
 	return " ".join(p for p in parts if p).replace("..", ".")
 

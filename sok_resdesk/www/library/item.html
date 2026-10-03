@@ -86,15 +86,46 @@
 				</form>
 				<ol id="rd-inside-hits" class="rd-inside__hits"></ol>
 			</div>
-			{% if reader == "ia" %}
-			<iframe id="rd-reader-frame" title="{{ _('Book reader') }}"
-				src="https://archive.org/embed/{{ item.item_id }}{% if start_leaf %}#page/n{{ start_leaf }}/mode/1up{% endif %}"
-				allowfullscreen loading="lazy"></iframe>
-			{% elif reader == "pdf" and item.access_status == "Open" %}
-			<iframe id="rd-reader-frame" title="{{ _('Book reader') }}"
-				src="{{ pdf_url }}#page={{ start_leaf + 1 }}" loading="lazy"></iframe>
-			{% else %}
-			<div class="rd-card rd-muted">{{ _("No readable copy is available online for this book.") }}</div>
+			{% if page_reader %}
+			<div class="rd-views" role="tablist" aria-label="{{ _('Reader') }}">
+				<button type="button" role="tab" class="rd-view{% if start_view == 'book' %} is-active{% endif %}" data-view="book" aria-selected="{{ 'true' if start_view == 'book' else 'false' }}">{{ _("Book reader") }}</button>
+				<button type="button" role="tab" class="rd-view{% if start_view == 'text' %} is-active{% endif %}" data-view="text" aria-selected="{{ 'true' if start_view == 'text' else 'false' }}">{{ _("Page & text") }}</button>
+			</div>
+			{% endif %}
+			<div class="rd-view-pane{% if start_view != 'book' %} is-hidden{% endif %}" data-pane="book">
+				{% if reader == "ia" %}
+				<iframe id="rd-reader-frame" title="{{ _('Book reader') }}"
+					src="https://archive.org/embed/{{ item.item_id }}{% if start_leaf %}#page/n{{ start_leaf }}/mode/1up{% endif %}"
+					allowfullscreen loading="lazy"></iframe>
+				{% elif reader == "pdf" and item.access_status == "Open" %}
+				<iframe id="rd-reader-frame" title="{{ _('Book reader') }}"
+					src="{{ pdf_url }}#page={{ start_leaf + 1 }}" loading="lazy"></iframe>
+				{% else %}
+				<div class="rd-card rd-muted">{{ _("No readable copy is available online for this book.") }}</div>
+				{% endif %}
+			</div>
+			{% if page_reader %}
+			<div class="rd-view-pane rd-pages{% if start_view != 'text' %} is-hidden{% endif %}" data-pane="text" id="rd-pages" data-start="{{ start_leaf }}">
+				<div class="rd-pages__bar">
+					<button class="rd-btn" type="button" data-step="-1" aria-label="{{ _('Previous page') }}">←</button>
+					<label class="rd-pages__where">{{ _("Page image") }} <input type="number" min="1" id="rd-pages-n" value="{{ start_leaf + 1 }}"> <span id="rd-pages-of"></span></label>
+					<button class="rd-btn" type="button" data-step="1" aria-label="{{ _('Next page') }}">→</button>
+					<span class="rd-pages__label" id="rd-pages-label"></span>
+					<span class="rd-pages__spacer"></span>
+					<button class="rd-btn" type="button" id="rd-pages-link">{{ _("Copy page link") }}</button>
+					<button class="rd-btn" type="button" id="rd-pages-cite">{{ _("Cite this page") }}</button>
+					<button class="rd-btn" type="button" id="rd-pages-book">{{ _("Open in book reader") }}</button>
+				</div>
+				<div class="rd-pages__cite is-hidden" id="rd-pages-citebox">
+					<div class="rd-tabs" role="tablist" id="rd-pages-cite-tabs"></div>
+					<pre class="rd-page-cite" id="rd-pages-cite-text"></pre>
+					<button class="rd-btn" type="button" id="rd-pages-cite-copy">{{ _("Copy") }}</button>
+				</div>
+				<div class="rd-pages__body">
+					<figure class="rd-pages__image" id="rd-pages-image"></figure>
+					<div class="rd-pages__text" id="rd-pages-text" lang="{{ item.language or '' }}"></div>
+				</div>
+			</div>
 			{% endif %}
 			{% endif %}
 		</section>
@@ -149,4 +180,5 @@
 <script>window.RD_HOME = {{ library_url() | tojson }};</script>
 <script src="/assets/sok_resdesk/js/basket.js"></script>
 <script src="/assets/sok_resdesk/js/item.js"></script>
+<script src="/assets/sok_resdesk/js/reader.js"></script>
 {% endblock %}

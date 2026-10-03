@@ -50,6 +50,10 @@ def get_context(context):
 	context.login_url = access.login_url(f"/library/item/{item_id}")
 	context.title = citations.display_title(record)
 	context.start_leaf = max(0, cint(frappe.form_dict.get("page")))
+	# two readers side by side: the book reader (archive.org's, as before) and the page reader
+	# (page image and its text, page links and page citations); ?view=text opens the second
+	context.page_reader = bool(record.get("has_page_text") or record.get("on_archive_org"))
+	context.start_view = "text" if context.page_reader and frappe.form_dict.get("view") == "text" else "book"
 	# Reader: the Internet Archive's BookReader when the book is there, otherwise the PDF from our own files.
 	context.reader = "ia" if record.get("on_archive_org") else ("pdf" if record.get("pdf_url") else "none")
 	context.pdf_url = record.get("pdf_url") or ""

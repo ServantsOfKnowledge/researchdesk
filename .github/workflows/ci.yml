@@ -47,6 +47,13 @@ jobs:
             | tee /dev/stderr | awk '{n++} $1 != 19 {bad=1} END {exit bad || !n}'
       - name: Small live ingest from the Internet Archive
         run: ./resdesk.sh ingest --collection ServantsOfKnowledge --filter "language:eng" --limit 3
+      - name: Page images from archive.org (the page reader's address)
+        # informational: archive.org being slow must not block a release
+        continue-on-error: true
+        run: |
+          ID=$(curl -fsS "http://localhost:8080/api/method/sok_resdesk.api.search?q=" | python3 -c "import json,sys; print(json.load(sys.stdin)['message']['hits'][0]['item_id'])")
+          curl -fsSL -o /tmp/page.jpg -w "%{http_code} %{content_type} %{size_download} bytes\n" "https://archive.org/download/$ID/page/n1.jpg"
+          file /tmp/page.jpg | grep -qi "image" || { echo "::warning::archive.org page image for $ID is not an image"; exit 1; }
       - name: Smoke-test public endpoints
         run: |
           set -e

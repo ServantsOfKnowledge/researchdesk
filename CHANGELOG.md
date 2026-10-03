@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.22.0 (2026-10-05): Page & text, next to the book reader
+
+- **Page & text**, a second reader on every book page beside the book reader (archive.org's,
+  unchanged and still the first one shown): each page image next to the text read from it,
+  with its printed page number. Arrows, ← → keys or a page number to move; search inside the
+  book opens its hits here, with the words marked, while it is showing
+- **Copy page link**: a link that opens the book at that page in Page & text (`?page=…&view=text`;
+  a page's ARK `…/n41` leads there too once ARKs are on)
+- **Cite this page** in APA, MLA, Chicago, BibTeX, RIS and CSL-JSON: *p. 42*, or *leaf 7* when no
+  number is printed, linking to the page (BibTeX `pages`, RIS `SP`, CSL-JSON `page`)
+- **Open in book reader** switches back at the same page
+- It is the ground the next releases build on: annotations (0.23) and proofreading (0.24)
+
 ## 0.21.2 (2026-10-05): OCR quality you can see
 
 - **OCR Quality is a column of the Items list**, and Background Jobs → Machine shows how many books

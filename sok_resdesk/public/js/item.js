@@ -46,6 +46,8 @@
 
 	function jumpTo(leaf) {
 		const el = root();
+		// the page reader, when it is the one showing: it opens the page with the words marked
+		if (window.RDPages && RDPages.active() && Number(leaf) >= 0) return RDPages.go(leaf, ($("#rd-inside-q") || {}).value || "");
 		const frame = $("#rd-reader-frame");
 		if (!frame || Number(leaf) < 0) return; // text sections without a page number
 		if (el.dataset.reader === "pdf") {

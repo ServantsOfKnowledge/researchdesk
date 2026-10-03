@@ -109,6 +109,29 @@ def test_styles():
 	assert "1955" in chicago and "archive.org" in chicago
 
 
+def test_page_citations():
+	base = "https://lib.example"
+	item = citations.with_page(sample_item(), 41, "42", base)
+	assert item["page_url"] == f"{base}/library/item/{item['item_id']}?page=41&view=text"
+	assert citations.page_phrase(item) == "p. 42"
+	assert "pages = {42}" in citations.to_bibtex(item, base)
+	assert "SP  - 42" in citations.to_ris(item, base)
+	assert citations.to_csl(item, base)["page"] == "42"
+	assert "p. 42." in citations.to_apa(item, base) and item["page_url"] in citations.to_apa(item, base)
+	assert ", p. 42." in citations.to_mla(item, base)
+	assert ", 42." in citations.to_chicago(item, base)
+	# a page with no printed number is named by its leaf; with an ARK the link is the page's ARK
+	bare = citations.with_page({**sample_item(), "persistent_id": "ark:/12345/b1x"}, 7, "", base)
+	assert citations.page_phrase(bare) == "leaf 7"
+	assert bare["page_url"] == f"{base}/ark:/12345/b1x/n7"
+	assert "pages = {leaf 7}" in citations.to_bibtex(bare, base)
+	# roman front matter keeps its label
+	assert citations.page_phrase(citations.with_page(sample_item(), 3, "xii", base)) == "xii"
+	# the book's own citation is unchanged
+	assert "pages" not in citations.to_bibtex(sample_item(), base)
+	assert "page" not in citations.to_csl(sample_item(), base)
+
+
 def test_split_name():
 	assert citations.split_name("Rangachari, K.") == ("Rangachari", "K.")
 	assert citations.split_name("K. Rangachari") == ("Rangachari", "K.")

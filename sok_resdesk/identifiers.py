@@ -216,8 +216,9 @@ class ArkPage(BaseRenderer):
 		where = resolve(self.path)
 		if where["kind"] == "book":
 			item = where["item"]
+			# a page's ARK (…/n42) opens that page in the page reader, where it can be read and cited
 			url = f"/library/item/{item.name}" + (
-				f"?page={where['leaf']}" if where["leaf"] is not None else ""
+				f"?page={where['leaf']}&view=text" if where["leaf"] is not None else ""
 			)
 			if _wants_info():
 				if not can_find(item.visibility):

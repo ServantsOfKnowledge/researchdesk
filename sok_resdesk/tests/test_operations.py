@@ -1131,3 +1131,48 @@ class TestAutoBooksFirst(OpsTestCase):
 		frappe.db.set_single_value("RD Settings", "auto_books_first", 0)
 		self.assertIsNone(search_queue.auto_books_first(self.engine(500, 100, 20)))
 		self.cancel.assert_not_called()
+
+
+class TestPageReader(OpsTestCase):
+	def setUp(self):
+		super().setUp()
+		from sok_resdesk.ingest import write_cached_pages
+
+		self.name = _item(61)
+		frappe.db.set_value(
+			"RD Item", self.name, {"has_page_text": 1, "page_count": 12, "visibility": "Public"}
+		)
+		write_cached_pages(
+			self.name,
+			[
+				{"leaf": 4, "label": "1", "text": "ಮೊದಲ ಪುಟ"},
+				{"leaf": 5, "label": "2", "text": "ಎರಡನೆಯ ಪುಟ"},
+			],
+		)
+
+	def test_a_page_with_its_image_text_and_number(self):
+		from sok_resdesk import api
+
+		frappe.set_user("Guest")
+		d = api.page(self.name, 5)
+		self.assertEqual((d["leaf"], d["label"], d["text"], d["last"]), (5, "2", "ಎರಡನೆಯ ಪುಟ", 11))
+		self.assertTrue(d["image"].endswith(f"/download/{self.name}/page/n5.jpg"))
+		blank = api.page(self.name, 7)  # a page with no text still has its image
+		self.assertEqual((blank["text"], blank["has_text"]), ("", True))
+		self.assertEqual(api.page(self.name, 999)["leaf"], 11)  # past the end: the last page
+
+	def test_members_only_text_needs_a_login(self):
+		from sok_resdesk import api
+
+		frappe.db.set_value("RD Item", self.name, "visibility", "Login to read")
+		frappe.set_user("Guest")
+		self.assertEqual(api.page(self.name, 5), {"login_needed": True})
+
+	def test_cite_a_page(self):
+		from sok_resdesk import api
+
+		frappe.set_user("Guest")
+		c = api.cite_page(self.name, 5, "2")
+		self.assertEqual(c["page"], "p. 2")
+		self.assertTrue(c["url"].endswith(f"/library/item/{self.name}?page=5&view=text"))
+		self.assertIn("SP  - 2", c["formats"]["ris"])

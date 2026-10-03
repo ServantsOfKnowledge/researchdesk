@@ -159,6 +159,65 @@ def search_inside(item_id: str, q: str, limit: int = 50):
 	}
 
 
+# -- the page reader (book page → "Page & text") ---------------------------------------------------
+
+
+def page_image_url(record: dict, leaf: int) -> str:
+	"""The page image: archive.org serves every page of a book it holds as …/page/n<leaf>.jpg.
+	Books only in the library's own folders have no page images here yet (their PDF has them)."""
+	if record.get("on_archive_org"):
+		from urllib.parse import quote
+
+		return f"https://archive.org/download/{quote(record['item_id'], safe='')}/page/n{int(leaf)}.jpg"
+	return ""
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=240, seconds=60)
+def page(item_id: str, leaf: int = 0):
+	"""One page for the page reader: its image, its text and printed number, and its neighbours.
+	`leaf` counts the page images from 0 (as archive.org does)."""
+	from sok_resdesk.ingest import fetch_pages
+
+	record = get_record(item_id)
+	if not record:
+		frappe.throw(_("Item not found"), frappe.DoesNotExistError)
+	if not access.can_read(record.get("visibility")):
+		return {"login_needed": True}
+	try:
+		pages = fetch_pages(item_id) if record.get("has_page_text") else []
+	except Exception:
+		pages = []  # the image can still be shown
+	by_leaf = {p["leaf"]: p for p in pages}
+	last = max([cint(record.get("page_count")) - 1, *(by_leaf or [0])])
+	leaf = min(max(0, cint(leaf)), max(0, last))
+	here = by_leaf.get(leaf) or {}
+	return {
+		"leaf": leaf,
+		"last": last,
+		"label": here.get("label") or "",
+		"text": here.get("text") or "",
+		"has_text": bool(pages),
+		"image": page_image_url(record, leaf),
+		"pdf": record.get("pdf_url") if record.get("access_status") == "Open" else "",
+	}
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=120, seconds=60)
+def cite_page(item_id: str, leaf: int = 0, label: str = ""):
+	"""Citations of one page in every format, linking to that page."""
+	record = get_record(item_id)
+	if not record:
+		frappe.throw(_("Item not found"), frappe.DoesNotExistError)
+	cited = citations.with_page(record, cint(leaf), (label or "")[:20], base_url())
+	return {
+		"url": cited["page_url"],
+		"page": citations.page_phrase(cited),
+		"formats": {k: citations.render(cited, k, base_url()) for k in citations.FORMATS},
+	}
+
+
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 def item(item_id: str):
 	record = get_record(item_id)

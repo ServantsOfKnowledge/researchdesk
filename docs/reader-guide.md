@@ -41,7 +41,8 @@ page with the same search and filters, limited to that collection.
 
 Click a title to open its page. You'll find:
 
-- the **reader**, to turn pages, zoom and read online;
+- two ways to read: the **Book reader**, to turn pages, zoom and read online, and **Page & text**,
+  which shows one page's image next to its text (see below);
 - **Search inside this book**: type a word and press **Find** to list every page where it
   appears (click one to jump there);
 - **Download PDF**, when the library can share the file;
@@ -49,6 +50,20 @@ Click a title to open its page. You'll find:
 - **Cite this book** and **Add to my list** (below).
 
 ![A book page: reader, search inside, details and citation](../sok_resdesk/public/images/guide/portal-book.png)
+
+### Page & text
+
+**Page & text** puts each page image next to the text read from it. Turn pages with the arrows
+(or the ← → keys), or type a page number. The printed page number, when the page has one, shows
+beside it (*p. 39*).
+
+- **Copy page link** copies a link that opens this book at this page, in Page & text.
+- **Cite this page** gives the reference of this page in APA, MLA, Chicago, BibTeX, RIS or
+  CSL-JSON, with its page number and a link to it.
+- **Open in book reader** switches to the book reader at the same page.
+
+While Page & text is showing, the pages found by **Search inside this book** open here, with the
+words you searched for marked.
 
 Scans are old books, and the text read from them by machine (OCR) has mistakes. If a search
 inside the book misses a word you can see on the page, try a shorter form of the word.

@@ -132,7 +132,9 @@ two files are ever served, and the PDF only when the caller may read the book.
 | `sok_resdesk.ocr.enqueue_scoring` (`limit`) · `sok_resdesk.jobs.score_ocr_now` | score the OCR quality of books not scored yet, in one background job; returns how many |
 | `sok_resdesk.search_queue.get_overview` | the search engine's queue: book records and page text waiting, tasks a minute, time to go, failures, page text held or pending, task history |
 | `sok_resdesk.search_queue.books_first` · `hold_page_text` (`hold`=1/0) · `clear_history` (`days`) | cancel the waiting page text so books are listed next (it is sent again later); hold or resume page text; forget finished tasks older than `days` (7) |
-| `GET /ark:/<naan>/<name>[/n<leaf>]` | a permanent ARK: redirects to the book (at that leaf); `?info` returns its who/what/when/where record as text; a deleted book's ARK leads to its tombstone |
+| `sok_resdesk.api.page` (`item_id`, `leaf`) | one page for the page reader: image address, text, printed number, last leaf (text needs read access) |
+| `sok_resdesk.api.cite_page` (`item_id`, `leaf`, `label`) | one page's citation in every format, and its link |
+| `GET /ark:/<naan>/<name>[/n<leaf>]` | a permanent ARK: redirects to the book (with a leaf: that page in the page reader); `?info` returns its who/what/when/where record as text; a deleted book's ARK leads to its tombstone |
 | `sok_resdesk.capacity.get_status` | the book limit: books and pages in the catalogue, the limit, room left, and what the machine's CPUs, memory and disk can each hold |
 | `sok_resdesk.server.status` | everything on the Server page: versions, updates, health, backups, helper, recent tasks |
 | `sok_resdesk.server.check_updates` | look for a newer release and Frappe patch now (also daily) |

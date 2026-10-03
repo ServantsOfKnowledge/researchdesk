@@ -14,6 +14,14 @@ The **Cite this book** box offers:
 **Copy** puts the current tab on the clipboard; **Download** saves a file; **MARCXML** gives
 a library catalogue record (see [Koha](koha.md)).
 
+### Citing a page
+
+In **Page & text** on a book page, **Cite this page** gives the same formats for the page you
+are on: *p. 42* when a number is printed on it, or *leaf 7* (the page image, counted from 0)
+when none is; roman numbers in front matter stay as printed (*xii*). The link in the reference
+opens that page in Page & text; once the library gives its books permanent ARKs it is the page's
+own ARK (`…/ark:/…/n41`). BibTeX gets `pages`, RIS `SP`, CSL-JSON `page`.
+
 ### Books in Kannada and other scripts
 
 Titles and names are kept in the original script. When the record has a romanised form, it
