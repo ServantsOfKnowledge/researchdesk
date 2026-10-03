@@ -123,7 +123,7 @@ is left, and puts every improvement straight into search.
 - [x] **Proofreaders**: a reader role and sign-up, work lists by collection and language, credit on
       every page a person corrected, and review by staff
 - [x] Corrections re-index the page at once and show on the portal as *proofread text*
-- [ ] **Ground truth**: corrected pages exported with their images as an open training set, so
+- [x] **Ground truth**: corrected pages exported with their images as an open training set, so
       the community can build better Kannada, Konkani, Tamil and Hindi OCR, and the loop
       retrains our own engines
 
@@ -156,10 +156,11 @@ is left, and puts every improvement straight into search.
 | 0.27 | Search in Latin letters for every Indic script; phrases, OR and exclusions |
 | 0.28 | Server → Requirements: what the server has and lacks, installs from the Desk or with the upgrade |
 | 0.29 | OCR in several languages at once; a language per page part |
+| 0.30 | Sharing the loop: ground-truth sets (licence-gated), notes linked to Wikidata, the W3C Annotation Protocol, optional DOIs; a collection on the portal in minutes (bulk catalogue first) |
 
 Still open from the four pillars: IIIF manifests and an image service, PRONOM format
-identification, DOIs, the ground-truth export, Wikidata links from notes as data, the W3C
-Annotation Protocol, and finding books by their notes' tags.
+identification. (DOIs, the ground-truth export, Wikidata links from notes, the W3C Annotation
+Protocol and finding books by their notes' tags shipped in 0.30.)
 
 ## Later: better search and data
 
