@@ -124,6 +124,12 @@ TOURS: dict[str, list[tuple[str, str, str]]] = {
 		("subjects", "Subjects", "Used by the Subject filter on the portal and in exports."),
 		("curated_collections", "Collections", "Your own collections this book belongs to."),
 		(
+			"ocr_languages",
+			"OCR Languages",
+			"Re-OCR reads the book's languages and English. List others here, main one first: "
+			"<i>kan, san, eng</i>.",
+		),
+		(
 			"lock_metadata",
 			"Keep My Edits",
 			"Ticked for you when you edit: re-ingesting won't overwrite your corrections.",

@@ -15,7 +15,8 @@
 4. **Standards at every edge**: OAI-PMH, MARCXML, Dublin Core, schema.org, Highwire tags,
    COinS, BibTeX/RIS/CSL, W3C Web Annotation, ARK, OCFL, BagIt. There are no bespoke integrations.
 5. **Pure-Python core.** Normalisation, citations, MARC, OAI-PMH, ARKs, OCFL, the second copy,
-   BagIt, OCR quality, page zones, transliteration and annotation anchoring live in
+   BagIt, OCR quality, page zones, OCR languages, transliteration, annotation anchoring and server
+   equipment checks live in
    `sok_resdesk/core/` with no Frappe imports, so they are unit-tested in milliseconds and
    reusable elsewhere.
 
@@ -33,7 +34,7 @@
 │   MariaDB  ◀── catalogue ── Frappe ORM ──▶ search.py ──▶ Meilisearch              │
 │                                              ▲            rd_books · rd_pages      │
 │   redis-queue ──▶ queue worker ── ingest.py ─┘                                    │
-│                   │ re-OCR (Tesseract, Indic models) · preservation copies (OCFL)  │
+│                   │ re-OCR (Tesseract, several languages) · preservation copies (OCFL)  │
 │   scheduler (profiles, archive.org sync, fixity checks, second copies)            │
 └──────────────────────────────────────────────┼────────────────────────────────────┘
                                                ▼
@@ -61,7 +62,7 @@ cause. Details: [Server](server.md#how-the-updater-helper-works).
 
 | DocType | Purpose | Key fields |
 |---|---|---|
-| **RD Item** | one book/document | `item_id` (= IA identifier, the document name), title, alt_title, creators (table), year, language (ISO 639-3), publisher, subjects (multi-select), collections (source), curated_collections, item_type, lock_metadata ("Keep My Edits"), removed_from_source, licence, access, visibility (Public / Login to read / Login to find) and visibility_set_by, page_count, has_page_text, ark (archive.org's), persistent_id (this library's permanent ARK), ocr_quality and ocr_low_pages, reocr_state and pages_proofread (re-OCR and proofreading), page_order (page text matched to the page images by the scan data), preservation_status / preserved_on / preserved_version / preserved_bytes / fixity_checked_on, copies ("2 of 2 verified"), second_copy_status / second_copy_version / second_copy_on / second_copy_checked_on, served_from_copy, raw_metadata (JSON) |
+| **RD Item** | one book/document | `item_id` (= IA identifier, the document name), title, alt_title, creators (table), year, language (ISO 639-3), publisher, subjects (multi-select), collections (source), curated_collections, item_type, lock_metadata ("Keep My Edits"), removed_from_source, licence, access, visibility (Public / Login to read / Login to find) and visibility_set_by, page_count, has_page_text, ark (archive.org's), persistent_id (this library's permanent ARK), ocr_quality and ocr_low_pages, ocr_languages (the languages to OCR it in), reocr_state and pages_proofread (re-OCR and proofreading), page_order (page text matched to the page images by the scan data), preservation_status / preserved_on / preserved_version / preserved_bytes / fixity_checked_on, copies ("2 of 2 verified"), second_copy_status / second_copy_version / second_copy_on / second_copy_checked_on, served_from_copy, raw_metadata (JSON) |
 | RD Item Creator | child table | creator → RD Creator, role, name_as_given |
 | RD Item Subject | child table | subject → RD Subject |
 | **RD Creator** | authority-lite person record | full_name, alt_name (romanised), VIAF, Wikidata |
@@ -87,7 +88,7 @@ cause. Details: [Server](server.md#how-the-updater-helper-works).
 | **RD Page Text** | a version of one page's text (re-OCR or proofreading); the current one overlays archive.org's text wherever the page is read | item, leaf, printed page, current (yes/no), source (Re-OCR / Proofreading), status (Machine / Proofread / Validated), OCR quality, proofread by/on, validated by/on, text, OCR engine, zones (JSON, in reading order) |
 | **RD Research Group** | readers who share notes | group name, description, members (RD Research Group Member: user) |
 | RD Research Group Member | child table | user, name |
-| **RD Server Task** | an upgrade, restart, resource preset, server backup, update check or log request from the Server page, carried out by the updater helper | action, arguments (checked), status (Queued / Running / Succeeded / Failed / Cancelled), requested by, log, summary |
+| **RD Server Task** | an upgrade, restart, resource preset, server backup, update check, log request or requirements install from the Server page, carried out by the updater helper | action, arguments (checked), status (Queued / Running / Succeeded / Failed / Cancelled), requested by, log, summary |
 
 `raw_metadata` keeps the untouched source record, so re-normalising later never needs a
 re-download.
@@ -116,6 +117,16 @@ without touching the portal or API.
 - Page text is matched to the page images with the book's scan data (`core/scandata.py`): archive.org's OCR counts every leaf scanned, its page images (`…/page/n<leaf>.jpg`) and PDF only the pages the book shows. `leaf` everywhere (search, notes, page links, citations, proofreading) counts the pages shown.
 - Politeness: fixed delay, back-off on 429/5xx, identifying User-Agent.
 - Idempotent: re-running a profile skips items already present (unless *Refresh* is set).
+
+## Re-OCR
+
+`core/ocr_engine.py` reads a page image with Tesseract, one zone at a time in reading order
+(`core/zones.py`). A book is read with several language models at once (`kan+san+eng`, the
+main one first): the book's language, the languages named in its language label, then English,
+or the list in its *OCR Languages* field; a zone can carry its own. Only installed models are
+used, and Server → Requirements (`requirements.py`, `core/equipment.py`) says which the
+catalogue needs. Results become RD Page Text versions; people's proofread pages are never
+replaced.
 
 ## Scaling path
 

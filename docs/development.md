@@ -25,8 +25,8 @@ researchdesk/
     ├── core/               pure Python, no Frappe:  ia.py  folder.py  normalize.py  citations.py  marc.py  oai.py  access.py
     │                                           helpdocs.py (docs as help pages)  collections.py (rules, slugs)  metaio.py (export formats, spreadsheet)  push.py (IA, Koha, Wikidata, webhook clients)
     │                                           ark.py (ARKs, check character)  ocfl.py (preservation copies)  replica.py (second copy: folder, S3)  bagit.py (BagIt bags)
-    │                                           ocrquality.py (OCR scores)  ocr_engine.py (Tesseract by zone)  zones.py (page zones)  scandata.py (OCR page ↔ page image)
-    │                                           translit.py (romanised words → Indic spellings)  annotations.py (W3C anchoring)  capacity.py  quiet.py  schema.py  updates.py
+    │                                           ocrquality.py (OCR scores)  ocr_engine.py (Tesseract by zone, several languages)  zones.py (page zones)  scandata.py (OCR page ↔ page image)
+    │                                           translit.py (romanised words → Indic spellings)  annotations.py (W3C anchoring)  capacity.py  quiet.py  schema.py  updates.py  equipment.py (programs, packages, versions)
     ├── catalogue.py        settings, upsert RD Item, record <-> dict
     ├── ingest.py           ingest jobs, scheduler, whitelisted actions
     ├── ia_sync.py          keeping profiles in step with archive.org (new, changed, removed books)
@@ -51,6 +51,7 @@ researchdesk/
     ├── holding.py          held jobs (Pause All / Hold) and the @hold_when_paused job decorator
     ├── priority.py         worker CPU priority (renice) from the Desk
     ├── server.py           the Server page: versions, health, backups, the updater helper
+    ├── requirements.py     Server → Requirements: what the server has, installing what is missing
     ├── help.py             in-app help pages and each screen's Help link (from docs/*.md)
     ├── guide.py            form tours and the getting-started checklist
     ├── portal.py           helpers for portal pages (collection cards, facet labels)

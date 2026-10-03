@@ -53,7 +53,7 @@
 - [x] Big ingests that don't stall or do work twice; failed books retried by themselves
 - [x] Worker priority from the Desk; the portal's book count kept up with the catalogue
 
-## v0.20 – v0.27: a research library (done)
+## v0.20 – v0.29: a research library (done)
 
 - [x] Permanent links: ARKs for every book and page (switched on once the NAAN is assigned), tombstones
 - [x] Preservation: OCFL copies with SHA-256 fixity checks and PREMIS-style events; a second copy
@@ -65,10 +65,13 @@
 - [x] Notes on pages (W3C Web Annotation): private, research groups, public with review; My notes
       with exports
 - [x] Proofreading with validation by a second person; re-OCR with Tesseract's Indic models, a
-      page part by part or whole books worst first; a proofreaders' work list
+      page part by part or whole books worst first, in several languages at once; a proofreaders'
+      work list
 - [x] Search in Latin letters for every Indic script (`vachana` finds ವಚನ), phrases, OR and
       words left out
 - [x] People & Roles in the Desk, the library at a glance on login, private usage statistics
+- [x] Server → Requirements: what the server has and lacks, installing it from the Desk (native)
+      or with the upgrade (Docker, OCR languages chosen in `.env`)
 
 ## Next
 

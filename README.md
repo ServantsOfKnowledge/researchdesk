@@ -25,7 +25,9 @@ Choose a collection, a search or a list of items on archive.org, and Research De
   Annotation model, exported with page citations
 - **improve the text over time**: an OCR quality score for every page and book; proofreading
   beside the page image, validated by a second person, every version kept; **re-OCR** with
-  Tesseract's Indic models, a page part by part (columns, headings) or whole books worst first
+  Tesseract's Indic models, **several languages at once** (the book's languages and English, or a
+  language of its own for a verse or footnote), a page part by part (columns, headings) or whole
+  books worst first
 - give every book and page a **permanent ARK** (on once the library's NAAN is assigned), with
   tombstones so no link ever dies
 - **keep its own checked copies** of the books (OCFL, SHA-256, nightly fixity checks, PREMIS-style
@@ -62,7 +64,8 @@ Choose a collection, a search or a list of items on archive.org, and Research De
   job and schedule on one page; pause a run or everything and carry on later, hold single jobs,
   or stop them
 - **look after the server from the Desk**: versions and new releases with their notes, the
-  health of every part, nightly backups to download, errors and logs, and alerts by Desk
+  health of every part, **what the server has** (every library and native tool it needs, with
+  versions, and installing what is missing from the Desk), nightly backups to download, errors and logs, and alerts by Desk
   notification, email or webhook. With the optional updater helper, upgrade (or go back),
   restart parts and apply resource presets from the Desk too
 - go on a server with its own name and **HTTPS from Let's Encrypt** set up by the installer, and
@@ -74,7 +77,7 @@ It's built to install with one command, for librarians, educators, archivists an
 anyone else who can open a terminal. It scales to tens of thousands of books on one server
 ([measured](docs/scaling.md)).
 
-> Status: **v0.27**, before 1.0. It works end to end and is tested against live Servants of
+> Status: **v0.29**, before 1.0. It works end to end and is tested against live Servants of
 > Knowledge data, but expect changes before 1.0. What changed: [CHANGELOG](CHANGELOG.md); what
 > comes next: [the roadmap](docs/roadmap.md).
 

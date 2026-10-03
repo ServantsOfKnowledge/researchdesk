@@ -86,7 +86,7 @@ what it is for, what was found (and its version), what is needed, and how to put
 |---|---|
 | Core | Python (3.11+), Frappe (16), MariaDB (10.6+), Redis, the updater helper; on native installs `git` and `uv` |
 | Search | Meilisearch, and its version: search in Latin letters and `OR` need 1.11 or newer |
-| OCR and proofreading | Pillow, Tesseract (4+), and a Tesseract language model for each language in the catalogue, with how many books it covers |
+| OCR and proofreading | Pillow, Tesseract (4+), and a Tesseract language model for each language the catalogue is OCR'd in (books' languages, languages named in their language labels, their *OCR Languages*), with how many books it covers |
 | Preservation | the preservation folder (writable, free space), `boto3` for an S3 second copy, the second copy's folder or bucket (reachable) |
 | Network and disk | archive.org reachable; free disk space |
 
