@@ -275,6 +275,37 @@ def cite(item_id: str, format: str = "bibtex", download: int = 0):
 	return _text_response(body, mime, f"{item_id}.{ext}" if cint(download) else None)
 
 
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=10, seconds=60)
+def book_text(item_id: str, format: str = "epub"):
+	"""The book's text to download: an accessible EPUB 3 (page numbers, language, accessibility
+	metadata) or plain text, with corrected pages where people proofread them."""
+	from sok_resdesk.catalogue import portal_title
+	from sok_resdesk.core import epub
+	from sok_resdesk.core.citations import url_for
+	from sok_resdesk.core.normalize import lang_tag
+	from sok_resdesk.ingest import fetch_pages
+
+	record = get_record(item_id)
+	if not record:
+		frappe.throw(_("Item not found"), frappe.DoesNotExistError)
+	if not access.can_read(record.get("visibility")):
+		frappe.throw(_("Log in to download this book's text."), frappe.PermissionError)
+	fmt = (format or "epub").lower()
+	if fmt not in ("epub", "txt"):
+		frappe.throw(_("Unknown format. Use epub or txt."))
+	pages = fetch_pages(item_id) if record.get("has_page_text") else []
+	if not epub.text_pages(pages):
+		frappe.throw(_("This book has no text yet."))
+	url = url_for({k: v for k, v in record.items() if k != "page_url"}, base_url())
+	if fmt == "txt":
+		return _text_response(epub.plain_text(record, pages, url), "text/plain", f"{item_id}.txt")
+	body = epub.build(record, pages, lang_tag(record.get("language")), url, portal_title())
+	resp = Response(body, content_type="application/epub+zip")
+	resp.headers["Content-Disposition"] = f'attachment; filename="{item_id}.epub"'
+	return resp
+
+
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
 @rate_limit(limit=60, seconds=60)
 def cite_many(item_ids, format: str = "bibtex"):

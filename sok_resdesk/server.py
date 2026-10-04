@@ -40,6 +40,7 @@ ACTIONS = {
 	"apply_resources": (ADMINS, True),
 	"server_backup": (ADMINS, True),
 	"install_requirements": (ADMINS, True),
+	"help_pictures": (MANAGERS, True),
 	"check_updates": (MANAGERS, False),
 	"logs": (MANAGERS, False),
 }
@@ -49,6 +50,7 @@ LABELS = {
 	"apply_resources": "Apply Resource Preset",
 	"server_backup": "Server Backup",
 	"install_requirements": "Install Requirements",
+	"help_pictures": "Retake Help Pictures",
 	"check_updates": "Check for Updates",
 	"logs": "Show Logs",
 }

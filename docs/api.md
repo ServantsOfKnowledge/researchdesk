@@ -71,6 +71,11 @@ see [Server](server.md#how-the-updater-helper-works).
 lives in your own folders or on your book server (HTTP range requests supported). Only those
 two files are ever served, and the PDF only when the caller may read the book.
 
+`sok_resdesk.api.book_text?item_id=<id>&format=epub|txt` downloads the book's text: an
+accessible EPUB 3 (language, printed page numbers as a page list, EPUB Accessibility metadata)
+or plain text, with proofread pages in their corrected form. Readers who may read the book
+only; 10 a minute.
+
 ## Citations (plain-text responses)
 
 | Endpoint | Returns |
@@ -162,7 +167,7 @@ two files are ever served, and the PDF only when the caller may read the book.
 | `sok_resdesk.capacity.get_status` | the book limit: books and pages in the catalogue, the limit, room left, and what the machine's CPUs, memory and disk can each hold |
 | `sok_resdesk.server.status` | everything on the Server page: versions, updates, health, backups, helper, recent tasks |
 | `sok_resdesk.server.check_updates` | look for a newer release and Frappe patch now (also daily) |
-| `sok_resdesk.server.request_task` (`action`, `args` JSON) | ask the updater helper to `upgrade` (`target`=`latest`/`vX.Y.Z`, `backup`, `frappe`), `restart` (`service`=`web`/`workers`/`scheduler`/`search`/`all`), `apply_resources` (`preset`), `server_backup`, `check_updates` or `logs` (`service`, `lines`); returns the task name. Changes to the installation need the System Manager role |
+| `sok_resdesk.server.request_task` (`action`, `args` JSON) | ask the updater helper to `upgrade` (`target`=`latest`/`vX.Y.Z`, `backup`, `frappe`), `restart` (`service`=`web`/`workers`/`scheduler`/`search`/`all`), `apply_resources` (`preset`), `server_backup`, `help_pictures` (new screenshots of this library for its help), `check_updates` or `logs` (`service`, `lines`); returns the task name. Changes to the installation need the System Manager role |
 | `sok_resdesk.server.get_task` (`name`) · `cancel_task` (`name`) | a task's status and log; cancel one still waiting |
 | `sok_resdesk.server.take_backup` (`with_files`) · `delete_backup` (`name`) | back up now in the background; delete a backup (System Manager). Download: `/backups/<file>` (System Manager) |
 | `sok_resdesk.server.logs` (`source`=`errors`/`failed_jobs`/`files`, `name`, `lines`) | recent errors, failed jobs, or the end of a log file |

@@ -1,0 +1,9 @@
+/* Research Desk's own Desk pages (Server, People & Roles, Background Jobs, Portal Translations,
+   Help): WCAG 2.2 AA fixes found by scripts/a11y_check.py. Frappe's own screens are left as
+   they are. */
+[id^="page-resdesk-"] .layout-main-section :is(p, td, dd) a:not(.btn),
+#page-resdesk-help .rdh-body li a { text-decoration: underline; }
+/* Frappe's red is too light on white for small text (1.4.3) */
+[id^="page-resdesk-"] .text-danger { color: #b42318 !important; }
+/* room to tap the help's page list (2.5.8) */
+#page-resdesk-help .rdh-nav li a { display: inline-block; min-height: 24px; padding: 2px 0; }

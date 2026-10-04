@@ -235,6 +235,9 @@ def command_for(action: str, args: dict, env: dict) -> list[str] | None:
 		return ["./resdesk.sh", "resources", preset] if preset in ("light", "standard", "server") else None
 	if action == "server_backup":
 		return ["./resdesk.sh", "backup"]
+	if action == "help_pictures":
+		# screenshots of this library for its help (Playwright's image on Docker installs)
+		return ["./resdesk.sh", "screenshots", "--site"]
 	if action == "install_requirements":
 		# native installs only: on Docker the tools come with the image (upgrade instead)
 		part = args.get("part")

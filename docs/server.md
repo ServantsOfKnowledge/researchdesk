@@ -180,6 +180,22 @@ is never in a backup; it is rebuilt from the catalogue.
 
 A backup that fails raises an alert and shows as a **Problem**.
 
+## Help pictures
+
+The help pages show screenshots of Research Desk. **Retake help pictures** (Server page, under
+Backups; needs the [updater helper](#the-updater-helper)) takes them again from **this
+library**, with its own name, logo, books and collections, and the help shows them as soon as
+they are ready (a few minutes). They are kept in the site's files, so upgrades keep them and
+backups with files include them.
+
+On the server the same is `./resdesk.sh screenshots --site`. Nothing needs installing: when the
+server has no Playwright (the browser the pictures are taken with), it runs in Playwright's own
+Docker image (`mcr.microsoft.com/playwright/python`, with the Playwright package fetched into
+it from PyPI; `PLAYWRIGHT_VERSION` in `.env` picks another version). Without `--site`, the pictures go into the code (`sok_resdesk/public/images/guide/`),
+for changes to the project's own documentation. Pictures of the Desk are taken logged in as
+Administrator (the password in `.env`); `--query WORDS` chooses the search shown in the results
+pictures (default: `history`, so pick words your catalogue finds).
+
 ## Alerts
 
 Managers (ResDesk Manager and System Manager) are told when:

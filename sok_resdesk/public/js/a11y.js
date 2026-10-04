@@ -60,7 +60,22 @@
 		document.body.insertBefore(a, document.body.firstChild);
 	}
 
-	// the language switch, in the top bar (only when the portal is offered in other languages)
+	// the top bar's tools (reading settings, language): at the end of the top bar; on phones beside
+	// the menu button, so they stay visible when the menu is folded away (resdesk.css orders them)
+	function tools() {
+		let box = document.querySelector(".rd-tools");
+		if (box) return box;
+		box = document.createElement("div");
+		box.className = "rd-tools";
+		const toggler = document.querySelector(".navbar .navbar-toggler");
+		const nav = document.querySelector(".navbar");
+		if (toggler) toggler.parentNode.appendChild(box);
+		else if (nav) (nav.querySelector(".container") || nav).appendChild(box);
+		else document.body.insertBefore(box, document.body.firstChild);
+		return box;
+	}
+
+	// the language switch (only when the portal is offered in other languages)
 	function languageSwitch() {
 		const langs = I18N.languages || [];
 		if (langs.length < 2 || document.querySelector(".rd-langs")) return;
@@ -93,16 +108,95 @@
 			}
 			location.reload();
 		});
-		// before the phone menu button, so it stays visible when the menu is folded away
-		const toggler = document.querySelector(".navbar .navbar-toggler");
-		const nav = document.querySelector(".navbar");
-		if (toggler) toggler.parentNode.insertBefore(wrap, toggler);
-		else if (nav) (nav.querySelector(".container") || nav).appendChild(wrap);
-		else document.body.insertBefore(wrap, document.body.firstChild);
+		tools().appendChild(wrap);
 	}
+
+	// Reading settings: text size, line spacing, letter and word spacing, colours. Each reader's
+	// choice is kept in their browser (translations.py applies it in the page's head, before the
+	// page is drawn); WCAG 1.4.4, 1.4.8 and 1.4.12.
+	const READING = {
+		size: { label: __("Text size"), options: [["sm", __("Smaller")], ["", __("Normal")], ["lg", __("Larger")], ["xl", __("Largest")]] },
+		leading: { label: __("Line spacing"), options: [["", __("Normal")], ["wide", __("Wide")], ["wider", __("Wider")]] },
+		spacing: { label: __("Letter and word spacing"), options: [["", __("Normal")], ["wide", __("Wide")]] },
+		colours: { label: __("Colours"), options: [["", __("The site's")], ["contrast", __("High contrast")], ["dark", __("Light on dark")], ["sepia", __("Soft (sepia)")]] },
+	};
+	const KEY = "rd-reading";
+	function loadReading() {
+		try {
+			return JSON.parse(localStorage.getItem(KEY) || "{}") || {};
+		} catch (e) {
+			return {};
+		}
+	}
+	function applyReading(prefs) {
+		Object.keys(READING).forEach((k) => {
+			if (prefs[k]) document.documentElement.setAttribute(`data-rd-${k}`, prefs[k]);
+			else document.documentElement.removeAttribute(`data-rd-${k}`);
+		});
+	}
+	function readingSettings() {
+		if (document.querySelector(".rd-reading")) return;
+		const prefs = loadReading();
+		const wrap = document.createElement("div");
+		wrap.className = "rd-reading";
+		const groups = Object.entries(READING)
+			.map(
+				([k, g]) => `<fieldset><legend>${g.label}</legend>${g.options
+					.map(([v, l]) => `<label><input type="radio" name="rd-reading-${k}" value="${v}" ${(prefs[k] || "") === v ? "checked" : ""}> ${l}</label>`)
+					.join("")}</fieldset>`
+			)
+			.join("");
+		wrap.innerHTML = `<button type="button" class="rd-reading__btn" aria-expanded="false" aria-controls="rd-reading-panel" title="${__("Reading settings")}">
+				<span aria-hidden="true">Aa</span><span class="rd-sr-only">${__("Reading settings")}</span></button>
+			<div class="rd-reading__panel" id="rd-reading-panel" role="group" aria-label="${__("Reading settings")}" hidden>${groups}
+				<button type="button" class="rd-reading__reset">${__("Back to normal")}</button></div>`;
+		const btn = wrap.querySelector(".rd-reading__btn");
+		const panel = wrap.querySelector(".rd-reading__panel");
+		const show = (on) => {
+			panel.hidden = !on;
+			btn.setAttribute("aria-expanded", on ? "true" : "false");
+			if (!on) return;
+			// under the button, inside the window whatever the top bar's layout
+			const r = btn.getBoundingClientRect();
+			const w = panel.offsetWidth;
+			panel.style.position = "fixed";
+			panel.style.top = `${Math.round(r.bottom + 6)}px`;
+			panel.style.right = "auto";
+			panel.style.left = `${Math.round(Math.max(8, Math.min(r.right - w, document.documentElement.clientWidth - w - 8)))}px`;
+			(panel.querySelector("input:checked") || panel.querySelector("input")).focus();
+		};
+		const save = () => {
+			const now = {};
+			Object.keys(READING).forEach((k) => {
+				const c = panel.querySelector(`input[name="rd-reading-${k}"]:checked`);
+				if (c && c.value) now[k] = c.value;
+			});
+			applyReading(now);
+			try {
+				localStorage.setItem(KEY, JSON.stringify(now));
+			} catch (e) {
+				/* private window: the settings last for this page */
+			}
+		};
+		btn.addEventListener("click", () => show(panel.hidden));
+		panel.addEventListener("change", save);
+		panel.querySelector(".rd-reading__reset").addEventListener("click", () => {
+			panel.querySelectorAll("input").forEach((i) => (i.checked = i.value === ""));
+			save();
+		});
+		panel.addEventListener("keydown", (e) => {
+			if (e.key === "Escape") show(false), btn.focus();
+		});
+		document.addEventListener("click", (e) => {
+			if (!panel.hidden && !wrap.contains(e.target)) show(false);
+		});
+		tools().prepend(wrap);
+	}
+	applyReading(loadReading()); // pages without the head script (Frappe's own pages)
 
 	function ready() {
 		skipLink();
+		readingSettings();
 		languageSwitch();
 	}
 	document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", ready) : ready();

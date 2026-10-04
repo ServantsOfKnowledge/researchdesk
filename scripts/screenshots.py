@@ -5,6 +5,9 @@
     python3 scripts/screenshots.py --url https://library.example.org --password …
 
 Needs Playwright:  pip install playwright && python3 -m playwright install chromium
+(./resdesk.sh screenshots uses Playwright's own Docker image when this machine has no Playwright,
+and with --site puts the pictures into the library's help instead: the Server page's
+*Retake help pictures* button does that.)
 Pictures go to sok_resdesk/public/images/guide/ (served at /assets/sok_resdesk/images/guide/).
 Run it after changing a screen, look at `git diff --stat`, and commit the new pictures with the
 change. tests/test_docs.py checks that every picture the docs use is listed here and exists.
@@ -62,7 +65,8 @@ def env_file() -> dict:
 async def take(args) -> list[str]:
 	from playwright.async_api import async_playwright
 
-	OUT.mkdir(parents=True, exist_ok=True)
+	out = Path(args.out)
+	out.mkdir(parents=True, exist_ok=True)
 	done = []
 	async with async_playwright() as p:
 		browser = await p.chromium.launch()
@@ -124,7 +128,7 @@ async def take(args) -> list[str]:
 					await page.click("#rd-basket-btn")
 					await page.wait_for_timeout(800)
 				await page.wait_for_timeout(1000)
-				target = OUT / f"{name}.png"
+				target = out / f"{name}.png"
 				await page.screenshot(path=str(target))
 				shrink(target)
 				done.append(name)
@@ -163,6 +167,7 @@ def main() -> int:
 		help="a search that finds books in your catalogue (default: history)",
 	)
 	ap.add_argument("--theme", choices=["light", "dark"], default="light")
+	ap.add_argument("--out", default=str(OUT), help="where the pictures go (default: the guides' own folder)")
 	ap.add_argument("only", nargs="*", help=f"only these pictures: {', '.join(SHOTS)}")
 	args = ap.parse_args()
 	try:
@@ -173,7 +178,7 @@ def main() -> int:
 			file=sys.stderr,
 		)
 		return 1
-	print(f"Taking screenshots of {args.url} into {OUT.relative_to(ROOT)}/")
+	print(f"Taking screenshots of {args.url} into {args.out}/")
 	done = asyncio.run(take(args))
 	wanted = len(args.only or SHOTS)
 	print(f"{len(done)} of {wanted} taken.")

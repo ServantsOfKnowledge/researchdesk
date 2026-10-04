@@ -36,6 +36,9 @@ class ResDeskServer {
 		on("[data-restart]", ($b) => this.restart($b.data("restart")));
 		on("[data-server-logs]", ($b) => this.server_logs($b.data("server-logs")));
 		on("[data-backup]", ($b) => this.call("take_backup", { with_files: $b.data("backup") === "files" ? 1 : 0 }));
+		on("[data-help-pictures]", () =>
+			this.task("help_pictures", {}, __("Take new pictures of this library's screens for the help pages? It takes a few minutes; the help shows them as soon as they are ready."))
+		);
 		on("[data-server-backup]", () => this.task("server_backup", {}, __("Back up on the server into site-backups/ (database and files), the same as ./resdesk.sh backup?")));
 		on("[data-delete-backup]", ($b) =>
 			this.call("delete_backup", { name: $b.data("delete-backup") }, __("Delete this backup? This can't be undone."))
@@ -431,6 +434,8 @@ class ResDeskServer {
 				<button class="btn btn-xs btn-default" data-backup="files">${__("Back up with files")}</button>
 				${can_act ? `<button class="btn btn-xs btn-default" data-server-backup>${__("Back up on the server (site-backups/)")}</button>` : ""}
 			</div>
+			${can_act ? `<p class="small text-muted">${__("Help pictures: the help pages show screenshots of Research Desk. Take them from this library, with its own name, logo and books:")}
+				<button class="btn btn-xs btn-default" data-help-pictures>${__("Retake help pictures")}</button></p>` : ""}
 			${
 				d.backups.length
 					? `<table class="table table-sm rds-table small"><tbody>${d.backups

@@ -35,7 +35,8 @@ website_route_rules = [
 ]
 
 
-app_include_css = []
+# our Desk pages' accessibility fixes (desk.css)
+app_include_css = [f"/assets/sok_resdesk/css/desk.css?v={__version__}"]
 # Help and Take-the-tour buttons on Research Desk screens
 app_include_js = [f"/assets/sok_resdesk/js/desk_help.js?v={__version__}"]
 boot_session = "sok_resdesk.help.boot_session"

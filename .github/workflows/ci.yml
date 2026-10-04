@@ -65,6 +65,21 @@ jobs:
           curl -fsS "$B/api/method/sok_resdesk.api.search?q=india" | grep -q '"hits"'
           curl -fsS "$B/api/method/sok_resdesk.oai.endpoint?verb=Identify" | grep -q "<Identify>"
           curl -fsS "$B/api/method/sok_resdesk.api.stats"
+      - name: Accessibility checks (axe-core, WCAG 2.2 A and AA; see docs/accessibility.md)
+        run: |
+          set -e
+          pip install -q playwright
+          python -m playwright install --with-deps chromium > /dev/null
+          (cd /tmp && npm pack -s axe-core@4 > /dev/null && tar xzf axe-core-*.tgz)
+          python scripts/a11y_check.py http://localhost:8080 --axe /tmp/package/axe.min.js \
+            --password "$(grep '^ADMIN_PASSWORD=' .env | cut -d= -f2-)" --report a11y-report.json
+      - name: Accessibility report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a11y-report
+          path: a11y-report.json
+          if-no-files-found: ignore
       - name: Move an install - export, then import the archive back
         run: |
           set -e

@@ -168,7 +168,8 @@ app (portal and Desk), and the pictures in them are real screens. Four things ke
    are made from `rd_settings.json`, `commands.py` and `resdesk.sh`. After changing those, run
    `./resdesk.sh docs` (the check fails until you do).
 4. **Fresh pictures.** `./resdesk.sh screenshots` retakes every picture from a running site
-   (needs `pip install playwright pillow && python3 -m playwright install chromium`). Use a site
+   (with `pip install playwright pillow && python3 -m playwright install chromium`, or with
+   nothing installed on a machine with Docker: it uses Playwright's image). Use a site
    with some books, a collection and a profile, and `--query` for a search that finds books.
    Check `git diff --stat sok_resdesk/public/images/guide`, look at the changed pictures, commit.
 

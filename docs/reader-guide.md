@@ -52,7 +52,11 @@ Click a title to open its page. You'll find:
 - **Download PDF**, when the library can share the file;
 - **Cite** and **Add to my list** (below);
 - under the reader, the book's **details** (identifier, date, subjects, collections, rights) and
-  **about this book**; **Details ↓** at the top jumps there.
+  **about this book**; **Details ↓** at the top jumps there;
+- **the text, to read your way**: the book's text as an **EPUB** e-book (for reading apps,
+  screen readers, braille displays and large print, with the printed page numbers) or **plain
+  text**. Pages people proofread are in their corrected form; the file says how much of the
+  text was checked.
 
 The reader takes the whole width of the page, so the pages are as large as your screen allows.
 
@@ -197,4 +201,12 @@ under the search box on the home page. Close them with **Got it**, or step throu
 
 The portal works with the keyboard and screen readers, marks Kannada and other Indian-language
 text so screen readers use the right voice, and can **read a page aloud** (Page & text → **Read
-aloud**). What works, what doesn't yet, and how to tell the library: [Accessibility](accessibility.md).
+aloud**).
+
+**Reading settings** (the **Aa** button at the top of every page) change how the portal looks
+for you: **text size** (up to almost one and a half times), **line spacing**, wider **letter
+and word spacing** (easier for many readers with dyslexia), and **colours** (high contrast,
+light text on dark, or soft sepia). Your browser remembers them; **Back to normal** undoes
+them. If the portal is offered in several languages, the language menu sits beside it.
+
+What works, what doesn't yet, and how to tell the library: [Accessibility](accessibility.md).

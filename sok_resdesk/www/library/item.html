@@ -172,6 +172,14 @@
 					<button class="rd-btn" type="button" data-scope="book" data-cite-open>{{ _("Cite this book") }}</button>
 					<a class="rd-btn" href="/api/method/sok_resdesk.api.marcxml?item_ids={{ item.item_id | urlencode }}">MARCXML</a>
 				</div>
+				{% if can_read and item.has_page_text %}
+				<h3 class="rd-book-about__sub">{{ _("The text, to read your way") }}</h3>
+				<p class="rd-muted">{{ _("For screen readers, braille displays, large print and reading apps, with the printed page numbers.") }}</p>
+				<div class="rd-actions">
+					<a class="rd-btn" href="/api/method/sok_resdesk.api.book_text?item_id={{ item.item_id | urlencode }}&amp;format=epub" download>{{ _("EPUB (accessible e-book)") }}</a>
+					<a class="rd-btn" href="/api/method/sok_resdesk.api.book_text?item_id={{ item.item_id | urlencode }}&amp;format=txt" download>{{ _("Plain text") }}</a>
+				</div>
+				{% endif %}
 			</div>
 		</section>
 	</div>

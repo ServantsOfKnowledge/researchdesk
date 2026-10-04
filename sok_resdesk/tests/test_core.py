@@ -579,6 +579,7 @@ def test_updater_helper_commands():
 	for bad in (0, 17, "4; rm -rf /", -1):
 		assert agent.command_for("apply_resources", {"workers": bad}, docker) is None
 	assert agent.command_for("server_backup", {}, native) == ["./resdesk.sh", "backup"]
+	assert agent.command_for("help_pictures", {}, docker) == ["./resdesk.sh", "screenshots", "--site"]
 	# installing tools: native installs only, and only the two known parts
 	assert agent.command_for("install_requirements", {"part": "ocr"}, native) == [
 		"./resdesk.sh",

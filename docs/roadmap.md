@@ -53,7 +53,7 @@
 - [x] Big ingests that don't stall or do work twice; failed books retried by themselves
 - [x] Worker priority from the Desk; the portal's book count kept up with the catalogue
 
-## v0.20 – v0.34: a research library (done)
+## v0.20 – v0.35: a research library (done)
 
 - [x] Permanent links: ARKs for every book and page (switched on once the NAAN is assigned), tombstones
 - [x] Preservation: OCFL copies with SHA-256 fixity checks and PREMIS-style events; a second copy
@@ -88,14 +88,16 @@
       Translations* in the Desk (every portal phrase with a column per language, missing ones
       shown, edited in place, spreadsheet download and upload), stored as Frappe Translation
       records; the library's name, About page and collections translatable
+- [x] Accessibility, second pass: reading settings (size, spacing, colours), the text of every
+      book as an accessible EPUB 3 and plain text, axe-core checks of the portal and our Desk
+      pages on every change; help pictures of the library itself, retaken from the Desk
 
 ## Next
 
 - [ ] **Accessibility** (details and the full plan: [Accessibility](accessibility.md)): testing with
-      blind and low-vision readers using NVDA and TalkBack with Indic voices; axe-core checks in
-      CI; reader settings (text size, spacing, dyslexia-friendly font, high contrast); an audit of
-      our Desk pages against WCAG 2.2 AA; later EPUB 3 / DAISY downloads of proofread books and
-      sharing with Sugamya Pustakalaya under the Marrakesh Treaty and Copyright Act 52(1)(zb)
+      blind and low-vision readers using NVDA and TalkBack with Indic voices; later DAISY talking
+      books, and sharing with Sugamya Pustakalaya under the Marrakesh Treaty and Copyright Act
+      52(1)(zb)
 - [ ] Machine drafts for Portal Translations (e.g. IndicTrans2 or a translation service), checked
       by a person before they show
 - [ ] Authority control: reconcile creators with VIAF/Wikidata; subjects with LCSH/Sears

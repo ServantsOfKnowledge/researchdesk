@@ -576,7 +576,7 @@ Maintenance
   ./resdesk.sh jobs --stop RUN | --pause | --resume      (schedules)
   ./resdesk.sh jobs --pause-run RUN | --resume-run RUN  pause a run where it is, carry on later
   ./resdesk.sh jobs --pause-all | --resume-all          pause everything, then carry on
-  ./resdesk.sh screenshots [--query WORDS]  retake the pictures used in the guides (needs Playwright)
+  ./resdesk.sh screenshots [--site] [--query WORDS]  retake the guides' pictures (--site: into this library's help)
   ./resdesk.sh docs [--check]           refresh the settings and command reference in docs/
   ./resdesk.sh progress [RUN]           watch an ingest run
   ./resdesk.sh resources [light|standard|server]  how much of the machine Research Desk may use

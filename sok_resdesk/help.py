@@ -55,6 +55,23 @@ def _path(page: helpdocs.Page) -> Path:
 	return helpdocs.docs_dir(Path(frappe.get_app_path("sok_resdesk"))) / page.file
 
 
+SITE_PICTURES = "resdesk-guide"  # the site's own pictures (./resdesk.sh screenshots --site)
+
+
+def image_url(name: str) -> str:
+	"""A guide picture: this library's own screenshot when the Server page's *Retake help pictures*
+	took one (in the site's files), else the one that comes with Research Desk."""
+	import os
+
+	try:
+		path = frappe.get_site_path("public", "files", SITE_PICTURES, name)
+		if os.path.exists(path):
+			return f"/files/{SITE_PICTURES}/{name}?v={int(os.path.getmtime(path))}"
+	except Exception:
+		pass
+	return f"{helpdocs.IMAGE_URL}/{name}"
+
+
 def _render(page: helpdocs.Page, where: str) -> dict:
 	import markdown2
 
@@ -66,7 +83,7 @@ def _render(page: helpdocs.Page, where: str) -> dict:
 			return f"{PORTAL}/{target.slug}{frag}" if target.audience == "reader" else None
 		return f"{DESK}/{target.slug}{frag}"
 
-	body = helpdocs.rewrite(md, page_url)
+	body = helpdocs.rewrite(md, page_url, image_url)
 	html = markdown2.markdown(
 		body,
 		extras={

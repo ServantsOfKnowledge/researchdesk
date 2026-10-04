@@ -7,8 +7,8 @@
 	--rd-bg: var(--card-bg, #fff);
 	--rd-soft: var(--subtle-fg, #f4f5f6);
 	--rd-mark: #fff1a8;
-	font-size: 15px;
-	line-height: 1.55;
+	font-size: calc(15px * var(--rd-scale, 1));
+	line-height: var(--rd-leading, 1.55);
 	max-width: 1280px;
 	margin: 0 auto;
 	padding: 0 16px 48px;
@@ -139,7 +139,7 @@
 .rd-pages__image img { max-width: 100%; height: auto; display: block; }
 .rd-pages__image .rd-image-frame { margin: 0 auto; }
 .rd-pages__image p { padding: 12px; }
-.rd-pages__text { overflow: auto; border: 1px solid var(--rd-border); border-radius: 8px; padding: 12px 14px; white-space: pre-wrap; line-height: 1.7; font-size: 1.02rem; background: var(--rd-bg); }
+.rd-pages__text { overflow: auto; border: 1px solid var(--rd-border); border-radius: 8px; padding: 12px 14px; white-space: pre-wrap; line-height: calc(var(--rd-leading, 1.55) + .15); font-size: calc(1.02rem * var(--rd-scale, 1)); background: var(--rd-bg); }
 .rd-pages__text mark { background: #ffe58a; color: inherit; padding: 0 1px; }
 @media (max-width: 760px) {
 	.rd-pages__body { grid-template-columns: 1fr; height: auto; }
@@ -244,8 +244,13 @@
 }
 
 /* the language switch in the top bar (a11y.js) */
-.rd-langs { margin-left: auto; margin-right: 8px; }
-.rd-langs__select { font: inherit; font-size: .9rem; padding: 4px 8px; border: 1px solid var(--rd-border); border-radius: 6px; background: var(--rd-bg, #fff); color: inherit; max-width: 10rem; }
+.rd-tools { display: flex; align-items: center; gap: 8px; margin-left: auto; margin-right: 8px; }
+/* phones: name, tools, menu button, then the unfolded menu; wide screens: the tools after the menu */
+.navbar .rd-tools { order: 1; }
+.navbar .navbar-toggler { order: 2; }
+.navbar .navbar-collapse { order: 3; }
+@media (min-width: 992px) { .navbar .rd-tools { order: 4; margin-left: 12px; margin-right: 0; } }
+.rd-langs__select { font: inherit; font-size: .9rem; padding: 4px 8px; border: 1px solid var(--border-color, #ccc); border-radius: 6px; background: var(--card-bg, #fff); color: inherit; max-width: 10rem; }
 /* navbar brand (set from RD Settings → Logo) */
 .rd-brand { display: inline-flex; align-items: center; gap: 10px; }
 .rd-brand__logo { max-height: 32px; width: auto; }
@@ -411,3 +416,51 @@ main:focus { outline: none; }
 }
 .rd-read-status:empty { display: none; }
 .rd-read-status { margin: 4px 0; }
+
+/* Reading settings (a11y.js): text size, line spacing, letter and word spacing, colours; each
+   reader's choice, kept in their browser and set on <html> before the page is drawn */
+html[data-rd-size="sm"] { --rd-scale: .9; }
+html[data-rd-size="lg"] { --rd-scale: 1.2; font-size: 120%; }
+html[data-rd-size="xl"] { --rd-scale: 1.45; font-size: 145%; }
+html[data-rd-leading="wide"] { --rd-leading: 1.85; }
+html[data-rd-leading="wider"] { --rd-leading: 2.2; }
+html[data-rd-spacing="wide"] .rd, html[data-rd-spacing="wide"] .rd-about { letter-spacing: .12em; word-spacing: .16em; }
+html[data-rd-spacing="wide"] .rd p { margin-bottom: 2em; }
+html[data-rd-colours="contrast"] { --text-color: #000; --bg-color: #fff; --card-bg: #fff; --text-muted: #222; --border-color: #000; --primary: #00449e; }
+html[data-rd-colours="contrast"] body { background: #fff; color: #000; }
+html[data-rd-colours="contrast"] :is(h1, h2, h3, h4, h5, h6) { color: #000; }
+html[data-rd-colours="contrast"] .rd a, html[data-rd-colours="contrast"] .rd-about a { color: #00449e; text-decoration: underline; }
+html[data-rd-colours="contrast"] .rd-btn:not(.rd-btn--primary) { border-color: #000; color: #000; }
+html[data-rd-colours="contrast"] .rd-btn--primary { background: #00449e; border-color: #00449e; color: #fff; }
+html[data-rd-colours="contrast"] .navbar a, html[data-rd-colours="contrast"] .web-footer a { color: #00449e !important; }
+html[data-rd-colours="dark"] { --text-color: #f2f2f2; --bg-color: #121212; --card-bg: #1c1c1c; --text-muted: #c8c8c8; --border-color: #555; --primary: #8fd0bd; --subtle-fg: #262626; }
+html[data-rd-colours="dark"] body, html[data-rd-colours="dark"] .navbar { background: #121212 !important; color: #f2f2f2; }
+html[data-rd-colours="dark"] .rd a, html[data-rd-colours="dark"] .rd-about a { color: #9fd9ff; }
+html[data-rd-colours="dark"] .navbar a, html[data-rd-colours="dark"] .navbar .nav-link, html[data-rd-colours="dark"] .navbar-brand,
+html[data-rd-colours="dark"] .web-footer, html[data-rd-colours="dark"] .web-footer a, html[data-rd-colours="dark"] .footer-powered { color: #f2f2f2 !important; }
+html[data-rd-colours="dark"] .web-footer, html[data-rd-colours="dark"] .navbar-toggler { background: #121212 !important; }
+html[data-rd-colours="dark"] .rd-btn--primary { background: #8fd0bd; border-color: #8fd0bd; color: #0b1f1a; }
+html[data-rd-colours="dark"] .rd-btn, html[data-rd-colours="dark"] .rd input, html[data-rd-colours="dark"] .rd select, html[data-rd-colours="dark"] .rd textarea { background: #1c1c1c; color: #f2f2f2; }
+html[data-rd-colours="dark"] .rd mark { background: #6b5a00; }
+html[data-rd-colours="dark"] { --heading-color: #f2f2f2; --text-light: #e0e0e0; }
+html[data-rd-colours="dark"] :is(h1, h2, h3, h4, h5, h6, dt, strong, b, label, legend) { color: #f2f2f2; }
+html[data-rd-colours="dark"] code, html[data-rd-colours="dark"] pre { background: #262626; color: #f2f2f2; }
+html[data-rd-colours="sepia"] { --text-color: #3b2f1e; --bg-color: #f6efdc; --card-bg: #fbf6e9; --text-muted: #5b4b33; --border-color: #c9b98f; --subtle-fg: #efe5cc; }
+html[data-rd-colours="sepia"] body, html[data-rd-colours="sepia"] .navbar, html[data-rd-colours="sepia"] .web-footer { background: #f6efdc !important; color: #3b2f1e; }
+.rd-reading { position: relative; }
+.rd-reading__btn { font: inherit; font-weight: 600; padding: 4px 10px; border: 1px solid var(--border-color, #ccc); border-radius: 6px; background: transparent; color: inherit; cursor: pointer; }
+.rd-reading__panel { position: absolute; right: 0; top: calc(100% + 6px); z-index: 1050; width: min(320px, calc(100vw - 32px)); padding: 12px 14px; border: 1px solid var(--border-color, #ccc);
+	border-radius: 10px; background: var(--card-bg, #fff); color: var(--text-color, #222); box-shadow: 0 8px 24px rgba(0, 0, 0, .18); font-size: 15px; letter-spacing: normal; word-spacing: normal; }
+.rd-reading__panel fieldset { border: 0; margin: 0 0 10px; padding: 0; }
+.rd-reading__panel legend { font-size: .85rem; font-weight: 600; margin-bottom: 4px; }
+.rd-reading__panel label { display: inline-flex; align-items: center; gap: 4px; margin: 0 10px 4px 0; font-weight: normal; }
+.rd-reading__panel .rd-reading__reset { font: inherit; background: none; border: 0; padding: 0; color: var(--primary, #2f6f5e); text-decoration: underline; cursor: pointer; }
+.rd-book-about__sub { font-size: 1rem; margin: 18px 0 4px; }
+
+/* WCAG 2.2 AA, found by scripts/a11y_check.py (axe-core): links inside text are underlined, not
+   told apart by colour alone (1.4.1); links in lists have room to tap (2.5.8); Frappe's
+   "Built on Frappe" footer line had too little contrast (1.4.3) */
+.rd p a:not(.rd-btn), .rd-prose a, .rd-help__body li a, .rd-help__body td a, .rd-about p a:not(.rd-btn) { text-decoration: underline; }
+.rd-help__toc a, .rd-help__nav li a { display: inline-block; min-height: 24px; padding: 2px 0; }
+.footer-powered, .footer-powered a, .footer-powered .text-muted { color: var(--text-color, #333) !important; }
+.footer-powered a { text-decoration: underline; }

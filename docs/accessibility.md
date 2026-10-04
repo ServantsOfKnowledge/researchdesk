@@ -27,6 +27,9 @@ that gets in your way (see *Reporting a problem*).
 - **Less motion** for readers who ask their system for it; colours follow Windows' high-contrast
   mode.
 - Works at 200% zoom and on a phone held upright (no sideways scrolling).
+- **Reading settings** (**Aa** at the top of every page): text size, line spacing, letter and
+  word spacing (the WCAG 1.4.12 values), and colours (high contrast, light on dark, sepia), kept
+  by the reader's browser and applied before the page is drawn.
 
 **Indian languages**
 
@@ -46,6 +49,10 @@ that gets in your way (see *Reporting a problem*).
   Bengali, Gujarati and Marathi voices; Windows and macOS have voices to add.
 - archive.org's own reader, also on every book page, has its own **Read aloud** and keyboard
   controls.
+- **The text to download**: every book with text has an **EPUB 3** (the language of the text,
+  the printed page numbers as a page list, a table of contents, and EPUB Accessibility 1.1
+  metadata saying how much of the text people checked) and **plain text**, for reading apps,
+  screen readers, braille displays and large print. Checked with W3C EPUBCheck.
 - Every page image has a text name (*Page image 12*). The book's page says whether text is
   available (schema.org accessibility metadata, read by search engines and accessibility tools).
 
@@ -69,9 +76,10 @@ offers Kannada or another language).
   reader; proofreading fixes the text page by page.
 - **The Desk** (the staff side) is Frappe's own interface: it works with the keyboard and has
   shortcuts, but it has not been tested with screen readers by us. Our own Desk pages (Server,
-  People & Roles, Background Jobs, Help) have not had the audit the portal has.
-- **Downloadable accessible formats** (EPUB 3, DAISY, plain text) of proofread books are not
-  offered yet; the PDF is archive.org's image PDF.
+  People & Roles, Background Jobs, Portal Translations, Help) are checked with axe-core like the
+  portal; Frappe's menus, lists and forms around them are not ours to fix here.
+- **DAISY** talking books are not offered (EPUB 3 and plain text are); the PDF is archive.org's
+  image PDF.
 - No testing yet **with disabled readers** themselves; automated checks find only part of the
   problems.
 
@@ -105,6 +113,12 @@ way. Staff: problems with the software itself go to
 3. **Keyboard-only run** in a browser (CI-style test): skip link, adding a note by typing its
    words, adding and moving a zone with the arrow keys.
 
+4. **In CI, on every change** (since v0.35): `scripts/a11y_check.py` runs axe-core on the
+   running portal (home, search, inside the text, collections, About, help, a book page and Page
+   & text, at desktop and phone width) and on our Desk pages; a serious or critical problem
+   stops the release. The findings are kept with each CI run (*a11y-report*). Run it on your own
+   install the same way (see the script's first lines).
+
 Not done yet: testing with NVDA and Kannada/Hindi voices, TalkBack on Android, and readers who use
 them every day.
 
@@ -115,17 +129,17 @@ them every day.
 - [ ] Test with blind and low-vision readers through a partner (e.g. Mitra Jyothi, Bengaluru; the
       National Association for the Blind), using NVDA and TalkBack with Indic voices; fix what
       they find
-- [ ] The accessibility checks above in CI (axe-core on the rendered portal pages), so nothing
-      slips back
-- [ ] Reader settings: text size, line spacing, a dyslexia-friendly font, and high-contrast
-      colours for Page & text, kept per reader
-- [ ] Audit and fix our own Desk pages (Server, People & Roles, Background Jobs, Help, the
-      proofreaders' work list) against WCAG 2.2 AA
+- [x] The accessibility checks above in CI (axe-core on the rendered portal pages), so nothing
+      slips back (v0.35)
+- [x] Reader settings: text size, line spacing, letter and word spacing, and high-contrast,
+      dark and sepia colours, kept per reader (v0.35)
+- [x] Our own Desk pages checked against WCAG 2.2 AA with axe-core, in CI (v0.35)
 
 **Later**
 
-- [ ] **Accessible downloads** of proofread books: EPUB 3 with page numbers and accessibility
-      metadata, plain text, and DAISY via the DAISY Consortium's tools
+- [x] **Accessible downloads**: EPUB 3 with page numbers and accessibility metadata, and plain
+      text, for every book with text (v0.35)
+- [ ] DAISY talking books via the DAISY Consortium's tools; Ace by DAISY checks of the EPUBs
 - [ ] **Sugamya Pustakalaya** (India's online library for people with print disabilities, run by
       the DAISY Forum of India): share proofread books under section 52(1)(zb) and the
       Marrakesh Treaty, including books for members only

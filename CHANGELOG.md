@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.35.0 (2026-10-13): Reading settings, the text to download, accessibility checks on every change; help pictures from the Desk
+
+- **Reading settings** (**Aa** at the top of every portal page): text size (up to almost one and
+  a half times), line spacing, wider letter and word spacing, and colours (high contrast, light
+  on dark, sepia). Each reader's browser keeps them, applied before the page is drawn
+- **The text to download** on every book with text: an accessible **EPUB 3** (the text's
+  language, the printed page numbers as a page list, a table of contents, EPUB Accessibility
+  metadata saying how much of the text people checked; valid by W3C EPUBCheck) and **plain
+  text**, with proofread pages in their corrected form. For reading apps, screen readers,
+  braille displays and large print
+- **Accessibility checks in CI**: `scripts/a11y_check.py` runs axe-core (WCAG 2.2 A and AA) on the
+  running portal at desktop and phone width, in each reading colour, and on our Desk pages; a
+  serious or critical problem stops the release. Run it against any install the same way
+- Fixed what the checks found: links inside text are underlined (not told apart by colour
+  alone), the help's page lists have room to tap, the "Built on Frappe" footer line and the red
+  warnings on Background Jobs have enough contrast
+- **Help pictures from the Desk**: Server → **Retake help pictures** takes the help's
+  screenshots from this library (its name, logo and books) and the help shows them at once; kept
+  in the site's files across upgrades. `./resdesk.sh screenshots` no longer needs Playwright on
+  the server: it uses Playwright's Docker image (`--site` for the library's help)
+
 ## 0.34.0 (2026-10-12): The portal in Kannada and other languages
 
 - **Portal languages**: Settings → Portal → Portal Languages (`kn`, `hi`, `ta`… one a line). A

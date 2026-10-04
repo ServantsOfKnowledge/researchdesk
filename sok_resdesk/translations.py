@@ -201,8 +201,16 @@ def website_context(context) -> dict | None:
 			{"code": c, "name": names.get(c) or c} for c in langs
 		]
 	payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
-	script = f"<script>window.RD_I18N = {payload};</script>"
+	script = f"<script>window.RD_I18N = {payload};</script>" + READING_SETTINGS
 	return {"head_include": (context.get("head_include") or "") + script}
+
+
+# the reader's reading settings (a11y.js), set before the page is drawn so it doesn't jump
+READING_SETTINGS = (
+	"<script>try{var p=JSON.parse(localStorage.getItem('rd-reading')||'{}');for(var k in p)"
+	"if(/^(size|leading|spacing|colours)$/.test(k)&&/^[a-z]+$/.test(p[k]))"
+	"document.documentElement.setAttribute('data-rd-'+k,p[k]);}catch(e){}</script>"
+)
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])

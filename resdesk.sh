@@ -99,7 +99,41 @@ case "$cmd" in
   access)   bench resdesk access "$@" ;;
   add-reader) bench resdesk add-reader "$@" ;;
   jobs)     bench resdesk jobs "$@" ;;
-  screenshots) python3 scripts/screenshots.py --url "http://localhost:${HTTP_PORT:-8080}" "$@" ;;
+  screenshots)
+    # the guides' pictures, taken from this site (docs/server.md#help-pictures). With --site they go
+    # into this library's help (the site's files: shown at once, kept across upgrades); without,
+    # into the code (sok_resdesk/public/images/guide, for the project's own docs)
+    URL="http://localhost:${HTTP_PORT:-$([ "$MODE" = native ] && echo 8000 || echo 8080)}"
+    INTO_SITE=0; SHOT_ARGS=()
+    for a in "$@"; do if [ "$a" = --site ]; then INTO_SITE=1; else SHOT_ARGS+=("$a"); fi; done
+    OUTDIR=sok_resdesk/public/images/guide
+    if [ "$INTO_SITE" = 1 ]; then OUTDIR=site-backups/help-pictures; rm -rf "$OUTDIR"; mkdir -p "$OUTDIR"; fi
+    if python3 -c "import playwright" 2>/dev/null; then
+      python3 scripts/screenshots.py --url "$URL" --out "$OUTDIR" ${SHOT_ARGS[@]+"${SHOT_ARGS[@]}"}
+    elif command -v docker >/dev/null 2>&1; then
+      # Playwright's image has the browser; the Python package (the same version) comes with it here
+      PW_VERSION=${PLAYWRIGHT_VERSION:-1.55.0}
+      echo "No Playwright here: using Playwright's own image (Playwright ${PW_VERSION})."
+      docker run --rm --network host --user "$(id -u):$(id -g)" -e HOME=/tmp -e PIP_BREAK_SYSTEM_PACKAGES=1 \
+        ${PIP_CERT:+-e PIP_CERT="$PIP_CERT"} ${HTTPS_PROXY:+-e HTTPS_PROXY="$HTTPS_PROXY"} \
+        -v "$PWD:$PWD" -w "$PWD" "mcr.microsoft.com/playwright/python:v${PW_VERSION}-noble" \
+        sh -c 'pip install -q --user --disable-pip-version-check --no-warn-script-location --root-user-action=ignore "playwright==$0" pillow && python3 scripts/screenshots.py "$@"' \
+        "$PW_VERSION" --url "$URL" --out "$OUTDIR" ${SHOT_ARGS[@]+"${SHOT_ARGS[@]}"} || SHOTS_FAILED=1
+    else
+      echo "Needs Playwright (pip install playwright && python3 -m playwright install chromium) or Docker."; exit 1
+    fi
+    if [ "$INTO_SITE" = 1 ]; then
+      ls "$OUTDIR"/*.png >/dev/null 2>&1 || { echo "No pictures were taken."; exit 1; }
+      HELP_DIR="sites/$SITE/public/files/resdesk-guide"
+      if [ "$MODE" = native ]; then
+        mkdir -p "$BENCH_DIR/$HELP_DIR" && cp "$OUTDIR"/*.png "$BENCH_DIR/$HELP_DIR/"
+      else
+        docker compose exec -T backend mkdir -p "/home/frappe/frappe-bench/$HELP_DIR"
+        docker compose cp "$OUTDIR/." "backend:/home/frappe/frappe-bench/$HELP_DIR/"
+      fi
+      echo "The help now shows $(ls "$OUTDIR"/*.png | wc -l | tr -d ' ') pictures of this library."
+    fi
+    [ "${SHOTS_FAILED:-0}" = 0 ] ;;
   docs)     python3 scripts/gen_docs.py "$@" ;;
   requirements)
     # what the server has and what is missing; install tools on native installs (docs/server.md#requirements)
@@ -392,7 +426,7 @@ Maintenance
   ./resdesk.sh jobs --stop RUN | --pause | --resume      (schedules)
   ./resdesk.sh jobs --pause-run RUN | --resume-run RUN  pause a run where it is, carry on later
   ./resdesk.sh jobs --pause-all | --resume-all          pause everything, then carry on
-  ./resdesk.sh screenshots [--query WORDS]  retake the pictures used in the guides (needs Playwright)
+  ./resdesk.sh screenshots [--site] [--query WORDS]  retake the guides' pictures (--site: into this library's help)
   ./resdesk.sh docs [--check]           refresh the settings and command reference in docs/
   ./resdesk.sh progress [RUN]           watch an ingest run
   ./resdesk.sh resources [light|standard|server]  how much of the machine Research Desk may use
