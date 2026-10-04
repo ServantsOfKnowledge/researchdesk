@@ -56,6 +56,8 @@ jinja = {
 		"sok_resdesk.portal.text_lang",
 	]
 }
+# the portal's scripts in the reader's language, and the language switch (translations.py)
+update_website_context = ["sok_resdesk.translations.website_context"]
 # / shows the library to everyone, also to logged-in staff whose role has another home page
 before_request = ["sok_resdesk.portal.home_is_library"]
 

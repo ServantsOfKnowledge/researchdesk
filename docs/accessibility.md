@@ -58,7 +58,8 @@ that gets in your way (see *Reporting a problem*).
 
 **Out of the box from Frappe**: the page's language and direction (`<html lang>`, right-to-left
 for Urdu), a main landmark, an accessible menu button on phones, and the portal in other
-languages (Frappe translations; a Kannada portal is on the roadmap).
+languages (Frappe translations: a language switch at the top of the portal, when the library
+offers Kannada or another language).
 
 ## Not yet
 
@@ -109,7 +110,7 @@ them every day.
 
 ## Roadmap
 
-**Next (v0.32)**
+**Next**
 
 - [ ] Test with blind and low-vision readers through a partner (e.g. Mitra Jyothi, Bengaluru; the
       National Association for the Blind), using NVDA and TalkBack with Indic voices; fix what
@@ -131,5 +132,5 @@ them every day.
 - [ ] Marking regions and drawing zones by keyboard on the image itself
 - [ ] Better text for scans without OCR: proofreading drives, and re-OCR on ingest for books
       archive.org has no text for
-- [ ] Portal in Kannada and other languages (Frappe translations), with plain-language help
+- [ ] Plain-language help, and the help pages themselves in Kannada and other languages
 - [ ] Contribute fixes for Frappe's Desk upstream where staff using screen readers need them

@@ -27,6 +27,9 @@ class RDSettings(Document):
 		from sok_resdesk.setup import validate_machine
 
 		validate_machine(self)
+		from sok_resdesk.translations import validate_settings as validate_languages
+
+		validate_languages(self)
 
 	def on_update(self):
 		apply_branding(self)

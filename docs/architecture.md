@@ -91,6 +91,11 @@ cause. Details: [Server](server.md#how-the-updater-helper-works).
 | RD Research Group Member | child table | user, name |
 | **RD Server Task** | an upgrade, restart, resource preset, server backup, update check, log request or requirements install from the Server page, carried out by the updater helper | action, arguments (checked), status (Queued / Running / Succeeded / Failed / Cancelled), requested by, log, summary |
 
+The portal's translations are Frappe's own **Translation** records (language, phrase,
+translation), edited on Desk → Portal Translations (`translations.py`), so Frappe serves them to
+templates and Python, and `website_context` sends the scripts' share to the browser
+(`window.RD_I18N`, used as `__()` by the portal scripts).
+
 `raw_metadata` keeps the untouched source record, so re-normalising later never needs a
 re-download.
 

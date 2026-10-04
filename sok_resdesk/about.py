@@ -148,12 +148,14 @@ def rich(html: str) -> str:
 
 
 def _items(rows) -> list[frappe._dict]:
+	from sok_resdesk.translations import tr
+
 	return [
 		frappe._dict(
-			title=r.title,
-			text=inline(r.text),
+			title=tr(r.title),
+			text=inline(tr(r.text)),
 			link=r.link if r.link and safe_link(r.link) else "",
-			link_label=r.link_label or _("More") + " →",
+			link_label=tr(r.link_label) or _("More") + " →",
 		)
 		for r in rows
 		if r.title
@@ -192,34 +194,35 @@ def context() -> frappe._dict:
 	"""Everything www/about.html shows."""
 	from sok_resdesk.catalogue import settings
 	from sok_resdesk.portal import library_url
+	from sok_resdesk.translations import tr
 
 	doc = frappe.get_cached_doc("RD About Page")
 	s = settings()
-	portal = s.portal_title or "SOK Research Desk"
+	portal = tr(s.portal_title) or "SOK Research Desk"
 	ctx = frappe._dict(
 		enabled=bool(doc.enabled),
 		portal_title=portal,
-		headline=doc.headline or portal,
-		tagline=doc.tagline or "",
-		intro=rich(doc.intro),
+		headline=tr(doc.headline) or portal,
+		tagline=tr(doc.tagline) or "",
+		intro=rich(tr(doc.intro)),
 		image=doc.hero_image or "",
 		buttons=[
 			frappe._dict(label=label, link=link, primary=primary)
 			for label, link, primary in (
-				(doc.primary_label, doc.primary_link or library_url(), True),
-				(doc.secondary_label, doc.secondary_link, False),
+				(tr(doc.primary_label), doc.primary_link or library_url(), True),
+				(tr(doc.secondary_label), doc.secondary_link, False),
 			)
 			if label and link and safe_link(link)
 		],
 		numbers=numbers() if doc.show_stats else [],
-		steps_title=doc.steps_title or "",
+		steps_title=tr(doc.steps_title) or "",
 		steps=_items(doc.steps),
-		highlights_title=doc.highlights_title or "",
+		highlights_title=tr(doc.highlights_title) or "",
 		highlights=_items(doc.highlights),
-		body_title=doc.body_title or "",
-		body=rich(doc.body),
-		title=doc.page_title or _("About {0}").format(portal),
-		description=doc.meta_description or doc.tagline or s.portal_tagline or "",
+		body_title=tr(doc.body_title) or "",
+		body=rich(tr(doc.body)),
+		title=tr(doc.page_title) or _("About {0}").format(portal),
+		description=tr(doc.meta_description) or tr(doc.tagline) or tr(s.portal_tagline),
 		logo=s.portal_logo or "",
 	)
 	if doc.show_collections:

@@ -301,6 +301,7 @@ Every setting:
 | Public Base URL | e.g. https://library.example.org. Used in citations, OAI-PMH and MARC 856 links. Leave empty to use this site's URL. |
 | OAI Repository Identifier | Domain-style identifier used in OAI identifiers, e.g. library.example.org |
 | Admin Email | Shown to OAI-PMH harvesters. |
+| Portal Languages | Languages the portal is offered in besides English, one code a line (kn for Kannada, hi Hindi, ta Tamil, te Telugu, ml Malayalam, mr Marathi, sa Sanskrit…). Readers get a language switch at the top of the portal; translate the portal's words in Portal Translations. |
 
 **Logo & Branding**
 

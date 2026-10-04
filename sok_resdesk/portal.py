@@ -111,8 +111,12 @@ def collection_cards() -> list[frappe._dict]:
 	)
 	if not rows:
 		return []
+	from sok_resdesk.translations import tr
+
 	counts = collection_counts()
 	published = {r.name for r in rows}
+	for r in rows:  # in the reader's language (Portal Translations)
+		r.title, r.description = tr(r.title), tr(r.description)
 	subs: dict[str, int] = {}
 	for r in rows:
 		r.count = counts.get(r.name, 0)
@@ -127,4 +131,7 @@ def collection_cards() -> list[frappe._dict]:
 
 def facet_labels() -> dict:
 	"""Display names for facet values that are ids (curated collections)."""
-	return {"curated": dict(frappe.get_all("RD Collection", fields=["name", "title"], as_list=True))}
+	from sok_resdesk.translations import tr
+
+	rows = frappe.get_all("RD Collection", fields=["name", "title"], as_list=True)
+	return {"curated": {name: tr(title) for name, title in rows}}

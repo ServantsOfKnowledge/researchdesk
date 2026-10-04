@@ -2,6 +2,7 @@
 // page links and page citations. It sits next to the book reader (archive.org's), which stays
 // as it was: readers switch between the two, and each opens the other at the same page.
 (function () {
+	const __ = window.rdT || ((s) => s);
 	const $ = (sel, root) => (root || document).querySelector(sel);
 	const esc = (s) =>
 		String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -56,30 +57,30 @@
 		const d = await api("page", { item_id: itemId, leaf: Math.max(0, Number(leaf) || 0) });
 		if (!d) return;
 		if (d.login_needed) {
-			$("#rd-pages-text").innerHTML = `<p class="rd-muted">${esc("Log in to read this book.")}</p>`;
+			$("#rd-pages-text").innerHTML = `<p class="rd-muted">${esc(__("Log in to read this book."))}</p>`;
 			return;
 		}
 		state = { ...state, leaf: d.leaf, last: d.last, label: d.label, shown: true };
 		cites = {};
 		$("#rd-pages-n").value = d.leaf + 1;
 		$("#rd-pages-n").max = d.last + 1;
-		$("#rd-pages-of").textContent = `of ${d.last + 1}`;
+		$("#rd-pages-of").textContent = __("of {0}", [d.last + 1]);
 		$("#rd-pages-label").textContent = d.label ? (/^\d/.test(d.label) ? `p. ${d.label}` : d.label) : "";
 		const fig = $("#rd-pages-image");
 		if (d.image) {
-			fig.innerHTML = `<img src="${esc(d.image)}" alt="${esc(`Page image ${d.leaf + 1}`)}" loading="eager">`;
+			fig.innerHTML = `<img src="${esc(d.image)}" alt="${esc(__("Page image {0}", [d.leaf + 1]))}" loading="eager">`;
 			$("img", fig).addEventListener("error", () => {
-				fig.innerHTML = `<p class="rd-muted">${esc("This page image isn't available here.")} <a href="#" data-to-book>${esc("Open it in the book reader")}</a></p>`;
+				fig.innerHTML = `<p class="rd-muted">${esc(__("This page image isn't available here."))} <a href="#" data-to-book>${esc(__("Open it in the book reader"))}</a></p>`;
 			});
 			if (d.leaf < d.last) new Image().src = d.image.replace(/n\d+\.jpg$/, `n${d.leaf + 1}.jpg`); // the next one, ready
 		} else if (d.pdf) {
-			fig.innerHTML = `<p class="rd-muted"><a href="${esc(d.pdf)}#page=${d.leaf + 1}" target="_blank" rel="noopener">${esc("See this page in the PDF")}</a></p>`;
+			fig.innerHTML = `<p class="rd-muted"><a href="${esc(d.pdf)}#page=${d.leaf + 1}" target="_blank" rel="noopener">${esc(__("See this page in the PDF"))}</a></p>`;
 		} else {
 			fig.innerHTML = "";
 		}
 		$("#rd-pages-text").innerHTML = d.text
 			? highlight(d.text, state.q)
-			: `<p class="rd-muted">${esc(d.has_text ? "No text on this page." : "No text for this book yet.")}</p>`;
+			: `<p class="rd-muted">${esc(d.has_text ? __("No text on this page.") : __("No text for this book yet."))}</p>`;
 		const mark = $("#rd-pages-text mark");
 		if (mark) mark.scrollIntoView({ block: "center", behavior: "smooth" });
 		else $("#rd-pages-text").scrollTop = 0;
@@ -98,9 +99,9 @@
 		const was = btn.textContent;
 		try {
 			await navigator.clipboard.writeText(text);
-			btn.textContent = "Copied ✓";
+			btn.textContent = __("Copied ✓");
 		} catch (e) {
-			prompt("Copy:", text);
+			prompt(__("Copy:"), text);
 		}
 		setTimeout(() => (btn.textContent = was), 1500);
 	}

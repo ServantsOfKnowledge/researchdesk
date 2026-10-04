@@ -35,6 +35,7 @@ SCREEN_HELP = {
 	"resdesk-jobs": ("operations", "background-jobs-see-pause-and-stop-what-is-running"),
 	"resdesk-server": ("server", "the-server-page"),
 	"resdesk-people": ("staff-guide", "people-and-roles"),
+	"resdesk-translations": ("staff-guide", "the-portal-in-other-languages"),
 	"RD Server Task": ("server", "upgrading-from-the-desk"),
 	"RD Tombstone": ("preservation", "tombstones"),
 	"RD Annotation": ("staff-guide", "readers-notes"),

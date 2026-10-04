@@ -2,6 +2,7 @@
 // API), in a voice for the book's language when the device has one (Kannada, Hindi, Tamil… on
 // Android and Chrome; Windows and macOS have voices to add). See docs/accessibility.md.
 (function () {
+	const __ = window.rdT || ((s) => s);
 	const $ = (s) => document.querySelector(s);
 	let text = "", speaking = false;
 
@@ -34,14 +35,14 @@
 		if (synth()) synth().cancel();
 		speaking = false;
 		const b = $("#rd-read-aloud");
-		if (b) b.setAttribute("aria-pressed", "false"), (b.textContent = "Read aloud");
+		if (b) b.setAttribute("aria-pressed", "false"), (b.textContent = __("Read aloud"));
 	}
 	function start() {
-		if (!text.trim()) return say("This page has no text to read.");
+		if (!text.trim()) return say(__("This page has no text to read."));
 		const tag = lang().toLowerCase().split("-")[0];
 		const voice = voiceFor(tag);
 		if (!voice && tag !== "en") {
-			say(`This device has no voice for this language (${tag}). Add one (Android: Settings → Text-to-speech; Windows: Settings → Time & language → Speech), or use a screen reader.`);
+			say(__("This device has no voice for this language ({0}). Add one (Android: Settings → Text-to-speech; Windows: Settings → Time & language → Speech), or use a screen reader.", [tag]));
 			return;
 		}
 		synth().cancel();
@@ -49,13 +50,13 @@
 		speaking = true;
 		const b = $("#rd-read-aloud");
 		b.setAttribute("aria-pressed", "true");
-		b.textContent = "Stop reading";
-		say(voice ? `Reading with ${voice.name}.` : "");
+		b.textContent = __("Stop reading");
+		say(voice ? __("Reading with {0}.", [voice.name]) : "");
 		list.forEach((p, i) => {
 			const u = new SpeechSynthesisUtterance(p);
 			u.lang = voice ? voice.lang : tag;
 			if (voice) u.voice = voice;
-			if (i === list.length - 1) u.onend = () => (stop(), say("Finished this page."));
+			if (i === list.length - 1) u.onend = () => (stop(), say(__("Finished this page.")));
 			synth().speak(u);
 		});
 	}

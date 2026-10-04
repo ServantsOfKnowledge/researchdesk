@@ -243,6 +243,9 @@
 	.rd-search { flex-direction: column; }
 }
 
+/* the language switch in the top bar (a11y.js) */
+.rd-langs { margin-left: auto; margin-right: 8px; }
+.rd-langs__select { font: inherit; font-size: .9rem; padding: 4px 8px; border: 1px solid var(--rd-border); border-radius: 6px; background: var(--rd-bg, #fff); color: inherit; max-width: 10rem; }
 /* navbar brand (set from RD Settings → Logo) */
 .rd-brand { display: inline-flex; align-items: center; gap: 10px; }
 .rd-brand__logo { max-height: 32px; width: auto; }

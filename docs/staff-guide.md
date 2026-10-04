@@ -188,6 +188,33 @@ are left out:
 
 **Save**, then **View Page**. Changes show straight away.
 
+## The portal in other languages
+
+The portal can be offered in Kannada, Hindi, Tamil and any other language Frappe knows, beside
+English. Readers choose their language with the switch at the top of every portal page; a
+browser set to Kannada gets Kannada the first time. For someone logged in, the switch also sets
+their account's language, so the Desk follows it (change it back under *My Settings*). Book titles, page text and notes stay as
+they are: what changes is the portal's own words (menus, buttons, messages, help on the page)
+and the library's words (its name and tagline, the About page, collection titles and
+descriptions).
+
+1. **Settings → Portal → Portal Languages**: one language code a line, e.g. `kn` (Kannada),
+   `hi` (Hindi), `ta` (Tamil), `te` (Telugu), `ml` (Malayalam), `mr` (Marathi), `sa` (Sanskrit).
+   Save: the language switch appears on the portal.
+2. **Portal Translations** (Research Desk → Setup, or `/app/resdesk-translations`) lists every
+   phrase readers see, where it is used, and a column for each language. Type a translation; it
+   is saved when you leave the box. **Only phrases still to translate** shows what is missing;
+   the counts at the top say how much is left for each language.
+3. Or translate offline: **Download spreadsheet** (CSV, opens in Excel, LibreOffice or Google
+   Sheets), fill in the language columns, save as CSV (UTF-8) and **Upload spreadsheet**. Filled
+   cells become translations; empty cells change nothing.
+
+Phrases with `{0}`, `{1}` have numbers or names put in their place (`{0} books` →
+`{0} ಪುಸ್ತಕಗಳು`): keep each of them in the translation, wherever the language needs it.
+Translations are Frappe *Translation* records, so they are kept in backups and moved with the
+site; Cataloguers and Managers can edit them. When you change a collection's title or the About
+page, its new words appear in the list to translate (the old translation no longer applies).
+
 ## The portal's address
 
 The library's search page is the site's front page: **`/`**, e.g.

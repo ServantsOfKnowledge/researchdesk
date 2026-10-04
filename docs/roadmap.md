@@ -53,7 +53,7 @@
 - [x] Big ingests that don't stall or do work twice; failed books retried by themselves
 - [x] Worker priority from the Desk; the portal's book count kept up with the catalogue
 
-## v0.20 – v0.31: a research library (done)
+## v0.20 – v0.34: a research library (done)
 
 - [x] Permanent links: ARKs for every book and page (switched on once the NAAN is assigned), tombstones
 - [x] Preservation: OCFL copies with SHA-256 fixity checks and PREMIS-style events; a second copy
@@ -81,6 +81,13 @@
 - [x] Accessibility, first pass (WCAG 2.2 AA, GIGW 3.0): skip link, focus, landmarks, labels,
       Indic text marked with its language for screen readers, read aloud, notes and proofreading
       zones without a mouse, schema.org accessibility metadata, an accessibility statement
+- [x] Faster catalogues: books from a metadata file (an `ia` export, CSV or identifier list) or an
+      identifier list of any length, the first pass split across every worker; workers and the
+      upload size set in the Desk
+- [x] **The portal in Kannada and other languages**: a language switch for readers; *Portal
+      Translations* in the Desk (every portal phrase with a column per language, missing ones
+      shown, edited in place, spreadsheet download and upload), stored as Frappe Translation
+      records; the library's name, About page and collections translatable
 
 ## Next
 
@@ -89,11 +96,8 @@
       CI; reader settings (text size, spacing, dyslexia-friendly font, high contrast); an audit of
       our Desk pages against WCAG 2.2 AA; later EPUB 3 / DAISY downloads of proofread books and
       sharing with Sugamya Pustakalaya under the Marrakesh Treaty and Copyright Act 52(1)(zb)
-- [ ] **Portal in Kannada and other languages** (next milestone): the portal's browser-script text
-      marked for translation; a *Portal Translations* page in the Desk (every portal phrase with a
-      column per language, missing ones highlighted, edited in place, spreadsheet download and
-      upload, optional machine drafts checked by a person), stored as Frappe Translation records;
-      the portal's language switch; About page and collection descriptions translatable
+- [ ] Machine drafts for Portal Translations (e.g. IndicTrans2 or a translation service), checked
+      by a person before they show
 - [ ] Authority control: reconcile creators with VIAF/Wikidata; subjects with LCSH/Sears
 - [ ] Cataloguer review queue for flagged records (no year, unknown language, duplicate titles)
 - [ ] More sources: Wikisource, DSpace/OAI-PMH repositories, bare PDFs with no OCR (OCR on ingest)

@@ -41,7 +41,7 @@
 		const r = await fetch(`/api/method/sok_resdesk.annotations.mine?${params()}`, { headers: { Accept: "application/json" } });
 		const notes = ((await r.json()).message || {}).notes || [];
 		if (!notes.length) {
-			list.innerHTML = `<p class="rd-muted">{{ _("No notes yet.") }}</p>`;
+			list.innerHTML = `<p class="rd-muted">${esc({{ _("No notes yet.") | tojson }})}</p>`;
 			return;
 		}
 		let html = "", book = null;
@@ -51,10 +51,10 @@
 				book = n.book_title;
 				html += `<h2 class="rd-mynotes__book">${esc(book)}</h2><ul class="rd-note-list">`;
 			}
-			const vis = n.visibility === "Public" ? (n.review_status === "Pending" ? "{{ _('Public, waiting for review') }}" : "{{ _('Public') }}") : n.visibility === "Group" ? "{{ _('Group') }}" : "{{ _('Only you') }}";
+			const vis = n.visibility === "Public" ? (n.review_status === "Pending" ? {{ _('Public, waiting for review') | tojson }} : {{ _('Public') | tojson }}) : n.visibility === "Group" ? {{ _('Group') | tojson }} : {{ _('Only you') | tojson }};
 			html += `<li class="rd-note"><div class="rd-note__head"><span class="rd-note__kind rd-note__kind--${esc(n.kind.replace(/\s/g, "-").toLowerCase())}">${esc(n.kind)}</span>
 				<a href="${esc(n.url)}">${esc(n.page || "")}</a><span class="rd-muted">${esc(n.mine ? vis : `${n.author} · ${vis}`)}</span></div>
-				${n.exact ? `<blockquote>${esc(n.exact)}</blockquote>` : n.region ? `<p class="rd-muted">{{ _("A region of the page image") }}</p>` : ""}
+				${n.exact ? `<blockquote>${esc(n.exact)}</blockquote>` : n.region ? `<p class="rd-muted">${esc({{ _("A region of the page image") | tojson }})}</p>` : ""}
 				${n.body ? `<p>${esc(n.body)}</p>` : ""}
 				${n.entity ? `<a class="rd-chip rd-chip--entity" href="/library/entity/${esc(n.entity)}" title="${esc(n.entity_description || "")}">${esc(n.entity_label || n.entity)}</a>` : ""}
 				${(n.tags || []).map((t) => `<a class="rd-chip" href="/library/tag/${encodeURIComponent(t)}">${esc(t)}</a>`).join(" ")}

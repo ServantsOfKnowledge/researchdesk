@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-09 12:00:00.000000",
+ "modified": "2026-10-11 12:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -167,6 +167,12 @@
    "label": "Admin Email",
    "options": "Email",
    "description": "Shown to OAI-PMH harvesters."
+  },
+  {
+   "fieldname": "portal_languages",
+   "fieldtype": "Small Text",
+   "label": "Portal Languages",
+   "description": "Languages the portal is offered in besides English, one code a line (kn for Kannada, hi Hindi, ta Tamil, te Telugu, ml Malayalam, mr Marathi, sa Sanskrit…). Readers get a language switch at the top of the portal; translate the portal's words in Portal Translations."
   },
   {
    "fieldname": "branding_section",

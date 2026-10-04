@@ -25,11 +25,14 @@ def get_context(context):
 	viewer = access.viewer()
 	if not doc or (not doc.published and not viewer["staff"]):
 		raise frappe.PageDoesNotExistError
+	from sok_resdesk.translations import tr
+
+	doc.title, doc.description = tr(doc.title), tr(doc.description)
 	s = settings()
 	context.no_cache = 1
 	context.full_width = 1
 	context.show_sidebar = 0
-	context.portal_title = s.portal_title or "SOK Research Desk"
+	context.portal_title = tr(s.portal_title) or "SOK Research Desk"
 	context.collection = doc
 	cards = collection_cards()
 	context.count = next((c.count for c in cards if c.name == doc.name), 0)

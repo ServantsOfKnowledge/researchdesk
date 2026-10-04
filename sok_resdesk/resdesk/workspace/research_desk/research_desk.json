@@ -209,6 +209,16 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Portal Translations",
+   "link_count": 0,
+   "link_to": "resdesk-translations",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Help",
    "link_count": 0,
    "link_to": "resdesk-help",
@@ -335,7 +345,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-08 10:00:00.000000",
+ "modified": "2026-10-11 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "ResDesk",
  "name": "Research Desk",

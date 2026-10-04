@@ -2,6 +2,7 @@
 (function () {
 	const $ = (sel) => document.querySelector(sel);
 	const root = () => $("#rd-item");
+	const __ = window.rdT || ((s) => s);
 
 	function esc(s) {
 		return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -37,7 +38,7 @@
 			const canPage = !!(pages && pageTab && pages.state().shown);
 			if (pageTab) {
 				pageTab.disabled = !canPage;
-				pageTab.title = canPage ? "" : "Open a page in Page & text to cite it";
+				pageTab.title = canPage ? "" : __("Open a page in Page & text to cite it");
 			}
 			scope = want === "page" && canPage ? "page" : "book";
 			page = null;
@@ -68,9 +69,9 @@
 			const was = btn.textContent;
 			try {
 				await navigator.clipboard.writeText(text);
-				btn.textContent = "Copied ✓";
+				btn.textContent = __("Copied ✓");
 			} catch (e) {
-				prompt("Copy:", text);
+				prompt(__("Copy:"), text);
 			}
 			setTimeout(() => (btn.textContent = was), 1500);
 		};
@@ -84,7 +85,7 @@
 	function initList() {
 		const btn = $("#rd-add-list");
 		const id = root().dataset.item;
-		const paint = () => (btn.textContent = RDBasket.has(id) ? "✓ In my list" : "Add to my list");
+		const paint = () => (btn.textContent = RDBasket.has(id) ? __("✓ In my list") : __("Add to my list"));
 		btn.addEventListener("click", () => RDBasket.toggle(id));
 		document.addEventListener("rd-basket-change", paint);
 		paint();
@@ -106,21 +107,21 @@
 
 	function pageLabel(h) {
 		if (h.page_label && String(h.page_label).startsWith("§")) return esc(h.page_label);
-		return h.page_label ? "p. " + esc(h.page_label) : "leaf " + h.leaf;
+		return h.page_label ? __("p. {0}", [esc(h.page_label)]) : __("leaf {0}", [h.leaf]);
 	}
 
 	async function searchInside(q) {
 		const list = $("#rd-inside-hits");
 		if (!q) return (list.innerHTML = "");
-		list.innerHTML = '<li class="rd-muted">Searching…</li>';
+		list.innerHTML = `<li class="rd-muted">${__("Searching…")}</li>`;
 		const params = new URLSearchParams({ item_id: root().dataset.item, q });
 		try {
 			const res = await fetch(`/api/method/sok_resdesk.api.search_inside?${params}`);
 			const data = (await res.json()).message || { hits: [] };
 			const also = (data.also || []).length
-				? `<li class="rd-muted rd-also">Also searched: ${data.also.map((a) => `<b>${esc(a.q)}</b>`).join(", ")}</li>`
+				? `<li class="rd-muted rd-also">${__("Also searched:")} ${data.also.map((a) => `<b>${esc(a.q)}</b>`).join(", ")}</li>`
 				: "";
-			if (!data.hits.length) return (list.innerHTML = also + '<li class="rd-muted">No matches in this book’s OCR text.</li>');
+			if (!data.hits.length) return (list.innerHTML = also + `<li class="rd-muted">${__("No matches in this book’s OCR text.")}</li>`);
 			list.innerHTML =
 				also +
 				data.hits
@@ -130,7 +131,7 @@
 					)
 					.join("");
 		} catch (e) {
-			list.innerHTML = '<li class="rd-error">Search inside is unavailable.</li>';
+			list.innerHTML = `<li class="rd-error">${__("Search inside is unavailable.")}</li>`;
 		}
 	}
 

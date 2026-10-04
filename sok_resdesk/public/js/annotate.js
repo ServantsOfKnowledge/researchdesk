@@ -2,10 +2,14 @@
 // region of the page image, to highlight, comment, tag, ask a question, link or report an OCR
 // error. Private, shared with a research group, or public after review (annotations.py).
 (function () {
+	const __ = window.rdT || ((s) => s);
 	const $ = (sel, root) => (root || document).querySelector(sel);
 	const esc = (s) =>
 		String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 	const KINDS = ["Highlight", "Comment", "Tag", "Question", "Link", "OCR error"];
+	// the kinds as readers see them (the values sent stay in English)
+	const KIND_LABELS = { Highlight: __("Highlight"), Comment: __("Comment"), Tag: __("Tag"), Question: __("Question"), Link: __("Link"), "OCR error": __("OCR error") };
+	const kindLabel = (k) => KIND_LABELS[k] || k;
 	const NEEDS = { Comment: "body", Question: "body", Tag: "tags", Link: "link" };
 
 	let itemId, page = null, notes = [], me = { logged_in: false, can_annotate: false, groups: [] };
@@ -24,7 +28,7 @@
 		const r = await fetch(post ? url : `${url}?${new URLSearchParams(args)}`, opts);
 		const body = await r.json().catch(() => ({}));
 		if (!r.ok) {
-			let msg = "Something went wrong.";
+			let msg = __("Something went wrong.");
 			try {
 				msg = JSON.parse(JSON.parse(body._server_messages)[0]).message;
 			} catch (e) {}
@@ -112,12 +116,12 @@
 	}
 
 	function who(n) {
-		if (n.visibility === "Public") return n.review_status === "Pending" ? "Public, waiting for review" : "Public";
+		if (n.visibility === "Public") return n.review_status === "Pending" ? __("Public, waiting for review") : __("Public");
 		if (n.visibility === "Group") {
 			const g = me.groups.find((x) => x.name === n.research_group);
-			return `Group: ${g ? g.title : n.research_group}`;
+			return __("Group: {0}", [g ? g.title : n.research_group]);
 		}
-		return "Only you";
+		return __("Only you");
 	}
 
 	function renderList() {
@@ -129,18 +133,18 @@
 		const items = notes
 			.map(
 				(n) => `<li class="rd-note${n.detached ? " is-detached" : ""}" data-note="${esc(n.name)}">
-				<div class="rd-note__head"><span class="rd-note__kind rd-note__kind--${esc(n.kind.replace(/\s/g, "-").toLowerCase())}">${esc(n.kind)}</span>
+				<div class="rd-note__head"><span class="rd-note__kind rd-note__kind--${esc(n.kind.replace(/\s/g, "-").toLowerCase())}">${esc(kindLabel(n.kind))}</span>
 					<span class="rd-muted">${esc(n.mine ? who(n) : `${n.author} · ${who(n)}`)}</span>
-					${n.mine || me.manager ? `<span class="rd-note__acts"><button type="button" class="rd-linkish" data-edit="${esc(n.name)}">Edit</button> <button type="button" class="rd-linkish" data-remove="${esc(n.name)}">Delete</button></span>` : ""}</div>
-				${n.exact ? `<blockquote${textLang()}>${esc(n.exact)}</blockquote>` : n.region ? `<p class="rd-muted">A region of the page image</p>` : `<p class="rd-muted">The whole page</p>`}
-				${n.detached ? `<p class="rd-muted">The words this note was on are no longer in the page text (it was corrected).</p>` : ""}
+					${n.mine || me.manager ? `<span class="rd-note__acts"><button type="button" class="rd-linkish" data-edit="${esc(n.name)}">${__("Edit")}</button> <button type="button" class="rd-linkish" data-remove="${esc(n.name)}">${__("Delete")}</button></span>` : ""}</div>
+				${n.exact ? `<blockquote${textLang()}>${esc(n.exact)}</blockquote>` : n.region ? `<p class="rd-muted">${__("A region of the page image")}</p>` : `<p class="rd-muted">${__("The whole page")}</p>`}
+				${n.detached ? `<p class="rd-muted">${__("The words this note was on are no longer in the page text (it was corrected).")}</p>` : ""}
 				${n.body ? `<p>${esc(n.body)}</p>` : ""}
 				${n.entity || (n.tags && n.tags.length) ? `<p>${n.entity ? `<a class="rd-chip rd-chip--entity" href="/library/entity/${esc(n.entity)}" title="${esc(n.entity_description || "")}">${esc(n.entity_label || n.entity)}</a> ` : ""}${(n.tags || []).map((t) => `<a class="rd-chip" href="/library/tag/${encodeURIComponent(t)}">${esc(t)}</a>`).join(" ")}</p>` : ""}
 				${n.link ? `<p><a href="${esc(n.link)}" target="_blank" rel="noopener nofollow">${esc(n.link)}</a></p>` : ""}
 			</li>`
 			)
 			.join("");
-		box.innerHTML = `${pending || editing ? form() : ""}${notes.length ? `<h2 class="rd-notes__h">Notes on this page (${notes.length})</h2><ul class="rd-note-list">${items}</ul>` : ""}`;
+		box.innerHTML = `${pending || editing ? form() : ""}${notes.length ? `<h2 class="rd-notes__h">${__("Notes on this page ({0})", [notes.length])}</h2><ul class="rd-note-list">${items}</ul>` : ""}`;
 		if (pending || editing) {
 			const f = $("#rd-note-form");
 			setFields(f);
@@ -162,28 +166,28 @@
 		const kind = n.kind || (pending && pending.kind) || "Comment";
 		const groups = me.groups.map((g) => `<option value="${esc(g.name)}" ${n.research_group === g.name ? "selected" : ""}>${esc(g.title)}</option>`).join("");
 		const about = editing
-			? n.exact ? `“${esc(n.exact)}”` : n.region ? "A region of the page image" : "The whole page"
-			: pending.region ? "A region of the page image" : pending.page ? "This page" : `“${esc(pending.exact)}”`;
+			? n.exact ? `“${esc(n.exact)}”` : n.region ? __("A region of the page image") : __("The whole page")
+			: pending.region ? __("A region of the page image") : pending.page ? __("This page") : `“${esc(pending.exact)}”`;
 		return `<form class="rd-note-form" id="rd-note-form">
 			<p class="rd-note-form__about">${about}</p>
-			${pending && pending.page ? `<label>Words on the page it is about <span class="rd-muted">(optional: type or paste them; leave empty for the whole page)</span><input type="text" name="quote"${textLang()}></label>` : ""}
-			<div class="rd-tabs" role="radiogroup" aria-label="Kind of note">${KINDS.map((k) => `<label class="rd-tab${k === kind ? " is-active" : ""}"><input type="radio" name="kind" value="${k}" ${k === kind ? "checked" : ""}> ${k}</label>`).join("")}</div>
-			<label data-for="body">Note<textarea name="body" rows="3">${esc(n.body || "")}</textarea></label>
-			<label data-for="tags">Tags <span class="rd-muted">(commas between them)</span><input type="text" name="tags" value="${esc((n.tags || []).join(", "))}"></label>
-			<div class="rd-entity-pick" data-for="entity"><label>About <span class="rd-muted">(optional: the person, place, work or idea on Wikidata)</span>
-				<input type="search" id="rd-entity-q" autocomplete="off" placeholder="Type a name, e.g. Purandara Dasa" value="${esc(n.entity ? n.entity_label || n.entity : "")}"></label>
+			${pending && pending.page ? `<label>${__("Words on the page it is about")} <span class="rd-muted">${__("(optional: type or paste them; leave empty for the whole page)")}</span><input type="text" name="quote"${textLang()}></label>` : ""}
+			<div class="rd-tabs" role="radiogroup" aria-label="${__("Kind of note")}">${KINDS.map((k) => `<label class="rd-tab${k === kind ? " is-active" : ""}"><input type="radio" name="kind" value="${k}" ${k === kind ? "checked" : ""}> ${kindLabel(k)}</label>`).join("")}</div>
+			<label data-for="body">${__("Note")}<textarea name="body" rows="3">${esc(n.body || "")}</textarea></label>
+			<label data-for="tags">${__("Tags")} <span class="rd-muted">${__("(commas between them)")}</span><input type="text" name="tags" value="${esc((n.tags || []).join(", "))}"></label>
+			<div class="rd-entity-pick" data-for="entity"><label>${__("About")} <span class="rd-muted">${__("(optional: the person, place, work or idea on Wikidata)")}</span>
+				<input type="search" id="rd-entity-q" autocomplete="off" placeholder="${__("Type a name, e.g. Purandara Dasa")}" value="${esc(n.entity ? n.entity_label || n.entity : "")}"></label>
 				<input type="hidden" name="entity" value="${esc(n.entity || "")}">
 				<p class="rd-muted" id="rd-entity-chosen">${n.entity ? `${esc(n.entity)}${n.entity_description ? ` · ${esc(n.entity_description)}` : ""}` : ""}</p>
 				<ul class="rd-entity-pick__list" id="rd-entity-list" hidden></ul></div>
-			<label data-for="link">Link <span class="rd-muted">(e.g. a Wikidata page)</span><input type="url" name="link" placeholder="https://www.wikidata.org/wiki/Q…" value="${esc(n.link || "")}"></label>
-			<label>Who can see it <select name="visibility">
-				<option value="Private" ${n.visibility === "Private" || !n.visibility ? "selected" : ""}>Only me</option>
-				${groups ? `<option value="Group" ${n.visibility === "Group" ? "selected" : ""}>A research group</option>` : ""}
-				<option value="Public" ${n.visibility === "Public" ? "selected" : ""}>Everyone (after the library reviews it)</option>
+			<label data-for="link">${__("Link")} <span class="rd-muted">${__("(e.g. a Wikidata page)")}</span><input type="url" name="link" placeholder="https://www.wikidata.org/wiki/Q…" value="${esc(n.link || "")}"></label>
+			<label>${__("Who can see it")} <select name="visibility">
+				<option value="Private" ${n.visibility === "Private" || !n.visibility ? "selected" : ""}>${__("Only me")}</option>
+				${groups ? `<option value="Group" ${n.visibility === "Group" ? "selected" : ""}>${__("A research group")}</option>` : ""}
+				<option value="Public" ${n.visibility === "Public" ? "selected" : ""}>${__("Everyone (after the library reviews it)")}</option>
 			</select></label>
-			${groups ? `<label data-for="group">Group <select name="research_group">${groups}</select></label>` : ""}
+			${groups ? `<label data-for="group">${__("Group")} <select name="research_group">${groups}</select></label>` : ""}
 			<p class="rd-note-form__error" id="rd-note-error" role="alert"></p>
-			<div class="rd-actions"><button class="rd-btn rd-btn--primary" type="submit">Save</button> <button class="rd-btn" type="button" data-cancel>Cancel</button></div>
+			<div class="rd-actions"><button class="rd-btn rd-btn--primary" type="submit">${__("Save")}</button> <button class="rd-btn" type="button" data-cancel>${__("Cancel")}</button></div>
 		</form>`;
 	}
 
@@ -202,7 +206,7 @@
 		const data = Object.fromEntries(new FormData(f).entries());
 		const need = NEEDS[data.kind];
 		if (need && !String(data[need] || "").trim() && $("#rd-note-error")) {
-			$("#rd-note-error").textContent = { body: "Write the note first.", tags: "Give at least one tag.", link: "Give the link." }[need];
+			$("#rd-note-error").textContent = { body: __("Write the note first."), tags: __("Give at least one tag."), link: __("Give the link.") }[need];
 			return;
 		}
 		if (data.visibility !== "Group") delete data.research_group;
@@ -260,8 +264,8 @@
 		bar.className = "rd-sel-bar";
 		bar.id = "rd-sel-bar";
 		bar.innerHTML = me.can_annotate
-			? KINDS.map((k) => `<button type="button" data-new="${k}">${k}</button>`).join("")
-			: `<a href="${esc(loginUrl())}">Log in to add a note</a>`;
+			? KINDS.map((k) => `<button type="button" data-new="${k}">${kindLabel(k)}</button>`).join("")
+			: `<a href="${esc(loginUrl())}">${__("Log in to add a note")}</a>`;
 		document.body.appendChild(bar);
 		const top = window.scrollY + sel.rect.top - bar.offsetHeight - 8;
 		const left = Math.max(8, Math.min(window.scrollX + sel.rect.left, window.scrollX + document.documentElement.clientWidth - bar.offsetWidth - 8));
@@ -298,7 +302,7 @@
 		const frame = imageFrame();
 		if (!frame) return;
 		fig.classList.add("is-marking");
-		$("#rd-notes-hint").textContent = "Drag a box over the part of the page image.";
+		$("#rd-notes-hint").textContent = __("Drag a box over the part of the page image.");
 		let from = null, box = null;
 		const at = (e) => {
 			const r = frame.getBoundingClientRect();
@@ -371,7 +375,7 @@
 		$("#rd-notes-region").hidden = !(me.can_annotate && page.image);
 		$("#rd-notes-add").hidden = !me.can_annotate;
 		$("#rd-notes-mine").hidden = !me.logged_in;
-		$("#rd-notes-hint").innerHTML = !me.logged_in && page.text ? `<a href="${esc(loginUrl())}">Log in</a> to add notes.` : "";
+		$("#rd-notes-hint").innerHTML = !me.logged_in && page.text ? `<a href="${esc(loginUrl())}">${__("Log in")}</a> ${__("to add notes.")}` : "";
 		renderText();
 		renderRegions();
 		renderList();
@@ -467,7 +471,7 @@
 				renderList();
 			}
 			const rm = e.target.closest("[data-remove]");
-			if (rm && confirm("Delete this note?")) {
+			if (rm && confirm(__("Delete this note?"))) {
 				await call("remove", { name: rm.dataset.remove }, true);
 				load();
 			}

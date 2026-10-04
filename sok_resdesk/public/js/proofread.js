@@ -6,6 +6,7 @@
 // so columns don't run into each other. A zone can be "skip" (a picture, a stamp). Presets give
 // the common layouts in one click.
 (function () {
+	const __ = window.rdT || ((s) => s);
 	const $ = (sel, root) => (root || document).querySelector(sel);
 	const esc = (s) =>
 		String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -24,7 +25,7 @@
 			: { headers: { Accept: "application/json" } });
 		const body = await r.json().catch(() => ({}));
 		if (!r.ok) {
-			let msg = "Something went wrong.";
+			let msg = __("Something went wrong.");
 			try {
 				msg = JSON.parse(JSON.parse(body._server_messages)[0]).message;
 			} catch (e) {}
@@ -34,10 +35,10 @@
 	}
 
 	function statusText(d) {
-		if (d.text_status === "Validated") return `Validated by ${d.validated_by} · proofread by ${d.proofread_by}`;
-		if (d.text_status === "Proofread") return `Proofread by ${d.proofread_by}`;
-		if (d.text_status === "Machine") return "Read again by OCR, not proofread yet";
-		return d.text ? "OCR from archive.org, not proofread yet" : "";
+		if (d.text_status === "Validated") return __("Validated by {0} · proofread by {1}", [d.validated_by, d.proofread_by]);
+		if (d.text_status === "Proofread") return __("Proofread by {0}", [d.proofread_by]);
+		if (d.text_status === "Machine") return __("Read again by OCR, not proofread yet");
+		return d.text ? __("OCR from archive.org, not proofread yet") : "";
 	}
 
 	// -- the editor -------------------------------------------------------------------------------
@@ -71,16 +72,16 @@
 		list.innerHTML = zones.length
 			? zones
 					.map(
-						(z, i) => `<li data-z="${i}" tabindex="0" aria-label="Zone ${i + 1}: ${Math.round(z.x)}% from the left, ${Math.round(z.y)}% from the top, ${Math.round(z.w)}% wide, ${Math.round(z.h)}% high. Arrow keys move it; Shift and the arrow keys change its size."><b>${z.kind === "skip" ? "×" : i + 1}</b>
-				<select data-kind="${i}" aria-label="Read or skip zone ${i + 1}"><option value="text" ${z.kind === "text" ? "selected" : ""}>read</option><option value="skip" ${z.kind === "skip" ? "selected" : ""}>skip</option></select>
-				<select data-zlang="${i}" aria-label="Language of zone ${i + 1}" title="This part's language, when it differs from the page's" ${z.kind === "skip" ? "hidden" : ""}><option value="">page's languages</option>${Object.entries(langs.available)
+						(z, i) => `<li data-z="${i}" tabindex="0" aria-label="${esc(__("Zone {0}: {1}% from the left, {2}% from the top, {3}% wide, {4}% high. Arrow keys move it; Shift and the arrow keys change its size.", [i + 1, Math.round(z.x), Math.round(z.y), Math.round(z.w), Math.round(z.h)]))}"><b>${z.kind === "skip" ? "×" : i + 1}</b>
+				<select data-kind="${i}" aria-label="${esc(__("Read or skip zone {0}", [i + 1]))}"><option value="text" ${z.kind === "text" ? "selected" : ""}>${__("read")}</option><option value="skip" ${z.kind === "skip" ? "selected" : ""}>${__("skip")}</option></select>
+				<select data-zlang="${i}" aria-label="${esc(__("Language of zone {0}", [i + 1]))}" title="${esc(__("This part's language, when it differs from the page's"))}" ${z.kind === "skip" ? "hidden" : ""}><option value="">${__("page's languages")}</option>${Object.entries(langs.available)
 					.map(([m, n]) => `<option value="${esc(m)}" ${(z.langs || [])[0] === m ? "selected" : ""}>${esc(n)}</option>`)
 					.join("")}</select>
-				<button type="button" data-up="${i}" title="Earlier" ${i ? "" : "disabled"}>↑</button><button type="button" data-down="${i}" title="Later" ${i < zones.length - 1 ? "" : "disabled"}>↓</button>
-				<button type="button" data-del="${i}" title="Remove">✕</button></li>`
+				<button type="button" data-up="${i}" title="${__("Earlier")}" ${i ? "" : "disabled"}>↑</button><button type="button" data-down="${i}" title="${__("Later")}" ${i < zones.length - 1 ? "" : "disabled"}>↓</button>
+				<button type="button" data-del="${i}" title="${__("Remove")}">✕</button></li>`
 					)
 					.join("")
-			: `<li class="rd-muted">No zones: the whole page is read as one block. Draw a box for each column or part.</li>`;
+			: `<li class="rd-muted">${__("No zones: the whole page is read as one block. Draw a box for each column or part.")}</li>`;
 	}
 
 	// "Read with": the languages Tesseract reads this page in (the main one first, English added)
@@ -89,7 +90,7 @@
 		if (!box) return;
 		const all = Object.entries(langs.available);
 		box.innerHTML = all.length
-			? `<span class="rd-muted">Read with:</span> ${all
+			? `<span class="rd-muted">${__("Read with:")}</span> ${all
 					.map(([m, n]) => `<label><input type="checkbox" data-lang="${esc(m)}" ${runLangs.includes(m) ? "checked" : ""}> ${esc(n)}</label>`)
 					.join(" ")}`
 			: "";
@@ -101,30 +102,30 @@
 		box.className = "rd-proof";
 		box.innerHTML = `
 			<div class="rd-proof__zones">
-				<button class="rd-btn" type="button" id="rd-zone-draw">Draw a zone</button>
-				<button class="rd-btn" type="button" id="rd-zone-add" title="A zone in the middle of the page, to move and size with the arrow keys">Add a zone</button>
-				<select id="rd-zone-preset" aria-label="Layout"><option value="">Layout…</option>${Object.keys(presets).map((k) => `<option>${esc(k)}</option>`).join("")}</select>
-				<button class="rd-btn" type="button" id="rd-zone-sort" title="Columns left to right, headings where they fall">Sort</button>
-				<button class="rd-btn" type="button" id="rd-zone-clear">Clear</button>
-				<button class="rd-btn rd-btn--primary" type="button" id="rd-zone-ocr">OCR the zones</button>
+				<button class="rd-btn" type="button" id="rd-zone-draw">${__("Draw a zone")}</button>
+				<button class="rd-btn" type="button" id="rd-zone-add" title="${__("A zone in the middle of the page, to move and size with the arrow keys")}">${__("Add a zone")}</button>
+				<select id="rd-zone-preset" aria-label="${__("Layout")}"><option value="">${__("Layout…")}</option>${Object.keys(presets).map((k) => `<option>${esc(k)}</option>`).join("")}</select>
+				<button class="rd-btn" type="button" id="rd-zone-sort" title="${__("Columns left to right, headings where they fall")}">${__("Sort")}</button>
+				<button class="rd-btn" type="button" id="rd-zone-clear">${__("Clear")}</button>
+				<button class="rd-btn rd-btn--primary" type="button" id="rd-zone-ocr">${__("OCR the zones")}</button>
 				<span class="rd-muted" id="rd-proof-msg" role="status"></span>
 				<div class="rd-proof__langs" id="rd-proof-langs"></div>
 				<ol class="rd-zone-list" id="rd-zone-list"></ol>
 			</div>
-			<textarea id="rd-proof-text" aria-label="The page's text, to correct" spellcheck="false" lang="${esc($("#rd-pages-text").getAttribute("lang") || "")}"></textarea>
+			<textarea id="rd-proof-text" aria-label="${__("The page's text, to correct")}" spellcheck="false" lang="${esc($("#rd-pages-text").getAttribute("lang") || "")}"></textarea>
 			<div class="rd-proof__actions">
-				<button class="rd-btn rd-btn--primary" type="button" id="rd-proof-save">Save as proofread</button>
-				<button class="rd-btn" type="button" id="rd-proof-validate" hidden>Validate: it's right</button>
-				<button class="rd-btn" type="button" id="rd-proof-cancel">Close</button>
+				<button class="rd-btn rd-btn--primary" type="button" id="rd-proof-save">${__("Save as proofread")}</button>
+				<button class="rd-btn" type="button" id="rd-proof-validate" hidden>${__("Validate: it's right")}</button>
+				<button class="rd-btn" type="button" id="rd-proof-cancel">${__("Close")}</button>
 				<span class="rd-muted" id="rd-proof-who"></span>
 			</div>
-			<details class="rd-proof__history"><summary>History of this page</summary><ol id="rd-proof-history"></ol></details>`;
+			<details class="rd-proof__history"><summary>${__("History of this page")}</summary><ol id="rd-proof-history"></ol></details>`;
 		return box;
 	}
 
 	async function open() {
 		on = true;
-		$("#rd-proof-btn").textContent = "Close proofreading";
+		$("#rd-proof-btn").textContent = __("Close proofreading");
 		$("#rd-pages-text").hidden = true;
 		if (!$("#rd-proof")) $("#rd-pages-text").after(editor()); // in the text's place, beside the image
 		$("#rd-proof").hidden = false;
@@ -142,24 +143,24 @@
 		versions = h.versions || [];
 		const cur = versions.find((v) => v.is_current);
 		zones = cur && cur.zones && cur.zones.length ? cur.zones : [];
-		$("#rd-zone-preset").innerHTML = `<option value="">Layout…</option>${Object.keys(presets).map((k) => `<option>${esc(k)}</option>`).join("")}`;
+		$("#rd-zone-preset").innerHTML = `<option value="">${__("Layout…")}</option>${Object.keys(presets).map((k) => `<option>${esc(k)}</option>`).join("")}`;
 		$("#rd-proof-validate").hidden = !(cur && cur.status === "Proofread" && cur.proofread_by !== me);
 		$("#rd-proof-who").textContent = statusText(page);
 		$("#rd-proof-history").innerHTML = versions.length
 			? versions
 					.map(
-						(v) => `<li>${esc(v.creation)} · ${esc(v.status)}${v.proofread_by_name ? ` by ${esc(v.proofread_by_name)}` : ""}${v.validated_by_name ? `, validated by ${esc(v.validated_by_name)}` : ""}${v.engine ? ` · ${esc(v.engine)}` : ""} · quality ${v.quality}${
-							v.is_current ? " · <b>current</b>" : ` <button type="button" class="rd-linkish" data-restore="${esc(v.name)}">Make current</button>`
+						(v) => `<li>${esc(v.creation)} · ${esc(v.status)}${v.proofread_by_name ? ` ${__("by {0}", [esc(v.proofread_by_name)])}` : ""}${v.validated_by_name ? `, ${__("validated by {0}", [esc(v.validated_by_name)])}` : ""}${v.engine ? ` · ${esc(v.engine)}` : ""} · ${__("quality {0}", [v.quality])}${
+							v.is_current ? ` · <b>${__("current")}</b>` : ` <button type="button" class="rd-linkish" data-restore="${esc(v.name)}">${__("Make current")}</button>`
 						}</li>`
 					)
 					.join("")
-			: `<li class="rd-muted">archive.org's OCR only, so far.</li>`;
+			: `<li class="rd-muted">${__("archive.org's OCR only, so far.")}</li>`;
 		drawZones();
 	}
 
 	function close() {
 		on = false;
-		$("#rd-proof-btn").textContent = "Proofread";
+		$("#rd-proof-btn").textContent = __("Proofread");
 		if ($("#rd-proof")) $("#rd-proof").hidden = true;
 		$("#rd-pages-text").hidden = false;
 		const f = frame();
@@ -171,7 +172,7 @@
 		if (!f) return;
 		const fig = $("#rd-pages-image");
 		fig.classList.add("is-marking");
-		$("#rd-proof-msg").textContent = "Drag a box over one part of the page.";
+		$("#rd-proof-msg").textContent = __("Drag a box over one part of the page.");
 		let from = null, box = null;
 		const at = (e) => {
 			const r = f.getBoundingClientRect();
@@ -199,7 +200,7 @@
 			stop();
 			if (w >= 1 && h >= 1) zones.push({ x: +x.toFixed(2), y: +y.toFixed(2), w: +w.toFixed(2), h: +h.toFixed(2), kind: "text" });
 			drawZones();
-			$("#rd-proof-msg").textContent = "Draw another, or OCR the zones.";
+			$("#rd-proof-msg").textContent = __("Draw another, or OCR the zones.");
 		};
 		const stop = () => {
 			fig.classList.remove("is-marking");
@@ -235,7 +236,7 @@
 
 	async function ocr() {
 		const msg = $("#rd-proof-msg");
-		msg.textContent = "Reading the page…";
+		msg.textContent = __("Reading the page…");
 		$("#rd-zone-ocr").disabled = true;
 		try {
 			const { key } = await call(
@@ -250,13 +251,13 @@
 				r = await call("reocr", "ocr_result", { key });
 				if (r.status === "done" || r.status === "failed" || r.status === "gone") break;
 			}
-			if (!r || r.status !== "done") throw new Error((r && r.error) || "The OCR didn't finish. Try again.");
+			if (!r || r.status !== "done") throw new Error((r && r.error) || __("The OCR didn't finish. Try again."));
 			const edited = $("#rd-proof-text").value !== original;
-			if (!edited || confirm("Replace the text in the editor with the new OCR? Your changes there are lost.")) {
+			if (!edited || confirm(__("Replace the text in the editor with the new OCR? Your changes there are lost."))) {
 				$("#rd-proof-text").value = r.text;
 				original = r.text;
 			}
-			msg.textContent = `Read with ${r.engine}: quality ${r.quality ?? "–"}. Check it against the image, then save.`;
+			msg.textContent = __("Read with {0}: quality {1}. Check it against the image, then save.", [r.engine, r.quality ?? "–"]);
 		} catch (e) {
 			msg.textContent = e.message;
 		} finally {
@@ -273,7 +274,7 @@
 				{ item_id: itemId, leaf: page.leaf, text: $("#rd-proof-text").value, zones, page_label: page.label || "", validate: validate ? 1 : 0 },
 				true
 			);
-			msg.textContent = r.status === "Validated" ? "Validated. Thank you." : "Saved as proofread. Thank you.";
+			msg.textContent = r.status === "Validated" ? __("Validated. Thank you.") : __("Saved as proofread. Thank you.");
 			window.rdTrack && rdTrack("Page proofread", { status: r.status });
 			const leaf = page.leaf;
 			close();
@@ -322,7 +323,7 @@
 			}
 			if (del) zones.splice(+del.dataset.del, 1), drawZones();
 			const rs = t.closest("[data-restore]");
-			if (rs && confirm("Make this earlier version the page's text again?")) {
+			if (rs && confirm(__("Make this earlier version the page's text again?"))) {
 				call("pagetext", "restore", { name: rs.dataset.restore }, true).then(() => {
 					const leaf = page.leaf;
 					close();

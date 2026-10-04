@@ -21,9 +21,11 @@ def get_context(context):
 	context.no_cache = 1
 	context.full_width = 1
 	context.show_sidebar = 0
-	context.title = s.portal_title or "SOK Research Desk"
+	from sok_resdesk.translations import tr
+
+	context.title = tr(s.portal_title) or "SOK Research Desk"
 	context.portal_title = context.title
-	context.tagline = s.portal_tagline or ""
+	context.tagline = tr(s.portal_tagline)
 	from sok_resdesk.portal import item_count
 
 	context.item_count = item_count()

@@ -59,6 +59,9 @@ Choose a collection, a search or a list of items on archive.org, and Research De
 - be **accessible**: keyboard and screen readers throughout, Kannada and other Indian-language
   text marked so screen readers use the right voice, pages read aloud, notes and proofreading
   without a mouse (WCAG 2.2 AA and GIGW 3.0; see [Accessibility](docs/accessibility.md))
+- offer the portal **in Kannada and other languages**: a language switch for readers, and every
+  portal phrase (and the library's own words: its name, About page, collections) translated on
+  one Desk page or in a spreadsheet
 - **help on every screen**: the documentation is built into the portal (for readers) and the
   Desk (for staff), with step-by-step tours of the main forms, a getting-started checklist for
   a new library, and first-visit tips for readers

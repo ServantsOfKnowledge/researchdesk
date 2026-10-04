@@ -170,6 +170,12 @@ def after_migrate():
 		frappe.log_error("Research Desk: could not apply branding")
 	create_workspace()
 	try:
+		from sok_resdesk.translations import clear_phrase_cache
+
+		clear_phrase_cache()  # the portal's phrases may have changed with the code
+	except Exception:
+		pass
+	try:
 		add_help_to_top_bar()
 	except Exception:
 		frappe.log_error("Research Desk: could not add the Help link to the top bar")

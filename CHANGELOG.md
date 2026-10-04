@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.34.0 (2026-10-12): The portal in Kannada and other languages
+
+- **Portal languages**: Settings → Portal → Portal Languages (`kn`, `hi`, `ta`… one a line). A
+  language switch appears at the top of every portal page; visitors keep their choice (a
+  cookie), logged-in readers' accounts follow it, and a browser set to an offered language gets
+  it the first time
+- **Portal Translations** (Research Desk → Setup): every phrase readers see, where it is used,
+  and a column for each language; type a translation and it is saved; only the phrases still to
+  translate on request, and how many are left per language. **Download spreadsheet** to
+  translate offline and **Upload spreadsheet** to bring it back. Translations are Frappe
+  Translation records (kept in backups, served by Frappe); phrases keep their `{0}` places
+- The portal's scripts (search, the book page, Page & text, notes, proofreading, read aloud)
+  now show their words in the reader's language, like the pages around them
+- The library's own words are translatable too: its name and tagline, the About page, and the
+  titles and descriptions of collections
+
 ## 0.33.2 (2026-10-11): Updates reach readers' browsers
 
 - **Updates were not reaching browsers**: Frappe's web server lets browsers keep the app's CSS and

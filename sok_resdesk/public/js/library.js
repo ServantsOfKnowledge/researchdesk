@@ -1,14 +1,16 @@
 // Research Desk search page. Vanilla JS, no build step.
 (function () {
 	const $ = (sel) => document.querySelector(sel);
+	// the portal's words in the reader's language (a11y.js; Desk → Portal Translations)
+	const __ = window.rdT || ((s) => s);
 	const FACET_LABELS = {
-		curated: "Collection",
-		item_type: "Type",
-		language_label: "Language",
-		decade: "Decade",
-		subjects: "Subject",
-		creators: "Author",
-		collections: "Source collection",
+		curated: __("Collection"),
+		item_type: __("Type"),
+		language_label: __("Language"),
+		decade: __("Decade"),
+		subjects: __("Subject"),
+		creators: __("Author"),
+		collections: __("Source collection"),
 	};
 	// ids shown as names (curated collections); filters fixed by the page (a collection page)
 	const LABELS = window.RD_LABELS || {};
@@ -73,7 +75,7 @@
 	async function run() {
 		toUrl();
 		syncForm();
-		$("#rd-hits").innerHTML = '<li class="rd-muted">Searching…</li>';
+		$("#rd-hits").innerHTML = `<li class="rd-muted">${__("Searching…")}</li>`;
 		const params = new URLSearchParams({
 			q: state.q,
 			mode: state.mode,
@@ -90,7 +92,7 @@
 			if (state.q && state.page === 1 && window.rdTrack)
 				rdTrack("Search", { mode: state.mode || "books", results: (body.message || {}).total || 0 });
 		} catch (e) {
-			$("#rd-hits").innerHTML = `<li class="rd-error">Search is unavailable right now. ${esc(e.message).slice(0, 200)}</li>`;
+			$("#rd-hits").innerHTML = `<li class="rd-error">${__("Search is unavailable right now.")} ${esc(e.message).slice(0, 200)}</li>`;
 		}
 	}
 
@@ -103,21 +105,22 @@
 			$("#rd-summary").textContent = "";
 			$("#rd-facet-lists").innerHTML = "";
 			$("#rd-pager").innerHTML = "";
-			$("#rd-hits").innerHTML = `<li class="rd-empty"><a href="${esc(root.login)}">Log in</a> to search inside the text of the books.${
-				root.signup === "1" ? ' No account? <a href="/login#signup">Create one</a>.' : ""}</li>`;
+			$("#rd-hits").innerHTML = `<li class="rd-empty"><a href="${esc(root.login)}">${__("Log in")}</a> ${__("to search inside the text of the books.")}${
+				root.signup === "1" ? ` ${__("No account?")} <a href="/login#signup">${__("Create one")}</a>.` : ""}</li>`;
 			return;
 		}
-		const noun = state.mode === "pages" ? "matching pages" : "books";
-		$("#rd-summary").textContent = `${(data.total || 0).toLocaleString()}${data.total_capped ? "+" : ""} ${noun}${data.took_ms != null ? ` · ${data.took_ms} ms` : ""}`;
+		const count = `${(data.total || 0).toLocaleString()}${data.total_capped ? "+" : ""}`;
+		const found = state.mode === "pages" ? __("{0} matching pages", [count]) : __("{0} books", [count]);
+		$("#rd-summary").textContent = `${found}${data.took_ms != null ? ` · ${data.took_ms} ms` : ""}`;
 		// a search in Latin letters also found these spellings (search.expand_query)
 		const also = (data.also || []).map((a) => `<b${lang(a.q, "")}>${esc(a.q)}</b>`);
-		$("#rd-also").innerHTML = also.length ? `Also searched: ${also.join(", ")}` : "";
+		$("#rd-also").innerHTML = also.length ? `${__("Also searched:")} ${also.join(", ")}` : "";
 		$("#rd-also").hidden = !also.length;
 		renderChips();
 		renderFacets(data.facets || {});
 		const hits = data.hits || [];
 		if (!hits.length) {
-			$("#rd-hits").innerHTML = `<li class="rd-empty">No results. Try fewer words, another spelling, or remove a filter.</li>`;
+			$("#rd-hits").innerHTML = `<li class="rd-empty">${__("No results. Try fewer words, another spelling, or remove a filter.")}</li>`;
 		} else {
 			$("#rd-hits").innerHTML = hits.map(state.mode === "pages" ? pageHit : bookHit).join("");
 		}
@@ -129,24 +132,24 @@
 	const lang = (text, code) => (window.rdLangAttr ? window.rdLangAttr(String(text || "").replace(/<[^>]+>/g, ""), code) : "");
 
 	function bookHit(h) {
-		const meta = [h.year || "n.d.", h.language, h.page_count ? `${h.page_count} pp.` : ""].filter(Boolean).join(" · ");
+		const meta = [h.year || __("n.d."), h.language, h.page_count ? `${h.page_count} pp.` : ""].filter(Boolean).join(" · ");
 		return `<li class="rd-hit">
 			<a href="${h.url}" class="rd-hit__thumb" tabindex="-1" aria-hidden="true">${h.thumbnail ? `<img src="${esc(h.thumbnail)}" alt="" loading="lazy">` : ""}</a>
 			<div class="rd-hit__body">
 				<h3${lang(h.title, h.language)}><a href="${h.url}">${safeMarked(h.title_html)}</a></h3>
 				${h.alt_title && h.alt_title !== h.title ? `<div class="rd-muted">${esc(h.alt_title)}</div>` : ""}
 				<div class="rd-hit__creators">${(h.creators || []).map(esc).join("; ")}</div>
-				<div class="rd-muted">${esc(meta)}${h.has_fulltext ? ' · <span class="rd-badge">full text</span>' : ""}${lockBadge(h)}</div>
+				<div class="rd-muted">${esc(meta)}${h.has_fulltext ? ` · <span class="rd-badge">${__("full text")}</span>` : ""}${lockBadge(h)}</div>
 				${h.snippet ? `<p class="rd-snippet"${lang(h.snippet, h.language)}>${safeMarked(h.snippet)}</p>` : ""}
 			</div>
-			<button class="rd-save" data-id="${esc(h.item_id)}" type="button" title="Add to my list" aria-label="Add to my list">＋</button>
+			<button class="rd-save" data-id="${esc(h.item_id)}" type="button" title="${__("Add to my list")}" aria-label="${__("Add to my list")}">＋</button>
 		</li>`;
 	}
 
 	function pageHit(h) {
 		const label = String(h.page_label || "").startsWith("§")
 			? esc(h.page_label)
-			: h.page_label ? `p. ${esc(h.page_label)}` : `leaf ${h.leaf}`;
+			: h.page_label ? __("p. {0}", [esc(h.page_label)]) : __("leaf {0}", [h.leaf]);
 		const url = `${h.url}&q=${encodeURIComponent(state.q)}#rd-reader`;
 		return `<li class="rd-hit rd-hit--page">
 			<div class="rd-hit__body">
@@ -154,13 +157,13 @@
 				<div class="rd-muted">${(h.creators || []).map(esc).join("; ")}${h.year ? " · " + h.year : ""}</div>
 				<p class="rd-snippet"${lang(h.snippet, h.language)}>${safeMarked(h.snippet)}</p>
 			</div>
-			<button class="rd-save" data-id="${esc(h.item_id)}" type="button" title="Add book to my list" aria-label="Add book to my list">＋</button>
+			<button class="rd-save" data-id="${esc(h.item_id)}" type="button" title="${__("Add book to my list")}" aria-label="${__("Add book to my list")}">＋</button>
 		</li>`;
 	}
 
 	function lockBadge(h) {
 		if (!h.visibility || h.visibility === "Public") return "";
-		const text = h.visibility === "Login to find" ? "members only" : "login to read";
+		const text = h.visibility === "Login to find" ? __("members only") : __("login to read");
 		return ` · <span class="rd-badge rd-badge--members" title="${esc(h.visibility)}">🔒 ${text}</span>`;
 	}
 
@@ -172,13 +175,14 @@
 		bar.hidden = !lastTotal;
 		if ($("#rd-staffbar-coll")) $("#rd-staffbar-coll").hidden = !lastTotal;
 		$("#rd-staff-count").textContent = lastTotal.toLocaleString();
-		$("#rd-staff-msg").textContent = state.mode === "pages" ? "(books with a matching page)" : "";
+		$("#rd-staff-msg").textContent = state.mode === "pages" ? __("(books with a matching page)") : "";
 	}
 	async function applyStaffBar(e) {
 		e.preventDefault();
 		const vis = $("#rd-staff-vis").value;
-		if (!confirm(`Set ${lastTotal.toLocaleString()} ${state.mode === "pages" ? "matching pages' books" : "books"} to “${vis}”?`)) return;
-		$("#rd-staff-msg").textContent = "Working…";
+		const what = state.mode === "pages" ? __("{0} matching pages' books", [lastTotal.toLocaleString()]) : __("{0} books", [lastTotal.toLocaleString()]);
+		if (!confirm(__("Set {0} to “{1}”?", [what, vis]))) return;
+		$("#rd-staff-msg").textContent = __("Working…");
 		const body = new URLSearchParams({
 			visibility: vis,
 			search: JSON.stringify({ q: state.q, mode: state.mode, filters: allFilters() }),
@@ -194,7 +198,7 @@
 			$("#rd-staff-msg").textContent = out.message.message;
 			if (!out.message.queued) setTimeout(run, 800);
 		} catch (err) {
-			$("#rd-staff-msg").textContent = `Could not change: ${String(err.message).slice(0, 160)}`;
+			$("#rd-staff-msg").textContent = `${__("Could not change:")} ${String(err.message).slice(0, 160)}`;
 		}
 	}
 
@@ -214,14 +218,15 @@
 		};
 		try {
 			if (coll === "__new__") {
-				const title = prompt("Name of the new collection:");
+				const title = prompt(__("Name of the new collection:"));
 				if (!title) return;
 				coll = await post("sok_resdesk.curation.create", { title });
 			}
 			const action = $("#rd-staff-coll-action").value;
-			const verb = action === "add" ? "Add" : "Remove";
-			if (!confirm(`${verb} ${lastTotal.toLocaleString()} ${state.mode === "pages" ? "matching pages' books" : "books"} ${action === "add" ? "to" : "from"} “${label("curated", coll)}”?`)) return;
-			$("#rd-staff-msg").textContent = "Working…";
+			const what = state.mode === "pages" ? __("{0} matching pages' books", [lastTotal.toLocaleString()]) : __("{0} books", [lastTotal.toLocaleString()]);
+			const ask = action === "add" ? __("Add {0} to “{1}”?", [what, label("curated", coll)]) : __("Remove {0} from “{1}”?", [what, label("curated", coll)]);
+			if (!confirm(ask)) return;
+			$("#rd-staff-msg").textContent = __("Working…");
 			const out = await post("sok_resdesk.curation.bulk", {
 				action,
 				collection: coll,
@@ -229,7 +234,7 @@
 			});
 			$("#rd-staff-msg").textContent = out.message;
 		} catch (err) {
-			$("#rd-staff-msg").textContent = `Could not change: ${String(err.message).slice(0, 160)}`;
+			$("#rd-staff-msg").textContent = `${__("Could not change:")} ${String(err.message).slice(0, 160)}`;
 		}
 	}
 
@@ -264,7 +269,7 @@
 	function renderPager(page, total) {
 		if (total <= 1) return ($("#rd-pager").innerHTML = "");
 		const btn = (p, label, dis) => `<button class="rd-btn" data-page="${p}" ${dis ? "disabled" : ""} type="button">${label}</button>`;
-		$("#rd-pager").innerHTML = `${btn(page - 1, "← Previous", page <= 1)} <span class="rd-muted">Page ${page} of ${total}</span> ${btn(page + 1, "Next →", page >= total)}`;
+		$("#rd-pager").innerHTML = `${btn(page - 1, __("← Previous"), page <= 1)} <span class="rd-muted">${__("Page {0} of {1}", [page, total])}</span> ${btn(page + 1, __("Next →"), page >= total)}`;
 	}
 
 	function markBasket() {
@@ -350,15 +355,15 @@
 			const a = e.target.closest("a");
 			if (!a) return;
 			e.preventDefault();
-			if (!RDBasket.ids().length && a.dataset.action !== "clear") return alertMsg("Your list is empty. Use ＋ on a result to add books.");
+			if (!RDBasket.ids().length && a.dataset.action !== "clear") return alertMsg(__("Your list is empty. Use ＋ on a result to add books."));
 			if (a.dataset.fmt) window.location = RDBasket.exportUrl(a.dataset.fmt);
 			if (a.dataset.action === "clear") RDBasket.clear();
 			if (a.dataset.action === "share") {
 				try {
 					await navigator.clipboard.writeText(RDBasket.shareUrl());
-					alertMsg("Share link copied. Anyone opening it gets these books in their list.");
+					alertMsg(__("Share link copied. Anyone opening it gets these books in their list."));
 				} catch (err) {
-					prompt("Copy this link:", RDBasket.shareUrl());
+					prompt(__("Copy this link:"), RDBasket.shareUrl());
 				}
 			}
 		});
