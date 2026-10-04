@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.33.2 (2026-10-11): Updates reach readers' browsers
+
+- **Updates were not reaching browsers**: Frappe's web server lets browsers keep the app's CSS and
+  JavaScript for a year, and their addresses never changed, so after an update phones kept the
+  old files (text search results still squeezed to the left after 0.33.1). Every portal and Desk
+  file of the app now carries the version in its address (`resdesk.css?v=0.33.2`), so each
+  release is fetched fresh
+- Text search results (page hits) take the full width whatever the screen size, also if an older
+  stylesheet is still in use
+
 ## 0.33.1 (2026-10-10): Text search on phones
 
 - Search inside the text on a phone: each matching page's title and words were squeezed into the

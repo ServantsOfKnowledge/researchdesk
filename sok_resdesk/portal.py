@@ -33,6 +33,15 @@ def library_url() -> str:
 	return url
 
 
+def asset(path: str) -> str:
+	"""{{ asset("js/library.js") }}: the app's file with the version in its address. Frappe's web
+	server keeps /assets in browsers' caches for a year, so without it an update's CSS and
+	JavaScript reach readers only when their browser forgets the old files."""
+	from sok_resdesk import __version__
+
+	return f"/assets/sok_resdesk/{path.lstrip('/')}?v={__version__}"
+
+
 def home_is_library() -> None:
 	"""before_request: the site's front page is the library for every visitor. Frappe would otherwise
 	show a logged-in user their role's home page at / (the Desk for staff; nothing for some roles).

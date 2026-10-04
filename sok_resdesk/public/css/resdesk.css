@@ -84,7 +84,10 @@
 /* results */
 .rd-hits { list-style: none; padding: 0; margin: 0; }
 .rd-hit { display: grid; grid-template-columns: 72px 1fr 36px; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--rd-border); }
-.rd-hit--page { grid-template-columns: 1fr 36px; }
+.rd-hit > * { min-width: 0; }
+/* page hits (search inside the text) have no thumbnail: the text takes every column but the button's */
+.rd-hits .rd-hit.rd-hit--page { grid-template-columns: minmax(0, 1fr) auto; }
+.rd-hit--page > .rd-hit__body { grid-column: 1 / -2; }
 .rd-hit__thumb { display: block; width: 72px; height: 96px; border-radius: 4px; background: var(--rd-soft) center/40% no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='1.5'%3E%3Cpath d='M4 19.5V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zm0 0A2 2 0 0 0 6 21h13'/%3E%3C/svg%3E"); }
 .rd-hit__thumb img { width: 72px; height: 96px; object-fit: cover; border-radius: 4px; background: var(--rd-soft); }
 .rd-hit h3 { font-size: 1.05rem; margin: 0 0 2px; overflow-wrap: anywhere; }
@@ -235,8 +238,6 @@
 }
 @media (max-width: 520px) {
 	.rd-hit { grid-template-columns: 56px 1fr 32px; gap: 10px; }
-	/* page hits (search inside the text) have no thumbnail: the text takes the whole width */
-	.rd-hit--page { grid-template-columns: 1fr 32px; }
 	.rd-hit__thumb, .rd-hit__thumb img { width: 56px; height: 76px; }
 	.rd-snippet { overflow-wrap: anywhere; }
 	.rd-search { flex-direction: column; }
