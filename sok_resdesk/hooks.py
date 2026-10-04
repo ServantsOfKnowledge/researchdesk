@@ -1,3 +1,5 @@
+from sok_resdesk import __version__
+
 app_name = "sok_resdesk"
 app_title = "Research Desk"
 app_publisher = "Servants of Knowledge"
@@ -35,16 +37,21 @@ website_route_rules = [
 
 app_include_css = []
 # Help and Take-the-tour buttons on Research Desk screens
-app_include_js = ["/assets/sok_resdesk/js/desk_help.js"]
+app_include_js = [f"/assets/sok_resdesk/js/desk_help.js?v={__version__}"]
 boot_session = "sok_resdesk.help.boot_session"
-web_include_css = ["/assets/sok_resdesk/css/resdesk.css"]
+# ?v=: browsers keep /assets for a year (Frappe's web server), so each release gets new addresses
+web_include_css = [f"/assets/sok_resdesk/css/resdesk.css?v={__version__}"]
 # usage statistics on portal pages, when switched on in Settings (analytics.py)
 # and accessibility helpers (a11y.js: skip link, the language of Indic text, less motion)
-web_include_js = ["/assets/sok_resdesk/js/analytics.js", "/assets/sok_resdesk/js/a11y.js"]
+web_include_js = [
+	f"/assets/sok_resdesk/js/analytics.js?v={__version__}",
+	f"/assets/sok_resdesk/js/a11y.js?v={__version__}",
+]
 # {{ library_url() }} in portal templates: / (the site's home page), or /library
 jinja = {
 	"methods": [
 		"sok_resdesk.portal.library_url",
+		"sok_resdesk.portal.asset",
 		"sok_resdesk.portal.lang_tag",
 		"sok_resdesk.portal.text_lang",
 	]

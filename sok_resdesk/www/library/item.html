@@ -206,10 +206,10 @@
 
 {% block script %}
 <script>window.RD_HOME = {{ library_url() | tojson }};</script>
-<script src="/assets/sok_resdesk/js/basket.js"></script>
-<script src="/assets/sok_resdesk/js/item.js"></script>
-<script src="/assets/sok_resdesk/js/reader.js"></script>
-<script src="/assets/sok_resdesk/js/readaloud.js"></script>
-<script src="/assets/sok_resdesk/js/annotate.js"></script>
-<script src="/assets/sok_resdesk/js/proofread.js"></script>
+<script src="{{ asset('js/basket.js') }}"></script>
+<script src="{{ asset('js/item.js') }}"></script>
+<script src="{{ asset('js/reader.js') }}"></script>
+<script src="{{ asset('js/readaloud.js') }}"></script>
+<script src="{{ asset('js/annotate.js') }}"></script>
+<script src="{{ asset('js/proofread.js') }}"></script>
 {% endblock %}
