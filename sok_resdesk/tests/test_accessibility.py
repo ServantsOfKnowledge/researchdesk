@@ -69,3 +69,21 @@ class TestHelpPictures(OpsTestCase):
 		self.assertIn("help_pictures", server.ACTIONS)
 		options = frappe.get_meta("RD Server Task").get_field("action").options.split("\n")
 		self.assertIn("help_pictures", options)
+
+
+class TestDefaultOrder(OpsTestCase):
+	def test_oldest_first_unless_the_reader_chooses(self):
+		from sok_resdesk.api import effective_sort
+
+		frappe.db.set_single_value(
+			"RD Settings", {"default_sort": "Oldest first", "relevance_when_searching": 1}
+		)
+		self.assertEqual(effective_sort("", ""), "year:asc")
+		self.assertEqual(effective_sort("", "kanakadasa"), "")  # best matches first when searching
+		self.assertEqual(effective_sort("relevance", ""), "")
+		self.assertEqual(effective_sort("year:desc", "x"), "year:desc")
+		self.assertEqual(effective_sort("drop table", ""), "year:asc")
+		frappe.db.set_single_value("RD Settings", "relevance_when_searching", 0)
+		self.assertEqual(effective_sort("", "kanakadasa"), "year:asc")
+		frappe.db.set_single_value("RD Settings", "default_sort", "Newest first")
+		self.assertEqual(effective_sort("", ""), "year:desc")

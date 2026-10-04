@@ -302,6 +302,8 @@ Every setting:
 | OAI Repository Identifier | Domain-style identifier used in OAI identifiers, e.g. library.example.org |
 | Admin Email | Shown to OAI-PMH harvesters. |
 | Portal Languages | Languages the portal is offered in besides English, one code a line (kn for Kannada, hi Hindi, ta Tamil, te Telugu, ml Malayalam, mr Marathi, sa Sanskrit…). Readers get a language switch at the top of the portal; translate the portal's words in Portal Translations. |
+| Default Order | How books are listed on the portal (the library, collections, search) until a reader chooses another order in the Sort menu. Books without a year come last. Choices: *Oldest first*, *Newest first*, *Title A–Z*, *Relevance*. |
+| Best Matches First When Searching | When a reader types words to search, show the best matches first instead of the default order (they can still choose Oldest first). |
 
 **Logo & Branding**
 

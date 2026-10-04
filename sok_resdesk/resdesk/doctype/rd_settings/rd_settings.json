@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-11 12:00:00.000000",
+ "modified": "2026-10-13 12:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -173,6 +173,21 @@
    "fieldtype": "Small Text",
    "label": "Portal Languages",
    "description": "Languages the portal is offered in besides English, one code a line (kn for Kannada, hi Hindi, ta Tamil, te Telugu, ml Malayalam, mr Marathi, sa Sanskrit…). Readers get a language switch at the top of the portal; translate the portal's words in Portal Translations."
+  },
+  {
+   "fieldname": "default_sort",
+   "fieldtype": "Select",
+   "label": "Default Order",
+   "options": "Oldest first\nNewest first\nTitle A–Z\nRelevance",
+   "default": "Oldest first",
+   "description": "How books are listed on the portal (the library, collections, search) until a reader chooses another order in the Sort menu. Books without a year come last."
+  },
+  {
+   "fieldname": "relevance_when_searching",
+   "fieldtype": "Check",
+   "label": "Best Matches First When Searching",
+   "default": "1",
+   "description": "When a reader types words to search, show the best matches first instead of the default order (they can still choose Oldest first)."
   },
   {
    "fieldname": "branding_section",

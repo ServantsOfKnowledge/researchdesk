@@ -12,7 +12,10 @@ language and page count, with matches highlighted.
   thesis…), Language, Decade, Subject, Author and Source collection (the archive.org
   collection), plus a Year range.
   Filters combine: pick *Kannada* and *1950s* to get Kannada books from the 1950s.
-- **Sort:** relevance, oldest, newest, title A–Z.
+- **Sort:** relevance, oldest, newest, title A–Z. Until a reader chooses, books are listed in
+  the library's **Default Order** (Settings → Portal; oldest first unless changed) and a search
+  with words shows the best matches first (**Best Matches First When Searching**). Books without
+  a year come last.
 - **Empty search** lists everything, which is useful for browsing by filter.
 
 ## Inside the text

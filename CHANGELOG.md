@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.35.1 (2026-10-13): Oldest books first
+
+- The portal lists books **oldest first** (the library, collections and search), books without
+  a date at the end. A search with words still shows the best matches first; readers can choose
+  another order in **Sort**, which now shows the order in use
+- Settings → Portal: **Default Order** (oldest first, newest first, title A–Z or relevance) and
+  **Best Matches First When Searching**
+
 ## 0.35.0 (2026-10-13): Reading settings, the text to download, accessibility checks on every change; help pictures from the Desk
 
 - **Reading settings** (**Aa** at the top of every portal page): text size (up to almost one and

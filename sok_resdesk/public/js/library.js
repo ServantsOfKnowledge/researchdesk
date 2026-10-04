@@ -59,7 +59,8 @@
 	function syncForm() {
 		$("#rd-q").value = state.q;
 		document.querySelectorAll('input[name="rd-mode"]').forEach((r) => (r.checked = r.value === state.mode));
-		$("#rd-sort").value = state.sort;
+		// the reader's choice, else the order the library uses (the answer says which: render)
+		$("#rd-sort").value = state.sort || $("#rd-sort").dataset.used || "relevance";
 		$("#rd-sort").disabled = state.mode === "pages";
 		$("#rd-year-from").value = state.filters.year_from || "";
 		$("#rd-year-to").value = state.filters.year_to || "";
@@ -99,6 +100,10 @@
 	// ---- rendering ------------------------------------------------------------------
 	function render(data) {
 		lastTotal = data.total || 0;
+		if (data.sort && $("#rd-sort")) {
+			$("#rd-sort").dataset.used = data.sort;
+			if (!state.sort) $("#rd-sort").value = data.sort;
+		}
 		paintStaffBar();
 		if (data.login_needed) {
 			const root = $("#rd-library").dataset;

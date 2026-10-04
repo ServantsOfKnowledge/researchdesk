@@ -23,8 +23,10 @@ Two kinds of search sit under the box:
 
 Filters on the left narrow the results: **Collection**, **Type** (book, periodical, thesis…),
 **Language**, **Decade**, **Subject**, **Author** and **Source collection**, plus a range of
-years. Pick several: *Kannada* and *1950s* gives Kannada books from the 1950s. **Sort** puts
-the oldest, newest or alphabetical first.
+years. Pick several: *Kannada* and *1950s* gives Kannada books from the 1950s.
+
+Books are listed **oldest first** (books without a date at the end), and a search with words
+shows the best matches first. **Sort** changes that: relevance, oldest, newest or title A–Z.
 
 ![Search results with filters](../sok_resdesk/public/images/guide/portal-results.png)
 

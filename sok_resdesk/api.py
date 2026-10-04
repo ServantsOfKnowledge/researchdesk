@@ -51,6 +51,7 @@ def search(q: str = "", mode: str = "books", filters=None, page: int = 1, per_pa
 
 	filters: JSON object, e.g. {"language_label": ["Kannada"], "decade": ["1950s"], "year_from": 1900}
 	"""
+	sort = effective_sort(sort, q)
 	try:
 		result = _search(
 			q,
@@ -79,7 +80,33 @@ def search(q: str = "", mode: str = "books", filters=None, page: int = 1, per_pa
 		"login_needed": bool(result.get("restricted")),
 		# Indic spellings searched too, for a query typed in Latin letters: [{script, q}]
 		"also": result.get("also") or [],
+		# the order used ("" = relevance), so the Sort menu shows it
+		"sort": sort or "relevance",
 	}
+
+
+SORTS = {
+	"Oldest first": "year:asc",
+	"Newest first": "year:desc",
+	"Title A–Z": "title_sort:asc",
+	"Relevance": "",
+}
+
+
+def effective_sort(sort: str, q: str = "") -> str:
+	"""The order of book results: the reader's choice, else Settings → Portal → Default Order
+	(oldest first unless changed); searches with words keep relevance first when Settings say
+	so. Books without a year come last."""
+	if sort == "relevance":
+		return ""
+	if sort and sort in SORTS.values():
+		return sort
+	s = frappe.db.get_singles_dict("RD Settings")
+	if q.strip() and cint(
+		s.get("relevance_when_searching") if s.get("relevance_when_searching") is not None else 1
+	):
+		return ""
+	return SORTS.get(s.get("default_sort") or "Oldest first", "year:asc")
 
 
 def _hit(hit: dict, mode: str) -> dict:
