@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.33.1 (2026-10-10): Text search on phones
+
+- Search inside the text on a phone: each matching page's title and words were squeezed into the
+  narrow thumbnail column on the left (page hits have no thumbnail); they now take the full width
+- Book thumbnails on phones are the intended size (56 px)
+
 ## 0.33.0 (2026-10-09): The first pass on every worker; workers and upload size in the Desk
 
 - **Parallel first pass**: in the background, cataloguing from archive.org's search records or a
