@@ -2,14 +2,11 @@
 Commons is stood in for; the item, its original file, the account and the checks are real."""
 
 import os
-import shutil
-import tempfile
 from unittest import mock
 
 import frappe
 
 from sok_resdesk import commons, wikimedia
-from sok_resdesk.core import wikimedia as wm
 from sok_resdesk.tests.test_photographs import PHOTO, PhotoBase
 
 LICENCE = "https://creativecommons.org/licenses/by-sa/4.0/"
@@ -36,9 +33,16 @@ class FakeCommons:
 		pages = []
 		for t in titles:
 			if t.startswith("File:"):
-				pages.append({"title": t, **({"pageid": 99} if self.taken or self.uploaded else {"missing": True})})
+				pages.append(
+					{"title": t, **({"pageid": 99} if self.taken or self.uploaded else {"missing": True})}
+				)
 			else:
-				pages.append({"title": t, **({"missing": True} if t.split(":", 1)[1] in self.missing else {"pageid": 5})})
+				pages.append(
+					{
+						"title": t,
+						**({"missing": True} if t.split(":", 1)[1] in self.missing else {"pageid": 5}),
+					}
+				)
 		return {"query": {"pages": pages}}
 
 	def upload(self, filename, path, text, comment):
@@ -64,7 +68,9 @@ class TestCommons(PhotoBase):
 		acc.update({"user": "Administrator", "wikimedia_user": "Volunteer", "token": TOKEN})
 		acc.flags.ignore_permissions = True
 		acc.insert()
-		self.addCleanup(lambda: frappe.delete_doc(wikimedia.DOCTYPE, "Administrator", force=True, ignore_permissions=True))
+		self.addCleanup(
+			lambda: frappe.delete_doc(wikimedia.DOCTYPE, "Administrator", force=True, ignore_permissions=True)
+		)
 		frappe.db.commit()
 
 	def api(self, **kw):
@@ -78,7 +84,10 @@ class TestCommons(PhotoBase):
 		self.api()
 		p = commons.plan(PHOTO, categories="Rathas")
 		self.assertEqual(p["problem"], "")
-		self.assertEqual((p["licence"], p["author"], p["site"]), ("CC BY-SA 4.0", "A. Photographer", "commons.wikimedia.org"))
+		self.assertEqual(
+			(p["licence"], p["author"], p["site"]),
+			("CC BY-SA 4.0", "A. Photographer", "commons.wikimedia.org"),
+		)
 		self.assertTrue(p["filename"].endswith(".jpg"))
 		self.assertIn("{{Cc-by-sa-4.0}}", p["wikitext"])
 		self.assertIn("[[Category:Rathas]]", p["wikitext"])
@@ -87,7 +96,9 @@ class TestCommons(PhotoBase):
 
 	def test_what_stops_it_is_said_before_anything_is_sent(self):
 		self.api()
-		frappe.db.set_value("RD Item", PHOTO, "licence_url", "https://creativecommons.org/licenses/by-nc/4.0/")
+		frappe.db.set_value(
+			"RD Item", PHOTO, "licence_url", "https://creativecommons.org/licenses/by-nc/4.0/"
+		)
 		self.assertIn("free licences", commons.plan(PHOTO)["problem"])
 		frappe.db.set_value("RD Item", PHOTO, {"licence_url": LICENCE, "creator_display": ""})
 		self.assertIn("photographer", commons.plan(PHOTO)["problem"])

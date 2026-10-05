@@ -170,7 +170,9 @@ def send(item: str, filename: str, description: str = "", categories: str = "", 
 	if p["duplicate"]:
 		frappe.throw(_("Commons already has this file as {0}.").format(", ".join(p["duplicate"])))
 	if p["name_taken"]:
-		frappe.throw(_("A file called {0} already exists on Commons: choose another name.").format(p["filename"]))
+		frappe.throw(
+			_("A file called {0} already exists on Commons: choose another name.").format(p["filename"])
+		)
 	if p["missing_categories"]:
 		frappe.throw(
 			_("These categories do not exist on Commons: {0}. Choose existing ones.").format(
@@ -183,7 +185,11 @@ def send(item: str, filename: str, description: str = "", categories: str = "", 
 		client.upload(p["filename"], _original(doc), p["wikitext"], SUMMARY)
 	except wm.WikimediaError as e:
 		frappe.throw(_("Commons did not accept the file: {0}").format(str(e)[:300]))
-	result = {"file": p["filename"], "url": f"https://{cm.SITE}/wiki/File:{p['filename'].replace(' ', '_')}", "depicts": ""}
+	result = {
+		"file": p["filename"],
+		"url": f"https://{cm.SITE}/wiki/File:{p['filename'].replace(' ', '_')}",
+		"depicts": "",
+	}
 	qids = [d["qid"] for d in p["depicts"]]
 	if qids:
 		try:
@@ -197,9 +203,9 @@ def send(item: str, filename: str, description: str = "", categories: str = "", 
 			)
 			result["depicts"] = "added"
 		except (wm.WikimediaError, KeyError, IndexError) as e:
-			result["depicts"] = _("The file is uploaded but its depicts statements were not added: {0}").format(
-				str(e)[:200]
-			)
+			result["depicts"] = _(
+				"The file is uploaded but its depicts statements were not added: {0}"
+			).format(str(e)[:200])
 	me = frappe.db.get_value(wikimedia.DOCTYPE, frappe.session.user, "wikimedia_user")
 	frappe.db.set_value(
 		"RD Item",
@@ -208,5 +214,8 @@ def send(item: str, filename: str, description: str = "", categories: str = "", 
 		update_modified=False,
 	)
 	wikimedia.touch(frappe.session.user)
-	doc.add_comment("Info", _("{0} sent this photograph to Commons as {1} ({2}).").format(frappe.session.user, p["filename"], me))
+	doc.add_comment(
+		"Info",
+		_("{0} sent this photograph to Commons as {1} ({2}).").format(frappe.session.user, p["filename"], me),
+	)
 	return result
