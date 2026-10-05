@@ -73,7 +73,7 @@ def site_pictures() -> dict[str, str]:
 	site (Server page → Retake help pictures) stands in for the one that comes with Research Desk
 	only until an upgrade changes that one: then the screen it shows has changed, and the new
 	shipped picture is truer than the library's old one. Pictures retaken before this was recorded
-	count as old."""
+	count as old; a picture Research Desk doesn't ship is always the library's own."""
 	import hashlib
 	import json
 	import os
@@ -83,25 +83,27 @@ def site_pictures() -> dict[str, str]:
 	folder = Path(frappe.get_site_path("public", "files", SITE_PICTURES))
 	marker = folder / TAKEN
 	try:
-		stamp = int(os.path.getmtime(marker))
+		stamp = os.stat(folder).st_mtime_ns
 	except OSError:
 		return {}
+	try:
+		stamp = f"{stamp}-{os.stat(marker).st_mtime_ns}"
+	except OSError:
+		pass
 
 	def current() -> dict[str, str]:
 		try:
 			taken = json.loads(marker.read_text())
 		except (OSError, ValueError):
-			return {}
+			taken = {}
 		out = {}
-		for name, digest in taken.items():
-			mine = folder / name
-			if not mine.exists():
-				continue
+		for mine in folder.glob("*.png"):
+			name = mine.name
 			try:
 				shipped = hashlib.sha256(_shipped(name).read_bytes()).hexdigest()
 			except OSError:
-				shipped = digest  # a picture only this library has
-			if shipped == digest:
+				shipped = None  # a picture only this library has
+			if shipped is None or taken.get(name) == shipped:
 				out[name] = f"/files/{SITE_PICTURES}/{name}?v={int(os.path.getmtime(mine))}"
 		return out
 

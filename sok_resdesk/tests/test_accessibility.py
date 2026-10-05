@@ -54,7 +54,9 @@ class TestHelpPictures(OpsTestCase):
 		from sok_resdesk.core import helpdocs
 
 		name = "rdtest-picture.png"
-		self.assertEqual(rd_help.image_url(name), f"{helpdocs.IMAGE_URL}/{name}")
+		from sok_resdesk import __version__
+
+		self.assertEqual(rd_help.image_url(name), f"{helpdocs.IMAGE_URL}/{name}?v={__version__}")
 		folder = frappe.get_site_path("public", "files", rd_help.SITE_PICTURES)
 		os.makedirs(folder, exist_ok=True)
 		path = os.path.join(folder, name)
