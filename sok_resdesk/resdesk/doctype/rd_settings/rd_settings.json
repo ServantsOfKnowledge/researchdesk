@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-19 10:00:00.000000",
+ "modified": "2026-10-23 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -39,6 +39,8 @@
   "oai_scope",
   "access_rules_section",
   "access_rules",
+  "desk_section",
+  "desk_scope",
   "analytics_section",
   "analytics_provider",
   "analytics_host",
@@ -331,6 +333,20 @@
    "label": "Rules",
    "options": "RD Access Rule",
    "description": "Give books a visibility by collection, subject, language, creator, source or profile. Press Apply Access Rules to use them on books already in the catalogue."
+  },
+  {
+   "fieldname": "desk_section",
+   "fieldtype": "Section Break",
+   "label": "The Desk",
+   "description": "Staff work in Research Desk; Frappe's own tools (Build, Users, Website, Integrations…) are hidden from the Desk's sidebar, app screen and search. Roles still decide what each person may open. The Administrator account always sees everything."
+  },
+  {
+   "fieldname": "desk_scope",
+   "fieldtype": "Select",
+   "label": "What Staff See in the Desk",
+   "options": "Research Desk only, except Administrator\nResearch Desk only for staff; System Managers see everything\nEverything (Frappe's own tools too)",
+   "default": "Research Desk only, except Administrator",
+   "description": "Applies to everyone with a ResDesk staff role or System Manager. Changing it updates every account straight away."
   },
   {
    "fieldname": "analytics_section",

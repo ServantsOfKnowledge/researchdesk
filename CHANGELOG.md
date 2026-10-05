@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.43.0 (2026-10-23): Staff work in Research Desk
+
+- **The Desk shows only Research Desk** to librarians, cataloguers and managers (System
+  Managers included): Frappe's own workspaces (Build, Users, Website, Integrations, Printing,
+  Email…) are gone from the sidebar, the apps screen and search, and everyone lands in Research
+  Desk. Roles still decide what a person may do; People & Roles, Users, Background Jobs and the
+  Server page stay linked from Research Desk
+- The built-in **Administrator** account keeps everything, as the way into Frappe's own tools.
+  Settings → Readers & Access → **The Desk** can also let System Managers see everything, or
+  turn the restriction off
+- Docs: [Staff guide → Only Research Desk in the Desk](docs/staff-guide.md#only-research-desk-in-the-desk)
+
 ## 0.42.0 (2026-10-22): The library's own catalogue, linked
 
 - **Desk → Library Systems**: bring in the catalogue of Koha (or Evergreen, SOUL, e-Granthalaya,

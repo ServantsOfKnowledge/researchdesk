@@ -169,6 +169,9 @@ def after_migrate():
 	except Exception:
 		frappe.log_error("Research Desk: could not apply branding")
 	create_workspace()
+	from sok_resdesk import deskscope
+
+	deskscope.after_migrate()  # after the workspace: new modules are hidden too
 	try:
 		from sok_resdesk.translations import clear_phrase_cache
 

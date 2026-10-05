@@ -42,6 +42,10 @@ class RDSettings(Document):
 		from sok_resdesk.setup import apply_machine
 
 		apply_machine(self)
+		if self.has_value_changed("desk_scope"):
+			from sok_resdesk import deskscope
+
+			deskscope.apply_all()
 
 
 DEFAULT_LOGO = "/assets/sok_resdesk/images/resdesk-logo.svg"

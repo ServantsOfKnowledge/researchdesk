@@ -205,7 +205,7 @@ looks after it:
 | Tab | For | What you set there |
 |---|---|---|
 | Library & Portal | whoever runs the library | the name, tagline, public web address, OAI identifier and admin email; the portal's languages, the order books are listed in; logo, icon and home-page picture |
-| Readers & Access | the library's managers | what visitors can do, the default for new books, reader accounts, what OAI-PMH shares, access rules; usage statistics |
+| Readers & Access | the library's managers | what visitors can do, the default for new books, reader accounts, what OAI-PMH shares, access rules; what staff see in the Desk; usage statistics |
 | Catalogue | cataloguers | archive.org (contact, pace, batches, pausing), collections kept in step with archive.org, matching authors and subjects to authorities |
 | Search | whoever runs the machine | the search engine's address, whether page text is indexed, search in Latin letters; **Rebuild Search Index** |
 | Sharing & Identifiers | partners and researchers | permanent ARKs, DOIs from DataCite, corrected pages shared as OCR ground truth |
@@ -324,6 +324,29 @@ to it follows; set *Home Page* back to `library` to return.
 | ResDesk Proofreader | the portal only: correct and validate page text, and read pages again with OCR |
 
 Give and take roles on **People & Roles** (below).
+
+### Only Research Desk in the Desk
+
+Staff work in Research Desk; they don't need Frappe's own workspaces (Build, Users, Website,
+Integrations, Printing, Email and the rest). So the Desk's sidebar, its apps screen and its
+search show **only Research Desk** to everyone with a staff role (Manager, Cataloguer) or System
+Manager, and everyone lands in Research Desk after logging in. Nothing a person may *do*
+changes: roles still decide that, and everything staff need (People & Roles, Users, Background
+Jobs, Server) is linked from Research Desk.
+
+The built-in **Administrator** account always sees everything: it is the way into Frappe's own
+tools when a developer or the server's administrator needs them. Settings → *Readers & Access* →
+**The Desk** → *What Staff See in the Desk* changes this:
+
+| Choice | Who sees Frappe's own tools |
+|---|---|
+| Research Desk only, except Administrator (the default) | Administrator only |
+| Research Desk only for staff; System Managers see everything | Administrator and System Managers |
+| Everything (Frappe's own tools too) | everyone, as in plain Frappe |
+
+Changing it updates every account straight away; new accounts, and accounts given a staff role
+later, follow it too. (It works through a Module Profile called *Research Desk only*; don't edit
+that profile by hand, it is rebuilt after every upgrade so Frappe's new modules are hidden too.)
 
 ## People and roles
 

@@ -334,6 +334,12 @@ Every setting:
 |---|---|
 | Rules | Give books a visibility by collection, subject, language, creator, source or profile. Press Apply Access Rules to use them on books already in the catalogue. |
 
+**The Desk**
+
+| Setting | What it does |
+|---|---|
+| What Staff See in the Desk | Applies to everyone with a ResDesk staff role or System Manager. Changing it updates every account straight away. Choices: *Research Desk only, except Administrator*, *Research Desk only for staff; System Managers see everything*, *Everything (Frappe's own tools too)*. |
+
 **Usage Statistics**
 
 | Setting | What it does |

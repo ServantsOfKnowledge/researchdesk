@@ -71,6 +71,7 @@
 - [x] Search in Latin letters for every Indic script (`vachana` finds ವಚನ), phrases, OR and
       words left out
 - [x] People & Roles in the Desk, the library at a glance on login, private usage statistics
+- [x] Staff see only Research Desk in the Desk; Frappe's own tools stay with Administrator
 - [x] Server → Requirements: what the server has and lacks, installing it from the Desk (native)
       or with the upgrade (Docker, OCR languages chosen in `.env`)
 

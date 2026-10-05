@@ -39,7 +39,7 @@ website_route_rules = [
 app_include_css = [f"/assets/sok_resdesk/css/desk.css?v={__version__}"]
 # Help and Take-the-tour buttons on Research Desk screens
 app_include_js = [f"/assets/sok_resdesk/js/desk_help.js?v={__version__}"]
-boot_session = "sok_resdesk.help.boot_session"
+boot_session = ["sok_resdesk.help.boot_session", "sok_resdesk.deskscope.trim_boot"]
 # ?v=: browsers keep /assets for a year (Frappe's web server), so each release gets new addresses
 web_include_css = [f"/assets/sok_resdesk/css/resdesk.css?v={__version__}"]
 # usage statistics on portal pages, when switched on in Settings (analytics.py)
@@ -90,7 +90,11 @@ doc_events = {
 		"on_trash": ["sok_resdesk.search.on_item_trash", "sok_resdesk.review.on_item_trash"],
 	},
 	# portal sign-ups become readers, or wait for approval (RD Settings → Reader Accounts)
-	"User": {"after_insert": "sok_resdesk.access.on_user_insert"},
+	"User": {
+		"after_insert": "sok_resdesk.access.on_user_insert",
+		# staff see Research Desk, not Frappe's own workspaces (Settings → The Desk)
+		"before_validate": "sok_resdesk.deskscope.before_validate",
+	},
 	"RD Collection": {"on_trash": "sok_resdesk.curation.on_collection_trash"},
 	# a public note's tags and Wikidata item are searched with its book
 	"RD Annotation": {
