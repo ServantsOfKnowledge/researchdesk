@@ -40,6 +40,7 @@
   "subjects",
   "collections",
   "curated_collections",
+  "archival_unit",
   "section_manuscript",
   "ms_repository",
   "ms_shelfmark",
@@ -335,6 +336,15 @@
    "label": "Collections",
    "options": "RD Item Collection",
    "description": "Your curated collections this book belongs to."
+  },
+  {
+   "fieldname": "archival_unit",
+   "fieldtype": "Link",
+   "label": "Part of (Archival Description)",
+   "options": "RD Archival Unit",
+   "ignore_user_permissions": 1,
+   "depends_on": "eval:doc.archival_unit || !(frappe.boot.resdesk_features_off || []).includes('archival')",
+   "description": "The file, series or fonds this digitised item belongs to, in the archive's description."
   },
   {
    "fieldname": "section_rights",

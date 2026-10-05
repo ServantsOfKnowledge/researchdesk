@@ -47,6 +47,7 @@ class TestFeatures(IntegrationTestCase):
 				"media",
 				"manuscripts",
 				"photographs",
+				"archival",
 			},
 		)
 		self.assertEqual(preset, "standard")  # the larger of light and standard

@@ -99,6 +99,12 @@ def get_context(context):
 	from sok_resdesk.librarysystems import catalogue_links
 
 	try:
+		from sok_resdesk import archival
+
+		context.archival_trail = archival.item_trail(record["item_id"])
+	except Exception:
+		context.archival_trail = []
+	try:
 		context.catalogue_links = catalogue_links(record["item_id"])  # the libraries' own records of it
 	except Exception:
 		context.catalogue_links = []

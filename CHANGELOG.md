@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.64.0 (2026-11-06): Archival description
+
+- **Archival Description** (Desk, and the *Archival description* feature): papers described as a
+  hierarchy of fonds, sub-fonds, collection, series, sub-series, file and item, with the ISAD(G) fields
+  (reference code, title, level, dates, extent, creator, history, scope and content, arrangement,
+  access and reproduction conditions, language, finding aids, related units, notes), a tree view, and
+  rules for what may sit under what
+- Digitised items are placed in the hierarchy (*Part of (Archival Description)* on the item); the
+  item's page shows where it sits
+- The portal's **/library/archive**: fonds and collections, and a page per unit with its description,
+  parts and digitised items; a unit shows only when everything above it is published and visible to the reader
+- **EAD3** finding aids of a fonds or collection, from the Desk and the portal
+- On for archives, university repositories and manuscript libraries and archives; a library that chose
+  its kinds gets it as they say on upgrade
+
 ## 0.63.0 (2026-11-06): Machine drafts of transcripts
 
 - **Draft the Transcript (Speech to Text)** for recordings held here, with `faster-whisper` or the

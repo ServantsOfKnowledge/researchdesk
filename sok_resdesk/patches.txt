@@ -25,3 +25,4 @@ sok_resdesk.patches.v0_41.harden_logins
 sok_resdesk.patches.v0_56.desk_scope_all
 sok_resdesk.patches.v0_58.profile_new_features
 sok_resdesk.patches.v0_58.libraries_and_archives_keep_them
+sok_resdesk.patches.v0_64.archival_feature

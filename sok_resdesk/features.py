@@ -129,6 +129,13 @@ FEATURES: dict[str, Feature] = {
 			"the photograph pages",
 		),
 		Feature(
+			"archival",
+			"Archival description",
+			"describing papers as fonds, series, file and item (ISAD(G)), a hierarchy on the portal, EAD3 finding aids",
+			"the archival description screens and portal pages",
+			doctypes=("RD Archival Unit",),
+		),
+		Feature(
 			"media",
 			"Audio and video",
 			"recordings with a player and a time-coded transcript, in folders and from archive.org",
@@ -231,6 +238,7 @@ PROFILES: dict[str, Profile] = {
 					"identifiers",
 					"folders",
 					"review",
+					"archival",
 					"media",
 					"manuscripts",
 					"photographs",
@@ -252,6 +260,7 @@ PROFILES: dict[str, Profile] = {
 					"library_systems",
 					"deposit",
 					"review",
+					"archival",
 					"manuscripts",
 					"photographs",
 				}
@@ -267,6 +276,7 @@ PROFILES: dict[str, Profile] = {
 					"proofreading",
 					"manuscripts",
 					"photographs",
+					"archival",
 					"folders",
 					"media",
 					"preservation",

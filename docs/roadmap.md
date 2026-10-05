@@ -141,7 +141,7 @@
 - [x] The library in e-reader apps (OPDS), the text of EPUB books, and fewer fields for libraries without manuscripts or photographs (0.61)
 - [x] Offline copies of a collection, and ZIM files for Kiwix (0.62)
 - [x] Machine drafts of transcripts (speech to text, handwriting recognition) for a person to correct (0.63)
-- [ ] Archival description (fonds, series, file, item)
+- [x] Archival description: fonds to item (ISAD(G)), a hierarchy on the portal, EAD3 finding aids (0.64)
 
 ## v1.0: library-grade
 
@@ -149,7 +149,6 @@
 - [ ] Holdings, patrons and circulation stay with Koha: Research Desk works alongside it
 - [ ] SRU/Z39.50 target for older ILS integrations
 - [ ] Usage statistics in COUNTER form, for libraries that report them
-- [ ] EAD export of archival description, once description is built ([where it fits](architecture.md#where-it-fits-in-the-library-and-archive-ecosystem))
 - [ ] Digitisation tracking: a book's way through scanning, QA and ingest, for small projects
 
 Ideas and priorities welcome: open an issue.

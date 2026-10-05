@@ -27,6 +27,7 @@ The same pages are inside the app: **Help** on the portal (for readers) and **He
    - [Permanent links, preservation & OCR quality](preservation.md): ARKs for every book and page, tombstones, the library's own checked copies (OCFL), a second copy (folder or S3) with automatic repair, serving books from our copy, BagIt exports, preservation events, OCR quality scores
 8. [Koha & interoperability](koha.md): OAI-PMH harvesting, MARCXML import, standalone mode
    - [IIIF](iiif.md): every book as a manifest for Mirador, Universal Viewer and other viewers; collections; an image service for books drawn from PDFs
+   - [Archival description](archival-description.md): fonds, series, file and item (ISAD(G)), a hierarchy on the portal, EAD3 finding aids
    - [Offline copies and Kiwix](offline.md): a collection as a folder of web pages for USB sticks, phones and Kiwix (ZIM)
    - [OPDS](opds.md): the library as a catalogue for e-reader apps: newest books, collections, search and downloads
 9. [API](api.md): public HTTP endpoints

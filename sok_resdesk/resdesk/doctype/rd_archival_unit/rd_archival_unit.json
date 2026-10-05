@@ -1,0 +1,330 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-11-06 10:00:00.000000",
+ "modified": "2026-11-06 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Archival Unit",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "autoname": "field:ref_code",
+ "title_field": "title",
+ "show_title_field_in_link": 1,
+ "search_fields": "ref_code,title,creator",
+ "is_tree": 1,
+ "nsm_parent_field": "parent_unit",
+ "links": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "track_changes": 1,
+ "field_order": [
+  "ref_code",
+  "title",
+  "level",
+  "parent_unit",
+  "is_group",
+  "sort_order",
+  "column_break_a",
+  "published",
+  "visibility",
+  "section_dates",
+  "date_text",
+  "year_from",
+  "year_to",
+  "extent",
+  "column_break_b",
+  "creator",
+  "language",
+  "physical",
+  "section_context",
+  "admin_history",
+  "custodial_history",
+  "section_content",
+  "scope_content",
+  "arrangement",
+  "section_access",
+  "access_conditions",
+  "reproduction_conditions",
+  "finding_aids",
+  "section_allied",
+  "related_materials",
+  "notes",
+  "section_tree",
+  "lft",
+  "rgt",
+  "old_parent"
+ ],
+ "fields": [
+  {
+   "fieldname": "ref_code",
+   "fieldtype": "Data",
+   "label": "Reference Code",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1,
+   "description": "ISAD(G) 3.1.1. Unique, letters, digits and . _ - only (it is in the web address): UAS-1, UAS-1-2, UAS-1-2-14."
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "in_list_view": 1,
+   "length": 500,
+   "description": "ISAD(G) 3.1.2. The name of the unit, as it is on it or devised."
+  },
+  {
+   "fieldname": "level",
+   "fieldtype": "Select",
+   "label": "Level of Description",
+   "options": "Fonds\nSub-fonds\nCollection\nSeries\nSub-series\nFile\nItem",
+   "default": "Series",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "description": "ISAD(G) 3.1.4."
+  },
+  {
+   "fieldname": "parent_unit",
+   "fieldtype": "Link",
+   "label": "Part Of",
+   "options": "RD Archival Unit",
+   "ignore_user_permissions": 1,
+   "description": "The unit this one belongs to. A fonds or collection has none."
+  },
+  {
+   "fieldname": "is_group",
+   "fieldtype": "Check",
+   "label": "Has Parts",
+   "default": "1",
+   "hidden": 0,
+   "description": "Whether units can be described under this one (anything but an item)."
+  },
+  {
+   "fieldname": "sort_order",
+   "fieldtype": "Int",
+   "label": "Sort Order",
+   "default": "0",
+   "description": "Within its parent: lowest first, then by reference code."
+  },
+  {
+   "fieldname": "column_break_a",
+   "fieldtype": "Column Break",
+   "label": "Column Break A"
+  },
+  {
+   "fieldname": "published",
+   "fieldtype": "Check",
+   "label": "On the Portal",
+   "default": "0",
+   "in_list_view": 1,
+   "description": "Shown at /library/archive. A unit is shown only when everything above it is too."
+  },
+  {
+   "fieldname": "visibility",
+   "fieldtype": "Select",
+   "label": "Who Can See It",
+   "options": "Public\nLogin to read\nLogin to find",
+   "default": "Public",
+   "description": "As for books: Public, or only logged-in readers."
+  },
+  {
+   "fieldname": "section_dates",
+   "fieldtype": "Section Break",
+   "label": "Dates, Extent and Creator"
+  },
+  {
+   "fieldname": "date_text",
+   "fieldtype": "Data",
+   "label": "Dates",
+   "description": "ISAD(G) 3.1.3, as written: 1920-1950, c. 1900, undated."
+  },
+  {
+   "fieldname": "year_from",
+   "fieldtype": "Int",
+   "label": "From Year",
+   "description": "For sorting and EAD: the first year."
+  },
+  {
+   "fieldname": "year_to",
+   "fieldtype": "Int",
+   "label": "To Year"
+  },
+  {
+   "fieldname": "extent",
+   "fieldtype": "Data",
+   "label": "Extent",
+   "description": "ISAD(G) 3.1.5: 12 boxes, 3.2 linear metres, 240 leaves."
+  },
+  {
+   "fieldname": "column_break_b",
+   "fieldtype": "Column Break",
+   "label": "Column Break B"
+  },
+  {
+   "fieldname": "creator",
+   "fieldtype": "Data",
+   "label": "Creator",
+   "description": "ISAD(G) 3.2.1: who made or accumulated it."
+  },
+  {
+   "fieldname": "language",
+   "fieldtype": "Data",
+   "label": "Language of the Material",
+   "description": "ISAD(G) 3.4.3."
+  },
+  {
+   "fieldname": "physical",
+   "fieldtype": "Small Text",
+   "label": "Physical Characteristics",
+   "description": "ISAD(G) 3.4.4: condition, material, format."
+  },
+  {
+   "fieldname": "section_context",
+   "fieldtype": "Section Break",
+   "label": "Context",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "admin_history",
+   "fieldtype": "Text",
+   "label": "Administrative or Biographical History",
+   "description": "ISAD(G) 3.2.2."
+  },
+  {
+   "fieldname": "custodial_history",
+   "fieldtype": "Text",
+   "label": "Custodial History",
+   "description": "ISAD(G) 3.2.3."
+  },
+  {
+   "fieldname": "section_content",
+   "fieldtype": "Section Break",
+   "label": "Content and Structure",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "scope_content",
+   "fieldtype": "Text",
+   "label": "Scope and Content",
+   "description": "ISAD(G) 3.3.1. Paragraphs are separated by a blank line."
+  },
+  {
+   "fieldname": "arrangement",
+   "fieldtype": "Text",
+   "label": "System of Arrangement",
+   "description": "ISAD(G) 3.3.4."
+  },
+  {
+   "fieldname": "section_access",
+   "fieldtype": "Section Break",
+   "label": "Conditions of Access and Use",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "access_conditions",
+   "fieldtype": "Text",
+   "label": "Conditions Governing Access",
+   "description": "ISAD(G) 3.4.1."
+  },
+  {
+   "fieldname": "reproduction_conditions",
+   "fieldtype": "Text",
+   "label": "Conditions Governing Reproduction",
+   "description": "ISAD(G) 3.4.2."
+  },
+  {
+   "fieldname": "finding_aids",
+   "fieldtype": "Text",
+   "label": "Finding Aids",
+   "description": "ISAD(G) 3.4.5."
+  },
+  {
+   "fieldname": "section_allied",
+   "fieldtype": "Section Break",
+   "label": "Allied Materials and Notes",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "related_materials",
+   "fieldtype": "Text",
+   "label": "Related Units of Description",
+   "description": "ISAD(G) 3.5.3: where else related papers are."
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text",
+   "label": "Notes",
+   "description": "ISAD(G) 3.6.1."
+  },
+  {
+   "fieldname": "section_tree",
+   "fieldtype": "Section Break",
+   "label": "Tree",
+   "hidden": 1
+  },
+  {
+   "fieldname": "lft",
+   "fieldtype": "Int",
+   "label": "Left",
+   "hidden": 1,
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "rgt",
+   "fieldtype": "Int",
+   "label": "Right",
+   "hidden": 1,
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "old_parent",
+   "fieldtype": "Link",
+   "label": "Old Parent",
+   "options": "RD Archival Unit",
+   "hidden": 1,
+   "read_only": 1,
+   "no_copy": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "import": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "import": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "ResDesk Proofreader",
+   "read": 1
+  }
+ ]
+}

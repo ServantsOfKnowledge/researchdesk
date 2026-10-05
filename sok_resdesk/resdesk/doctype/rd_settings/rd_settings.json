@@ -58,6 +58,7 @@
   "feature_media",
   "feature_manuscripts",
   "feature_photographs",
+  "feature_archival",
   "feature_deposit",
   "feature_sharing",
   "feature_reader_accounts",
@@ -487,6 +488,13 @@
    "label": "Photographs",
    "default": "1",
    "description": "Photographs as items: their EXIF, who and where, a SHA-256 of the original, a zoom viewer. Off saves them for libraries that keep none."
+  },
+  {
+   "fieldname": "feature_archival",
+   "fieldtype": "Check",
+   "label": "Archival description",
+   "default": "1",
+   "description": "Describing papers as fonds, series, file and item (ISAD(G)), a browsable hierarchy on the portal and EAD3 finding aids. Off saves it for libraries that describe no archives."
   },
   {
    "fieldname": "feature_media",

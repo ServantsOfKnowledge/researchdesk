@@ -37,6 +37,9 @@ def get_context(context):
 	cards = collection_cards()
 	context.featured_collections = [c for c in cards if c.featured][:8]
 	context.has_collections = bool(cards)
+	from sok_resdesk import archival
+
+	context.has_archive = bool(archival.top_units())
 	context.facet_labels = facet_labels()
 	context.logo = s.portal_logo if s.portal_logo and s.logo_on_home else ""
 	context.home_banner = s.home_banner or ""

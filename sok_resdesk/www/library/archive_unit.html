@@ -1,0 +1,38 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="rd rd-archive">
+	<nav class="rd-crumbs">
+		<a href="/library/archive">← {{ _("Archives") }}</a>
+		{% for a in page.trail %} / <a href="/library/archive/{{ a.name | urlencode }}">{{ a.title }}</a>{% endfor %}
+	</nav>
+	<h1 class="rd-page-title">{{ unit.title }}</h1>
+	<p class="rd-muted">{{ _(unit.level) }} · {{ unit.ref }}{% if page.count %} · {{ page.count }} {{ _("parts described") }}{% endif %}
+		{% if page.ead %} · <a href="/api/method/sok_resdesk.archival.ead?unit={{ unit.name | urlencode }}">{{ _("EAD3 finding aid (XML)") }}</a>{% endif %}</p>
+	<dl class="rd-details">
+		{% for label, value in rows %}
+		<dt>{{ label }}</dt><dd style="white-space:pre-line">{{ value }}</dd>
+		{% endfor %}
+	</dl>
+	{% if page.children %}
+	<h2>{{ _("Parts") }}</h2>
+	<ul class="rd-note-list">
+		{% for k in page.children %}
+		<li class="rd-note"><a href="/library/archive/{{ k.name | urlencode }}"><b>{{ k.title }}</b></a>
+			<span class="rd-muted"> · {{ _(k.level) }} · {{ k.ref }}{% if k.date_text %} · {{ k.date_text }}{% endif %}</span></li>
+		{% endfor %}
+	</ul>
+	{% endif %}
+	{% if page["items"] %}
+	<h2>{{ _("Digitised") }}</h2>
+	<ul class="rd-note-list">
+		{% for i in page["items"] %}
+		<li class="rd-note"><a href="/library/item/{{ i.name | urlencode }}"><b>{{ i.title }}</b></a>
+			<span class="rd-muted">{% if i.creator_display %} · {{ i.creator_display }}{% endif %}{% if i.year %} · {{ i.year }}{% endif %}</span></li>
+		{% endfor %}
+	</ul>
+	{% endif %}
+</div>
+{% endblock %}

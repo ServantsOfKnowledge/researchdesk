@@ -192,6 +192,7 @@
 					{% if item.subjects %}<dt>{{ _("Subjects") }}</dt><dd>
 						{% for s in item.subjects %}<a class="rd-chip" href="{{ library_url() }}?subjects={{ s | urlencode }}">{{ s }}</a>{% endfor %}
 					</dd>{% endif %}
+					{% if archival_trail %}<dt>{{ _("Part of") }}</dt><dd>{% for a in archival_trail %}{% if not loop.first %} › {% endif %}<a href="/library/archive/{{ a.name | urlencode }}">{{ a.title }}</a>{% endfor %}</dd>{% endif %}
 					{% if curated %}<dt>{{ _("Collections") }}</dt><dd>
 						{% for c in curated %}<a class="rd-chip" href="/library/collection/{{ c.name | urlencode }}">{{ c.title }}</a>{% endfor %}
 					</dd>{% endif %}

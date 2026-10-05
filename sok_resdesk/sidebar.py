@@ -27,6 +27,7 @@ STRUCTURE: list = [
 			("Ingest Runs", D, "RD Ingest Run"),
 			("Items", D, "RD Item"),
 			("Collections", D, "RD Collection"),
+			("Archival Description", D, "RD Archival Unit"),
 			("Deposits", D, "RD Deposit"),
 			("Review Queue", P, "resdesk-review"),
 			("Authorities", P, "resdesk-authorities"),

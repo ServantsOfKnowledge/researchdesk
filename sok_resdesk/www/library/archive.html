@@ -1,0 +1,23 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="rd rd-archive">
+	<nav class="rd-crumbs"><a href="{{ library_url() }}">← {{ portal_title }}</a></nav>
+	<h1 class="rd-page-title">{{ _("Archives") }}</h1>
+	{% if units %}
+	<ul class="rd-note-list">
+		{% for u in units %}
+		<li class="rd-note">
+			<a href="/library/archive/{{ u.name | urlencode }}"><b>{{ u.title }}</b></a>
+			<span class="rd-muted"> · {{ _(u.level) }} · {{ u.ref }}{% if u.date_text %} · {{ u.date_text }}{% endif %}{% if u.parts %} · {{ u.parts }} {{ _("parts") }}{% endif %}</span>
+			{% if u.creator %}<div class="rd-muted">{{ u.creator }}</div>{% endif %}
+		</li>
+		{% endfor %}
+	</ul>
+	{% else %}
+	<p>{{ _("No archives are described here yet.") }}</p>
+	{% endif %}
+</div>
+{% endblock %}
