@@ -317,6 +317,43 @@ Every setting:
 | Icon (optional) | Square image (PNG/ICO/SVG, 64×64 or larger): the browser tab and the Research Desk icon in the Desk. Leave empty to use the logo. |
 | Home Page Background Image (optional) | A wide photo behind the search box on the home page, e.g. a manuscript or library shelf. |
 
+### Features
+
+**Your Institution**
+
+| Setting | What it does |
+|---|---|
+| Small library or school | Switches on: OCR, books from folders and servers. Resources: light. |
+| Public research portal | Switches on: page-level full-text search, OCR, proofreading and ground truth, readers' notes, authority control, review queue, permanent identifiers, sharing metadata, usage statistics. Resources: standard. |
+| Members-only institution | Switches on: page-level full-text search, reader accounts, library systems, review queue, sharing metadata. Resources: standard. |
+| Archive keeping its own copies | Switches on: preservation, permanent identifiers, books from folders and servers, review queue. Resources: standard. |
+| University or repository front | Switches on: page-level full-text search, OCR, books from repositories, books from folders and servers, permanent identifiers, sharing metadata, library systems. Resources: standard. |
+| Language-technology partner | Switches on: page-level full-text search, OCR, proofreading and ground truth, sharing metadata. Resources: server. |
+
+**General**
+
+| Setting | What it does |
+|---|---|
+
+**Features**
+
+| Setting | What it does |
+|---|---|
+| Page-level full-text search | Search inside the text of every page, page hits, search inside a book. Off saves most of the search engine's disk, memory and CPU. |
+| OCR | Reading scans with OCR, re-OCR of pages and books. Off saves CPU (OCR is the heaviest work Research Desk does). |
+| Proofreading and ground truth | Correcting and validating page text, sharing corrected pages as OCR ground truth. Off saves worker time and a portal section. |
+| Readers' notes | Highlights, comments, tags and OCR error reports; research groups. Off saves review work for managers. |
+| Authority control | Authors and subjects matched to Wikidata, VIAF and LCSH, and giving back to them. Off saves nightly jobs and calls to outside services. |
+| Review queue | Records checked for what needs a cataloguer (no year, wrong language, duplicates). Off saves nightly checks. |
+| Preservation | The library's own checked copies (OCFL), fixity, a second copy, BagIt exports. Off saves disk (often as much as the collection itself) and nightly audits. |
+| Permanent identifiers | ARKs for books and pages, DOIs from DataCite, tombstones. Off saves little; its screens and the DataCite calls. |
+| Books from folders and servers | IA-style book folders and loose PDFs on disk, a NAS or a web server. Off saves the folder scans. |
+| Books from repositories | DSpace, EPrints and any OAI-PMH repository. Off saves the harvests. |
+| Library systems | A Koha or other library catalogue matched to the books here, links sent back. Off saves the imports and matching. |
+| Sharing metadata | The OAI-PMH provider, pushes to Koha, Wikidata, archive.org and webhooks. Off saves the push jobs and the OAI-PMH endpoint. |
+| Reader accounts | Readers signing up, sign-up requests, members-only reading. Off saves the sign-up pages. |
+| Usage statistics | How readers use the portal (built-in, PostHog, Plausible or Umami). Off saves the page-view log. |
+
 ### Readers & Access
 
 **Access & Sign-up**

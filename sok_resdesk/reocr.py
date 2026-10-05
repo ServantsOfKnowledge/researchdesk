@@ -20,6 +20,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint
 
+from sok_resdesk import features
 from sok_resdesk.core import ocr_engine, ocrquality
 from sok_resdesk.core import zones as zn
 from sok_resdesk.holding import hold_when_paused
@@ -89,6 +90,7 @@ def read(item_id: str, leaf: int, zones: list | None = None, languages=None) -> 
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("ocr")
 def ocr_page(item_id: str, leaf: int, zones=None, languages=None) -> dict:
 	"""Read one page (in its zones) in the background; ocr_result says when it is ready."""
 	from sok_resdesk.pagetext import _check
@@ -266,6 +268,7 @@ def _queue(names: list[str], preset: str, languages=None) -> int:
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("ocr")
 def enqueue_book(item_id: str, preset: str = "Whole page", languages=None) -> dict:
 	"""`languages`: the languages to read with this time (default: the book's OCR Languages)."""
 	frappe.only_for(MANAGERS)
@@ -274,6 +277,7 @@ def enqueue_book(item_id: str, preset: str = "Whole page", languages=None) -> di
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("ocr")
 def enqueue_worst(count: int = 20, preset: str = "Whole page") -> dict:
 	"""The books with the worst OCR quality (on archive.org, not re-read yet) first."""
 	frappe.only_for(MANAGERS)

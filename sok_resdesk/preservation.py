@@ -33,6 +33,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint, flt, now_datetime
 
+from sok_resdesk import features
 from sok_resdesk.core import ocfl
 from sok_resdesk.core.replica import FolderReplica, Replica, S3Replica
 from sok_resdesk.holding import hold_when_paused
@@ -574,6 +575,7 @@ def audit(days: int | None = None) -> dict:
 	return {"checked": len(names), "failed": failed}
 
 
+@features.scheduled("preservation")
 def daily() -> None:
 	"""Scheduler: copy what is waiting (a few hundred books a night), then check the copies."""
 	if not root():
@@ -591,6 +593,7 @@ def daily() -> None:
 
 
 @frappe.whitelist()
+@features.needs("preservation")
 def preserve_now(item: str) -> dict:
 	"""Book form → Preserve Now (whatever the scope in Settings)."""
 	frappe.only_for(MANAGERS)
@@ -598,12 +601,14 @@ def preserve_now(item: str) -> dict:
 
 
 @frappe.whitelist()
+@features.needs("preservation")
 def check_now(item: str) -> dict:
 	frappe.only_for(MANAGERS)
 	return check(item)
 
 
 @frappe.whitelist()
+@features.needs("preservation")
 def enqueue_preservation() -> int:
 	frappe.only_for(MANAGERS)
 	if not enabled():
@@ -612,6 +617,7 @@ def enqueue_preservation() -> int:
 
 
 @frappe.whitelist()
+@features.needs("preservation")
 def second_copy_now(item: str) -> dict:
 	"""Book form → Make Second Copy."""
 	frappe.only_for(MANAGERS)
@@ -619,6 +625,7 @@ def second_copy_now(item: str) -> dict:
 
 
 @frappe.whitelist()
+@features.needs("preservation")
 def enqueue_second_copies() -> int:
 	frappe.only_for(MANAGERS)
 	if second() is None:
@@ -665,6 +672,7 @@ def start_serving(name: str, reason: str) -> bool:
 
 
 @frappe.whitelist()
+@features.needs("preservation")
 def serve_from_copy(item: str, on: int = 1) -> dict:
 	"""Book form → Serve From Our Copy / Stop Serving From Our Copy."""
 	frappe.only_for(MANAGERS)
@@ -734,6 +742,7 @@ def export_bags(names: list[str], label: str) -> dict:
 
 
 @frappe.whitelist()
+@features.needs("preservation")
 def export_book(item: str) -> dict:
 	"""Book form → Export BagIt: a bag of this book, ready to download."""
 	frappe.only_for(MANAGERS)
@@ -741,6 +750,7 @@ def export_book(item: str) -> dict:
 
 
 @frappe.whitelist()
+@features.needs("preservation")
 def export_collection(collection: str) -> dict:
 	"""Collection form → Export BagIt: bags of its preserved books, made in the background."""
 	frappe.only_for(MANAGERS)
@@ -816,6 +826,7 @@ def download_export(file: str):
 	)
 
 
+@features.scheduled("preservation")
 def clean_exports(days: int = 14) -> int:
 	"""Weekly: bag files older than `days` are removed (they can be made again any time)."""
 	path = root()

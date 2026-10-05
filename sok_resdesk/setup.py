@@ -172,6 +172,9 @@ def after_migrate():
 	from sok_resdesk import deskscope
 
 	deskscope.after_migrate()  # after the workspace: new modules are hidden too
+	from sok_resdesk import features
+
+	features.after_migrate()  # the shipped workspace, less switched-off features' screens
 	try:
 		from sok_resdesk.translations import clear_phrase_cache
 

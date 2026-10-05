@@ -39,7 +39,12 @@ website_route_rules = [
 app_include_css = [f"/assets/sok_resdesk/css/desk.css?v={__version__}"]
 # Help and Take-the-tour buttons on Research Desk screens
 app_include_js = [f"/assets/sok_resdesk/js/desk_help.js?v={__version__}"]
-boot_session = ["sok_resdesk.help.boot_session", "sok_resdesk.deskscope.trim_boot"]
+boot_session = [
+	"sok_resdesk.help.boot_session",
+	"sok_resdesk.deskscope.trim_boot",
+	# switched-off features' screens leave the sidebar (Settings → Features)
+	"sok_resdesk.features.trim_boot",
+]
 # ?v=: browsers keep /assets for a year (Frappe's web server), so each release gets new addresses
 web_include_css = [f"/assets/sok_resdesk/css/resdesk.css?v={__version__}"]
 # usage statistics on portal pages, when switched on in Settings (analytics.py)

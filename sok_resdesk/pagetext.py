@@ -20,6 +20,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint, get_fullname, now_datetime
 
+from sok_resdesk import features
 from sok_resdesk.core import ocrquality
 from sok_resdesk.core import zones as zn
 
@@ -174,6 +175,7 @@ def history(item_id: str, leaf: int) -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("proofreading")
 def save_page(
 	item_id: str, leaf: int, text: str, zones=None, page_label: str = "", validate: int = 0
 ) -> dict:
@@ -208,6 +210,7 @@ def save_page(
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("proofreading")
 def restore(name: str) -> dict:
 	"""Make an earlier version current again (as a new version: the history keeps everything)."""
 	row = frappe.db.get_value(DT, name, ["item", "leaf", "text", "zones", "page_label"], as_dict=True)

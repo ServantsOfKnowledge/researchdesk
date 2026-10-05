@@ -14,6 +14,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint, now_datetime
 
+from sok_resdesk import features
 from sok_resdesk.core import review as core
 
 DT = "RD Review Flag"
@@ -163,10 +164,12 @@ def scan_item(item: str) -> None:
 		_sync(item, found, existing)
 
 
+@features.scheduled("review")
 def nightly() -> None:
 	scan()
 
 
+@features.scheduled("review")
 def on_item_update(doc, method=None) -> None:
 	"""RD Item saved by a person: its questions are answered (or asked) at once. Ingest saves
 	many books; the nightly scan looks at those."""
@@ -242,6 +245,7 @@ def overview(check: str = "", q: str = "", start: int = 0) -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("review")
 def save(item: str, values) -> dict:
 	"""Correct a book's title, other title, year or language right on the queue's page (kept
 	through re-ingest, as an edit on the book's form is), then check it again."""
@@ -267,6 +271,7 @@ def save(item: str, values) -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("review")
 def ignore(name: str) -> dict:
 	"""This is right: the question is answered and not asked again."""
 	frappe.only_for(EDITORS)
@@ -277,6 +282,7 @@ def ignore(name: str) -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("review")
 def hide_duplicate(item: str) -> dict:
 	"""A duplicate: take this copy off the portal (it stays in the Desk; publish it again any time)."""
 	frappe.only_for(EDITORS)
@@ -292,6 +298,7 @@ def hide_duplicate(item: str) -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("review")
 def scan_now() -> dict:
 	frappe.only_for(EDITORS)
 	frappe.enqueue(

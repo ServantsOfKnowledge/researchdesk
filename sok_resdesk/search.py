@@ -20,6 +20,7 @@ import requests
 from frappe import _
 from frappe.utils import cint, now_datetime
 
+from sok_resdesk import features
 from sok_resdesk.catalogue import item_to_record, settings
 from sok_resdesk.core.normalize import decade_of
 from sok_resdesk.holding import hold_when_paused
@@ -315,7 +316,7 @@ def index_record(
 	excerpt = " ".join(p["text"] for p in pages[:6])
 	client.add(client.books, [book_document(record, excerpt)])
 	count, uid, docs = 0, None, []
-	if pages and cint(s.index_pages):
+	if pages and cint(s.index_pages) and features.on("page_search"):
 		if replace_pages:  # new books have no old pages to remove
 			client.delete_by_filter(client.pages, f"item_id = {_quote(record['item_id'])}")
 		docs = page_documents(record, pages, cint(s.max_page_chars) or 6000)
@@ -466,7 +467,7 @@ class IndexBuffer:
 		excerpt = " ".join(p["text"] for p in pages[:6])
 		self.books.append(book_document(record, excerpt))
 		docs = []
-		if pages and cint(s.index_pages):
+		if pages and cint(s.index_pages) and features.on("page_search"):
 			docs = page_documents(record, pages, cint(s.max_page_chars) or 6000)
 			fingerprint = page_text_hash(docs)
 			if replace_pages and if_changed and self._already_sent(record["item_id"], fingerprint, len(docs)):
@@ -571,7 +572,7 @@ def reindex_pages(item_id: str, pages: list[dict], client: MeiliClient | None = 
 	"""Send some pages of a book again (a corrected page): replaces those page documents only."""
 	from sok_resdesk.catalogue import item_to_record
 
-	if not pages or not cint(settings().index_pages):
+	if not pages or not cint(settings().index_pages) or not features.on("page_search"):
 		return 0
 	client = client or MeiliClient.from_settings()
 	record = item_to_record(frappe.get_doc("RD Item", item_id))

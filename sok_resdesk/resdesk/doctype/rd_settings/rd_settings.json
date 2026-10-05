@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-23 10:00:00.000000",
+ "modified": "2026-10-25 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -29,6 +29,33 @@
   "column_break_brand",
   "favicon",
   "home_banner",
+  "tab_features",
+  "profiles_section",
+  "profile_small",
+  "profile_portal",
+  "profile_members",
+  "column_break_profiles",
+  "profile_archive",
+  "profile_repository",
+  "profile_langtech",
+  "suggestions_section",
+  "feature_suggestions",
+  "features_section",
+  "feature_page_search",
+  "feature_ocr",
+  "feature_proofreading",
+  "feature_notes",
+  "feature_authorities",
+  "feature_review",
+  "feature_preservation",
+  "column_break_features",
+  "feature_identifiers",
+  "feature_folders",
+  "feature_repositories",
+  "feature_library_systems",
+  "feature_sharing",
+  "feature_reader_accounts",
+  "feature_statistics",
   "tab_readers",
   "tab_readers_intro",
   "access_section",
@@ -267,6 +294,181 @@
    "label": "Home Page Background Image (optional)",
    "make_attachment_public": 1,
    "description": "A wide photo behind the search box on the home page, e.g. a manuscript or library shelf."
+  },
+  {
+   "fieldname": "tab_features",
+   "fieldtype": "Tab Break",
+   "label": "Features"
+  },
+  {
+   "fieldname": "profiles_section",
+   "fieldtype": "Section Break",
+   "label": "Your Institution",
+   "description": "Tick every kind of institution this library is; they combine. Ticking or unticking one sets the features below to what the ticked ones need, and the resource preset to the largest of theirs. You can still change each feature afterwards."
+  },
+  {
+   "fieldname": "profile_small",
+   "fieldtype": "Check",
+   "label": "Small library or school",
+   "default": "0",
+   "description": "Switches on: OCR, books from folders and servers. Resources: light."
+  },
+  {
+   "fieldname": "profile_portal",
+   "fieldtype": "Check",
+   "label": "Public research portal",
+   "default": "0",
+   "description": "Switches on: page-level full-text search, OCR, proofreading and ground truth, readers' notes, authority control, review queue, permanent identifiers, sharing metadata, usage statistics. Resources: standard."
+  },
+  {
+   "fieldname": "profile_members",
+   "fieldtype": "Check",
+   "label": "Members-only institution",
+   "default": "0",
+   "description": "Switches on: page-level full-text search, reader accounts, library systems, review queue, sharing metadata. Resources: standard."
+  },
+  {
+   "fieldname": "column_break_profiles",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "profile_archive",
+   "fieldtype": "Check",
+   "label": "Archive keeping its own copies",
+   "default": "0",
+   "description": "Switches on: preservation, permanent identifiers, books from folders and servers, review queue. Resources: standard."
+  },
+  {
+   "fieldname": "profile_repository",
+   "fieldtype": "Check",
+   "label": "University or repository front",
+   "default": "0",
+   "description": "Switches on: page-level full-text search, OCR, books from repositories, books from folders and servers, permanent identifiers, sharing metadata, library systems. Resources: standard."
+  },
+  {
+   "fieldname": "profile_langtech",
+   "fieldtype": "Check",
+   "label": "Language-technology partner",
+   "default": "0",
+   "description": "Switches on: page-level full-text search, OCR, proofreading and ground truth, sharing metadata. Resources: server."
+  },
+  {
+   "fieldname": "suggestions_section",
+   "fieldtype": "Section Break",
+   "label": ""
+  },
+  {
+   "fieldname": "feature_suggestions",
+   "fieldtype": "HTML",
+   "label": "Suggestions"
+  },
+  {
+   "fieldname": "features_section",
+   "fieldtype": "Section Break",
+   "label": "Features",
+   "description": "A feature that is off is not collected: its scheduled work stops, its Desk screens go and nothing new of its kind is made. What exists stays, and who sees it is still decided by access (roles and each book's visibility). The catalogue, archive.org, book search, the reader, collections, citations and the Server page are always on."
+  },
+  {
+   "fieldname": "feature_page_search",
+   "fieldtype": "Check",
+   "label": "Page-level full-text search",
+   "default": "1",
+   "description": "Search inside the text of every page, page hits, search inside a book. Off saves most of the search engine's disk, memory and CPU."
+  },
+  {
+   "fieldname": "feature_ocr",
+   "fieldtype": "Check",
+   "label": "OCR",
+   "default": "1",
+   "description": "Reading scans with OCR, re-OCR of pages and books. Off saves CPU (OCR is the heaviest work Research Desk does)."
+  },
+  {
+   "fieldname": "feature_proofreading",
+   "fieldtype": "Check",
+   "label": "Proofreading and ground truth",
+   "default": "1",
+   "description": "Correcting and validating page text, sharing corrected pages as OCR ground truth. Off saves worker time and a portal section."
+  },
+  {
+   "fieldname": "feature_notes",
+   "fieldtype": "Check",
+   "label": "Readers' notes",
+   "default": "1",
+   "description": "Highlights, comments, tags and OCR error reports; research groups. Off saves review work for managers."
+  },
+  {
+   "fieldname": "feature_authorities",
+   "fieldtype": "Check",
+   "label": "Authority control",
+   "default": "1",
+   "description": "Authors and subjects matched to Wikidata, VIAF and LCSH, and giving back to them. Off saves nightly jobs and calls to outside services."
+  },
+  {
+   "fieldname": "feature_review",
+   "fieldtype": "Check",
+   "label": "Review queue",
+   "default": "1",
+   "description": "Records checked for what needs a cataloguer (no year, wrong language, duplicates). Off saves nightly checks."
+  },
+  {
+   "fieldname": "feature_preservation",
+   "fieldtype": "Check",
+   "label": "Preservation",
+   "default": "1",
+   "description": "The library's own checked copies (OCFL), fixity, a second copy, BagIt exports. Off saves disk (often as much as the collection itself) and nightly audits."
+  },
+  {
+   "fieldname": "column_break_features",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "feature_identifiers",
+   "fieldtype": "Check",
+   "label": "Permanent identifiers",
+   "default": "1",
+   "description": "ARKs for books and pages, DOIs from DataCite, tombstones. Off saves little; its screens and the DataCite calls."
+  },
+  {
+   "fieldname": "feature_folders",
+   "fieldtype": "Check",
+   "label": "Books from folders and servers",
+   "default": "1",
+   "description": "IA-style book folders and loose PDFs on disk, a NAS or a web server. Off saves the folder scans."
+  },
+  {
+   "fieldname": "feature_repositories",
+   "fieldtype": "Check",
+   "label": "Books from repositories",
+   "default": "1",
+   "description": "DSpace, EPrints and any OAI-PMH repository. Off saves the harvests."
+  },
+  {
+   "fieldname": "feature_library_systems",
+   "fieldtype": "Check",
+   "label": "Library systems",
+   "default": "1",
+   "description": "A Koha or other library catalogue matched to the books here, links sent back. Off saves the imports and matching."
+  },
+  {
+   "fieldname": "feature_sharing",
+   "fieldtype": "Check",
+   "label": "Sharing metadata",
+   "default": "1",
+   "description": "The OAI-PMH provider, pushes to Koha, Wikidata, archive.org and webhooks. Off saves the push jobs and the OAI-PMH endpoint."
+  },
+  {
+   "fieldname": "feature_reader_accounts",
+   "fieldtype": "Check",
+   "label": "Reader accounts",
+   "default": "1",
+   "description": "Readers signing up, sign-up requests, members-only reading. Off saves the sign-up pages."
+  },
+  {
+   "fieldname": "feature_statistics",
+   "fieldtype": "Check",
+   "label": "Usage statistics",
+   "default": "1",
+   "description": "How readers use the portal (built-in, PostHog, Plausible or Umami). Off saves the page-view log."
   },
   {
    "fieldname": "tab_readers",

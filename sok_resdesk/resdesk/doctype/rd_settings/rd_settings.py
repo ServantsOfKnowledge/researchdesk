@@ -8,6 +8,9 @@ from frappe.utils import escape_html
 
 class RDSettings(Document):
 	def validate(self):
+		from sok_resdesk import features
+
+		features.apply_profiles(self)  # before the resource preset is checked: profiles set it
 		if self.base_url:
 			self.base_url = self.base_url.rstrip("/")
 		if self.index_prefix:
@@ -46,6 +49,10 @@ class RDSettings(Document):
 			from sok_resdesk import deskscope
 
 			deskscope.apply_all()
+		from sok_resdesk import features
+
+		if features.changed(self):
+			features.apply(self)
 
 
 DEFAULT_LOGO = "/assets/sok_resdesk/images/resdesk-logo.svg"

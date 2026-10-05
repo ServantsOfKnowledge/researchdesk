@@ -13,6 +13,10 @@ IDS_IN_ONE_QUERY = 100  # identifiers per archive.org search (a longer address i
 
 class RDIngestProfile(Document):
 	def validate(self):
+		from sok_resdesk import features
+
+		if self.is_new() or self.has_value_changed("source"):
+			features.require_source(self.source)  # Settings → Features
 		if self.max_items is not None and self.max_items < 0:
 			frappe.throw(_("Maximum Items cannot be negative"))
 		try:

@@ -28,8 +28,10 @@ def config() -> dict:
 	cached = frappe.cache.get_value(CACHE_KEY)
 	if cached is not None:
 		return cached
+	from sok_resdesk import features
+
 	s = frappe.get_cached_doc("RD Settings")
-	provider = s.get("analytics_provider") or "Off"
+	provider = (s.get("analytics_provider") or "Off") if features.on("statistics", s) else "Off"
 	out = {"provider": provider if provider in EXTERNAL else ""}
 	if out["provider"] and s.get("analytics_host") and s.get("analytics_key"):
 		out.update({"host": s.analytics_host.rstrip("/"), "key": s.analytics_key.strip()})
@@ -61,7 +63,9 @@ def apply_settings(s) -> None:
 	ws = frappe.get_single("Website Settings")
 	if not ws.meta.has_field("enable_view_tracking"):
 		return
-	want = 1 if (s.get("analytics_provider") or "Off") == "Built-in" else 0
+	from sok_resdesk import features
+
+	want = 1 if (s.get("analytics_provider") or "Off") == "Built-in" and features.on("statistics", s) else 0
 	if int(ws.enable_view_tracking or 0) != want:
 		ws.enable_view_tracking = want
 		ws.flags.ignore_permissions = True

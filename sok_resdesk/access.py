@@ -9,6 +9,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint
 
+from sok_resdesk import features
 from sok_resdesk.catalogue import settings
 from sok_resdesk.core import access as core
 from sok_resdesk.core.access import LOGIN_TO_FIND, LOGIN_TO_READ, PUBLIC, VISIBILITIES  # noqa: F401
@@ -497,6 +498,7 @@ def add_reader(email: str, full_name: str = "", send_welcome: bool = True) -> st
 
 
 @frappe.whitelist()
+@features.needs("reader_accounts")
 def decide_requests(names, status: str) -> str:
 	"""Approve or reject several reader requests (list view action)."""
 	frappe.only_for(MANAGER_ROLES)
@@ -515,6 +517,8 @@ def apply_signup_setting(s=None) -> None:
 	"""Mirror the sign-up choice into Frappe's own Website Settings."""
 	s = s or frappe.get_single("RD Settings")
 	mode = s.reader_signup or core.SIGNUP_CLOSED
+	if not features.on("reader_accounts", s):
+		mode = core.SIGNUP_CLOSED  # switched off: no sign-up page
 	ws = frappe.get_single("Website Settings")
 	disable = 1 if mode == core.SIGNUP_CLOSED else 0
 	if cint(ws.disable_signup) != disable:

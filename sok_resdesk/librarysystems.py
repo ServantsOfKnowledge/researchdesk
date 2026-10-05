@@ -25,6 +25,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint, now_datetime
 
+from sok_resdesk import features
 from sok_resdesk.core import libmatch, marcin
 
 EDITORS = ("System Manager", "ResDesk Manager", "ResDesk Cataloguer")
@@ -248,6 +249,7 @@ def counts(system_name: str) -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("library_systems")
 def decide(record: str, item: str = "", not_a_match: int = 0) -> dict:
 	"""Desk: this record is that book (item), or none of the candidates (not_a_match)."""
 	frappe.only_for(EDITORS)
@@ -404,6 +406,7 @@ def download_with_links(system: str) -> None:
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("library_systems")
 def start(system: str, action: str = "import") -> dict:
 	"""Library System form: Import Now, Match Again or Send Links Back, in the background."""
 	frappe.only_for(MANAGERS if action == "send" else EDITORS)

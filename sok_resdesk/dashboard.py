@@ -178,6 +178,26 @@ def compute() -> dict:
 	usage = _usage()
 	if usage:
 		groups.append(usage)
+	# data here that a switched-off feature would handle (Settings → Features)
+	from sok_resdesk import features
+
+	hints = features.suggestions()
+	if hints:
+		groups.append(
+			{
+				"title": _("Features to consider"),
+				"cards": [
+					{
+						"value": h["count"],
+						"label": h["label"],
+						"sub": _("switched off: see Settings → Features"),
+						"route": ["Form", "RD Settings"],
+						"alert": True,
+					}
+					for h in hints
+				],
+			}
+		)
 	return {"groups": groups, "as_of": str(now_datetime())[:16]}
 
 

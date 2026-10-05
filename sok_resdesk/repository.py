@@ -23,6 +23,7 @@ import requests
 from frappe import _
 from frappe.utils import cint
 
+from sok_resdesk import features
 from sok_resdesk.catalogue import item_to_record, upsert_item
 from sok_resdesk.core import harvest
 from sok_resdesk.core.normalize import normalize_ia_item
@@ -51,6 +52,7 @@ def repository_name(profile) -> str:
 
 
 @frappe.whitelist()
+@features.needs("repositories")
 def check(profile: str) -> dict:
 	"""Ingest Profile → Check Repository: the repository's name, its sets, and a sample record,
 	so a librarian knows the address is right before running."""

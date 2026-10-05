@@ -18,7 +18,7 @@ from frappe import _
 from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, get_fullname
 
-from sok_resdesk import access
+from sok_resdesk import access, features
 from sok_resdesk.core import annotations as core
 from sok_resdesk.core import wikidata
 
@@ -93,7 +93,7 @@ def _book(item_id: str) -> dict:
 
 
 def _can_annotate(book: dict) -> bool:
-	return frappe.session.user != "Guest" and access.can_read(book.visibility)
+	return frappe.session.user != "Guest" and access.can_read(book.visibility) and features.on("notes")
 
 
 def _page_text(item_id: str, leaf: int) -> str | None:
@@ -222,6 +222,7 @@ def _clean(values: dict, book: dict, existing=None) -> dict:
 
 @frappe.whitelist(methods=["POST"])
 @rate_limit(limit=120, seconds=60)
+@features.needs("notes")
 def add(
 	item_id: str,
 	leaf: int,
@@ -312,6 +313,7 @@ def _own(name: str):
 
 @frappe.whitelist(methods=["POST"])
 @rate_limit(limit=120, seconds=60)
+@features.needs("notes")
 def edit(name: str, **values) -> dict:
 	doc = _own(name)
 	book = _book(doc.item)

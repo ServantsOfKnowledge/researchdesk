@@ -13,13 +13,15 @@ import frappe
 from frappe import _
 from frappe.utils import cint, now_datetime
 
+from sok_resdesk import features
 from sok_resdesk.core import ark as core
 
 MANAGERS = ("System Manager", "ResDesk Manager")
 
 
 def enabled() -> bool:
-	return bool(cint(frappe.db.get_single_value("RD Settings", "ark_enabled")))
+	"""Whether new ARKs are minted: Give Books ARKs, and permanent identifiers switched on."""
+	return bool(cint(frappe.db.get_single_value("RD Settings", "ark_enabled"))) and features.on("identifiers")
 
 
 def naan_and_shoulder() -> tuple[str, str]:
@@ -61,6 +63,7 @@ def url_of(ark: str) -> str:
 	return f"{base_url()}/{ark}"
 
 
+@features.scheduled("identifiers")
 def assign_missing(batch: int = 2000) -> int:
 	"""Give every book without an ARK one, oldest first: when ARKs are switched on, and daily for
 	any book whose minting failed. Returns how many were given (0 while switched off)."""

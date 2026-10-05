@@ -125,6 +125,8 @@ only; 10 a minute.
 | `sok_resdesk.curation.apply_rules` (`collection`) | add every book matching the collection's rules |
 | `sok_resdesk.collectioncovers.get_image` (`collection`, `identifier` optional) | take the collection's picture from archive.org now (its mirrored collection, or any identifier), replacing the cover |
 | `sok_resdesk.collectioncovers.get_missing` | pictures from archive.org for every collection without a cover (background) |
+| `sok_resdesk.features.overview` | Settings → Features: every feature and whether it is on, the institution profiles, and suggestions from the data here (managers) |
+| `sok_resdesk.features.switch_on` (`feature`) | switch a feature on (a suggestion's Turn on; managers) |
 | `sok_resdesk.transfer.quick_export` (`export_format`, and `search`, `collection` or `filters`) | download an export straight away (≤ 2,000 books); bigger ones: `POST /api/resource/RD Export` |
 | `sok_resdesk.transfer.preview_import` · `apply_import` (`name` of an RD Metadata Import) | check, then apply, an edited spreadsheet |
 | `sok_resdesk.outbound.test_connection` (`target`) | check a push target's address and login |

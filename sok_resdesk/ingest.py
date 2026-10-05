@@ -269,6 +269,9 @@ def _ingest_one(
 
 
 def create_run(profile_doc, triggered_by: str = "Manual"):
+	from sok_resdesk import features
+
+	features.require_source(profile_doc.source)  # books from folders, repositories: when switched on
 	# one run per profile at a time: two would fetch the same books twice
 	active = frappe.db.get_value(
 		"RD Ingest Run",
@@ -1133,11 +1136,18 @@ def run_ingest(
 
 
 def _run_scheduled(schedule: str):
+	from sok_resdesk import features
+
 	if cint(frappe.db.get_single_value("RD Settings", "pause_scheduled_ingest")):
 		return  # paused from Background Jobs (or Settings)
-	for name in frappe.get_all(
-		"RD Ingest Profile", filters={"enabled": 1, "schedule": schedule}, pluck="name"
+	for name, source in frappe.get_all(
+		"RD Ingest Profile",
+		filters={"enabled": 1, "schedule": schedule},
+		fields=["name", "source"],
+		as_list=True,
 	):
+		if not features.source_allowed(source):
+			continue  # its source is switched off (Settings → Features)
 		running = frappe.db.exists(
 			"RD Ingest Run", {"profile": name, "status": ("in", ["Queued", "Running", "Paused"])}
 		)

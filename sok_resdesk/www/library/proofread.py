@@ -10,8 +10,11 @@ no_cache = 1
 def get_context(context):
 	"""Proofreading work list: pages readers reported OCR errors on, and the books whose text is
 	worst, for the library's proofreaders."""
+	from sok_resdesk import features
 	from sok_resdesk.pagetext import HUMAN, can_proofread
 
+	if not features.on("proofreading"):
+		raise frappe.PageDoesNotExistError
 	if frappe.session.user == "Guest":
 		frappe.local.flags.redirect_location = access.login_url("/library/proofread")
 		raise frappe.Redirect

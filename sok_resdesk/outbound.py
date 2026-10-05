@@ -14,6 +14,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint, now_datetime
 
+from sok_resdesk import features
 from sok_resdesk.catalogue import base_url, item_to_record
 from sok_resdesk.core import metaio
 from sok_resdesk.core.marc import to_marcxml_record
@@ -54,6 +55,7 @@ def _client(t):
 
 
 @frappe.whitelist()
+@features.needs("sharing")
 def test_connection(target: str) -> dict:
 	frappe.only_for(MANAGERS)
 	t = frappe.get_doc("RD Push Target", target)
@@ -224,6 +226,7 @@ def _log(run: str, line: str):
 
 
 @frappe.whitelist()
+@features.needs("sharing")
 def start(target: str, force: int = 0, dry_run: int | None = None, items=None) -> str:
 	"""Push Now / Dry Run from the form or the API."""
 	frappe.only_for(MANAGERS)
@@ -445,6 +448,7 @@ def cancel(run_name: str) -> None:
 # -- automatic pushes -------------------------------------------------------------------------------
 
 
+@features.scheduled("sharing")
 def on_item_change(doc, method=None):
 	"""RD Item saved (form, bulk edit, import): queue a push to targets that want it."""
 	if doc.flags.from_ingest or frappe.flags.in_install or frappe.flags.in_migrate:

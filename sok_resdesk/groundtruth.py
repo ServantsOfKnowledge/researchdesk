@@ -17,6 +17,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint, get_fullname, now_datetime
 
+from sok_resdesk import features
 from sok_resdesk.core import groundtruth as core
 
 DT = "RD Ground Truth"
@@ -90,6 +91,7 @@ def preview(name: str) -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("proofreading")
 def build(name: str) -> dict:
 	"""Make (or make again) the set's zip, in the background."""
 	frappe.only_for(MANAGERS)
@@ -230,6 +232,7 @@ def remove_file(doc) -> None:
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("proofreading")
 def publish(name: str, on: int = 1) -> dict:
 	"""Put a ready set on the portal (or take it off)."""
 	frappe.only_for(MANAGERS)

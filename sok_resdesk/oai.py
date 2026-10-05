@@ -16,6 +16,7 @@ import frappe
 from frappe.utils import get_system_timezone
 from werkzeug.wrappers import Response
 
+from sok_resdesk import features
 from sok_resdesk.catalogue import base_url, item_to_record, portal_title, settings
 from sok_resdesk.core.oai import Repository
 
@@ -123,7 +124,7 @@ class FrappeStore:
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
 def endpoint(**kwargs):
 	s = settings()
-	if (s.oai_scope or OAI_GUEST) == OAI_OFF:
+	if (s.oai_scope or OAI_GUEST) == OAI_OFF or not features.on("sharing"):
 		raise frappe.PageDoesNotExistError
 	repo = Repository(
 		FrappeStore(),

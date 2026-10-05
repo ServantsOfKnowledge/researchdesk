@@ -23,6 +23,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint, flt
 
+from sok_resdesk import features
 from sok_resdesk.core import ocr_engine
 from sok_resdesk.core.pdfrender import OCR_DPI, VIEW_DPI, RenderError, page_count, render
 from sok_resdesk.holding import hold_when_paused
@@ -193,6 +194,7 @@ def ocr_on() -> bool:
 	return True if value is None else bool(cint(value))
 
 
+@features.scheduled("ocr")
 def queue_ocr(item_id: str) -> bool:
 	"""Read a scan with OCR in the background (when Settings say so and Tesseract is here)."""
 	from sok_resdesk.reocr import _state
@@ -293,6 +295,7 @@ def _use_text(item_id: str, pages: list[dict], engine: str) -> None:
 	frappe.db.commit()
 
 
+@features.scheduled("ocr")
 def daily() -> None:
 	"""Scans still waiting for OCR (a job lost in a restart, OCR switched on later): queue some."""
 	if not ocr_on() or not ocr_engine.available():
@@ -310,6 +313,7 @@ def daily() -> None:
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("ocr")
 def ocr_now(item_id: str) -> dict:
 	"""Book form → Read with OCR: read a scan's pages now (in the background)."""
 	frappe.only_for(("System Manager", "ResDesk Manager", "ResDesk Cataloguer"))

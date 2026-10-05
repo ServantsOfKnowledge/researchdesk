@@ -18,6 +18,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint, now_datetime
 
+from sok_resdesk import features
 from sok_resdesk.core import authority as auth_core
 from sok_resdesk.core import contribute as core
 from sok_resdesk.core.push import LANG_CODE
@@ -153,6 +154,7 @@ def plan() -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("authorities")
 def refresh() -> dict:
 	frappe.only_for(EDITORS)
 	frappe.enqueue(
@@ -166,6 +168,7 @@ def refresh() -> dict:
 
 
 @frappe.whitelist()
+@features.needs("authorities")
 def quickstatements() -> None:
 	"""The edits as QuickStatements, to review and run at quickstatements.toolforge.org."""
 	frappe.only_for(EDITORS)
@@ -177,6 +180,7 @@ def quickstatements() -> None:
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("authorities")
 def send(target: str) -> dict:
 	"""Send the edits through a Wikidata Push Target, in the background (a dry-run target only
 	counts them)."""
@@ -259,6 +263,7 @@ def _saco_count() -> int:
 
 
 @frappe.whitelist()
+@features.needs("authorities")
 def saco() -> None:
 	"""Subjects LCSH lacks, as a spreadsheet for SACO proposals."""
 	frappe.only_for(EDITORS)

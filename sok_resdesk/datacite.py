@@ -15,6 +15,7 @@ from frappe import _
 from frappe.utils import cint, now_datetime
 from frappe.utils.password import get_decrypted_password
 
+from sok_resdesk import features
 from sok_resdesk.core import datacite as core
 
 MANAGERS = ("System Manager", "ResDesk Manager")
@@ -146,12 +147,14 @@ def run(names: list[str] | None = None, limit: int = 1000) -> dict:
 	return counts
 
 
+@features.scheduled("identifiers")
 def daily() -> None:
 	if on():
 		run()
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("identifiers")
 def register_collection(collection: str) -> dict:
 	"""Collection form → Register DOIs: its public books, in the background."""
 	frappe.only_for(MANAGERS)
@@ -171,6 +174,7 @@ def _collection_books(collection: str) -> list[str]:
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("identifiers")
 def register_book(name: str) -> dict:
 	"""Book form → Send to DataCite: register or update this book's DOI now."""
 	frappe.only_for(MANAGERS)

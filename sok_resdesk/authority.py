@@ -20,6 +20,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint, now_datetime
 
+from sok_resdesk import features
 from sok_resdesk.core import authority as core
 from sok_resdesk.core import wikidata
 
@@ -146,6 +147,7 @@ def run(kind: str = "creator", limit: int = 200) -> dict:
 	return counts
 
 
+@features.scheduled("authorities")
 def nightly() -> None:
 	if cint(_settings().get("authority_nightly")):
 		run("creator", 300)
@@ -203,6 +205,7 @@ def _candidates(kind: str, name: str) -> list[dict]:
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("authorities")
 def accept(kind: str, name: str, choice: str) -> dict:
 	"""Accept a candidate (its Q-number, or LCSH id) for an author or subject."""
 	frappe.only_for(EDITORS)
@@ -236,6 +239,7 @@ def accept(kind: str, name: str, choice: str) -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("authorities")
 def reject(kind: str, name: str) -> dict:
 	"""None of the candidates: the name stays as it is and is not proposed again."""
 	frappe.only_for(EDITORS)
@@ -248,6 +252,7 @@ def reject(kind: str, name: str) -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("authorities")
 def undo(kind: str, name: str) -> dict:
 	"""Back to undecided (keeps the candidates); a confirmed match loses its identifiers."""
 	frappe.only_for(EDITORS)
@@ -262,6 +267,7 @@ def undo(kind: str, name: str) -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("authorities")
 def search_again(kind: str, name: str, q: str = "") -> dict:
 	"""Look again, with other words (e.g. the name as Wikidata or LCSH writes it) or a Q-number."""
 	frappe.only_for(EDITORS)
@@ -304,6 +310,7 @@ def search_again(kind: str, name: str, q: str = "") -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("authorities")
 def merge(name: str, into: str) -> dict:
 	"""Two catalogue names for one person (the same Wikidata item): the books of `name` are
 	listed under `into` (each keeps its name as printed), and `name` goes."""
@@ -327,6 +334,7 @@ def merge(name: str, into: str) -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
+@features.needs("authorities")
 def find(kind: str = "creator", limit: int = 200) -> dict:
 	"""Desk → Authorities → Find matches: look up the next names in the background."""
 	frappe.only_for(EDITORS)

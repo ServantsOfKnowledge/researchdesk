@@ -213,6 +213,7 @@ looks after it:
 | Tab | For | What you set there |
 |---|---|---|
 | Library & Portal | whoever runs the library | the name, tagline, public web address, OAI identifier and admin email; the portal's languages, the order books are listed in; logo, icon and home-page picture |
+| Features | the library's managers | what kind of institution this is (profiles that combine), the features it uses, suggestions from its data |
 | Readers & Access | the library's managers | what visitors can do, the default for new books, reader accounts, what OAI-PMH shares, access rules; what staff see in the Desk; usage statistics |
 | Catalogue | cataloguers | archive.org (contact, pace, batches, pausing), collections kept in step with archive.org, matching authors and subjects to authorities |
 | Search | whoever runs the machine | the search engine's address, whether page text is indexed, search in Latin letters; **Rebuild Search Index** |
@@ -236,6 +237,49 @@ Most libraries change only a few settings. Start from the row closest to yours:
 | **A members-only or institutional collection** | *Readers & Access*: what visitors can do (records only, or nothing), **sign-up with approval**, access rules for collections or languages, what OAI-PMH shares |
 | **An archive keeping its own copies** | *Preservation*: keep books (and page images), fixity checks, a **second copy** (S3 or another disk), serve from our copy when archive.org drops a book. *Sharing*: ARKs |
 | **A language-technology partner** (OCR, Indic NLP) | *Sharing*: the ground-truth licence and attribution. *Catalogue*: authorities. The [review queue](#the-review-queue) and [proofreading](#proofreading-and-re-ocr) for better text |
+
+## Features and your institution
+
+Not every library uses everything. **Settings → Features** says what this library is and what it
+uses.
+
+**Your institution**: tick every kind that fits: *Small library or school*, *Public research
+portal*, *Members-only institution*, *Archive keeping its own copies*, *University or repository
+front*, *Language-technology partner*. They combine: a library can be a public research portal and
+an archive at once. Ticking or unticking one sets the features to what the ticked kinds need, and
+the resource preset (Settings → Server) to the largest of theirs. You can still change each feature
+afterwards.
+
+**Features**: each can be switched off:
+
+| Feature | What it covers |
+|---|---|
+| Page-level full-text search | search inside the text of every page; off saves most of the search engine's disk, memory and CPU |
+| OCR | reading scans, re-OCR of pages and books |
+| Proofreading and ground truth | correcting and validating page text, sharing corrected pages |
+| Readers' notes | highlights, comments, tags, OCR error reports, research groups |
+| Authority control | authors and subjects matched to Wikidata, VIAF and LCSH, giving back |
+| Review queue | records checked for what needs a cataloguer |
+| Preservation | the library's own checked copies, fixity, a second copy, BagIt |
+| Permanent identifiers | ARKs, DOIs, tombstones |
+| Books from folders and servers | IA-style folders and loose PDFs |
+| Books from repositories | DSpace, EPrints, any OAI-PMH repository |
+| Library systems | a Koha or other catalogue matched to the books here |
+| Sharing metadata | the OAI-PMH provider and pushes to Koha, Wikidata, archive.org, webhooks |
+| Reader accounts | sign-up, sign-up requests, members-only reading |
+| Usage statistics | how readers use the portal |
+
+A feature that is off is **not collected**: its scheduled work stops, its screens leave the Desk,
+and nothing new of its kind is made (an ingest profile of a switched-off source, a new note, a
+proofread page are refused, saying so). What already exists stays, and **who sees it is still
+decided by access**: roles and each book's visibility, never these switches. The catalogue,
+archive.org, book search, the reader, collections, citations and the Server page are always on.
+
+**Suggestions**: when data arrives that a switched-off feature would handle, the Features tab
+and the Research Desk workspace (*Features to consider*) say so, with the numbers and a **Turn on**
+button. For example: scans with no text while OCR is off, members-only books while reader accounts
+are off, book folders waiting in the library folder while books from folders are off. Turning a
+feature on stays your decision.
 
 ## The review queue
 

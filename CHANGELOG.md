@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.45.0 (2026-10-25): Features and institution profiles
+
+- **Settings → Features**: say what kind of institution the library is (small library or school,
+  public research portal, members-only institution, archive, university or repository front,
+  language-technology partner). The kinds **combine**: ticking several switches on the features
+  they all need, and the resource preset to the largest of theirs
+- **Fourteen features can be switched off**: page-level search, OCR, proofreading, readers'
+  notes, authority control, the review queue, preservation, identifiers, books from folders,
+  from repositories, library systems, sharing metadata, reader accounts and statistics. Off means
+  **not collected**: scheduled work stops, the Desk's screens for it go, and nothing new of its
+  kind is made. What exists stays, and who sees it is still decided by access (roles, visibility)
+- **Suggestions from the data**: scans with no text while OCR is off, members-only books while
+  reader accounts are off, folders waiting while books from folders is off… shown with the
+  numbers and a **Turn on** button on the Features tab and the Research Desk workspace
+- Docs: [Staff guide → Features and your institution](docs/staff-guide.md#features-and-your-institution)
+
 ## 0.44.3 (2026-10-24): Collection pictures shown whole
 
 - Collection pictures are shown whole, on the collections page and on each collection's page,

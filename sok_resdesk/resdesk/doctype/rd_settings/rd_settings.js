@@ -1,8 +1,36 @@
 // Copyright (c) 2026, Servants of Knowledge and contributors
 // License: MIT. See LICENSE
 
+// Settings → Features: data here that a switched-off feature would handle, with Turn On
+function rd_feature_suggestions(frm) {
+	const field = frm.fields_dict.feature_suggestions;
+	if (!field) return;
+	frappe.call("sok_resdesk.features.overview").then((r) => {
+		const list = (r.message && r.message.suggestions) || [];
+		if (!list.length) {
+			field.$wrapper.html("");
+			return;
+		}
+		const rows = list
+			.map(
+				(s) => `<div class="rd-feature-hint" style="display:flex;gap:12px;align-items:center;margin:6px 0">
+					<span class="indicator-pill orange" style="flex:none">${frappe.utils.escape_html(s.label)}</span>
+					<span style="flex:1;min-width:0">${frappe.utils.escape_html(s.why)}</span>
+					<button class="btn btn-xs btn-default" data-feature="${frappe.utils.escape_html(s.feature)}">${__("Turn on")}</button></div>`
+			)
+			.join("");
+		field.$wrapper.html(`<div class="form-message blue" style="margin-bottom:12px">
+			<p><b>${__("Data here that a switched-off feature would use")}</b></p>${rows}</div>`);
+		field.$wrapper.find("[data-feature]").on("click", (e) => {
+			const feature = e.currentTarget.dataset.feature;
+			frappe.call({ method: "sok_resdesk.features.switch_on", args: { feature }, freeze: true }).then(() => frm.reload_doc());
+		});
+	});
+}
+
 frappe.ui.form.on("RD Settings", {
 	refresh(frm) {
+		rd_feature_suggestions(frm);
 		frm.add_custom_button(__("Test Search Engine"), () =>
 			frappe.call({
 				method: "sok_resdesk.search.setup_indexes",
