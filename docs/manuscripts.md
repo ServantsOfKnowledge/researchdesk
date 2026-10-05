@@ -65,8 +65,16 @@ dragging moves it, double-click zooms in, **↻** turns it a quarter, and `+` `�
 keys work from the keyboard. Other viewers (Mirador, Universal Viewer) open the book's IIIF
 manifest, and its [image service](iiif.md) serves regions and tiles for deep zoom.
 
-## What is not here yet
+## Machine drafts of the text
 
-Reading handwriting automatically (handwritten-text recognition) is planned. Until then
-transcription is by people, and a library can share the corrected leaves as ground truth
-(Settings → Proofreading) to train a recogniser.
+**Draft the Text of the Leaves** (Item → Actions) reads leaves by machine, in the background, for
+people to correct. Choose the leaves (`0-9,14`, or all). The engine is in Settings → *Machine Drafts*:
+
+- **Tesseract**: with the OCR models installed here (the same as re-OCR). Fine for printed and
+  clear scripts, weak on palm leaf.
+- **Kraken**: a handwriting recogniser. Give it a recognition model file (`.mlmodel`) trained for the
+  script and hand; install it with `pip install kraken`.
+
+Drafts are *Machine* versions: searchable, marked as machine text, never over a leaf a person has
+worked on, and not shared as ground truth until proofread. A library can share the corrected leaves
+as ground truth (Settings → Proofreading) to train a better recogniser.

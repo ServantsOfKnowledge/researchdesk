@@ -135,6 +135,10 @@
   "column_break_gt",
   "ground_truth_attribution",
   "ground_truth_names",
+  "drafts_section",
+  "draft_asr_model",
+  "draft_htr_engine",
+  "draft_htr_model",
   "tab_preservation",
   "tab_preservation_intro",
   "preservation_section",
@@ -981,6 +985,34 @@
    "label": "Name the Proofreaders",
    "default": "0",
    "description": "Put each page's proofreader and validator (their full names, never their emails) in the set's manifest. Ask them first."
+  },
+  {
+   "fieldname": "drafts_section",
+   "fieldtype": "Section Break",
+   "label": "Machine Drafts",
+   "collapsible": 1,
+   "description": "Drafts of transcripts made by machine on this server: speech to text for recordings, handwriting recognition for manuscript leaves. A person corrects every draft; drafts never replace a person's work and are never shared as ground truth. The engines are optional (the Server page shows what is installed)."
+  },
+  {
+   "fieldname": "draft_asr_model",
+   "fieldtype": "Data",
+   "label": "Speech Model",
+   "default": "small",
+   "description": "The Whisper model size for speech to text: tiny, base, small, medium or large-v3. Bigger is better and slower."
+  },
+  {
+   "fieldname": "draft_htr_engine",
+   "fieldtype": "Select",
+   "label": "Handwriting Engine",
+   "options": "Tesseract\nKraken",
+   "default": "Tesseract",
+   "description": "Tesseract reads with the OCR models installed here; Kraken needs a recognition model trained for the script."
+  },
+  {
+   "fieldname": "draft_htr_model",
+   "fieldtype": "Data",
+   "label": "Kraken Model File",
+   "description": "The full path of a Kraken recognition model (.mlmodel) on the server, for handwriting."
   },
   {
    "fieldname": "tab_preservation",

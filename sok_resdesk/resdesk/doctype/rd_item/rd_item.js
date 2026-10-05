@@ -46,6 +46,21 @@ frappe.ui.form.on("RD Item", {
 		if (frm.doc.item_type === "Photograph" && !frm.doc.commons_file && frappe.user.has_role(["System Manager", "ResDesk Manager", "ResDesk Cataloguer", "ResDesk Proofreader"])) {
 			frm.add_custom_button(__("Send to Wikimedia Commons"), () => send_to_commons(frm), __("Actions"));
 		}
+		if (frm.doc.media_files && frm.doc.source === "Local" && frappe.user.has_role(["System Manager", "ResDesk Manager", "ResDesk Cataloguer"])) {
+			frm.add_custom_button(__("Draft the Transcript (Speech to Text)"), () =>
+				frappe.call({ method: "sok_resdesk.drafts.draft_transcript", args: { item: frm.doc.name }, freeze: true }).then(() => frappe.msgprint(__("Drafting in the background. You get a notification when it is done; every draft is for a person to proofread.")))
+			, __("Actions"));
+		}
+		if (frm.doc.item_type === "Manuscript" && frappe.user.has_role(["System Manager", "ResDesk Manager", "ResDesk Cataloguer"])) {
+			frm.add_custom_button(__("Draft the Text of the Leaves"), () =>
+				frappe.prompt(
+					[{ fieldname: "leaves", fieldtype: "Data", label: __("Leaves (from 0, e.g. 0-9,14; empty for all)"), description: __("Leaves a person has worked on are left alone. The engine and model are in Settings → Machine Drafts.") }],
+					(v) => frappe.call({ method: "sok_resdesk.drafts.draft_leaves", args: { item: frm.doc.name, leaves: v.leaves || "" }, freeze: true }).then(() => frappe.msgprint(__("Drafting in the background. You get a notification when it is done; every draft is for a person to proofread."))),
+					__("Draft the Text of the Leaves"),
+					__("Draft")
+				)
+			, __("Actions"));
+		}
 		if (frm.doc.item_type === "Manuscript") {
 			frm.add_custom_button(__("Label the Leaves"), () => label_leaves(frm), __("Actions"));
 		}

@@ -140,7 +140,8 @@
 - [x] Ground truth released by the people who made it: each contributor's own open licence, a person's review before a set is published (0.60)
 - [x] The library in e-reader apps (OPDS), the text of EPUB books, and fewer fields for libraries without manuscripts or photographs (0.61)
 - [x] Offline copies of a collection, and ZIM files for Kiwix (0.62)
-- [ ] Archival description (fonds, series, file, item) and machine drafts of transcripts (speech and handwriting recognition), for a person to correct
+- [x] Machine drafts of transcripts (speech to text, handwriting recognition) for a person to correct (0.63)
+- [ ] Archival description (fonds, series, file, item)
 
 ## v1.0: library-grade
 

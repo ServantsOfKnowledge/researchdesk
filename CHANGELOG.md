@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.63.0 (2026-11-06): Machine drafts of transcripts
+
+- **Draft the Transcript (Speech to Text)** for recordings held here, with `faster-whisper` or the
+  `whisper` command; **Draft the Text of the Leaves** for manuscripts, with Tesseract or Kraken
+  (a recognition model for the script). Both run in the background on the library's own server
+- Drafts are *Machine* page versions: searchable at once, for a person to proofread, never over a
+  person's work, replaced only by a newer machine draft, and never shared as ground truth
+- Settings → *Machine Drafts*: the speech model size, the handwriting engine and the Kraken model file
+
 ## 0.62.0 (2026-11-06): Offline copies and Kiwix
 
 - **Exports → Offline copy (zip, for Kiwix)**: a collection as a folder of web pages with a search

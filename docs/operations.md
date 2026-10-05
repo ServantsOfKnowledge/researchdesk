@@ -471,6 +471,14 @@ Every setting:
 | Credit Line | How reusers should credit the set, e.g. <i>Servants of Knowledge and its volunteer proofreaders</i>. |
 | Name the Proofreaders | Put each page's proofreader and validator (their full names, never their emails) in the set's manifest. Ask them first. |
 
+**Machine Drafts**
+
+| Setting | What it does |
+|---|---|
+| Speech Model | The Whisper model size for speech to text: tiny, base, small, medium or large-v3. Bigger is better and slower. |
+| Handwriting Engine | Tesseract reads with the OCR models installed here; Kraken needs a recognition model trained for the script. Choices: *Tesseract*, *Kraken*. |
+| Kraken Model File | The full path of a Kraken recognition model (.mlmodel) on the server, for handwriting. |
+
 ### Preservation
 
 **Preservation**

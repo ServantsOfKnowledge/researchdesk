@@ -59,7 +59,14 @@ Transcript Segments** makes blank segments (a minute each, or as you choose) for
 one at a time; the first words typed make the recording searchable. A transcript that already exists is
 never laid over.
 
-Speech-to-text (drafting the transcript by machine, for a person to correct) is planned.
+**Draft the Transcript (Speech to Text)** (Item → Actions) drafts the transcript by machine, on the
+library's own server and in the background, for a person to correct. It needs a speech engine on the
+server: `faster-whisper` (a Python package) or the `whisper` command. The model size is in Settings →
+*Machine Drafts* (*small* is a good start; Whisper knows Kannada, Hindi, Sanskrit, Tamil, Telugu,
+Malayalam and many more). The draft fills the laid-out segments, or makes segments from the speech if
+there are none. Drafts are saved as *Machine* versions: searchable at once, marked as machine text,
+never over a segment a person has typed, and never shared as ground truth until a person has proofread
+them. Running it again replaces earlier machine drafts only.
 
 ## Captions, sharing and access
 

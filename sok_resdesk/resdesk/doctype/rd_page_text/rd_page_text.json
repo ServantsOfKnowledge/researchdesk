@@ -71,7 +71,7 @@
    "fieldname": "source",
    "fieldtype": "Select",
    "label": "Made By",
-   "options": "Re-OCR\nProofreading",
+   "options": "Re-OCR\nProofreading\nMachine draft",
    "in_list_view": 1,
    "in_standard_filter": 1
   },
