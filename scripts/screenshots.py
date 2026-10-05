@@ -57,6 +57,10 @@ SHOTS: dict[str, tuple[str, str, str]] = {
 # staff account instead: made (or switched on) for the pictures and switched off afterwards.
 PICTURE_ACCOUNT = "help-pictures@example.org"
 STAFF_ROLES = ("ResDesk Manager", "ResDesk Cataloguer")
+# A members-only library shows visitors only its login page, so the portal pictures are taken as a
+# reader account instead (made like the staff one, switched off afterwards).
+READER_ACCOUNT = "help-pictures-reader@example.org"
+READER_ROLES = ("ResDesk Reader",)
 
 
 def env_file() -> dict:
@@ -84,11 +88,19 @@ async def take(args) -> list[str]:
 		await guest.add_init_script("try { localStorage.setItem('rd-tips-seen', '1') } catch (e) {}")
 		admin = await browser.new_context(viewport=VIEWPORT, locale="en-US", color_scheme=args.theme)
 		await log_in(admin, args.url, args.user, args.password)
-		staff, account = admin, None
+		staff, account, reader_account = admin, None, None
 		if args.user == "Administrator":
 			account = await picture_account(admin, args.url, on=True)
 			staff = await browser.new_context(viewport=VIEWPORT, locale="en-US", color_scheme=args.theme)
 			await log_in(staff, args.url, PICTURE_ACCOUNT, account)
+			if await closed_to_visitors(guest, args.url):
+				print("  This library is members-only: the portal pictures are taken as a reader.")
+				reader_account = await picture_account(
+					admin, args.url, on=True, email=READER_ACCOUNT, roles=READER_ROLES, last="Reader"
+				)
+				guest = await browser.new_context(viewport=VIEWPORT, locale="en-US", color_scheme=args.theme)
+				await guest.add_init_script("try { localStorage.setItem('rd-tips-seen', '1') } catch (e) {}")
+				await log_in(guest, args.url, READER_ACCOUNT, reader_account)
 
 		for name, (who, path, action) in SHOTS.items():
 			if args.only and name not in args.only:
@@ -147,6 +159,8 @@ async def take(args) -> list[str]:
 				await page.close()
 		if account:
 			await picture_account(admin, args.url, on=False)
+		if reader_account:
+			await picture_account(admin, args.url, on=False, email=READER_ACCOUNT)
 		await browser.close()
 	return done
 
@@ -161,9 +175,23 @@ async def log_in(context, url: str, user: str, password: str) -> None:
 	await page.close()
 
 
-async def picture_account(admin, url: str, on: bool) -> str:
-	"""Switch the pictures' staff account on (made the first time, a new password each run) or off.
-	Done through the Desk's own calls, as Administrator. Returns the password."""
+async def closed_to_visitors(guest, url: str) -> bool:
+	"""Whether a visitor who is not logged in is sent to the login page (a members-only portal)."""
+	page = await guest.new_page()
+	try:
+		await page.goto(f"{url}/library", wait_until="domcontentloaded")
+		await page.wait_for_timeout(1500)
+		return "/login" in page.url
+	finally:
+		await page.close()
+
+
+async def picture_account(
+	admin, url: str, on: bool, email: str = PICTURE_ACCOUNT, roles=STAFF_ROLES, last: str = "Pictures"
+) -> str:
+	"""Switch a pictures' account (staff by default; the reader account for members-only libraries)
+	on (made the first time, a new password each run) or off. Done through the Desk's own calls, as
+	Administrator. Returns the password."""
 	import secrets
 
 	password = secrets.token_urlsafe(18) + "-Rd7"
@@ -172,20 +200,25 @@ async def picture_account(admin, url: str, on: bool) -> str:
 		await page.goto(f"{url}/app/user")
 		await page.wait_for_function("window.frappe && frappe.csrf_token", timeout=20000)
 		await page.evaluate(
-			"""async ([email, password, roles, on]) => {
+			"""async ([email, password, roles, last, on]) => {
 				const exists = await frappe.xcall('frappe.client.get_count', {doctype: 'User', filters: {name: email}});
 				if (!on) {
 					if (exists) await frappe.xcall('frappe.client.set_value', {doctype: 'User', name: email, fieldname: 'enabled', value: 0});
 					return;
 				}
 				if (exists) {
-					await frappe.xcall('frappe.client.set_value', {doctype: 'User', name: email, fieldname: {enabled: 1, new_password: password}});
+					// switched back on with a new password and its roles (set_value can't set a password)
+					const doc = await frappe.xcall('frappe.client.get', {doctype: 'User', name: email});
+					doc.enabled = 1;
+					doc.new_password = password;
+					doc.roles = roles.map(role => ({role}));
+					await frappe.xcall('frappe.client.save', {doc});
 				} else {
-					await frappe.xcall('frappe.client.insert', {doc: {doctype: 'User', email, first_name: 'Help', last_name: 'Pictures',
+					await frappe.xcall('frappe.client.insert', {doc: {doctype: 'User', email, first_name: 'Help', last_name: last,
 						language: 'en', send_welcome_email: 0, new_password: password, roles: roles.map(role => ({role}))}});
 				}
 			}""",
-			[PICTURE_ACCOUNT, password, list(STAFF_ROLES), on],
+			[email, password, list(roles), last, on],
 		)
 	finally:
 		await page.close()

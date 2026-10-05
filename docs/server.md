@@ -244,7 +244,9 @@ Docker image (`mcr.microsoft.com/playwright/python`, with the Playwright package
 it from PyPI; `PLAYWRIGHT_VERSION` in `.env` picks another version). Without `--site`, the pictures go into the code (`sok_resdesk/public/images/guide/`),
 for changes to the project's own documentation. Pictures of the Desk show what staff see: with
 Administrator's password (in `.env`) they are taken as a staff account, *Help Pictures*
-(`help-pictures@example.org`), switched on for the pictures and off again afterwards; `--query WORDS` chooses the search shown in the results
+(`help-pictures@example.org`), switched on for the pictures and off again afterwards. A
+library whose portal is members-only shows visitors only its login page, so its portal pictures
+are taken as a reader account too (*Help Pictures Reader*, `help-pictures-reader@example.org`); `--query WORDS` chooses the search shown in the results
 pictures (default: `history`, so pick words your catalogue finds).
 
 ## Alerts

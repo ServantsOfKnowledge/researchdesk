@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.46.2 (2026-10-26): Help pictures for members-only libraries
+
+- **Retake help pictures** works for a members-only portal: when visitors are sent to the login
+  page, the portal pictures are taken as a temporary reader account (*Help Pictures Reader*,
+  switched off afterwards) instead of showing the login page
+- The temporary accounts are switched back on correctly on the second retake (the first retake
+  made them; later ones failed on setting the new password)
+
 ## 0.46.1 (2026-10-26): Why page text is waiting, and Send now
 
 - **Background Jobs → Search queue** says **why** page text waiting to be sent is not moving
