@@ -23,7 +23,13 @@ offline or sending to partners; `python3 scripts/docs_pdf.py` makes one from the
    Research Desk in the Desk (Administrator keeps Frappe's tools; `deskscope.py`); a sitemap of every
    book, descriptions, canonical addresses and language alternates (`security.py`, `seo.py`,
    `core/seo.py`, `core/netguard.py`; [Server → Security](server.md#security)).
-6. **Pure-Python core.** Normalisation, citations, MARC, OAI-PMH, ARKs, OCFL, the second copy,
+6. **Only what the library uses.** Institutions differ, so what Research Desk does is chosen, not
+   assumed: the installer asks what kind of institution this is (profiles that combine), and
+   Settings → Features switches fourteen features on and off. A feature that is off is not
+   collected: its scheduled work stops, its Desk screens go and calls that would make new data of
+   its kind are refused, while what exists stays and who sees it is still decided by access
+   (`features.py`; [Staff guide → Features](staff-guide.md#features-and-your-institution)).
+7. **Pure-Python core.** Normalisation, citations, MARC, OAI-PMH, ARKs, OCFL, the second copy,
    BagIt, OCR quality, page zones, OCR languages, transliteration, annotation anchoring and server
    equipment checks live in
    `sok_resdesk/core/` with no Frappe imports, so they are unit-tested in milliseconds and

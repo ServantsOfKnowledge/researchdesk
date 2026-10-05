@@ -116,6 +116,16 @@
 - [x] Loose PDFs in folders, and scans without text read with OCR as they come in (0.40)
 - [x] Findable and secure by default: sitemap of every book, descriptions and link previews, security headers, login lock-out, Server → Security (0.41)
 - [x] A library system's catalogue (Koha or any MARC) matched to the books here, links sent back (0.42)
+- [x] Staff see only Research Desk in the Desk; Frappe's own tools stay with Administrator (0.43)
+- [x] Collection pictures from archive.org, shown whole, an admin's own never overwritten (0.44)
+- [x] Help pictures that follow upgrades; every OCR language model in the image (0.44)
+- [x] Features and institution profiles: what kind of institution this is (profiles that
+      combine), fourteen features that can be switched off and are then not collected, and
+      suggestions when data arrives that a switched-off feature would handle (0.45)
+- [x] The installer asks the kind of institution, the books' languages and about how many
+      books (0.46)
+- [ ] Help pictures for members-only libraries, taken as a reader account
+- [ ] IIIF manifests and an image service (the first item under v1.0, brought forward)
 - [ ] More sources: Wikisource
 - [ ] Offline collections (Kiwix packages) for schools and places with poor connections
 
