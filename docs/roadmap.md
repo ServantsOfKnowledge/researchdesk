@@ -139,7 +139,7 @@
 - [x] Photographs to Wikimedia Commons under the sender's own account, with a review, a licence check and *depicts* (0.59)
 - [x] Ground truth released by the people who made it: each contributor's own open licence, a person's review before a set is published (0.60)
 - [x] The library in e-reader apps (OPDS), the text of EPUB books, and fewer fields for libraries without manuscripts or photographs (0.61)
-- [ ] Offline collections (Kiwix packages) for schools and places with poor connections
+- [x] Offline copies of a collection, and ZIM files for Kiwix (0.62)
 - [ ] Archival description (fonds, series, file, item) and machine drafts of transcripts (speech and handwriting recognition), for a person to correct
 
 ## v1.0: library-grade

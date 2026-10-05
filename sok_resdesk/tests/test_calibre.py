@@ -212,3 +212,44 @@ class TestCalibreImport(OpsTestCase):
 		books, left = calibre_export.gather([fx.ID_PDF])
 		self.assertEqual((books, [r["item_id"] for r in left]), ([], [fx.ID_PDF]))
 		self.assertIn("Not open", left[0]["why"])
+
+	def test_an_offline_copy_holds_open_public_books_and_only_the_details_of_the_rest(self):
+		import os
+		import zipfile
+
+		from sok_resdesk import offline_export
+
+		self.run_profile()
+		frappe.db.set_value(
+			"RD Item", fx.ID_EPUB, {"published": 1, "access_status": "Open", "visibility": "Public"}
+		)
+		frappe.db.set_value(
+			"RD Item", fx.ID_PDF, {"published": 1, "access_status": "Open", "visibility": "Login to read"}
+		)
+		est = offline_export.estimate(
+			{
+				"export_format": "Offline copy (zip, for Kiwix)",
+				"scope": "Selected Books",
+				"filters_json": frappe.as_json([fx.ID_EPUB, fx.ID_PDF]),
+			}
+		)
+		self.assertEqual((est["books"], est["with_files"], est["details_only"]), (2, 1, 1))
+		export = frappe.get_doc(
+			{
+				"doctype": "RD Export",
+				"export_format": "Offline copy (zip, for Kiwix)",
+				"scope": "Selected Books",
+				"filters_json": frappe.as_json([fx.ID_EPUB, fx.ID_PDF]),
+			}
+		).insert(ignore_permissions=True)
+		export.reload()
+		self.addCleanup(lambda: frappe.db.delete("File", {"attached_to_name": export.name}))
+		self.assertEqual((export.status, export.item_count), ("Done", 2), export.log)
+		path = frappe.get_site_path(export.file_url.lstrip("/"))
+		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
+		with zipfile.ZipFile(path) as z:
+			names = z.namelist()
+			self.assertIn("index.html", names)
+			self.assertTrue(any(n.startswith("files/") and n.endswith(".epub") for n in names))
+			self.assertFalse(any(n.endswith(".pdf") for n in names))  # the members-only book: no file
+			self.assertEqual(sum(1 for n in names if n.startswith("books/")), 2)

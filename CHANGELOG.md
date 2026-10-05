@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.62.0 (2026-11-06): Offline copies and Kiwix
+
+- **Exports → Offline copy (zip, for Kiwix)**: a collection as a folder of web pages with a search
+  box, a page per book (details, cover, downloads) and the text where the library holds it. It opens
+  with no server and no internet
+- A **ZIM file** for Kiwix apps and hotspots is made too when the server has `zimwriterfs`; otherwise the
+  zip carries the command to make it
+- Only books open to read and public get their files and text; the rest are listed by their details
+
 ## 0.61.0 (2026-11-06): E-reader catalogue, EPUB text, fewer fields
 
 - **OPDS** at `/opds`: the library as a catalogue for e-reader apps (KOReader, Thorium, Moon+ Reader…):

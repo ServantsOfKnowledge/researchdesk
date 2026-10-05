@@ -71,6 +71,13 @@ PAGES = [
 		"For library staff",
 	),
 	Page(
+		"offline",
+		"offline.md",
+		"Offline copies and Kiwix",
+		"staff",
+		"For library staff",
+	),
+	Page(
 		"opds",
 		"opds.md",
 		"OPDS: the library in an e-reader app",

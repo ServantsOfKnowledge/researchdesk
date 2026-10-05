@@ -31,7 +31,7 @@
    "fieldname": "export_format",
    "fieldtype": "Select",
    "label": "Format",
-   "options": "Spreadsheet (CSV)\nSpreadsheet (Excel)\nJSON (everything)\nJSON Lines\nDublin Core XML\nMODS XML\nMARCXML (Koha)\nJSON-LD (schema.org)\nCSL-JSON\nBibTeX\nRIS\nInternet Archive bulk-upload CSV\nInternet Archive meta.xml files (zip)\nCalibre library (zip)",
+   "options": "Spreadsheet (CSV)\nSpreadsheet (Excel)\nJSON (everything)\nJSON Lines\nDublin Core XML\nMODS XML\nMARCXML (Koha)\nJSON-LD (schema.org)\nCSL-JSON\nBibTeX\nRIS\nInternet Archive bulk-upload CSV\nInternet Archive meta.xml files (zip)\nCalibre library (zip)\nOffline copy (zip, for Kiwix)",
    "default": "Spreadsheet (CSV)",
    "reqd": 1,
    "in_list_view": 1

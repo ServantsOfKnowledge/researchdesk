@@ -37,8 +37,10 @@ FORMATS = {
 	"Internet Archive bulk-upload CSV": ("ia.csv", "text/csv"),
 	"Internet Archive meta.xml files (zip)": ("zip", "application/zip"),
 	"Calibre library (zip)": ("calibre.zip", "application/zip"),
+	"Offline copy (zip, for Kiwix)": ("offline.zip", "application/zip"),
 }
 CALIBRE = "Calibre library (zip)"  # made from files, not records: see calibre_export.py
+OFFLINE = "Offline copy (zip, for Kiwix)"  # a folder of web pages: see offline_export.py
 CALIBRE_BACKGROUND_OVER = 25
 
 
@@ -90,8 +92,8 @@ def _records(names: list[str]):
 
 
 def build(fmt: str, names: list[str], stem: str = "export") -> tuple[str, bytes]:
-	if fmt == CALIBRE:
-		frappe.throw(_("A Calibre library holds files: make it from Desk → Research Desk → Exports."))
+	if fmt in (CALIBRE, OFFLINE):
+		frappe.throw(_("This holds files: make it from Desk → Research Desk → Exports."))
 	root = base_url()
 	records = list(_records(names))
 	ext = FORMATS[fmt][0]
@@ -150,7 +152,7 @@ def _set(name: str, **values):
 def start_export(name: str) -> None:
 	doc = frappe.get_doc("RD Export", name)
 	names = select_for_export(doc)
-	if len(names) > (CALIBRE_BACKGROUND_OVER if doc.export_format == CALIBRE else BACKGROUND_OVER):
+	if len(names) > (CALIBRE_BACKGROUND_OVER if doc.export_format in (CALIBRE, OFFLINE) else BACKGROUND_OVER):
 		_set(name, status="Queued", item_count=len(names))
 		frappe.enqueue(
 			"sok_resdesk.transfer.run_export",
@@ -170,10 +172,13 @@ def run_export(name: str, names: list[str] | None = None) -> None:
 	_set(name, status="Running")
 	try:
 		names = names if names is not None else select_for_export(doc)
-		if doc.export_format == CALIBRE:
-			from sok_resdesk.calibre_export import build as build_calibre
+		if doc.export_format in (CALIBRE, OFFLINE):
+			if doc.export_format == CALIBRE:
+				from sok_resdesk.calibre_export import build as build_files
+			else:
+				from sok_resdesk.offline_export import build as build_files
 
-			file_url, books, summary = build_calibre(name, names)
+			file_url, books, summary = build_files(name, names)
 			_set(
 				name,
 				status="Done",

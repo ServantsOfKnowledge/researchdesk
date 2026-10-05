@@ -116,6 +116,7 @@ on the Items list (exports exactly what the list is filtered to).
 | Internet Archive bulk-upload CSV | The `ia upload --spreadsheet` tool, for uploading or updating many items |
 | Internet Archive meta.xml files (zip) | One `<identifier>_meta.xml` per book, for IA-style item folders |
 | Calibre library (zip) | The books' *files* with their details, as a folder [Calibre](calibre.md#making-a-small-calibre-collection) can add; for a small collection to take away |
+| Offline copy (zip, for Kiwix) | A collection as a folder of web pages with search that opens with no internet, and a ZIM file when the server has `zimwriterfs`: [Offline copies and Kiwix](offline.md) |
 
 ## Editing many books with a spreadsheet
 
