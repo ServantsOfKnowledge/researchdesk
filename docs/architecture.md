@@ -225,6 +225,34 @@ reached leaves the catalogue as it was.
 Things that don't change as you scale: the DocTypes, the API contract, OAI-PMH/MARC output
 and the portal.
 
+## Where it fits in the library and archive ecosystem
+
+For most libraries and archives, Research Desk replaces the four or five separate systems a
+digital library needs: repository, discovery, reader, OCR and proofreading, and basic
+preservation. It works alongside the library system (circulation, acquisitions, patrons) and
+does not yet cover archival description.
+
+| Layer | Typical tools | Research Desk | Why |
+|---|---|---|---|
+| Digital library / repository | Greenstone, Omeka, CONTENTdm, DSpace or EPrints used for digitised collections, one-off portals | **Replaces** | Catalogue, portal, collections and OAI-PMH in one install; strongest for Greenstone sites |
+| Search and discovery (digital holdings) | VuFind, Blacklight | **Replaces** | Full-text search in Indic scripts, search in Latin letters, facets. Licensed e-resources stay with their discovery layer |
+| Reader | Internet Archive BookReader, Mirador, Universal Viewer | **Includes** | Page images and text side by side, citations, notes. No IIIF yet |
+| OCR and proofreading | Tesseract scripts, FromThePage, Wikisource-style projects | **Replaces** | OCR on ingest, re-OCR by zones, proofreading, ground truth. eScriptorium and Transkribus stay for training handwriting models |
+| Preservation | Archivematica, Preservica, LOCKSS | **Replaces for small institutions** | Fixity, OCFL, BagIt, a second copy, ARKs. Not a full OAIS: no format migration |
+| Library system (ILS) | Koha, Evergreen, SOUL, e-Granthalaya | **Complements** | Links the catalogue to the digital copies and sends the links back ([Koha](koha.md)) |
+| Aggregators | NDLI, Europeana, DPLA, Wikidata, Internet Archive | **Feeds** | OAI-PMH, Wikidata links, archive.org |
+| Digitisation workflow | Goobi, Kitodo, Scribe | Not covered | Starts after scanning |
+| Archival description | AtoM, ArchivesSpace | Not covered | No fonds/series hierarchy, ISAD(G) or EAD |
+| Institutional repository | DSpace or EPrints for theses and papers | Not covered | No self-deposit, embargoes or submission review |
+
+**Where the impact is largest:** small and mid-size libraries with Indic collections, which
+cannot staff four systems; every install as a ready node for aggregators such as NDLI; a digital
+layer for Koha libraries with no migration; and proofread Indic text and OCR ground truth.
+
+**Gaps that would widen it**, in order: IIIF manifests and an image service; archival
+description (fonds, series, file, item, EAD export), which needs a design first; digitisation
+tracking for small projects. Self-deposit stays out of scope.
+
 ## Towards a full library system
 
 Frappe makes it cheap to add the rest of an ILS alongside the digital library:

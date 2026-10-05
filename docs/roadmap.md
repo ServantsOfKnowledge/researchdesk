@@ -126,5 +126,8 @@
 - [ ] Holdings, patrons and circulation stay with Koha: Research Desk works alongside it
 - [ ] SRU/Z39.50 target for older ILS integrations
 - [ ] Usage statistics in COUNTER form, for libraries that report them
+- [ ] Archival description (fonds, series, file, item; EAD export) for small archives and
+      manuscript collections, after a design ([where it fits](architecture.md#where-it-fits-in-the-library-and-archive-ecosystem))
+- [ ] Digitisation tracking: a book's way through scanning, QA and ingest, for small projects
 
 Ideas and priorities welcome: open an issue.
