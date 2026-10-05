@@ -98,7 +98,7 @@ FEATURES: dict[str, Feature] = {
 		Feature(
 			"folders",
 			"Books from folders and servers",
-			"IA-style book folders and loose PDFs on disk, a NAS or a web server",
+			"IA-style book folders, loose PDFs and Calibre libraries on disk, a NAS or a web server",
 			"the folder scans",
 			sources=("Folder or Server",),
 		),

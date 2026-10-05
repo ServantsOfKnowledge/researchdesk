@@ -88,6 +88,7 @@ def item_to_record(doc) -> dict:
 		"served_from_copy": bool(doc.get("served_from_copy")),
 		"local_pdf": doc.local_pdf or "",
 		"pdf_url": _pdf_url(doc),
+		"downloads": _downloads(doc),
 		"from_repository": doc.source == "Repository",
 		"from_wikisource": doc.source == "Wikisource",
 		"wiki_site": doc.get("wiki_site") or "",
@@ -117,6 +118,23 @@ def _arks_on() -> bool:
 
 def _absolute(url: str) -> str:
 	return f"{base_url()}{url}" if url.startswith("/") else url
+
+
+def _downloads(doc) -> list[dict]:
+	"""A local book's other files (a Calibre book's EPUB, MOBI…) as {label, url}: its main PDF is
+	the Download PDF button."""
+	from urllib.parse import quote
+
+	if doc.source != "Local" or not doc.get("local_files"):
+		return []
+	out = []
+	for name in doc.local_files.splitlines():
+		if not name or name == doc.local_pdf:
+			continue
+		ext = name.rsplit(".", 1)[-1].upper() if "." in name else name
+		url = f"{base_url()}/api/method/sok_resdesk.api.file?item_id={quote(doc.item_id, safe='')}&name={quote(name, safe='')}"
+		out.append({"label": ext, "url": url})
+	return out
 
 
 def _pdf_url(doc) -> str:
@@ -237,6 +255,7 @@ def upsert_item(
 		"local_path",
 		"local_pdf",
 		"local_thumb",
+		"local_files",
 		"text_source",
 		"source_signature",
 		"item_type",

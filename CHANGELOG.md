@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.51.0 (2026-10-30): Books from a Calibre library
+
+- **Import a Calibre library**: a Folder or Server profile whose location holds a Calibre
+  `metadata.db` brings in every book with its title, authors, date, publisher, languages, tags,
+  series, description, ISBN and cover; identifiers, rating and custom columns stay with the
+  source record. The library is opened read-only and never changed; a later run updates only
+  the books Calibre records as changed
+- A book's files are listed on it: PDFs are read for their text as any PDF is, and EPUB, MOBI
+  and other formats are catalogued with **Download EPUB / MOBI…** buttons on the book's page,
+  by the book's own access (their text is a follow-up)
+- Identifiers come from Calibre's own book id, so they survive a rebuilt or moved library; see
+  [Books from a Calibre library](docs/calibre.md)
+
 ## 0.50.0 (2026-10-29): Send your corrections back to Wikisource
 
 - **Item → Actions → Send to Wikisource** for books from Wikisource: your own proofreading goes

@@ -48,6 +48,9 @@
 				{% if can_read and item.access_status == "Open" and pdf_url %}
 				<a class="rd-btn" href="{{ pdf_url }}">{{ _("Download PDF") }}</a>
 				{% endif %}
+				{% if can_read and item.access_status == "Open" %}{% for d in item.downloads %}
+				<a class="rd-btn" href="{{ d.url }}" download>{{ _("Download {0}").format(d.label) }}</a>
+				{% endfor %}{% endif %}
 				<button class="rd-btn" type="button" id="rd-cite-open" data-scope="book">{{ _("Cite") }}</button>
 				<button class="rd-btn" type="button" id="rd-add-list">{{ _("Add to my list") }}</button>
 				<a class="rd-btn rd-btn--plain" href="#rd-about">{{ _("Details") }} ↓</a>

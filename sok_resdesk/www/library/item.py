@@ -34,6 +34,7 @@ def get_context(context):
 	context.can_read = access.can_read(record.get("visibility"))
 	if not context.can_read:
 		record["pdf_url"] = ""  # keep it out of the page and its citation meta tags
+		record["downloads"] = []
 	context.item = record
 	context.viewer = access.viewer()
 	names = record.get("curated_collections") or []

@@ -76,6 +76,7 @@
   "column_break_l",
   "local_pdf",
   "local_thumb",
+  "local_files",
   "text_source",
   "source_signature",
   "section_preservation",
@@ -550,6 +551,13 @@
    "label": "PDF File",
    "read_only": 1,
    "length": 500
+  },
+  {
+   "fieldname": "local_files",
+   "fieldtype": "Small Text",
+   "label": "Downloadable Files",
+   "read_only": 1,
+   "description": "The book's files, one per line (a Calibre book's EPUB, MOBI, PDF…). Readers may download these."
   },
   {
    "fieldname": "local_thumb",

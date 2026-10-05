@@ -15,6 +15,7 @@ import frappe
 import requests
 
 from sok_resdesk.catalogue import item_to_record, upsert_item
+from sok_resdesk.core import calibre
 from sok_resdesk.core.folder import FolderStore, HttpStore, ItemStore, StoreError, open_store
 from sok_resdesk.core.normalize import normalize_ia_item
 
@@ -60,7 +61,12 @@ def open_profile_store(profile) -> ItemStore:
 	location = (profile.location or "").strip()
 	if location.startswith(("http://", "https://")):
 		return open_store("http", location, (profile.manifest_url or "").strip())
-	return FolderStore(check_folder_allowed(location))
+	return folder_store(check_folder_allowed(location))
+
+
+def folder_store(path: str) -> ItemStore:
+	"""A folder as a store: a Calibre library (it has a metadata.db) or IA-style item folders."""
+	return calibre.CalibreStore(path) if calibre.is_library(path) else FolderStore(path)
 
 
 def store_for_item(doc) -> ItemStore | None:
@@ -69,7 +75,7 @@ def store_for_item(doc) -> ItemStore | None:
 	try:
 		if doc.local_store.startswith(("http://", "https://")):
 			return HttpStore(doc.local_store)
-		return FolderStore(check_folder_allowed(doc.local_store))
+		return folder_store(check_folder_allowed(doc.local_store))
 	except (StoreError, frappe.ValidationError):
 		return None
 
@@ -196,7 +202,10 @@ def ingest_local_one(
 	from sok_resdesk.core.folder import is_bare
 
 	# a loose PDF's name says nothing about archive.org: never looked up there
-	on_ia = bool(profile.check_archive_org) and not is_bare(loc) and on_archive_org(item_id)
+	calibre_book = store.kind == "calibre"  # its books are its own, never looked for on archive.org
+	on_ia = (
+		bool(profile.check_archive_org) and not is_bare(loc) and not calibre_book and on_archive_org(item_id)
+	)
 	pdf, thumb = store.pdf_name(item_id, loc), store.thumb_name(loc)
 	restricted = record["access_status"] == "Restricted"
 	if fetch_text and not pages and pdf and not on_ia:
@@ -212,6 +221,7 @@ def ingest_local_one(
 			"local_path": loc,
 			"local_pdf": pdf or "",
 			"local_thumb": thumb or "",
+			"local_files": "\n".join(store.downloads(loc)) if hasattr(store, "downloads") else "",
 			"text_source": text_source,
 			"source_signature": signature,
 		}

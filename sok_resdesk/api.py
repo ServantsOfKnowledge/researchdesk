@@ -440,6 +440,7 @@ def file(item_id: str, name: str):
 			"access_status",
 			"local_pdf",
 			"local_thumb",
+			"local_files",
 			"visibility",
 			"served_from_copy",
 		],
@@ -461,12 +462,12 @@ def file(item_id: str, name: str):
 		not doc
 		or not doc.published
 		or doc.source != "Local"
-		or name not in {doc.local_pdf, doc.local_thumb} - {"", None}
+		or name not in {doc.local_pdf, doc.local_thumb, *(doc.local_files or "").splitlines()} - {"", None}
 	):
 		raise frappe.PageDoesNotExistError
 	if not access.can_find(doc.visibility):
 		raise frappe.PageDoesNotExistError
-	if name == doc.local_pdf and (doc.access_status != "Open" or not access.can_read(doc.visibility)):
+	if name != doc.local_thumb and (doc.access_status != "Open" or not access.can_read(doc.visibility)):
 		raise frappe.PermissionError
 	store = store_for_item(frappe.get_doc("RD Item", item_id))
 	if store is None:
