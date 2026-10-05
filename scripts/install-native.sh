@@ -47,9 +47,7 @@ elif [ -f /etc/debian_version ]; then
   $SUDO env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
     git curl ca-certificates build-essential pkg-config libmariadb-dev mariadb-server mariadb-client \
     redis-server xvfb libfontconfig1 cron tesseract-ocr poppler-utils \
-    tesseract-ocr-kan tesseract-ocr-hin tesseract-ocr-mar tesseract-ocr-san tesseract-ocr-tam \
-    tesseract-ocr-tel tesseract-ocr-mal tesseract-ocr-ben tesseract-ocr-guj tesseract-ocr-pan \
-    tesseract-ocr-ori tesseract-ocr-eng >/dev/null
+    tesseract-ocr-all >/dev/null   # every OCR language model, so any book's language can be read
   MYSQL_CNF_DIR=/etc/mysql/mariadb.conf.d
   if ! have meilisearch; then
     ARCH="$(uname -m)"; case "$ARCH" in x86_64) M=amd64;; aarch64|arm64) M=aarch64;; *) die "Unsupported CPU $ARCH";; esac

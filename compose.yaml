@@ -19,9 +19,9 @@ x-image: &image
       FRAPPE_IMAGE_PREFIX: ${FRAPPE_IMAGE_PREFIX:-frappe}
       # a new value rebuilds Frappe: upgrade.sh sets it to the newest v16 release when there is one
       FRAPPE_COMMIT: ${FRAPPE_COMMIT:-}
-      # Tesseract language models in the image (OCR_LANGS in .env; the upgrade rebuilds that layer
-      # only when the list changes)
-      OCR_LANGS: ${OCR_LANGS:-kan hin mar san tam tel mal ben guj pan ori eng}
+      # Tesseract language models in the image: all of them, or a list (OCR_LANGS in .env; the
+      # upgrade rebuilds that layer only when it changes)
+      OCR_LANGS: ${OCR_LANGS:-all}
   restart: unless-stopped
 
 # Resource caps (./resdesk.sh resources). "0" or empty means no limit.

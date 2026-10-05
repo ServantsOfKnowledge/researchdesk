@@ -13,7 +13,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 set -a; [ -f .env ] && . ./.env; set +a
 BENCH_DIR="${BENCH_DIR:-$HOME/researchdesk-bench}"
-OCR_LANGS="${OCR_LANGS:-kan hin mar san tam tel mal ben guj pan ori eng}"
+OCR_LANGS="${OCR_LANGS:-all}"   # every Tesseract model, or a list such as "kan hin eng"
 ok()  { printf "  \033[32m✓\033[0m %s\n" "$*"; }
 die() { printf "  \033[31m✗\033[0m %s\n" "$*"; exit "${2:-1}"; }
 have() { command -v "$1" >/dev/null 2>&1; }
@@ -51,12 +51,13 @@ case "$part" in
       brew list --versions poppler >/dev/null 2>&1 || brew install poppler   # draws PDFs' pages
     elif [ -f /etc/debian_version ]; then
       pkgs="tesseract-ocr poppler-utils"
-      for l in $OCR_LANGS; do pkgs="$pkgs tesseract-ocr-$l"; done
+      if [ "$OCR_LANGS" = all ]; then pkgs="$pkgs tesseract-ocr-all"
+      else for l in $OCR_LANGS; do pkgs="$pkgs tesseract-ocr-$l"; done; fi
       as_admin env DEBIAN_FRONTEND=noninteractive apt-get install -y -q $pkgs
     else
       die "Install Tesseract, its language models and poppler (pdftoppm) with this system's package manager."
     fi
-    ok "Tesseract $(tesseract --version 2>&1 | head -1 | awk '{print $2}') with $(tesseract --list-langs 2>/dev/null | tail -n +2 | tr '\n' ' ')"
+    ok "Tesseract $(tesseract --version 2>&1 | head -1 | awk '{print $2}') with $(tesseract --list-langs 2>/dev/null | tail -n +2 | wc -l | tr -d ' ') language models"
     ;;
   *) die "Usage: $0 install python|ocr" ;;
 esac

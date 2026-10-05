@@ -46,7 +46,7 @@ def system() -> str:
 	return "other"
 
 
-DOCKER_OCR_LANGS = "kan hin mar san tam tel mal ben guj pan ori eng"  # compose.yaml's default
+DOCKER_OCR_LANGS = "all"  # compose.yaml's default: every model Tesseract has
 
 
 def _fix(part: str, mode: str, osname: str, models: list[str] | None = None, add: bool = False) -> str:
@@ -55,6 +55,10 @@ def _fix(part: str, mode: str, osname: str, models: list[str] | None = None, add
 	if mode == "docker":
 		if add and models:
 			have = (os.environ.get("RESDESK_OCR_LANGS") or DOCKER_OCR_LANGS).split()
+			if "all" in have:
+				return _(
+					"Comes with the Research Desk image (every language model): upgrade (Server → Upgrade, or ./upgrade.sh)."
+				)
 			value = " ".join(dict.fromkeys([*have, *models]))
 			return _(
 				'Set OCR_LANGS="{0}" in .env on the server, then upgrade: the image is rebuilt with it.'
@@ -66,8 +70,7 @@ def _fix(part: str, mode: str, osname: str, models: list[str] | None = None, add
 		if osname == "mac":
 			return "brew install tesseract tesseract-lang poppler"
 		if osname == "debian":
-			pkgs = " ".join(f"tesseract-ocr-{m}" for m in (models or ["kan", "eng"]))
-			return f"sudo apt-get install tesseract-ocr poppler-utils {pkgs}"
+			return "sudo apt-get install tesseract-ocr poppler-utils tesseract-ocr-all"
 		return _(
 			"Install Tesseract, its language models and poppler (pdftoppm) with this system's package manager."
 		)

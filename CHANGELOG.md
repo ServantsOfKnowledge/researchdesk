@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.44.2 (2026-10-24): Every OCR language
+
+- Tesseract now comes with **every language model** it has (Debian's `tesseract-ocr-all`), in the
+  Docker image and on native installs, so Server → Requirements no longer reports missing models
+  for books in Urdu, Nepali, Assamese or any other language. A smaller image is still possible
+  with a list in `OCR_LANGS` (`.env`)
+
 ## 0.44.1 (2026-10-24): Help pages never stuck on an old version
 
 - **Help pictures follow upgrades**: the pictures that come with Research Desk carry the version

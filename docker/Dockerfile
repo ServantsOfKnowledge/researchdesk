@@ -32,14 +32,15 @@ WORKDIR /home/frappe/frappe-bench
 RUN echo "{}" > sites/common_site_config.json && find apps -mindepth 1 -path "*/.git" | xargs rm -fr
 
 USER root
-# OCR for re-reading pages (reocr.py): Tesseract with the Indic models the libraries need. Its own
-# layer, cached across upgrades. Other models: OCR_LANGS in .env (compose passes it), then upgrade
-ARG OCR_LANGS="kan hin mar san tam tel mal ben guj pan ori eng"
+# OCR for re-reading pages (reocr.py): Tesseract with every language model it has ("all", Debian's
+# tesseract-ocr-all), so any book's language can be read. Its own layer, cached across upgrades.
+# A smaller image: OCR_LANGS="kan hin eng" (codes of tesseract-ocr-<code>) in .env, then upgrade
+ARG OCR_LANGS="all"
 # the list the image was built with, for Server → Requirements
 ENV RESDESK_OCR_LANGS="${OCR_LANGS}"
 RUN apt-get update -q \
  && apt-get install -y -q --no-install-recommends tesseract-ocr poppler-utils \
-      $(for l in ${OCR_LANGS}; do echo tesseract-ocr-$l; done) \
+      $(if [ "${OCR_LANGS}" = all ]; then echo tesseract-ocr-all; else for l in ${OCR_LANGS}; do echo tesseract-ocr-$l; done; fi) \
  && rm -rf /var/lib/apt/lists/*
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY docker/start.sh /usr/local/bin/start.sh

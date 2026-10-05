@@ -144,17 +144,18 @@ sums it up in one *Requirements* line, which also feeds the [alerts](#alerts).
 **Installing what is missing:**
 
 - **Docker**: everything comes with the Research Desk image, so every upgrade installs it: the
-  fix is to [upgrade](#upgrading-from-the-desk). The image carries Tesseract with Kannada, Hindi,
-  Marathi, Sanskrit, Tamil, Telugu, Malayalam, Bengali, Gujarati, Punjabi, Oriya and English. For
-  another language (Urdu, Nepali…), the line gives the `OCR_LANGS="…"` value to put in `.env`;
-  the next upgrade rebuilds the image with it (only that layer: a few minutes).
+  fix is to [upgrade](#upgrading-from-the-desk). The image carries Tesseract with **every language model** it has
+  (Debian's `tesseract-ocr-all`: the Indic languages, Urdu, Nepali, Assamese, English and the
+  rest), so no book's language is missing a model. A library that wants a smaller image can set a
+  list instead, such as `OCR_LANGS="kan hin eng"` in `.env`; the next upgrade rebuilds that layer
+  (a few minutes), and a model missing from the list then shows here with the value to set.
 - **Native**, with the [updater helper](#the-updater-helper) on: **Install** on a missing line
   installs Research Desk's Python packages, or Tesseract with its language models (Homebrew on
   macOS; apt on Ubuntu/Debian). The task's progress shows on the page like an upgrade's.
   apt needs administrator rights: the helper can use them only when `sudo` asks no password for
   its user; otherwise the task stops and shows the command to run.
 - **Native, by hand**: each line shows its command (with **Copy**), e.g.
-  `./resdesk.sh requirements install ocr`, `sudo apt-get install tesseract-ocr tesseract-ocr-kan`
+  `./resdesk.sh requirements install ocr`, `sudo apt-get install tesseract-ocr tesseract-ocr-all`
   or `brew install tesseract tesseract-lang`.
 
 On the server, `./resdesk.sh requirements` prints the same list.
