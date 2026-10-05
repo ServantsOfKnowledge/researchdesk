@@ -40,6 +40,21 @@
   "subjects",
   "collections",
   "curated_collections",
+  "section_manuscript",
+  "ms_repository",
+  "ms_shelfmark",
+  "ms_material",
+  "ms_script",
+  "column_break_ms",
+  "ms_leaves",
+  "ms_dimensions",
+  "ms_condition",
+  "ms_scribe",
+  "ms_date_copied",
+  "ms_contents",
+  "ms_colophon",
+  "ms_provenance",
+  "leaf_labels",
   "section_rights",
   "licence_url",
   "rights",
@@ -753,6 +768,92 @@
    "fieldtype": "JSON",
    "label": "Raw Source Metadata",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_manuscript",
+   "fieldtype": "Section Break",
+   "label": "Manuscript",
+   "collapsible": 1,
+   "depends_on": "eval:doc.item_type=='Manuscript' || doc.ms_shelfmark || doc.ms_material",
+   "description": "What a manuscript or palm-leaf bundle needs besides the details above. Shown on the book's page."
+  },
+  {
+   "fieldname": "ms_repository",
+   "fieldtype": "Data",
+   "label": "Holding Institution"
+  },
+  {
+   "fieldname": "ms_shelfmark",
+   "fieldtype": "Data",
+   "label": "Shelfmark / Accession No."
+  },
+  {
+   "fieldname": "ms_material",
+   "fieldtype": "Select",
+   "label": "Material",
+   "options": "\nPalm leaf\nPaper\nBirch bark\nCopper plate\nCloth\nParchment\nOther"
+  },
+  {
+   "fieldname": "ms_script",
+   "fieldtype": "Data",
+   "label": "Script",
+   "description": "Kannada, Grantha, Telugu, Nandinagari, Tigalari, Devanagari…"
+  },
+  {
+   "fieldname": "column_break_ms",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ms_leaves",
+   "fieldtype": "Int",
+   "label": "Leaves",
+   "description": "Leaves (folios) in the bundle or codex."
+  },
+  {
+   "fieldname": "ms_dimensions",
+   "fieldtype": "Data",
+   "label": "Dimensions (cm)",
+   "description": "Height × width of a leaf, e.g. 5 × 34."
+  },
+  {
+   "fieldname": "ms_condition",
+   "fieldtype": "Select",
+   "label": "Condition",
+   "options": "\nGood\nFair\nPoor\nFragile"
+  },
+  {
+   "fieldname": "ms_scribe",
+   "fieldtype": "Data",
+   "label": "Scribe"
+  },
+  {
+   "fieldname": "ms_date_copied",
+   "fieldtype": "Data",
+   "label": "Date Copied",
+   "description": "As the colophon or the cataloguer gives it, e.g. Śaka 1745 (1823 CE)."
+  },
+  {
+   "fieldname": "ms_contents",
+   "fieldtype": "Small Text",
+   "label": "Work(s) Contained"
+  },
+  {
+   "fieldname": "ms_colophon",
+   "fieldtype": "Text",
+   "label": "Colophon"
+  },
+  {
+   "fieldname": "ms_provenance",
+   "fieldtype": "Text",
+   "label": "Provenance"
+  },
+  {
+   "fieldname": "leaf_labels",
+   "fieldtype": "Long Text",
+   "label": "Leaf Labels",
+   "hidden": 1,
+   "read_only": 1,
+   "description": "The labels of the leaves (1a, 1b, 2a…) as a JSON map from image number; set with Label the Leaves."
   }
  ],
  "links": [],

@@ -43,6 +43,9 @@ frappe.ui.form.on("RD Item", {
 		if (frm.doc.source === "Wikisource" && frm.doc.wiki_index) {
 			frm.add_custom_button(__("Send to Wikisource"), () => send_to_wikisource(frm), __("Actions"));
 		}
+		if (frm.doc.item_type === "Manuscript") {
+			frm.add_custom_button(__("Label the Leaves"), () => label_leaves(frm), __("Actions"));
+		}
 		frm.add_custom_button(
 			__("Re-index"),
 			() =>
@@ -266,4 +269,39 @@ function send_to_wikisource(frm) {
 		});
 		d.show();
 	});
+}
+
+// Photographs are numbered 1, 2, 3…; leaves are cited 12a, 12b. Say where the leaves begin and how
+// many sides each shows, and see the labels before they are saved.
+function label_leaves(frm) {
+	const args = (d) => ({ item: frm.doc.name, sides: d.get_value("sides"), start_image: d.get_value("start_image"), leaves: d.get_value("leaves"), start_folio: d.get_value("start_folio") });
+	const show = (d) =>
+		frappe.call({ method: "sok_resdesk.manuscripts.label_leaves", args: { ...args(d), preview: 1 } }).then((r) => {
+			const rows = r.message.labels.map((x) => `${x.image} → <b>${frappe.utils.escape_html(x.label)}</b>`).join(" · ");
+			d.get_field("preview").$wrapper.html(`<p class="text-muted">${__("{0} images", [r.message.images])}: ${rows} …</p>`);
+		});
+	const d = new frappe.ui.Dialog({
+		title: __("Label the Leaves"),
+		fields: [
+			{ fieldname: "sides", fieldtype: "Select", label: __("Sides shown by each image sequence"), options: ["a/b", "r/v", "none"], default: "a/b", description: __("a/b: 1a, 1b, 2a… · r/v: 1r, 1v… · none: 1, 2, 3…"), change: () => show(d) },
+			{ fieldname: "start_image", fieldtype: "Int", label: __("First image of the first leaf"), default: 1, description: __("Images before it (a cover, a ruler and colour card) are labelled front 1, front 2…"), change: () => show(d) },
+			{ fieldname: "leaves", fieldtype: "Int", label: __("Images that are leaves (0 = all the rest)"), default: 0, change: () => show(d) },
+			{ fieldname: "start_folio", fieldtype: "Int", label: __("Number of the first leaf"), default: 1, change: () => show(d) },
+			{ fieldname: "preview", fieldtype: "HTML" },
+		],
+		primary_action_label: __("Save Labels"),
+		primary_action() {
+			frappe.call({ method: "sok_resdesk.manuscripts.label_leaves", args: args(d), freeze: true }).then(() => {
+				d.hide();
+				frappe.show_alert({ message: __("Labels saved; search follows in a moment."), indicator: "green" });
+				frm.reload_doc();
+			});
+		},
+		secondary_action_label: __("Back to the Source's Numbers"),
+		secondary_action() {
+			frappe.call({ method: "sok_resdesk.manuscripts.clear_labels", args: { item: frm.doc.name } }).then(() => { d.hide(); frm.reload_doc(); });
+		},
+	});
+	d.show();
+	show(d);
 }

@@ -173,6 +173,7 @@
 					{% if curated %}<dt>{{ _("Collections") }}</dt><dd>
 						{% for c in curated %}<a class="rd-chip" href="/library/collection/{{ c.name | urlencode }}">{{ c.title }}</a>{% endfor %}
 					</dd>{% endif %}
+					{% for m in item.manuscript %}<dt>{{ _(m.label) }}</dt><dd>{{ m.value }}</dd>{% endfor %}
 					{% if item.item_type and item.item_type != "Book" %}<dt>{{ _("Type") }}</dt><dd>{{ _(item.item_type) }}</dd>{% endif %}
 					{% if item.collections %}<dt>{{ _("Source collections") }}</dt><dd>{{ item.collections | join(", ") }}</dd>{% endif %}
 					<dt>{{ _("Access") }}</dt><dd>{{ item.access_status }}{% if item.visibility != "Public" %} · {{ _("members only") if item.visibility == "Login to find" else _("login to read") }}{% endif %}</dd>

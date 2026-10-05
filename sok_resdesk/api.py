@@ -282,7 +282,7 @@ def page(item_id: str, leaf: int = 0):
 		"can_proofread": pagetext.can_proofread(),
 		"leaf": leaf,
 		"last": last,
-		"label": here.get("label") or "",
+		"label": here.get("label") or (record.get("leaf_labels") or {}).get(leaf) or "",
 		"text": here.get("text") or "",
 		"has_text": bool(pages),
 		"image": page_image_url(record, leaf),

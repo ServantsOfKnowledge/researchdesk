@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.54.0 (2026-11-02): Manuscripts and palm leaves
+
+- **A manuscript's own details**: a *Manuscript* section on the book (holding institution,
+  shelfmark, material, script, leaves, dimensions, condition, scribe, date copied, works
+  contained, colophon, provenance), shown on the book's page and in its IIIF manifest
+- **Label the Leaves** (Item → Actions): photographs 1, 2, 3… become *1a, 1b, 2a…* (or *r/v*, or
+  plain numbers), with images before and after the leaves named *front n* and *end n*, previewed
+  before saving; the labels follow into the reader, search, page citations and IIIF canvases
+- **Transcribing from nothing**: a manuscript opens Page & text with Proofread even before any text
+  exists; the first transcribed leaf makes the book searchable as text; the Proofreading page lists
+  manuscripts to transcribe, the least done first; see [Manuscripts and palm leaves](docs/manuscripts.md)
+
 ## 0.53.0 (2026-11-01): Repository deposit
 
 - **People can deposit their own work** on the portal (`/library/deposit`): details, licence (CC0,

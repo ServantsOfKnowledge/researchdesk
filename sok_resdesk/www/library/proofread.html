@@ -49,5 +49,18 @@
 		</tbody>
 	</table>
 	{% endif %}
+	{% if manuscripts %}
+	<h2>{{ _("Manuscripts to transcribe") }}</h2>
+	<p class="rd-muted">{{ _("Manuscripts and palm-leaf bundles have no text to correct: open one, choose a leaf and type what it says beside its image. A second person validates each leaf.") }}</p>
+	<table class="table rd-proofwork__table">
+		<thead><tr><th>{{ _("Manuscript") }}</th><th>{{ _("Script") }}</th><th>{{ _("Material") }}</th><th>{{ _("Transcribed") }}</th></tr></thead>
+		<tbody>
+		{% for b in manuscripts %}
+		<tr><td><a href="/library/item/{{ b.name | urlencode }}?page=0&view=text">{{ b.title }}</a></td><td>{{ b.ms_script or "" }}</td><td>{{ b.ms_material or "" }}</td>
+			<td>{{ b.pages_proofread or 0 }}{% if b.page_count %} / {{ b.page_count }} ({{ b.percent_done }}%){% endif %}</td></tr>
+		{% endfor %}
+		</tbody>
+	</table>
+	{% endif %}
 </div>
 {% endblock %}

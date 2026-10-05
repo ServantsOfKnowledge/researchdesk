@@ -89,6 +89,8 @@ def item_to_record(doc) -> dict:
 		"local_pdf": doc.local_pdf or "",
 		"pdf_url": _pdf_url(doc),
 		"downloads": _downloads(doc),
+		"manuscript": _manuscript(doc),
+		"leaf_labels": _leaf_labels(doc),
 		"from_repository": doc.source == "Repository",
 		"from_wikisource": doc.source == "Wikisource",
 		"wiki_site": doc.get("wiki_site") or "",
@@ -118,6 +120,33 @@ def _arks_on() -> bool:
 
 def _absolute(url: str) -> str:
 	return f"{base_url()}{url}" if url.startswith("/") else url
+
+
+MANUSCRIPT_FIELDS = (
+	("ms_repository", "Holding institution"),
+	("ms_shelfmark", "Shelfmark"),
+	("ms_material", "Material"),
+	("ms_script", "Script"),
+	("ms_leaves", "Leaves"),
+	("ms_dimensions", "Dimensions (cm)"),
+	("ms_condition", "Condition"),
+	("ms_scribe", "Scribe"),
+	("ms_date_copied", "Date copied"),
+	("ms_contents", "Work(s) contained"),
+	("ms_colophon", "Colophon"),
+	("ms_provenance", "Provenance"),
+)
+
+
+def _manuscript(doc) -> list[dict]:
+	"""The manuscript's own details as [{label, value}], for the book page and IIIF (empty for a book)."""
+	return [{"label": label, "value": str(doc.get(f))} for f, label in MANUSCRIPT_FIELDS if doc.get(f)]
+
+
+def _leaf_labels(doc) -> dict:
+	from sok_resdesk.core.leaves import clean
+
+	return clean(doc.get("leaf_labels"))
 
 
 def _downloads(doc) -> list[dict]:

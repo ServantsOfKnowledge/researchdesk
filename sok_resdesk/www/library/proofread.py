@@ -54,6 +54,18 @@ def get_context(context):
 		params,
 		as_dict=True,
 	)
+	# manuscripts and palm-leaf bundles, with the fewest leaves transcribed first
+	context.manuscripts = frappe.db.sql(
+		f"""select i.name, i.title, i.language_label, i.ms_script, i.ms_material, i.pages_proofread, i.page_count
+		from `tabRD Item` i where i.published = 1 and i.item_type = 'Manuscript' {lang_cond}
+		order by i.pages_proofread / greatest(i.page_count, 1) asc, i.title limit 50""",
+		params,
+		as_dict=True,
+	)
+	for row in context.manuscripts:
+		row.percent_done = (
+			round(100 * cint(row.pages_proofread) / cint(row.page_count)) if cint(row.page_count) else 0
+		)
 	context.languages = frappe.db.sql_list(
 		"""select distinct language_label from `tabRD Item` where published = 1 and has_page_text = 1
 		and ifnull(language_label, '') != '' order by language_label"""

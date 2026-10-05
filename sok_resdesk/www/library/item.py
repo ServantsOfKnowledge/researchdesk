@@ -53,7 +53,10 @@ def get_context(context):
 	context.start_leaf = max(0, cint(frappe.form_dict.get("page")))
 	# two readers side by side: the book reader (archive.org's, as before) and the page reader
 	# (page image and its text, page links and page citations); ?view=text opens the second
-	context.page_reader = bool(record.get("has_page_text") or record.get("on_archive_org"))
+	# a manuscript has its leaves beside a place to transcribe them, even before any text exists
+	context.page_reader = bool(
+		record.get("has_page_text") or record.get("on_archive_org") or record.get("item_type") == "Manuscript"
+	)
 	context.start_view = "text" if context.page_reader and frappe.form_dict.get("view") == "text" else "book"
 	# Reader: the Internet Archive's BookReader when the book is there, the PDF from our own files,
 	# or for a repository's book its record and PDF there (other sites' PDFs often refuse a frame)

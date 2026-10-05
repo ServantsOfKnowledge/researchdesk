@@ -115,6 +115,7 @@ def manifest(
 		pair("Identifier", record.get("ark") or record.get("persistent_id")),
 		pair("DOI", record.get("doi")),
 		pair("Source", record.get("source_url")),
+		*[pair(m["label"], m["value"]) for m in record.get("manuscript") or []],
 	]
 	out: dict = {
 		"@context": PRESENTATION,
@@ -202,7 +203,7 @@ def manifest(
 		canvas = {
 			"id": cid,
 			"type": "Canvas",
-			"label": {"none": [str(leaf + 1)]},
+			"label": {"none": [(record.get("leaf_labels") or {}).get(leaf) or str(leaf + 1)]},
 			"width": width,
 			"height": height,
 			"items": [

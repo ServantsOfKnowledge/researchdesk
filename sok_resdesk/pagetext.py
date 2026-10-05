@@ -53,6 +53,22 @@ def current(item_id: str) -> dict[int, dict]:
 	return {cint(r.leaf): r for r in rows}
 
 
+def _labelled(item_id: str, pages: list[dict]) -> list[dict]:
+	"""A manuscript's leaf labels (1a, 1b…) take the place of the page numbers the source gave."""
+	from sok_resdesk.core.leaves import clean
+
+	try:
+		labels = clean(frappe.db.get_value("RD Item", item_id, "leaf_labels"))
+	except Exception:
+		return pages
+	if not labels:
+		return pages
+	for p in pages:
+		if p["leaf"] in labels:
+			p["label"] = labels[p["leaf"]]
+	return pages
+
+
 def apply(item_id: str, pages: list[dict]) -> list[dict]:
 	"""archive.org's pages with the current versions laid over them (called by fetch_pages)."""
 	try:
@@ -60,13 +76,13 @@ def apply(item_id: str, pages: list[dict]) -> list[dict]:
 	except Exception:
 		return pages  # e.g. during install, before the table exists
 	if not versions:
-		return pages
+		return _labelled(item_id, pages)
 	by_leaf = {p["leaf"]: dict(p) for p in pages}
 	for leaf, v in versions.items():
 		page = by_leaf.setdefault(leaf, {"leaf": leaf, "label": v.page_label or ""})
 		page["text"] = v.text or ""
 		page["status"] = v.status
-	return [by_leaf[k] for k in sorted(by_leaf)]
+	return _labelled(item_id, [by_leaf[k] for k in sorted(by_leaf)])
 
 
 def save(
@@ -118,6 +134,13 @@ def _after_change(item_id: str, leaf: int, reindex: bool = True) -> None:
 		frappe.db.count(DT, {"item": item_id, "is_current": 1, "status": ("in", HUMAN)}),
 		update_modified=False,
 	)
+	if frappe.db.exists(DT, {"item": item_id, "is_current": 1, "status": ("in", HUMAN), "text": ("!=", "")}):
+		# a leaf nobody had read now has text: the book can be searched and read as text
+		restricted = frappe.db.get_value("RD Item", item_id, "access_status") == "Restricted"
+		if not restricted:
+			frappe.db.set_value(
+				"RD Item", item_id, {"has_page_text": 1, "has_fulltext": 1}, update_modified=False
+			)
 	if not reindex:
 		return
 	from sok_resdesk.ingest import fetch_pages
