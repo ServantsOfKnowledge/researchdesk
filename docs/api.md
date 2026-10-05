@@ -97,7 +97,8 @@ only; 10 a minute.
 
 | Endpoint | |
 |---|---|
-| `sok_resdesk.ingest.count_profile` (`profile`) | count matching IA items |
+| `sok_resdesk.ingest.count_profile` (`profile`) | count matching IA items (folder items, repository records) |
+| `sok_resdesk.repository.check` (`profile`) | a repository profile: the repository's name, its sets and one record as it would be catalogued |
 | `sok_resdesk.ingest.start_ingest` (`profile`) | queue a run, returns the run name |
 | `sok_resdesk.ia_sync.sync_now` (`profile`) | bring in what changed on archive.org since the profile's last run; returns the run name |
 | `sok_resdesk.ingest.refresh_item` (`item_id`) | re-fetch one item from IA |

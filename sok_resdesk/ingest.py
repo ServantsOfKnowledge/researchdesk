@@ -112,6 +112,12 @@ def _source_pages(
 
 			return fix_book(item_id, cached, ia)  # cached in the old order: put right once
 	local = frappe.db.get_value("RD Item", item_id, ["source", "local_store", "local_path"], as_dict=True)
+	if local and local.source == "Repository":
+		from sok_resdesk.repository import source_pages
+
+		pages = source_pages(item_id)
+		_fetched(item_id, pages, use_cache)
+		return pages
 	if local and local.source == "Local":
 		from sok_resdesk.local_source import sections_from_text, store_for_item
 
@@ -158,13 +164,17 @@ def count_profile(profile: str) -> dict:
 		from sok_resdesk.local_source import open_profile_store
 
 		count = sum(1 for _ in open_profile_store(doc).iter_items())
+	elif doc.is_repository:
+		from sok_resdesk.repository import harvester
+
+		count = harvester(doc).count(doc.oai_prefix or "oai_dc", doc.oai_set or "")
 	elif doc.scope_type == "Metadata File":
 		count = len(read_metadata_file(doc)["rows"])
 	elif doc.scope_type == "Identifier List":
 		count = len(doc.identifier_list())
 	else:
 		count = client().count(query)
-	frappe.db.set_value("RD Ingest Profile", profile, "matching_count", count)
+	frappe.db.set_value("RD Ingest Profile", profile, "matching_count", cint(count))
 	from sok_resdesk.capacity import status
 
 	room = status()
@@ -192,7 +202,11 @@ def cancel_run(run: str) -> None:
 def refresh_item(item_id: str) -> str:
 	frappe.only_for(("System Manager", "ResDesk Manager", "ResDesk Cataloguer"))
 	doc = frappe.get_doc("RD Item", item_id)
-	if doc.source == "Local":
+	if doc.source == "Repository":
+		from sok_resdesk.repository import refresh
+
+		refresh(doc)
+	elif doc.source == "Local":
 		from sok_resdesk.local_source import ingest_local_one, store_for_item
 
 		store = store_for_item(doc)
@@ -410,6 +424,13 @@ def plan_run(
 				+ (f"; taking {len(ids):,}" if limit and limit < len(dump["rows"]) else ""),
 				verbose,
 			)
+		elif profile.is_repository:
+			# the repository's records (only those changed since the last harvest); deleted ones
+			# are taken off the portal while listing
+			from sok_resdesk import repository
+
+			ids = repository.plan(run_name, profile, limit, lambda m: _log(run_name, m, verbose))
+			only_new = False
 		elif profile.is_folder:
 			# Every item goes to a batch: unchanged ones are skipped there by comparing
 			# file signatures, so new *and* changed books are picked up.
@@ -900,7 +921,7 @@ def run_batch(run_name: str, item_ids: list, batch_no: int = 0, verbose: bool = 
 	refresh = bool(cint(profile.update_existing))
 	# same rule as plan_run: books already in the catalogue are only fetched again when asked
 	only_new = (
-		not profile.is_folder
+		profile.on_archive_org
 		and not ia_sync.is_sync_run(run, profile)
 		and (run.triggered_by == "Scheduler" or not refresh)
 	)
@@ -946,6 +967,12 @@ def run_batch(run_name: str, item_ids: list, batch_no: int = 0, verbose: bool = 
 					if store is not None:
 						outcome, pages = ingest_local_one(
 							store, item_id, loc, profile, fetch_text, force=refresh, buffer=buffer
+						)
+					elif profile.is_repository:
+						from sok_resdesk import repository
+
+						outcome, pages = repository.ingest_one(
+							list(entry), profile, fetch_text, force=refresh, buffer=buffer
 						)
 					else:
 						created, pages = _ingest_one(
@@ -1074,6 +1101,9 @@ def _finish(run_name: str, verbose: bool = False) -> None:
 		)
 	frappe.db.sql(f"update `{RUN}` set finished_on=%s where name=%s", (now_datetime(), run_name))
 	_set_status(run_name, status)
+	from sok_resdesk.repository import clean_parts
+
+	clean_parts(run_name)  # a repository's harvested records, kept for the batches
 	frappe.db.commit()
 	try:
 		from sok_resdesk.ia_sync import after_run

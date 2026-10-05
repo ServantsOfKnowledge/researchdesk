@@ -12,7 +12,9 @@ Choose a collection, a search or a list of items on archive.org, and Research De
   archive.org's search records in bulk, or from a **metadata file** made with the `ia` tool;
   page text follows in the background) *or* from
   **IA-style item folders** on your own disk, NAS or web
-  server, with a drop folder that picks up new and changed books automatically
+  server, with a drop folder that picks up new and changed books automatically, *or* from
+  **institutional repositories** (DSpace, EPrints and any other that offers OAI-PMH), their
+  PDFs' text read page by page
 - **stay in step with archive.org** by itself: every day, books added to a collection come in,
   changed ones are refreshed and removed ones are unpublished, and every archive.org collection
   the books belong to (sub-collections too) gets a portal page that keeps itself up to date
@@ -176,7 +178,7 @@ day, changed ones are refreshed, removed ones are unpublished
 |---|---|
 | Readers | [Using the library](docs/reader-guide.md) · [Searching](docs/searching.md) · [Citations & reading lists](docs/citations.md) |
 | Library staff | [Staff guide: a tour of the Desk](docs/staff-guide.md) |
-| Librarians & educators | [Getting started](docs/getting-started.md) · [Choosing & ingesting books](docs/ingesting.md) · [Your own folders & servers](docs/local-folders.md) |
+| Librarians & educators | [Getting started](docs/getting-started.md) · [Choosing & ingesting books](docs/ingesting.md) · [Your own folders & servers](docs/local-folders.md) · [Repositories (DSpace, EPrints)](docs/repositories.md) |
 | Library managers | [Who can see what: members-only books & reader accounts](docs/access.md) · [Collections, metadata, exports & pushing](docs/collections-and-metadata.md) · [Permanent links, preservation & OCR quality](docs/preservation.md) |
 | Library systems staff | [Koha & interoperability](docs/koha.md) · [API](docs/api.md) |
 | System administrators | [Installation](docs/installation.md) · [Server: updates, health & backups](docs/server.md) · [Operations](docs/operations.md) · [Moving to another server](docs/moving.md) · [Scaling to 50k books](docs/scaling.md) |
@@ -185,7 +187,7 @@ day, changed ones are refreshed, removed ones are unpublished
 ## How it fits together
 
 ```
- archive.org / your folders ──(metadata + OCR text)──▶ Ingest jobs ──▶ Frappe / MariaDB  (catalogue,
+ archive.org, folders, repositories ──(metadata+text)▶ Ingest jobs ──▶ Frappe / MariaDB  (catalogue,
                                                         │                            notes, page texts)
                                                         └──────▶ Meilisearch       (books + pages)
   Proofreaders ──▶ corrections, re-OCR (Tesseract) ──▶ page text versions ──▶ search, reader, citations

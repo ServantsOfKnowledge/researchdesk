@@ -26,8 +26,9 @@ TOURS: dict[str, list[tuple[str, str, str]]] = {
 		(
 			"source",
 			"Where the books are",
-			"<b>Internet Archive</b> for archive.org, or <b>Folder or Server</b> for "
-			"IA-style item folders on this computer, a NAS or a web server.",
+			"<b>Internet Archive</b> for archive.org, <b>Folder or Server</b> for "
+			"IA-style item folders on this computer, a NAS or a web server, or "
+			"<b>Repository (OAI-PMH)</b> for DSpace, EPrints and other repositories.",
 		),
 		(
 			"scope_type",

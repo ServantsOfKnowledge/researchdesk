@@ -7,6 +7,7 @@ from frappe.model.document import Document
 
 from sok_resdesk.core.ia import IAClient, IAError
 
+REPOSITORY = "Repository (OAI-PMH)"
 IDS_IN_ONE_QUERY = 100  # identifiers per archive.org search (a longer address is refused)
 
 
@@ -18,10 +19,36 @@ class RDIngestProfile(Document):
 			self.build_query()
 		except IAError as e:
 			frappe.throw(str(e))
+		if self.is_repository:
+			self._repository_defaults()
+
+	def _repository_defaults(self):
+		"""An identifier prefix (from the repository's address when none is given), letters,
+		digits and hyphens only; and nothing archive.org-only switched on."""
+		import re
+		from urllib.parse import urlparse
+
+		prefix = (self.id_prefix or "").strip()
+		if not prefix:
+			host = urlparse((self.oai_url or "").strip()).hostname or "repo"
+			parts = [p for p in host.split(".") if p not in ("www", "dspace", "eprints", "repository", "oai")]
+			prefix = parts[0] if parts else "repo"
+		self.id_prefix = re.sub(r"[^a-z0-9-]+", "-", prefix.lower()).strip("-") or "repo"
+		self.oai_prefix = (self.oai_prefix or "").strip() or "oai_dc"
+		self.keep_in_sync = 0
+		self.catalogue_first = 0
 
 	@property
 	def is_folder(self) -> bool:
 		return self.source == "Folder or Server"
+
+	@property
+	def is_repository(self) -> bool:
+		return self.source == REPOSITORY
+
+	@property
+	def on_archive_org(self) -> bool:
+		return not (self.is_folder or self.is_repository)
 
 	def identifier_list(self) -> list[str]:
 		"""The profile's identifiers, once each, in order (one per line; commas and spaces too)."""
@@ -35,6 +62,12 @@ class RDIngestProfile(Document):
 			if not (self.location or "").strip():
 				raise IAError("Folder path or server URL is empty")
 			return f"items under {self.location.strip()}"
+		if self.is_repository:
+			if not (self.oai_url or "").strip():
+				raise IAError("Give the repository's OAI-PMH address")
+			return f"records at {self.oai_url.strip()}" + (
+				f" in set {self.oai_set.strip()}" if self.oai_set else ""
+			)
 		if self.scope_type == "Metadata File":
 			where = (self.metadata_path or "").strip() or (self.metadata_file or "").strip()
 			if not where:

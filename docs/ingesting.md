@@ -1,7 +1,8 @@
 # Choosing & ingesting books
 
 > Books in IA-style folders on your own disk, NAS or web server? See
-> [Books from your own folders or servers](local-folders.md). This page covers archive.org.
+> [Books from your own folders or servers](local-folders.md). From a DSpace, EPrints or other
+> OAI-PMH repository? See [Books from repositories](repositories.md). This page covers archive.org.
 
 Research Desk never tries to copy "everything". You decide what comes in, using an
 **Ingest Profile**: a saved description of a set of items on archive.org. That keeps a
@@ -270,7 +271,7 @@ archive.org only what changed since the last run ("In Step Up To" on the profile
 |---|---|
 | a book was **added** to the collection (or now matches the search) | it comes in, with its page text: all new books, whatever *Maximum Items* says (that limits the first run only), within the [book limit](server.md#book-limit) |
 | a book's details or files **changed** (*Update Changed Books*) | it is refreshed; books with *Keep My Edits* keep your corrections |
-| a book was **taken out** of the collection, or made dark (*Unpublish Removed Books*) | it is unpublished and marked *Removed from archive.org*; nothing is deleted, and it is published again if it comes back |
+| a book was **taken out** of the collection, or made dark (*Unpublish Removed Books*) | it is unpublished and marked *Removed from Its Source*; nothing is deleted, and it is published again if it comes back |
 
 Removals are checked carefully: a book counts as gone only when archive.org confirms it (dark,
 or no longer in the collection; for a *Search Query* profile, only dark books). If many of a

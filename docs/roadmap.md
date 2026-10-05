@@ -111,7 +111,8 @@
       52(1)(zb)
 - [ ] Machine drafts for Portal Translations (e.g. IndicTrans2 or a translation service), checked
       by a person before they show
-- [ ] More sources: Wikisource, DSpace/OAI-PMH repositories, bare PDFs with no OCR (OCR on ingest)
+- [x] Books from DSpace, EPrints and any OAI-PMH repository, with their PDFs' text (0.39)
+- [ ] More sources: Wikisource, bare PDFs with no OCR (OCR on ingest)
 - [ ] Offline collections (Kiwix packages) for schools and places with poor connections
 
 ## v1.0: library-grade

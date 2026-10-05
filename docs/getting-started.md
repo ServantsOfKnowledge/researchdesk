@@ -82,7 +82,8 @@ profile matches more books than this machine has room for (the
 [book limit](server.md#book-limit)).
 
 Books in your own folders (scans not yet on archive.org, a NAS, another server)? See
-[Books from your own folders or servers](local-folders.md).
+[Books from your own folders or servers](local-folders.md). From a DSpace, EPrints or other
+repository? See [Books from repositories](repositories.md).
 
 ## 6. Cite a book
 

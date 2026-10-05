@@ -25,7 +25,7 @@ CHECK_BY_NAME = 5000  # up to this many books, look them up by name instead of l
 
 def is_sync_run(run, profile) -> bool:
 	return bool(
-		not profile.is_folder
+		profile.on_archive_org
 		# a file, or a fixed list of books, has no new books to find on archive.org
 		and profile.get("scope_type") not in ("Metadata File", "Identifier List")
 		and cint(profile.keep_in_sync)
@@ -178,7 +178,7 @@ def after_run(run_name: str) -> None:
 	if not run or run.status not in ("Completed", "Completed with Errors"):
 		return
 	profile = frappe.get_doc("RD Ingest Profile", run.profile)
-	if profile.is_folder:
+	if not profile.on_archive_org:
 		return
 	started = run.started_on or run.creation
 	if cint(profile.keep_in_sync) and (
@@ -212,7 +212,7 @@ def _members() -> tuple[dict[str, set[str]], dict[str, str]]:
 	spelling: dict[str, str] = {}
 	for name, cols in frappe.db.sql(
 		"""select name, collections from `tabRD Item`
-		where ifnull(source, '') != 'Local' and ifnull(removed_from_source, 0) = 0"""
+		where ifnull(source, '') not in ('Local', 'Repository') and ifnull(removed_from_source, 0) = 0"""
 	):
 		for c in (cols or "").splitlines():
 			c = c.strip()

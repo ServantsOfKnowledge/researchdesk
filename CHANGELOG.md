@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.39.0 (2026-10-19): Books from repositories (DSpace, EPrints, OAI-PMH)
+
+- **A new source for Ingest Profiles: Repository (OAI-PMH).** Give a DSpace, EPrints, Islandora,
+  OJS or other repository's OAI-PMH address (and a set, if you want only one community or
+  collection): its records are catalogued with the same clean-up as archive.org's (languages,
+  the year of publication rather than the day deposited, authors, subjects, licences, theses
+  and reports as such), the repository's name as the books' collection. Each record's PDF is
+  found (in the record, or on its web page from `citation_pdf_url`) and its text layer becomes
+  the book's page text, page by page, for search inside the book and *Page & text*
+- Later runs ask only for records changed since the last harvest; records the repository
+  deleted are taken off the portal (and come back if restored); unchanged records aren't fetched
+  again. Scans with no text are catalogued and wait for OCR (next release)
+- **Check Repository** on the profile: the repository's name, its sets and one record as it will
+  be catalogued, with its web page and PDF
+- A repository's book page links to **the PDF** and **the record in its repository**; the
+  repository stays the store of record
+- *Removed from archive.org* is now *Removed from Its Source*
+- Docs: [Books from repositories](docs/repositories.md); the architecture's integrations table
+
 ## 0.38.1 (2026-10-18): A quieter search engine
 
 - The search engine is sent only real work. Index settings go only when they differ from what it

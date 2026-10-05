@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-09 10:00:00.000000",
+ "modified": "2026-10-10 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Item",
@@ -69,6 +69,8 @@
   "on_archive_org",
   "local_store",
   "local_path",
+  "oai_identifier",
+  "remote_pdf",
   "column_break_l",
   "local_pdf",
   "local_thumb",
@@ -133,7 +135,7 @@
    "fieldname": "source",
    "fieldtype": "Select",
    "label": "Source",
-   "options": "Internet Archive\nLocal\nOther",
+   "options": "Internet Archive\nLocal\nRepository\nOther",
    "default": "Internet Archive",
    "in_standard_filter": 1
   },
@@ -499,6 +501,25 @@
    "length": 1000
   },
   {
+   "fieldname": "oai_identifier",
+   "fieldtype": "Data",
+   "label": "Repository Record",
+   "read_only": 1,
+   "no_copy": 1,
+   "search_index": 1,
+   "depends_on": "eval:doc.source=='Repository'",
+   "description": "The record's OAI-PMH identifier in its repository."
+  },
+  {
+   "fieldname": "remote_pdf",
+   "fieldtype": "Data",
+   "label": "PDF at the Repository",
+   "read_only": 1,
+   "no_copy": 1,
+   "depends_on": "eval:doc.source=='Repository'",
+   "options": "URL"
+  },
+  {
    "fieldname": "column_break_l",
    "fieldtype": "Column Break"
   },
@@ -647,9 +668,9 @@
   {
    "fieldname": "removed_from_source",
    "fieldtype": "Check",
-   "label": "Removed from archive.org",
+   "label": "Removed from Its Source",
    "read_only": 1,
-   "description": "Unpublished because it was taken out of its archive.org collection or made dark; published again if it comes back."
+   "description": "Unpublished because it was taken out of its archive.org collection (or made dark), or deleted in its repository; published again if it comes back."
   },
   {
    "fieldname": "last_ingested",

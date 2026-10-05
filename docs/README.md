@@ -12,6 +12,7 @@ The same pages are inside the app: **Help** on the portal (for readers) and **He
 2. [Installation](installation.md): Docker or native install (macOS, Ubuntu/Debian), prebuilt images, a server with a domain and HTTPS from Let's Encrypt (also [step by step on a server that already runs nginx](installation.md#step-by-step-a-new-linux-server-that-already-runs-nginx)), changing the portal's address, Coolify, developer mode, upgrading
 3. [Choosing & ingesting books](ingesting.md): profiles, archive.org search syntax, the Servants of Knowledge sub-collections, keeping in step with archive.org (new, changed and removed books; mirrored collections), schedules
    - [Books from your own folders or servers](local-folders.md): IA-style item folders on disk, NAS or a web server; drop-folder mode
+   - [Books from repositories](repositories.md): DSpace, EPrints and any OAI-PMH repository; their PDFs' text page by page; kept in step
 4. [Searching](searching.md): books vs. inside-the-text search, filters, Kannada and other scripts
 5. [Citations & reading lists](citations.md): formats, Zotero, sharing a bibliography
 6. [Who can see what](access.md): members-only books, public catalogue or internal library, reader sign-up and approval, bulk changes

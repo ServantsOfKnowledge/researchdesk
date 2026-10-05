@@ -141,8 +141,13 @@ installer breaks for librarians, CI breaks too.
 4. Branch on `profile.source` in `ingest.run_ingest`/`_ingest_one`.
 5. Unit tests with recorded fixtures (no network in `test_core.py` / `unit_*.py`).
 
-Good next candidates: Wikisource, Digital Library of India mirrors, DSpace repositories (via
-OAI-PMH, reusing `core/oai.py` concepts), and local uploads (PDF + OCR).
+The OAI-PMH repository source (0.39) is a worked example: `core/harvest.py` (client and
+normaliser), `repository.py` (`plan` for listing a run's records, `ingest_one` for one record in
+a batch, `source_pages` for the text when the cache lacks it), the `is_repository` branches in
+`ingest.py`, and `tests/unit_harvest.py` / `tests/test_repository.py` with recorded answers.
+
+Good next candidates: Wikisource, Digital Library of India mirrors, and local uploads (PDF +
+OCR).
 
 ## Keeping the docs current
 

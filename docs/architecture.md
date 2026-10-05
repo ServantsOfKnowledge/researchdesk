@@ -44,6 +44,7 @@ offline or sending to partners; `python3 scripts/docs_pdf.py` makes one from the
                                                ▼
                          archive.org: scrape API · metadata API · hOCR search text · page images
                          your folders / web server: meta.xml · OCR text · PDF
+                         repositories (DSpace, EPrints…): OAI-PMH records · PDFs and their text
                          preservation folder · second copy (folder or S3-compatible bucket)
 ```
 
@@ -66,13 +67,13 @@ cause. Details: [Server](server.md#how-the-updater-helper-works).
 
 | DocType | Purpose | Key fields |
 |---|---|---|
-| **RD Item** | one book/document | `item_id` (= IA identifier, the document name), title, alt_title, creators (table), year, language (ISO 639-3), publisher, subjects (multi-select), collections (source), curated_collections, item_type, lock_metadata ("Keep My Edits"), removed_from_source, licence, access, visibility (Public / Login to read / Login to find) and visibility_set_by, page_count, has_page_text, ark (archive.org's), persistent_id (this library's permanent ARK), ocr_quality and ocr_low_pages, ocr_languages (the languages to OCR it in), doi / doi_state (DataCite), details_pending (catalogued from its search record, full record and text still coming), reocr_state and pages_proofread (re-OCR and proofreading), page_order (page text matched to the page images by the scan data), preservation_status / preserved_on / preserved_version / preserved_bytes / fixity_checked_on, copies ("2 of 2 verified"), second_copy_status / second_copy_version / second_copy_on / second_copy_checked_on, served_from_copy, raw_metadata (JSON) |
+| **RD Item** | one book/document | `item_id` (= IA identifier, the document name; for a repository's record, the profile's prefix and the record's own identifier), source (Internet Archive / Local / Repository), oai_identifier and remote_pdf (a repository's record and PDF), title, alt_title, creators (table), year, language (ISO 639-3), publisher, subjects (multi-select), collections (source), curated_collections, item_type, lock_metadata ("Keep My Edits"), removed_from_source, licence, access, visibility (Public / Login to read / Login to find) and visibility_set_by, page_count, has_page_text, ark (archive.org's), persistent_id (this library's permanent ARK), ocr_quality and ocr_low_pages, ocr_languages (the languages to OCR it in), doi / doi_state (DataCite), details_pending (catalogued from its search record, full record and text still coming), reocr_state and pages_proofread (re-OCR and proofreading), page_order (page text matched to the page images by the scan data), preservation_status / preserved_on / preserved_version / preserved_bytes / fixity_checked_on, copies ("2 of 2 verified"), second_copy_status / second_copy_version / second_copy_on / second_copy_checked_on, served_from_copy, raw_metadata (JSON) |
 | RD Item Creator | child table | creator → RD Creator, role, name_as_given |
 | RD Item Subject | child table | subject → RD Subject |
 | **RD Creator** | a person the books name | full_name, alt_name (romanised), sort name; matched on Desk → Authorities: Wikidata, VIAF, born, died, description, match (Proposed / Confirmed / No match), candidates |
 | **RD Review Flag** | a question about a record for a cataloguer (Desk → Review Queue) | book, check (no year, wrong-looking year, language, script, author, title, subjects, duplicate), detail, weight, status (Open / Fixed / Ignored), who answered and when |
 | **RD Subject** | keyword / heading | subject_name, scheme; matched to LCSH: lcsh_id, heading, match, candidates |
-| **RD Ingest Profile** | *what* to ingest | scope (collection / query / identifiers), filter, max items, full text, schedule, keeping in step with archive.org (new, changed, removed; `synced_on`), portal collection |
+| **RD Ingest Profile** | *what* to ingest | source (archive.org, a folder or server, an OAI-PMH repository), scope (collection / query / identifiers), filter, max items, full text, schedule, keeping in step with archive.org (new, changed, removed; `synced_on`), portal collection; for a repository its address, set, identifier prefix and `harvested_until` |
 | **RD Ingest Run** | one execution | status, counts, log |
 | **RD Settings** | single | portal, branding, OAI, Meilisearch, IA politeness, machine resources, server & updates (update checks, backups, alerts), guest access, reader sign-up, access rules |
 | RD Access Rule | child table of settings | match_on (collection, subject, language, creator, source, profile), value, visibility |
@@ -186,6 +187,7 @@ contributions, Research Desk can give back what the library knows.
 | Authority or service | What Research Desk takes | What it gives back | How (code) | Switched on in |
 |---|---|---|---|---|
 | **Internet Archive** | books: metadata, page text, page images, PDFs | corrected metadata to the library's own items | scrape, metadata and search APIs; IA S3 metadata writes (`core/ia.py`, `core/push.py` IAWriter) | Ingest Profiles; Push Targets |
+| **Institutional repositories** (DSpace, EPrints, Islandora, OJS…) | records (Dublin Core), their PDFs' text page by page; deleted records | the portal's own catalogue over OAI-PMH, for them to harvest back | OAI-PMH 2.0 harvesting with resumption tokens and `from` (`core/harvest.py`), `citation_pdf_url` on the record's page, the PDF's text layer (`core/pdftext.py`) | Ingest Profiles (Repository) |
 | **Wikidata** | people for authors (names, dates, VIAF), things notes are about | book editions with their authors linked (P50, *stated as* the printed name), people's names in the books' scripts, as QuickStatements or sent directly (`contribute.py`) | MediaWiki API: `wbsearchentities`, `wbgetentities`, `wbeditentity` (`core/authority.py`, `core/wikidata.py`, `core/push.py`) | Settings → Catalogue → Authorities; Push Targets (Wikidata) |
 | **VIAF** (OCLC) | authors' VIAF numbers, through Wikidata | the numbers in MARC `$0`, JSON-LD and DOIs, so other catalogues can link | read through Wikidata P214 | with Wikidata matching |
 | **Library of Congress Subject Headings** (id.loc.gov) | headings and identifiers for subjects | MARC 650 with `$0`; headings LCSH lacks, listed for SACO proposals (`contribute.saco`) | `suggest2` API (`core/authority.py`) | Settings → Catalogue → Authorities |
@@ -231,7 +233,10 @@ OAI-PMH and MARC (see [Koha](koha.md)).
 
 Sources are pluggable at two points: a client that lists and fetches items (like
 `core/ia.py`) and a normaliser that returns the RD Item record shape (like
-`core/normalize.normalize_ia_item`). See [Development → Adding a source](development.md#adding-a-new-source).
+`core/normalize.normalize_ia_item`). The OAI-PMH source shows the pattern end to end:
+`core/harvest.py` (the protocol client, Dublin Core to the record shape, finding the PDF),
+`core/pdftext.py` (a PDF's text layer page by page) and `repository.py` (planning a run,
+one record in a batch, the book's text when the cache doesn't have it). See [Development → Adding a source](development.md#adding-a-new-source).
 
 ## Access control
 

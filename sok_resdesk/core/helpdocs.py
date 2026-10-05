@@ -43,6 +43,13 @@ PAGES = [
 		"For library staff",
 	),
 	Page(
+		"repositories",
+		"repositories.md",
+		"Books from repositories (DSpace, EPrints, OAI-PMH)",
+		"staff",
+		"For library staff",
+	),
+	Page(
 		"collections-and-metadata",
 		"collections-and-metadata.md",
 		"Collections, metadata & pushing",

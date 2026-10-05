@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.14"
-      - run: pip install ruff pytest requests pillow
+      - run: pip install ruff pytest requests pillow pypdf
       - name: Tesseract with the Kannada model (the OCR engine's test reads a rendered page)
         run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends tesseract-ocr tesseract-ocr-kan tesseract-ocr-eng fonts-knda
       - run: ruff check sok_resdesk scripts

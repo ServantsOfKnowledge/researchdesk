@@ -88,6 +88,7 @@ def item_to_record(doc) -> dict:
 		"served_from_copy": bool(doc.get("served_from_copy")),
 		"local_pdf": doc.local_pdf or "",
 		"pdf_url": _pdf_url(doc),
+		"from_repository": doc.source == "Repository",
 		"modified": doc.modified,
 		"curated_collections": [r.collection for r in doc.get("curated_collections") or []],
 		"set_specs": [c for c in (doc.collections or "").splitlines() if c.strip()]
@@ -116,8 +117,8 @@ def _absolute(url: str) -> str:
 
 
 def _pdf_url(doc) -> str:
-	"""Where readers can download the PDF: archive.org, or this portal for local-only books and
-	for books served from our preservation copy."""
+	"""Where readers can download the PDF: archive.org, this portal for local-only books and for
+	books served from our preservation copy, or the repository a book was harvested from."""
 	from urllib.parse import quote
 
 	if doc.get("served_from_copy"):
@@ -131,7 +132,7 @@ def _pdf_url(doc) -> str:
 		return f"https://archive.org/download/{doc.item_id}/{doc.item_id}.pdf"
 	if doc.local_pdf:
 		return f"{base_url()}/api/method/sok_resdesk.api.file?item_id={quote(doc.item_id, safe='')}&name={quote(doc.local_pdf, safe='')}"
-	return ""
+	return doc.get("remote_pdf") or ""  # a repository's own PDF
 
 
 def get_record(item_id: str, published_only: bool = True, check_access: bool = True) -> dict | None:
@@ -236,6 +237,8 @@ def upsert_item(
 		"text_source",
 		"source_signature",
 		"item_type",
+		"oai_identifier",
+		"remote_pdf",
 	)
 	for field in simple:
 		if locked and field in DESCRIPTIVE:
