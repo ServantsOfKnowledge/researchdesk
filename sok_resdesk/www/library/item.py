@@ -61,7 +61,10 @@ def get_context(context):
 		or record.get("item_type") == "Manuscript"
 		or record.get("local_images")
 	)
-	context.start_view = "text" if context.page_reader and frappe.form_dict.get("view") == "text" else "book"
+	# a book of photographs (a manuscript, a photograph) is read in Page & text: it has no PDF to show
+	own_images = bool(record.get("local_images"))
+	wanted = frappe.form_dict.get("view") or ("text" if own_images and not record.get("pdf_url") else "")
+	context.start_view = "text" if context.page_reader and wanted == "text" else "book"
 	# Reader: the Internet Archive's BookReader when the book is there, the PDF from our own files,
 	# or for a repository's book its record and PDF there (other sites' PDFs often refuse a frame)
 	context.reader = (

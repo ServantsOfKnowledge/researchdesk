@@ -249,7 +249,7 @@ uses.
 
 **Your institution** (the installer asks it first; [Installation](installation.md#docker-one-command)): tick every kind that fits: *Small library or school*, *Public research
 portal*, *Members-only institution*, *Archive keeping its own copies*, *University or repository
-front*, *Language-technology partner*. They combine: a library can be a public research portal and
+front*, *Language-technology partner*, *Manuscript or palm-leaf library*, *Photograph archive*. They combine: a library can be a public research portal and
 an archive at once. Ticking or unticking one sets the features to what the ticked kinds need, and
 the resource preset (Settings → Server) to the largest of theirs. You can still change each feature
 afterwards.
@@ -267,6 +267,7 @@ afterwards.
 | Preservation | the library's own checked copies, fixity, a second copy, BagIt |
 | Permanent identifiers | ARKs, DOIs, tombstones |
 | Books from folders and servers | IA-style folders and loose PDFs |
+| Photographs | [photographs as items](photographs.md): EXIF, who and where, a SHA-256 of the original, zoom |
 | Audio and video | [recordings with a player and a time-coded transcript](audio-video.md) |
 | Manuscripts and palm leaves | [their description, leaf labels and transcription](manuscripts.md) |
 | Repository deposit | people [deposit their own work](deposit.md) for review, with licence and embargo |

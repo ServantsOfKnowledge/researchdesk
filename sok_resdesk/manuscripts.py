@@ -14,6 +14,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint
 
+from sok_resdesk import features
 from sok_resdesk.core import leaves as core
 
 STAFF = ("System Manager", "ResDesk Manager", "ResDesk Cataloguer")
@@ -27,6 +28,7 @@ def _pages(item: str) -> int:
 
 
 @frappe.whitelist()
+@features.needs("manuscripts")
 def label_leaves(
 	item: str,
 	sides: str = "a/b",
@@ -61,6 +63,7 @@ def label_leaves(
 
 
 @frappe.whitelist()
+@features.needs("manuscripts")
 def clear_labels(item: str) -> None:
 	"""Back to the numbers the source gave."""
 	frappe.only_for(STAFF)

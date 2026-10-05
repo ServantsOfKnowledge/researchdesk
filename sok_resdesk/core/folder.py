@@ -45,6 +45,7 @@ import requests
 
 from sok_resdesk.core import leafimages, scandata
 from sok_resdesk.core import media as mediafiles
+from sok_resdesk.core import photo as photofiles
 
 META_SUFFIX = "_meta.xml"
 SERVABLE = {".pdf", ".jpg", ".jpeg", ".png", ".gif", ".txt", ".epub", ".webp"}
@@ -333,6 +334,7 @@ class FolderStore(ItemStore):
 
 	def __init__(self, root: str):
 		self.root = os.path.realpath(root)
+		self.photos = False  # set by a profile that takes every image as a photograph
 		if not os.path.isdir(self.root):
 			raise StoreError(f"Folder not found: {root}")
 
@@ -350,7 +352,16 @@ class FolderStore(ItemStore):
 			if dirpath.count(os.sep) - base_depth >= MAX_SCAN_DEPTH:
 				dirnames[:] = []
 			metas = [f for f in filenames if f.endswith(META_SUFFIX)]
-			if not metas and leafimages.is_bundle(filenames):
+			taken = []
+			if self.photos and not metas:  # every image is a photograph of its own
+				taken = leafimages.leaf_names(filenames)
+				for name in taken:
+					rel = os.path.relpath(os.path.join(dirpath, name), self.root)
+					yield photofiles.photo_id(rel), rel
+					seen += 1
+					if limit and seen >= limit:
+						return
+			if not metas and not taken and leafimages.is_bundle(filenames):
 				rel = os.path.relpath(dirpath, self.root)
 				yield leafimages.bundle_id(rel), rel
 				dirnames[:] = []  # a bundle's subfolders are not books
@@ -397,7 +408,16 @@ class FolderStore(ItemStore):
 				return
 
 	def _folder(self, loc: str) -> str:
-		return os.path.dirname(loc) if is_bare(loc) or mediafiles.is_media(loc) else loc
+		return os.path.dirname(loc) if is_bare(loc) or mediafiles.is_media(loc) or self.is_photo(loc) else loc
+
+	# -- a photograph: its loc is the image file itself; its details are in `<name>.json` and its EXIF --
+
+	def is_photo(self, loc: str) -> bool:
+		return (
+			loc.lower().endswith(leafimages.IMAGE_EXT)
+			and not is_bare(loc)
+			and os.path.isfile(os.path.join(self.root, loc))
+		)
 
 	# -- recordings: a media file's loc is the file itself; its stem's files belong to it -------------
 
@@ -430,6 +450,12 @@ class FolderStore(ItemStore):
 		return []
 
 	def list_files(self, loc: str) -> list[str]:
+		if self.is_photo(loc):
+			stem = os.path.splitext(os.path.basename(loc))[0]
+			files = [os.path.basename(loc)]
+			if os.path.isfile(self._path(os.path.dirname(loc), stem + ".json")):
+				files.append(stem + ".json")
+			return files
 		if mediafiles.is_media(loc):
 			return self._group(loc)
 		if is_bare(loc):
@@ -455,10 +481,22 @@ class FolderStore(ItemStore):
 		return not is_bare(loc) and leafimages.is_bundle(self.list_files(loc))
 
 	def leaves(self, loc: str) -> list[str]:
-		"""The image names of a bundle in leaf order."""
+		"""The image names of a bundle in leaf order (a photograph is a bundle of one)."""
+		if self.is_photo(loc):
+			return [os.path.basename(loc)]
 		return leafimages.leaf_names(self.list_files(loc)) if self.is_bundle(loc) else []
 
 	def load_item(self, identifier: str, loc: str) -> dict:
+		if self.is_photo(loc):
+			stem = os.path.splitext(os.path.basename(loc))[0]
+			exif = photofiles.exif_info(self._path(os.path.dirname(loc), os.path.basename(loc)))
+			meta, fields = photofiles.sidecar(self.read(loc, stem + ".json"), stem, exif)
+			meta.update({"identifier": identifier, "imagecount": 1, "photo": fields})
+			return {
+				"metadata": meta,
+				"files": [{"name": f} for f in self.list_files(loc)],
+				"page_numbers": None,
+			}
 		if mediafiles.is_media(loc):
 			names = self.media_files(loc)
 			if not names:
@@ -500,6 +538,12 @@ class FolderStore(ItemStore):
 		}
 
 	def signature(self, loc: str, identifier: str) -> str:
+		if self.is_photo(loc):
+			parts = []
+			for name in self.list_files(loc):
+				st = os.stat(self._path(os.path.dirname(loc), name))
+				parts.append(f"{name}:{st.st_size}:{int(st.st_mtime)}")
+			return hashlib.sha1("|".join(parts).encode()).hexdigest()[:16]
 		if mediafiles.is_media(loc):
 			parts = []
 			for name in self._group(loc):

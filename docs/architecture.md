@@ -25,7 +25,7 @@ offline or sending to partners; `python3 scripts/docs_pdf.py` makes one from the
    `core/seo.py`, `core/netguard.py`; [Server → Security](server.md#security)).
 6. **Only what the library uses.** Institutions differ, so what Research Desk does is chosen, not
    assumed: the installer asks what kind of institution this is (profiles that combine), and
-   Settings → Features switches sixteen features on and off. A feature that is off is not
+   Settings → Features switches eighteen features on and off. A feature that is off is not
    collected: its scheduled work stops, its Desk screens go and calls that would make new data of
    its kind are refused, while what exists stays and who sees it is still decided by access
    (`features.py`; [Staff guide → Features](staff-guide.md#features-and-your-institution)).

@@ -68,7 +68,10 @@ def open_profile_store(profile) -> ItemStore:
 	location = (profile.location or "").strip()
 	if location.startswith(("http://", "https://")):
 		return open_store("http", location, (profile.manifest_url or "").strip())
-	return folder_store(check_folder_allowed(location))
+	store = folder_store(check_folder_allowed(location))
+	if isinstance(store, FolderStore):
+		store.photos = bool(profile.get("images_as_photographs"))  # every image a photograph
+	return store
 
 
 def folder_store(path: str) -> ItemStore:
@@ -235,8 +238,19 @@ def ingest_local_one(
 			"WebVTT or SRT" if segments else "",
 		)
 	pdf, thumb = store.pdf_name(item_id, loc), store.thumb_name(loc)
-	bundle = hasattr(store, "is_bundle") and store.is_bundle(loc)
-	options = leafimages.sidecar_options(store.read(loc, leafimages.SIDECAR)) if bundle else {}
+	photograph = hasattr(store, "is_photo") and store.is_photo(loc)
+	bundle = photograph or (hasattr(store, "is_bundle") and store.is_bundle(loc))
+	if photograph:
+		options = {"item_type": "Photograph", "ocr": False, "manuscript": {}}
+	else:
+		options = leafimages.sidecar_options(store.read(loc, leafimages.SIDECAR)) if bundle else {}
+	if bundle:  # manuscripts and photographs are features of the institutions that keep them
+		from sok_resdesk import features
+
+		if not features.on(
+			"photographs" if options["item_type"] == "Photograph" else "manuscripts"
+		) and options["item_type"] in ("Photograph", "Manuscript"):
+			return "unchanged", 0
 	restricted = record["access_status"] == "Restricted"
 	if fetch_text and not pages and pdf and not on_ia:
 		pages, text_source, count = pdf_text(store, item_id, loc, pdf)
@@ -278,7 +292,7 @@ def ingest_local_one(
 					]
 				)
 				if recording
-				else ""
+				else ("\n".join(store.leaves(loc)) if photograph else "")
 			),
 			"local_images": "\n".join(store.leaves(loc)) if bundle else "",
 			"text_source": text_source,
@@ -302,6 +316,18 @@ def ingest_local_one(
 		)
 		current = frappe.db.get_value("RD Item", name, list(rec) or ["name"], as_dict=True)
 		fill = {k: v for k, v in rec.items() if not (current or {}).get(k)}
+		if fill:
+			frappe.db.set_value("RD Item", name, fill, update_modified=False)
+	if photograph:
+		# the photograph's own fields (its EXIF, and its .json): set while empty, never over a person's edit
+		fields = dict(meta.get("photo") or {})
+		path = store.file_path(loc, store.leaves(loc)[0])
+		if path:
+			from sok_resdesk.core import photo as photofiles
+
+			fields["ph_sha256"] = photofiles.sha256_of(path)  # the original, to check its fixity later
+		current = frappe.db.get_value("RD Item", name, list(fields) or ["name"], as_dict=True)
+		fill = {k: v for k, v in fields.items() if k == "ph_sha256" or not (current or {}).get(k)}
 		if fill:
 			frappe.db.set_value("RD Item", name, fill, update_modified=False)
 	if bundle:

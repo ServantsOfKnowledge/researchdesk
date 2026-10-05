@@ -145,7 +145,7 @@
 				{% endif %}
 			</div>
 			{% if page_reader %}
-			<div class="rd-view-pane rd-pages{% if start_view != 'text' %} is-hidden{% endif %}" data-pane="text" id="rd-pages" data-start="{{ start_leaf }}">
+			<div class="rd-view-pane rd-pages{% if item.item_type == 'Photograph' %} rd-photo{% endif %}{% if start_view != 'text' %} is-hidden{% endif %}" data-pane="text" id="rd-pages" data-start="{{ start_leaf }}">
 				<div class="rd-pages__bar">
 					<button class="rd-btn" type="button" data-step="-1" aria-label="{{ _('Previous page') }}">←</button>
 					<label class="rd-pages__where">{{ _("Page image") }} <input type="number" min="1" id="rd-pages-n" value="{{ start_leaf + 1 }}"> <span id="rd-pages-of"></span></label>
@@ -197,6 +197,7 @@
 					</dd>{% endif %}
 					{% for m in item.manuscript %}<dt>{{ _(m.label) }}</dt><dd>{{ m.value }}</dd>{% endfor %}
 					{% for m in item.recording %}<dt>{{ _(m.label) }}</dt><dd>{{ m.value }}</dd>{% endfor %}
+					{% for m in item.photograph %}<dt>{{ _(m.label) }}</dt><dd>{% if m.label == "SHA-256 of the original" %}<code>{{ m.value }}</code>{% else %}{{ m.value }}{% endif %}</dd>{% endfor %}
 					{% if item.item_type and item.item_type != "Book" %}<dt>{{ _("Type") }}</dt><dd>{{ _(item.item_type) }}</dd>{% endif %}
 					{% if item.collections %}<dt>{{ _("Source collections") }}</dt><dd>{{ item.collections | join(", ") }}</dd>{% endif %}
 					<dt>{{ _("Access") }}</dt><dd>{{ item.access_status }}{% if item.visibility != "Public" %} · {{ _("members only") if item.visibility == "Login to find" else _("login to read") }}{% endif %}</dd>

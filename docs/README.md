@@ -12,6 +12,7 @@ The same pages are inside the app: **Help** on the portal (for readers) and **He
 2. [Installation](installation.md): Docker or native install (macOS, Ubuntu/Debian), prebuilt images, a server with a domain and HTTPS from Let's Encrypt (also [step by step on a server that already runs nginx](installation.md#step-by-step-a-new-linux-server-that-already-runs-nginx)), changing the portal's address, Coolify, developer mode, upgrading
 3. [Choosing & ingesting books](ingesting.md): profiles, archive.org search syntax, the Servants of Knowledge sub-collections, keeping in step with archive.org (new, changed and removed books; mirrored collections), schedules
    - [Books from your own folders or servers](local-folders.md): IA-style item folders on disk, NAS or a web server; drop-folder mode
+   - [Photographs](photographs.md): photographs as items with their EXIF, who and where, a SHA-256 of the original and a zoom viewer
    - [Audio and video](audio-video.md): recordings in folders and from archive.org, with a player, a time-coded transcript, captions and IIIF
    - [Manuscripts and palm leaves](manuscripts.md): describing them, labelling leaves (1a, 1b…), transcribing leaves nobody has read
    - [Repository deposit](deposit.md): people deposit their own work (files, licence, embargo); a librarian reviews and accepts it

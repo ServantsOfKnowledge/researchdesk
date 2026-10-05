@@ -64,6 +64,17 @@
   "duration",
   "media_files",
   "leaf_times",
+  "section_photo",
+  "ph_taken_on",
+  "ph_place",
+  "ph_event",
+  "ph_people",
+  "column_break_photo",
+  "ph_depicts",
+  "ph_camera",
+  "ph_gps",
+  "ph_dimensions",
+  "ph_sha256",
   "section_rights",
   "licence_url",
   "rights",
@@ -171,7 +182,7 @@
    "fieldname": "item_type",
    "fieldtype": "Select",
    "label": "Document Type",
-   "options": "Book\nPeriodical\nArticle\nThesis\nReport\nManuscript\nMap\nAudio\nVideo\nOther",
+   "options": "Book\nPeriodical\nArticle\nThesis\nReport\nManuscript\nMap\nAudio\nVideo\nPhotograph\nOther",
    "default": "Book",
    "in_standard_filter": 1
   },
@@ -929,6 +940,71 @@
    "read_only": 1,
    "hidden": 1,
    "description": "The start and end seconds of every transcript segment, as JSON from the segment number."
+  },
+  {
+   "fieldname": "section_photo",
+   "fieldtype": "Section Break",
+   "label": "Photograph",
+   "collapsible": 1,
+   "depends_on": "eval:doc.item_type=='Photograph' || doc.ph_sha256",
+   "description": "What a photograph needs besides the details above. Shown on the book's page."
+  },
+  {
+   "fieldname": "ph_taken_on",
+   "fieldtype": "Data",
+   "label": "Taken On",
+   "description": "From the camera's EXIF when it has one; as exactly as known: 1987-03-14, 1987, 1980s."
+  },
+  {
+   "fieldname": "ph_place",
+   "fieldtype": "Data",
+   "label": "Place"
+  },
+  {
+   "fieldname": "ph_event",
+   "fieldtype": "Data",
+   "label": "Event"
+  },
+  {
+   "fieldname": "ph_people",
+   "fieldtype": "Small Text",
+   "label": "People Shown",
+   "description": "One per line."
+  },
+  {
+   "fieldname": "column_break_photo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ph_depicts",
+   "fieldtype": "Small Text",
+   "label": "Depicts (Wikidata)",
+   "description": "Wikidata items of what or who is shown, one per line: Q1234 or Q1234 Udupi Krishna Temple. Used when the photograph goes to Wikimedia Commons."
+  },
+  {
+   "fieldname": "ph_camera",
+   "fieldtype": "Data",
+   "label": "Camera",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ph_gps",
+   "fieldtype": "Data",
+   "label": "Where Taken (latitude, longitude)",
+   "description": "From the camera's EXIF when it has them."
+  },
+  {
+   "fieldname": "ph_dimensions",
+   "fieldtype": "Data",
+   "label": "Size",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ph_sha256",
+   "fieldtype": "Data",
+   "label": "SHA-256 of the Original",
+   "read_only": 1,
+   "description": "Taken when the photograph was brought in, to show later that the original is unchanged."
   }
  ],
  "links": [],

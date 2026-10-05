@@ -93,6 +93,7 @@ def item_to_record(doc) -> dict:
 		"manuscript": _manuscript(doc),
 		"media": _media(doc),
 		"recording": _recording(doc),
+		"photograph": _photograph(doc),
 		"leaf_times": doc.get("leaf_times") or "",
 		"leaf_labels": _leaf_labels(doc),
 		"from_repository": doc.source == "Repository",
@@ -159,6 +160,25 @@ def _recording(doc) -> list[dict]:
 	return [
 		{"label": label, "value": ", ".join(str(doc.get(f)).split("\n"))}
 		for f, label in RECORDING_FIELDS
+		if doc.get(f)
+	]
+
+
+PHOTOGRAPH_FIELDS = (
+	("ph_taken_on", "Taken on"),
+	("ph_place", "Place"),
+	("ph_event", "Event"),
+	("ph_people", "People shown"),
+	("ph_camera", "Camera"),
+	("ph_dimensions", "Size"),
+	("ph_sha256", "SHA-256 of the original"),
+)
+
+
+def _photograph(doc) -> list[dict]:
+	return [
+		{"label": label, "value": ", ".join(str(doc.get(f)).split("\n"))}
+		for f, label in PHOTOGRAPH_FIELDS
 		if doc.get(f)
 	]
 

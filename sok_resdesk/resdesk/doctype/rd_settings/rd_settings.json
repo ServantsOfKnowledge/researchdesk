@@ -38,6 +38,8 @@
   "profile_archive",
   "profile_repository",
   "profile_langtech",
+  "profile_manuscripts",
+  "profile_photos",
   "suggestions_section",
   "feature_suggestions",
   "features_section",
@@ -54,6 +56,8 @@
   "feature_repositories",
   "feature_library_systems",
   "feature_media",
+  "feature_manuscripts",
+  "feature_photographs",
   "feature_deposit",
   "feature_sharing",
   "feature_reader_accounts",
@@ -355,6 +359,20 @@
    "description": "Switches on: page-level full-text search, OCR, proofreading and ground truth, sharing metadata. Resources: server."
   },
   {
+   "fieldname": "profile_manuscripts",
+   "fieldtype": "Check",
+   "label": "Manuscript or palm-leaf library",
+   "default": "0",
+   "description": "Switches on: page-level full-text search, proofreading and ground truth, manuscripts and palm leaves, photographs, books from folders and servers, audio and video, preservation, permanent identifiers, review queue, sharing metadata. Resources: standard."
+  },
+  {
+   "fieldname": "profile_photos",
+   "fieldtype": "Check",
+   "label": "Photograph archive",
+   "default": "0",
+   "description": "Switches on: photographs, books from folders and servers, preservation, permanent identifiers, review queue, sharing metadata. Resources: standard."
+  },
+  {
    "fieldname": "suggestions_section",
    "fieldtype": "Section Break",
    "label": ""
@@ -450,6 +468,20 @@
    "label": "Library systems",
    "default": "1",
    "description": "A Koha or other library catalogue matched to the books here, links sent back. Off saves the imports and matching."
+  },
+  {
+   "fieldname": "feature_manuscripts",
+   "fieldtype": "Check",
+   "label": "Manuscripts and palm leaves",
+   "default": "1",
+   "description": "Describing manuscripts, labelling their leaves (1a, 1b…), folders of leaf photographs, and the transcription list. Off saves them for libraries that keep none."
+  },
+  {
+   "fieldname": "feature_photographs",
+   "fieldtype": "Check",
+   "label": "Photographs",
+   "default": "1",
+   "description": "Photographs as items: their EXIF, who and where, a SHA-256 of the original, a zoom viewer. Off saves them for libraries that keep none."
   },
   {
    "fieldname": "feature_media",

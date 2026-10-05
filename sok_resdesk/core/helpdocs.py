@@ -43,6 +43,13 @@ PAGES = [
 		"For library staff",
 	),
 	Page(
+		"photographs",
+		"photographs.md",
+		"Photographs",
+		"staff",
+		"For library staff",
+	),
+	Page(
 		"audio-video",
 		"audio-video.md",
 		"Audio and video",

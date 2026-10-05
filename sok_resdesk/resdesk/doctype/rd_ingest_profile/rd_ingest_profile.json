@@ -27,6 +27,7 @@
   "location",
   "manifest_url",
   "check_archive_org",
+  "images_as_photographs",
   "oai_url",
   "oai_set",
   "id_prefix",
@@ -402,6 +403,14 @@
    "default": "0",
    "depends_on": "eval:doc.source=='Internet Archive' && doc.scope_type!='Identifier List'",
    "description": "Research Desk is about texts; tick this to take the collection's recordings (audio, video, live music) too, with a player and a transcript where archive.org has one. Needs Audio and video switched on in Settings → Features."
+  },
+  {
+   "fieldname": "images_as_photographs",
+   "fieldtype": "Check",
+   "label": "Each Image Is a Photograph",
+   "default": "0",
+   "depends_on": "eval:doc.source=='Folder or Server'",
+   "description": "A folder of images is one book (a bundle of leaves) unless this is ticked: then every image is a photograph of its own, with its EXIF and a <name>.json beside it. Needs Photographs switched on in Settings → Features."
   }
  ],
  "links": [],

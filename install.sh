@@ -163,10 +163,11 @@ else
     echo "    1  Small library or school        4  Archive keeping its own copies"
     echo "    2  Public research portal          5  University or repository front"
     echo "    3  Members-only institution        6  Language-technology partner"
+    echo "    7  Manuscript or palm-leaf library 8  Photograph archive"
   fi
   ask PROFILES      "Kinds of institution"                               "$PROFILES"
   PROFILES=$(echo "$PROFILES" | tr ' ' ',' \
-    | sed 's/1/small/g;s/2/portal/g;s/3/members/g;s/4/archive/g;s/5/repository/g;s/6/langtech/g')
+    | sed 's/1/small/g;s/2/portal/g;s/3/members/g;s/4/archive/g;s/5/repository/g;s/6/langtech/g;s/7/manuscripts/g;s/8/photos/g')
   ask LANGUAGES     "Languages of the books, for OCR (codes like kan hin, or all)" "${LANGUAGES:-all}"
   # English too: Indic books carry English titles, names and numbers
   case " $LANGUAGES " in *" eng "*|" all ") ;; *) LANGUAGES="$LANGUAGES eng" ;; esac

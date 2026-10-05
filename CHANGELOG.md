@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.58.0 (2026-11-06): Manuscripts and photographs, as profiled features
+
+- **Manuscripts and palm leaves** and **Photographs** are now features of the institutions that keep them
+  (eighteen features in all). Two new institution kinds, **Manuscript or palm-leaf library** and
+  **Photograph archive** (the installer's 7 and 8), switch them on; the other kinds do not. Off means not
+  collected: a manuscript folder or a photograph is skipped, leaf labelling is refused, the transcription list goes.
+  A library that had chosen its kinds gets the new features as they say; one that chose none keeps every feature on
+- **Photographs as items**: tick *Each Image Is a Photograph* on a folder profile and every JPEG, PNG or TIFF
+  is a photograph with its EXIF (taken on, camera, photographer, place), its own words from a `<name>.json`
+  (who is shown, where, the event, the Wikidata items it depicts, subjects, licence), a **SHA-256 of the
+  original** (checked again if the file changes), a zoom viewer, a IIIF manifest and image service
+- A book of photographs opens in Page & text, as it has no PDF to show
+- See [Photographs](docs/photographs.md); contributing photographs to Wikimedia Commons follows
+
 ## 0.57.0 (2026-11-05): Audio and video
 
 - **Recordings**: in a Folder or Server profile, a media file (MP3, M4A, AAC, OGG, OPUS, WAV, FLAC, MP4,

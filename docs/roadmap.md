@@ -120,7 +120,7 @@
 - [x] Collection pictures from archive.org, shown whole, an admin's own never overwritten (0.44)
 - [x] Help pictures that follow upgrades; every OCR language model in the image (0.44)
 - [x] Features and institution profiles: what kind of institution this is (profiles that
-      combine), sixteen features that can be switched off and are then not collected, and
+      combine), eighteen features that can be switched off and are then not collected, and
       suggestions when data arrives that a switched-off feature would handle (0.45)
 - [x] The installer asks the kind of institution, the books' languages and about how many
       books (0.46)

@@ -329,6 +329,8 @@ Every setting:
 | Archive keeping its own copies | Switches on: preservation, permanent identifiers, books from folders and servers, review queue. Resources: standard. |
 | University or repository front | Switches on: page-level full-text search, OCR, books from repositories, books from folders and servers, permanent identifiers, sharing metadata, library systems. Resources: standard. |
 | Language-technology partner | Switches on: page-level full-text search, OCR, proofreading and ground truth, sharing metadata. Resources: server. |
+| Manuscript or palm-leaf library | Switches on: page-level full-text search, proofreading and ground truth, manuscripts and palm leaves, photographs, books from folders and servers, audio and video, preservation, permanent identifiers, review queue, sharing metadata. Resources: standard. |
+| Photograph archive | Switches on: photographs, books from folders and servers, preservation, permanent identifiers, review queue, sharing metadata. Resources: standard. |
 
 **General**
 
@@ -350,6 +352,8 @@ Every setting:
 | Books from folders and servers | IA-style book folders and loose PDFs on disk, a NAS or a web server. Off saves the folder scans. |
 | Books from repositories | DSpace, EPrints and any OAI-PMH repository. Off saves the harvests. |
 | Library systems | A Koha or other library catalogue matched to the books here, links sent back. Off saves the imports and matching. |
+| Manuscripts and palm leaves | Describing manuscripts, labelling their leaves (1a, 1b…), folders of leaf photographs, and the transcription list. Off saves them for libraries that keep none. |
+| Photographs | Photographs as items: their EXIF, who and where, a SHA-256 of the original, a zoom viewer. Off saves them for libraries that keep none. |
 | Audio and video | Recordings with a player and a time-coded transcript, in folders and from archive.org. Off saves the player pages and the transcripts. |
 | Repository deposit | People deposit their own work (files, licence, embargo) for a reviewer to accept. Off saves the deposit pages and the review screen. |
 | Sharing metadata | The OAI-PMH provider, pushes to Koha, Wikidata, archive.org and webhooks. Off saves the push jobs and the OAI-PMH endpoint. |

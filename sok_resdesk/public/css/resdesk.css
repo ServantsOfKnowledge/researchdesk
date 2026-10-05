@@ -486,3 +486,8 @@ html[data-rd-colours="sepia"] body, html[data-rd-colours="sepia"] .navbar, html[
 .rd-seg__time { font-variant-numeric: tabular-nums; min-width: 4.5rem; text-align: left; border: 0; background: none; color: var(--rd-link, #1d5fa8); cursor: pointer; padding: 0; }
 .rd-seg__text { flex: 1; }
 .rd-seg__label { display: block; flex: 1; }
+
+/* A photograph: the picture is the page; there is no text beside it */
+.rd-photo .rd-pages__text, .rd-photo #rd-read-aloud, .rd-photo #rd-pages-book, .rd-photo #rd-pages-label { display: none; }
+.rd-photo .rd-pages__body { display: block; }
+.rd-photo .rd-pages__image img { max-width: 100%; height: auto; }

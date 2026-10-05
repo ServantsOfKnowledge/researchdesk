@@ -117,6 +117,18 @@ FEATURES: dict[str, Feature] = {
 			doctypes=("RD Library System", "RD Library Record"),
 		),
 		Feature(
+			"manuscripts",
+			"Manuscripts and palm leaves",
+			"describing manuscripts, labelling their leaves, folders of leaf photographs, the transcription list",
+			"the manuscript pages and their transcription list",
+		),
+		Feature(
+			"photographs",
+			"Photographs",
+			"photographs as items: EXIF, who and where, a SHA-256 of the original, a zoom viewer",
+			"the photograph pages",
+		),
+		Feature(
 			"media",
 			"Audio and video",
 			"recordings with a player and a time-coded transcript, in folders and from archive.org",
@@ -215,6 +227,31 @@ PROFILES: dict[str, Profile] = {
 					"review",
 				}
 			),
+			"standard",
+		),
+		Profile(
+			"manuscripts",
+			"Manuscript or palm-leaf library",
+			frozenset(
+				{
+					"page_search",
+					"proofreading",
+					"manuscripts",
+					"photographs",
+					"folders",
+					"media",
+					"preservation",
+					"identifiers",
+					"review",
+					"sharing",
+				}
+			),
+			"standard",
+		),
+		Profile(
+			"photos",
+			"Photograph archive",
+			frozenset({"photographs", "folders", "preservation", "identifiers", "review", "sharing"}),
 			"standard",
 		),
 		Profile(

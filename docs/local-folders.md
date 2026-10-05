@@ -170,6 +170,9 @@ for printed pages: they are read with OCR; a manuscript is transcribed by people
 draws each at screen size and gives the whole photograph to the zoom viewer and to IIIF viewers.
 Photographs larger than 8000 pixels on a side are scaled down when first read.
 
+A folder of photographs that are **not** one book (a photographer's, an archive's): tick **Each Image Is a
+Photograph** on the profile and every image is a photograph of its own ([Photographs](photographs.md)).
+
 ## New and changed books: drop-folder mode
 
 Set the profile's **Schedule** to *Hourly* (or *Daily* for big web servers). On each run:

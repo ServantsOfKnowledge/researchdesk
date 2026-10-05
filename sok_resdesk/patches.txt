@@ -23,3 +23,4 @@ sok_resdesk.patches.v0_24.page_order
 sok_resdesk.patches.v0_40.desk_language
 sok_resdesk.patches.v0_41.harden_logins
 sok_resdesk.patches.v0_56.desk_scope_all
+sok_resdesk.patches.v0_58.profile_new_features
