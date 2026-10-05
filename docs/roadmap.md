@@ -52,6 +52,7 @@
 - [x] HTTPS from Let's Encrypt, the portal's address in one command, Coolify
 - [x] Big ingests that don't stall or do work twice; failed books retried by themselves
 - [x] Worker priority from the Desk; the portal's book count kept up with the catalogue
+- [x] A quieter search engine: only changed settings, records and page text are sent (0.38.1)
 
 ## v0.20 – v0.38: a research library (done)
 

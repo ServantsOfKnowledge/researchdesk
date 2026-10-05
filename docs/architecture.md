@@ -104,12 +104,28 @@ re-download.
 
 | Index | One document per | Searchable | Filters / facets |
 |---|---|---|---|
-| `{prefix}_books` | RD Item | title, alt_title, creators, alt_creators, subjects, series, publisher, description, text excerpt | language, decade, year, creators, subjects, collections, access |
-| `{prefix}_pages` | OCR'd page | text, title | item_id, language, decade, year, collections |
+| `{prefix}_books` | RD Item | title, alt_title, creators, alt_creators, subjects, series, publisher, description, item_id, readers' public note tags and Wikidata names, text excerpt | language, decade, year, creators, subjects, collections, curated collections, item type, access, visibility, source, note tags and entities |
+| `{prefix}_pages` | OCR'd page | text | item_id, language, decade, year, creators, subjects, collections, curated collections, item type, visibility |
 
-Page documents carry `leaf` (IA's 0-based page index), so hits deep-link into the reader.
-`search.py` wraps Meilisearch behind a small client, so another engine can replace it
-without touching the portal or API.
+Page documents carry `leaf` (IA's 0-based page index), so hits deep-link into the reader, and
+copies of the book fields they are filtered by (titles and authors for the hits on screen come
+from the books index). `search.py` wraps Meilisearch behind a small client, so another engine
+can replace it without touching the portal or API.
+
+**Only real work goes to the engine** (0.38.1). Meilisearch runs its tasks one after another
+and merges neighbouring tasks of the same kind, and indexing page text is the heaviest thing it
+does, so `search.py` sends as little, and in as few tasks, as it can:
+
+| What | How |
+|---|---|
+| Index settings | `MeiliClient.setup()` creates a missing index and sends only the settings that differ from the engine's (`settings_diff`); a fingerprint in Redis spares even the comparison for a day. Every ingest run, re-index and migration used to send them all again |
+| Catalogue edits | `update_item_fields` compares each book's record with the engine's copy: unchanged books send nothing, and a book's pages are rewritten only when a field they carry changed |
+| Books fetched again | RD Item keeps a fingerprint of the page text sent (`page_text_hash`). An update or sync with the same text sends the book record only, and its pages get just the changed fields; new text replaces the old pages |
+| Batching | `IndexBuffer` sends 25 books at a time: one task for the books, one to remove replaced pages, page text in tasks of 2,000 pages. Workers wait while more than 300 tasks are waiting (`wait_for_room`) |
+| Watching it | the Desk's queue figures are cached 15 seconds; finished tasks are forgotten nightly, a week after they finish |
+
+How much of the machine the engine may use is set outside the app
+(`MEILI_CPUS`, `MEILI_MAX_INDEXING_THREADS`: [Operations → Resources](operations.md#resources-how-much-of-the-machine-research-desk-may-use)).
 
 ## Ingest pipeline
 

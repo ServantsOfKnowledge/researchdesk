@@ -204,6 +204,10 @@ day, changed ones are refreshed, removed ones are unpublished
 Books from your own folders or web server (`meta.xml` + OCR text + PDF) go through the same
 pipeline; their PDFs are streamed from your disk.
 
+The search engine is sent only what changed (a re-ingested book with the same text, or an edit
+that changes nothing searchable, costs it nothing), and its share of the machine can be capped:
+see [Operations](docs/operations.md#the-search-engine-is-always-busy).
+
 Scans stay on the Internet Archive and are shown through its reader. Research Desk keeps the
 catalogue and the search index, so a laptop can hold tens of thousands of books; preservation
 copies of the books the library chooses are kept on its own storage.

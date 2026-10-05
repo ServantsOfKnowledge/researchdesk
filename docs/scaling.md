@@ -111,6 +111,23 @@ included in `./resdesk.sh backup --with-files`). Rebuilding the search index use
 ./resdesk.sh reindex --reset --background  # drop and rebuild the page index (after upgrades)
 ```
 
+## Keeping the search engine's load down
+
+Indexing page text is the heaviest work the server does, so the search engine is busy for as
+long as books come in (`docker stats` shows *100%* for one full core). Research Desk sends it
+only what changed: settings only when they differ, catalogue edits only when they change what
+it keeps, and page text again only when the text itself changed (0.38.1). To keep it to a share
+of the machine, cap it:
+
+```bash
+./resdesk.sh resources set MEILI_CPUS=2 MEILI_MAX_INDEXING_THREADS=2
+./resdesk.sh resources apply
+```
+
+Indexing more slowly than books arrive is fine: workers wait when the engine has more than 300
+tasks waiting, and the portal lists books as the engine takes them in. See
+[Operations → The search engine is always busy](operations.md#the-search-engine-is-always-busy).
+
 ## Beyond 50k
 
 The code doesn't assume a size; these are the next levers, in order:
