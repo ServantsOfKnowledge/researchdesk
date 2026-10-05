@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.47.0 (2026-10-26): IIIF
+
+- **Every book is a IIIF manifest** (`/iiif/<book>/manifest`, Presentation 3.0): its metadata, one
+  canvas per page with the page image, the PDF, MARCXML and archive.org's own manifest as links,
+  the licence when it is a Creative Commons or rightsstatements.org one, and the text of each page
+  as an annotation. Mirador, Universal Viewer and other IIIF viewers open it; a book's **IIIF**
+  button is the address
+- **Collections** (`/iiif/collection`, `/iiif/collection/<name>`) list the manifests, with
+  sub-collections, in pages of 200
+- **An image service (IIIF Image API 3.0, level 0)** for books whose pages are drawn here from a
+  PDF (repositories, the library's folders): the whole page at `max`, 400, 800 or 1600 px
+- Access is as on the portal: members-only books need a login, are never cached publicly and are
+  not open to viewers on other sites; public ones are. Part of *Sharing metadata* in Settings →
+  Features
+- Docs: [IIIF](docs/iiif.md)
+
 ## 0.46.2 (2026-10-26): Help pictures for members-only libraries
 
 - **Retake help pictures** works for a members-only portal: when visitors are sent to the login

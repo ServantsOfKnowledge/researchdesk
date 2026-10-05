@@ -66,6 +66,17 @@ def get_context(context):
 	context.pdf_url = record.get("pdf_url") or ""
 	context.q = frappe.form_dict.get("q") or ""
 	context.portal_url = f"{root}/library/item/{item_id}"
+	from sok_resdesk import features, iiif
+
+	# the book as a IIIF manifest, for viewers such as Mirador (Settings → Features → Sharing)
+	context.iiif_url = (
+		f"{root}/iiif/{item_id}/manifest"
+		if context.can_read
+		and features.on("sharing")
+		and record.get("page_count")
+		and (record.get("on_archive_org") or iiif.drawn_here(record))
+		else ""
+	)
 	context.formats = [(k, v[0]) for k, v in citations.FORMATS.items()]
 	context.cites = {k: citations.render(record, k, root) for k in citations.FORMATS}
 	context.highwire = citations.highwire_tags(record, root)

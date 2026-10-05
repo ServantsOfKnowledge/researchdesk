@@ -7,6 +7,7 @@
 {% for name, value in highwire %}<meta name="{{ name }}" content="{{ value }}">
 {% endfor %}
 <link rel="alternate" type="application/x-bibtex" href="/api/method/sok_resdesk.api.cite?item_id={{ item.item_id | urlencode }}&format=bibtex" title="BibTeX">
+{% if iiif_url %}<link rel="alternate" type="application/ld+json;profile=&quot;http://iiif.io/api/presentation/3/context.json&quot;" href="{{ iiif_url }}" title="IIIF manifest">{% endif %}
 <link rel="alternate" type="application/x-research-info-systems" href="/api/method/sok_resdesk.api.cite?item_id={{ item.item_id | urlencode }}&format=ris" title="RIS">
 <script type="application/ld+json">{{ json_ld }}</script>
 {# readers' notes on this book, for annotation tools (W3C Web Annotation Protocol) #}
@@ -182,6 +183,7 @@
 				<div class="rd-actions">
 					<button class="rd-btn" type="button" data-scope="book" data-cite-open>{{ _("Cite this book") }}</button>
 					<a class="rd-btn" href="/api/method/sok_resdesk.api.marcxml?item_ids={{ item.item_id | urlencode }}">MARCXML</a>
+					{% if iiif_url %}<a class="rd-btn" href="{{ iiif_url }}" title="{{ _('The book as a IIIF manifest, to open in Mirador, Universal Viewer and other IIIF viewers') }}">IIIF</a>{% endif %}
 				</div>
 				{% if can_read and item.has_page_text %}
 				<h3 class="rd-book-about__sub">{{ _("The text, to read your way") }}</h3>

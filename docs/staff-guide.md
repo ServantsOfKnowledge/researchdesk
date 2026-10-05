@@ -267,7 +267,7 @@ afterwards.
 | Books from folders and servers | IA-style folders and loose PDFs |
 | Books from repositories | DSpace, EPrints, any OAI-PMH repository |
 | Library systems | a Koha or other catalogue matched to the books here |
-| Sharing metadata | the OAI-PMH provider and pushes to Koha, Wikidata, archive.org, webhooks |
+| Sharing metadata | the OAI-PMH provider, [IIIF manifests](iiif.md), and pushes to Koha, Wikidata, archive.org, webhooks |
 | Reader accounts | sign-up, sign-up requests, members-only reading |
 | Usage statistics | how readers use the portal |
 

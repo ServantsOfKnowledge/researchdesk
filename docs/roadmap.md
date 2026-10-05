@@ -125,14 +125,13 @@
 - [x] The installer asks the kind of institution, the books' languages and about how many
       books (0.46)
 - [ ] Help pictures for members-only libraries, taken as a reader account
-- [ ] IIIF manifests and an image service (the first item under v1.0, brought forward)
+- [x] IIIF: a manifest for every book, collections, page text as annotations, an image service for books drawn from PDFs (0.47)
 - [ ] More sources: Wikisource
 - [ ] Offline collections (Kiwix packages) for schools and places with poor connections
 
 ## v1.0: library-grade
 
 - [ ] OpenSearch adapter for very large page indexes
-- [ ] IIIF manifests and an image service for books held locally
 - [ ] Holdings, patrons and circulation stay with Koha: Research Desk works alongside it
 - [ ] SRU/Z39.50 target for older ILS integrations
 - [ ] Usage statistics in COUNTER form, for libraries that report them

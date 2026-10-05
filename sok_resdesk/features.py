@@ -119,8 +119,8 @@ FEATURES: dict[str, Feature] = {
 		Feature(
 			"sharing",
 			"Sharing metadata",
-			"the OAI-PMH provider, pushes to Koha, Wikidata, archive.org and webhooks",
-			"the push jobs and the OAI-PMH endpoint",
+			"the OAI-PMH provider, IIIF manifests, pushes to Koha, Wikidata, archive.org and webhooks",
+			"the push jobs, the OAI-PMH endpoint and the IIIF addresses",
 			doctypes=("RD Push Target", "RD Push Run", "RD External Record"),
 		),
 		Feature(

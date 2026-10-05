@@ -242,7 +242,7 @@ does not yet cover archival description.
 |---|---|---|---|
 | Digital library / repository | Greenstone, Omeka, CONTENTdm, DSpace or EPrints used for digitised collections, one-off portals | **Replaces** | Catalogue, portal, collections and OAI-PMH in one install; strongest for Greenstone sites |
 | Search and discovery (digital holdings) | VuFind, Blacklight | **Replaces** | Full-text search in Indic scripts, search in Latin letters, facets. Licensed e-resources stay with their discovery layer |
-| Reader | Internet Archive BookReader, Mirador, Universal Viewer | **Includes** | Page images and text side by side, citations, notes. No IIIF yet |
+| Reader | Internet Archive BookReader, Mirador, Universal Viewer | **Includes** | Page images and text side by side, citations, notes; every book is also a [IIIF](iiif.md) manifest, so Mirador and Universal Viewer open it |
 | OCR and proofreading | Tesseract scripts, FromThePage, Wikisource-style projects | **Replaces** | OCR on ingest, re-OCR by zones, proofreading, ground truth. eScriptorium and Transkribus stay for training handwriting models |
 | Preservation | Archivematica, Preservica, LOCKSS | **Replaces for small institutions** | Fixity, OCFL, BagIt, a second copy, ARKs. Not a full OAIS: no format migration |
 | Library system (ILS) | Koha, Evergreen, SOUL, e-Granthalaya | **Complements** | Links the catalogue to the digital copies and sends the links back ([Koha](koha.md)) |
@@ -255,9 +255,9 @@ does not yet cover archival description.
 cannot staff four systems; every install as a ready node for aggregators such as NDLI; a digital
 layer for Koha libraries with no migration; and proofread Indic text and OCR ground truth.
 
-**Gaps that would widen it**, in order: IIIF manifests and an image service; archival
-description (fonds, series, file, item, EAD export), which needs a design first; digitisation
-tracking for small projects. Self-deposit stays out of scope.
+**Gaps that would widen it**, in order: archival description (fonds, series, file, item, EAD
+export), which needs a design first; digitisation tracking for small projects; deep zoom (tiles)
+in the IIIF image service for large page images. Self-deposit stays out of scope.
 
 ## Towards a full library system
 

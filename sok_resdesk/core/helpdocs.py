@@ -65,6 +65,7 @@ PAGES = [
 		"For library staff",
 	),
 	Page("koha", "koha.md", "Koha & interoperability", "staff", "For library staff"),
+	Page("iiif", "iiif.md", "IIIF: books in any viewer", "staff", "For library staff"),
 	Page(
 		"getting-started", "getting-started.md", "Getting started (installing)", "staff", "For administrators"
 	),
