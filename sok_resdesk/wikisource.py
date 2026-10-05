@@ -204,3 +204,201 @@ def page_image_url(record: dict, leaf: int, width: int = ws.PAGE_WIDTH) -> str:
 	if not record.get("wiki_site") or not record.get("wiki_index"):
 		return ""
 	return ws.image_url(record["wiki_site"], ws.filename_of(record["wiki_index"]), cint(leaf), width)
+
+
+# -- giving corrections back (0.50) -----------------------------------------------------------------------
+
+SEND_LICENCES = ("CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0")  # text Wikisource can take (it is CC BY-SA 4.0)
+SEND_MAX = 25  # pages in one go: each is a real edit on the wiki, so it goes slowly and in view
+SEND_PAUSE = 1.5  # seconds between edits
+
+
+def _page_title(index_title: str, leaf: int, page_ns: str = "Page") -> str:
+	return f"{page_ns}:{ws.filename_of(index_title)}/{int(leaf) + 1}"
+
+
+def _my_book(item: str):
+	from sok_resdesk import wikimedia
+
+	frappe.only_for(wikimedia.WORKERS)
+	row = frappe.db.get_value("RD Item", item, ["wiki_site", "wiki_index", "item_id"], as_dict=True)
+	if not row or not row.wiki_site or not row.wiki_index:
+		frappe.throw(_("This book does not come from a Wikisource."))
+	return row
+
+
+def send_licence_problem() -> str:
+	"""'' when the library's text licence lets its corrections go to Wikisource, else why not."""
+	chosen = (frappe.db.get_single_value("RD Settings", "ground_truth_licence") or "").strip()
+	if chosen in SEND_LICENCES:
+		return ""
+	return _(
+		"Wikisource's text is CC BY-SA 4.0, so only text this library shares under CC0, CC-BY or "
+		"CC-BY-SA can go back. Choose the licence in Settings (Ground truth licence) first."
+	)
+
+
+def _plan_pages(row, client, me: str) -> list[dict]:
+	"""What this person could send for the book, checked against the pages as they are on the wiki now.
+	Only the person's own work: a page they proofread (to *proofread*) or validated (to *validated*)."""
+	from sok_resdesk import pagetext
+
+	mine = {
+		leaf: v
+		for leaf, v in pagetext.current(row.item_id).items()
+		if v.status in pagetext.HUMAN
+		and frappe.db.get_value(pagetext.DT, v.name, ["proofread_by", "validated_by"])
+	}
+	if not mine:
+		return []
+	titles = {leaf: _page_title(row.wiki_index, leaf, "Page") for leaf in mine}
+	live = ws.revisions(client, list(titles.values()))
+	out = []
+	for leaf in sorted(mine):
+		v, title = mine[leaf], titles[leaf]
+		entry = {"leaf": leaf, "page": title, "label": v.page_label or str(leaf + 1), "kind": "", "skip": ""}
+		out.append(entry)
+		who = frappe.db.get_value(pagetext.DT, v.name, ["proofread_by", "validated_by"], as_dict=True)
+		i_proofread = who.proofread_by == frappe.session.user
+		i_validated = v.status == "Validated" and who.validated_by == frappe.session.user
+		if not (i_proofread or i_validated):
+			entry["skip"] = _("Done by someone else: they can send it from their own account.")
+			continue
+		page = live.get(title)
+		if not page:
+			entry["skip"] = _("This page does not exist on Wikisource (pages are never created from here).")
+			continue
+		parts = ws.split_page(page["content"])
+		if not parts:
+			entry["skip"] = _("The page has an unusual layout, so it is left alone.")
+			continue
+		head, body, foot = parts
+		wiki = ws.parse_page(page["content"])
+		unchanged = ws.same_text(v.text, wiki["text"])
+		entry.update({"revid": page["revid"], "from_level": wiki["quality"]})
+		if wiki["quality"] >= 4:
+			entry["skip"] = _("Already validated on Wikisource.")
+		elif wiki["quality"] == 3:
+			if not (i_validated and unchanged):
+				entry["skip"] = _(
+					"Already proofread on Wikisource; what is there is not overwritten from here."
+				)
+			elif wiki["user"] == me:
+				entry["skip"] = _("You proofread this page there: another person has to validate it.")
+			else:
+				entry.update({"kind": "validated", "to_level": 4, "diff": []})
+		elif not i_proofread:
+			entry["skip"] = _("Validated here, but proofread by someone else: that person sends it first.")
+		elif not unchanged and not ws.markup_safe(body):
+			entry["skip"] = _(
+				"The page has markup (templates, links, notes) that plain text would lose: correct it on Wikisource."
+			)
+		else:
+			entry.update(
+				{
+					"kind": "proofread",
+					"to_level": 3,
+					"diff": ws.diff_lines(wiki["text"], v.text) if not unchanged else [],
+				}
+			)
+	return out
+
+
+@frappe.whitelist()
+@features.needs("repositories")
+def send_plan(item: str) -> dict:
+	"""Item → Send to Wikisource: what this person's own corrections would change there."""
+	from sok_resdesk import wikimedia
+	from sok_resdesk.core import wikimedia as wm
+
+	row = _my_book(item)
+	acc = frappe.db.get_value(wikimedia.DOCTYPE, frappe.session.user, "wikimedia_user")
+	out = {
+		"site": row.wiki_site,
+		"index": row.wiki_index,
+		"account": acc or "",
+		"problem": send_licence_problem() or ("" if acc else _("Connect your own Wikimedia account first.")),
+		"pages": [],
+		"max": SEND_MAX,
+	}
+	if out["problem"]:
+		return out
+	client = wm.WikimediaClient.for_site(row.wiki_site, wikimedia.need_account())
+	try:
+		out["pages"] = _plan_pages(row, client, acc)
+	except wm.WikimediaError as e:
+		frappe.throw(_("Wikisource did not answer as expected: {0}").format(str(e)[:300]))
+	return out
+
+
+@frappe.whitelist(methods=["POST"])
+@features.needs("repositories")
+def send_pages(item: str, pages) -> list[dict]:
+	"""Send the reviewed pages: [{"leaf", "revid"}, …] (the revision each was reviewed against).
+	A page changed on Wikisource since the review is not sent: the edit names the revision it is
+	based on, so the wiki itself refuses it. Returns what happened to each."""
+	import json
+	import time
+
+	from sok_resdesk import wikimedia
+	from sok_resdesk.core import wikimedia as wm
+
+	row = _my_book(item)
+	if send_licence_problem():
+		frappe.throw(send_licence_problem())
+	asked = json.loads(pages) if isinstance(pages, str) else pages
+	if not asked or len(asked) > SEND_MAX:
+		frappe.throw(_("Choose between 1 and {0} pages to send at a time.").format(SEND_MAX))
+	me = frappe.db.get_value(wikimedia.DOCTYPE, frappe.session.user, "wikimedia_user")
+	client = wm.WikimediaClient.for_site(row.wiki_site, wikimedia.need_account())
+	plan = {p["leaf"]: p for p in _plan_pages(row, client, me)}
+	results = []
+	for n, a in enumerate(asked):
+		leaf = cint(a.get("leaf"))
+		entry = plan.get(leaf)
+		res = {"leaf": leaf, "page": entry["page"] if entry else "", "result": ""}
+		results.append(res)
+		if not entry or not entry.get("kind"):
+			res["result"] = _("Skipped: ") + (entry["skip"] if entry else _("not one of your pages"))
+			continue
+		if cint(a.get("revid")) != cint(entry["revid"]):
+			res["result"] = _("Skipped: it changed on Wikisource after you reviewed it. Review it again.")
+			continue
+		page = ws.revisions(client, [entry["page"]])[entry["page"]]
+		head, body, foot = ws.split_page(page["content"])
+		mine = frappe.db.get_value(
+			"RD Page Text", {"item": row.item_id, "leaf": leaf, "is_current": 1}, "text"
+		)
+		# unchanged text keeps the page's own markup; a corrected one (checked as plain) replaces it
+		text = body if ws.same_text(mine, ws.plain(body)) else mine
+		new = ws.build_page(head, text, foot, entry["to_level"], me)
+		if n:
+			time.sleep(SEND_PAUSE)
+		try:
+			client.post(
+				action="edit",
+				title=entry["page"],
+				text=new,
+				baserevid=entry["revid"],
+				nocreate=1,
+				summary=("Validated" if entry["kind"] == "validated" else "Proofread")
+				+ " with SOK Research Desk",
+				token=client.csrf(),
+			)
+			res["result"] = "validated" if entry["kind"] == "validated" else "proofread"
+		except wm.WikimediaError as e:
+			res["result"] = (
+				_("Not sent: it changed on Wikisource meanwhile.")
+				if str(e).startswith("editconflict")
+				else _("Not sent: {0}").format(str(e)[:200])
+			)
+	wikimedia.touch(frappe.session.user)
+	sent = [r for r in results if r["result"] in ("proofread", "validated")]
+	if sent:
+		frappe.get_doc("RD Item", item).add_comment(
+			"Info",
+			_("{0} sent {1} page(s) to {2} as {3}.").format(
+				frappe.session.user, len(sent), row.wiki_site, me
+			),
+		)
+	return results

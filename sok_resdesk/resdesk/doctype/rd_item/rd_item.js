@@ -40,6 +40,9 @@ frappe.ui.form.on("RD Item", {
 				__("Actions")
 			);
 		}
+		if (frm.doc.source === "Wikisource" && frm.doc.wiki_index) {
+			frm.add_custom_button(__("Send to Wikisource"), () => send_to_wikisource(frm), __("Actions"));
+		}
 		frm.add_custom_button(
 			__("Re-index"),
 			() =>
@@ -217,3 +220,50 @@ frappe.ui.form.on("RD Item", {
 		}
 	},
 });
+
+// The person's own corrections, shown against the wiki's pages before anything is sent as them.
+function send_to_wikisource(frm) {
+	const esc = frappe.utils.escape_html;
+	frappe.call({ method: "sok_resdesk.wikisource.send_plan", args: { item: frm.doc.name }, freeze: true, freeze_message: __("Reading the pages on Wikisource…") }).then((r) => {
+		const plan = r.message;
+		if (plan.problem) return frappe.msgprint({ title: __("Not yet"), message: esc(plan.problem) });
+		const ready = plan.pages.filter((p) => p.kind);
+		const left = plan.pages.filter((p) => !p.kind);
+		if (!ready.length) {
+			return frappe.msgprint({
+				title: __("Nothing to send"),
+				message:
+					__("None of your corrections here can go to Wikisource as {0}.", [esc(plan.account)]) +
+					(left.length ? "<ul>" + left.slice(0, 15).map((p) => `<li>${esc(p.page)}: ${esc(p.skip)}</li>`).join("") + "</ul>" : ""),
+			});
+		}
+		const row = (p) =>
+			`<div class="mb-3"><label><input type="checkbox" class="ws-send" data-leaf="${p.leaf}" data-rev="${p.revid}" checked> <b>${esc(p.page)}</b>
+			 ${p.kind === "validated" ? __("validate (level 4)") : __("proofread (level 3)")}</label>` +
+			(p.diff && p.diff.length ? `<pre style="max-height:12em;overflow:auto;font-size:12px">${p.diff.map(esc).join("\n")}</pre>` : "") +
+			"</div>";
+		const d = new frappe.ui.Dialog({
+			title: __("Send to Wikisource as {0}", [plan.account]),
+			size: "large",
+			fields: [
+				{
+					fieldtype: "HTML",
+					options:
+						`<p class="text-muted">${__("Only pages you corrected or validated yourself. Each is an edit under your own Wikimedia account, and nothing changed on Wikisource since you looked is overwritten. At most {0} at a time.", [plan.max])}</p>` +
+						ready.slice(0, plan.max).map(row).join("") +
+						(left.length ? `<details><summary>${__("{0} pages left out", [left.length])}</summary><ul>${left.slice(0, 40).map((p) => `<li>${esc(p.page)}: ${esc(p.skip)}</li>`).join("")}</ul></details>` : ""),
+				},
+			],
+			primary_action_label: __("Send"),
+			primary_action() {
+				const chosen = d.$wrapper.find(".ws-send:checked").map((_, el) => ({ leaf: +el.dataset.leaf, revid: +el.dataset.rev })).get();
+				if (!chosen.length) return;
+				frappe.call({ method: "sok_resdesk.wikisource.send_pages", args: { item: frm.doc.name, pages: chosen }, freeze: true, freeze_message: __("Sending, one page at a time…") }).then((res) => {
+					d.hide();
+					frappe.msgprint({ title: __("Sent"), message: "<ul>" + res.message.map((x) => `<li>${esc(x.page)}: ${esc(x.result)}</li>`).join("") + "</ul>" });
+				});
+			},
+		});
+		d.show();
+	});
+}

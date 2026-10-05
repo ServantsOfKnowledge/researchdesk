@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.50.0 (2026-10-29): Send your corrections back to Wikisource
+
+- **Item → Actions → Send to Wikisource** for books from Wikisource: your own proofreading goes
+  back as *proofread* pages and your own validation as *validated* pages, each as an edit under
+  your own Wikimedia account, after you review a diff of every page
+- Careful by design: only your own work; nothing already validated, nothing proofread there
+  that you changed, nothing with markup plain text would lose, no page created; every edit names
+  the revision you reviewed so a page changed meanwhile is refused and reported; 25 pages at a
+  time, one by one
+- Only when the library's Ground truth licence is CC0, CC-BY or CC-BY-SA (Wikisource's text is
+  CC BY-SA 4.0); [Giving back to Wikimedia](docs/wikimedia.md)
+
 ## 0.49.0 (2026-10-28): Give back to Wikimedia under your own account
 
 - **My Wikimedia Account** (Desk → Research Desk): each person connects their own Wikimedia

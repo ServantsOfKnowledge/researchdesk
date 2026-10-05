@@ -17,6 +17,7 @@ The text is Wikisource contributors' work under CC BY-SA 4.0; the scan has its o
 
 from __future__ import annotations
 
+import difflib
 import re
 import time
 from urllib.parse import quote
@@ -252,6 +253,82 @@ def parse_page(wikitext: str) -> dict:
 		level = 0
 	body = re.sub(r"<noinclude>.*?</noinclude>", "", wikitext or "", flags=re.S | re.I)
 	return {"quality": min(max(level, 0), 4), "user": attrs.get("user", ""), "text": plain(body)}
+
+
+# -- sending a page back -----------------------------------------------------------------------------
+
+_HEAD = re.compile(r"\A\s*<noinclude>.*?</noinclude>", re.S | re.I)
+_FOOT = re.compile(r"<noinclude>(?:(?!<noinclude>).)*</noinclude>\s*\Z", re.S | re.I)
+
+
+def split_page(wikitext: str) -> tuple[str, str, str] | None:
+	"""A Page's wikitext as (header, body, footer): the header and footer are the <noinclude>
+	parts (quality tag, running head, notes) that are kept as they are. None when the page has
+	no quality tag in its header (an unusual layout this module does not edit)."""
+	m = _HEAD.match(wikitext or "")
+	if not m or not _QUALITY.search(m.group(0)):
+		return None
+	rest = wikitext[m.end() :]
+	f = _FOOT.search(rest)
+	return m.group(0), rest[: f.start()] if f else rest, f.group(0) if f else ""
+
+
+def same_text(a: str, b: str) -> bool:
+	"""Whether two texts read the same (line ends, trailing spaces and blank-line runs ignored)."""
+	norm = lambda t: re.sub(r"\n{2,}", "\n\n", "\n".join(x.rstrip() for x in (t or "").strip().splitlines()))  # noqa: E731
+	return norm(a) == norm(b)
+
+
+def markup_safe(body: str) -> bool:
+	"""Whether `plain(body)` loses nothing: a body with templates, links, notes or formatting would
+	lose them if replaced by plain text, so such pages are never overwritten from here."""
+	return same_text(plain(body), body)
+
+
+def build_page(head: str, text: str, foot: str, level: int, user: str) -> str:
+	"""The page with its quality set to `level` by `user` and `text` as its body."""
+	tag = f'<pagequality level="{int(level)}" user="{user}" />'
+	head = _QUALITY.sub(lambda _m: tag, head, count=1)
+	return f"{head}{text.strip()}{foot}"
+
+
+def diff_lines(old: str, new: str, limit: int = 80) -> list[str]:
+	lines = list(
+		difflib.unified_diff(
+			(old or "").splitlines(),
+			(new or "").splitlines(),
+			"Wikisource",
+			"Research Desk",
+			lineterm="",
+			n=1,
+		)
+	)
+	return lines[:limit] + (["…"] if len(lines) > limit else [])
+
+
+def revisions(client, titles: list[str]) -> dict:
+	"""{title: {"revid", "timestamp", "content"}} of the pages that exist (a missing page is absent).
+	`client` is anything with `get(**params)` answering as the MediaWiki API does."""
+	out: dict = {}
+	for i in range(0, len(titles), 50):
+		data = client.get(
+			action="query",
+			prop="revisions",
+			rvprop="content|ids|timestamp",
+			rvslots="main",
+			titles="|".join(titles[i : i + 50]),
+		)
+		for p in data.get("query", {}).get("pages", []):
+			revs = p.get("revisions") or []
+			if p.get("missing") or not revs:
+				continue
+			r = revs[0]
+			out[p["title"]] = {
+				"revid": r.get("revid"),
+				"timestamp": r.get("timestamp"),
+				"content": r["slots"]["main"]["content"],
+			}
+	return out
 
 
 # -- the Index page ----------------------------------------------------------------------------------

@@ -27,3 +27,28 @@ still works for libraries that run one.
 
 Wikimedia's own rules apply: edits can be reverted, the wiki's lag limits are respected, and
 nothing is sent unless you press the button.
+
+## Send your corrections back to Wikisource
+
+A book that came from Wikisource has **Actions → Send to Wikisource**. It reads those pages as
+they are on the wiki now and shows you, page by page, what would change, before anything is sent:
+
+- a page **you proofread** here, which is not yet proofread there, goes back as *proofread*
+  (level 3) with your corrected text, shown as a diff;
+- a page **you validated** here, unchanged, which another person proofread there, goes back as
+  *validated* (level 4), text untouched. Wikisource wants a different validator than the
+  proofreader, so a page you proofread there yourself is left for someone else.
+
+Only your own work is ever sent, under your own account. Never sent: a page already validated
+there; a page proofread there that you changed (what is on the wiki is not overwritten from here:
+correct it there); a page whose wikitext has templates, links or notes that plain text would lose;
+a page that does not exist on the wiki (pages are not created from here). Each edit names the
+revision you reviewed, so a page someone changed meanwhile is refused by the wiki itself and
+reported, not overwritten. At most 25 pages go at a time, one by one.
+
+**The licence.** Wikisource's text is CC BY-SA 4.0. Sending needs the library's *Ground truth
+licence* (Settings) to be CC0, CC-BY or CC-BY-SA, so what goes back is text the library is free to
+share on those terms. Until it is chosen the button explains what to do.
+
+After sending, *Refresh from Source* on the book reads the pages again so this library shows the
+wiki's new level.

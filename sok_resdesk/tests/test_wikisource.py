@@ -151,3 +151,165 @@ class TestWikisourceSource(OpsTestCase):
 					"wiki_indexes": "X.pdf",
 				}
 			).insert(ignore_permissions=True)
+
+	# -- 0.50: giving corrections back, as the person who made them --------------------------------
+
+	def send_setup(self, licence="CC-BY-SA-4.0"):
+		"""The book, a connected account, and the person's own work on three of its pages."""
+		from sok_resdesk import pagetext
+
+		self.run_profile()
+		frappe.db.set_single_value("RD Settings", "ground_truth_licence", licence)
+		self.addCleanup(lambda: frappe.db.set_single_value("RD Settings", "ground_truth_licence", ""))
+		self.addCleanup(lambda: frappe.db.delete("RD Wikimedia Account", {"name": "Administrator"}))
+		self.addCleanup(lambda: frappe.db.delete("RD Page Text", {"item": ITEM}))
+		acc = frappe.get_doc(
+			{
+				"doctype": "RD Wikimedia Account",
+				"user": "Administrator",
+				"wikimedia_user": "Volunteer",
+				"token": "t" * 40,
+			}
+		)
+		acc.flags.ignore_permissions = True
+		acc.insert()
+		# page 3 (leaf 2): corrected here; page 2 (leaf 1): checked here, unchanged, validated by me
+		pagetext.save(ITEM, 2, "corrected text", "Proofreading", "Proofread", reindex=False)
+		pagetext.save(ITEM, 1, "ಎರಡನೇ ಪುಟ", "Proofreading", "Validated", reindex=False)
+		frappe.db.set_value(
+			"RD Page Text", {"item": ITEM, "leaf": 1, "is_current": 1}, "validated_by", "Administrator"
+		)
+		return pagetext
+
+	def fake_wikimedia(self, page_user=None):
+		"""Wikimedia as it answers edits and revision reads; `sent` collects the edits made."""
+		pages = {
+			p["title"]: p["revisions"][0]["slots"]["main"]["content"] for p in fx.PAGES["query"]["pages"]
+		}
+		for title, user in (page_user or {}).items():
+			pages[title] = pages[title].replace('user="Reader"', f'user="{user}"')
+		sent, revid = [], {"n": 100}
+
+		def get(client, **params):
+			out = []
+			for title in params["titles"].split("|"):
+				if title in pages:
+					out.append(
+						{
+							"title": title,
+							"revisions": [
+								{
+									"revid": revid["n"],
+									"timestamp": "t",
+									"slots": {"main": {"content": pages[title]}},
+								}
+							],
+						}
+					)
+				else:
+					out.append({"title": title, "missing": True})
+			return {"query": {"pages": out}}
+
+		def post(client, **data):
+			if sent and data.get("fail"):
+				raise AssertionError
+			sent.append(data)
+			return {"edit": {"result": "Success"}}
+
+		for target, new in (
+			("sok_resdesk.core.wikimedia.WikimediaClient.get", get),
+			("sok_resdesk.core.wikimedia.WikimediaClient.post", post),
+			("sok_resdesk.core.wikimedia.WikimediaClient.csrf", lambda client: "csrf+\\"),
+			("sok_resdesk.wikisource.SEND_PAUSE", 0),
+		):
+			p = mock.patch(target, new)
+			p.start()
+			self.addCleanup(p.stop)
+		return sent, revid
+
+	def test_the_plan_is_only_my_own_work_checked_against_the_wiki(self):
+		from sok_resdesk import wikisource
+
+		self.send_setup()
+		self.fake_wikimedia()
+		plan = wikisource.send_plan(ITEM)
+		self.assertEqual((plan["account"], plan["problem"]), ("Volunteer", ""))
+		by_leaf = {p["leaf"]: p for p in plan["pages"]}
+		self.assertEqual(sorted(by_leaf), [1, 2])  # nothing for pages I did nothing to
+		self.assertEqual((by_leaf[2]["kind"], by_leaf[2]["to_level"]), ("proofread", 3))
+		self.assertIn("+corrected text", by_leaf[2]["diff"])
+		# proofread there by Reader, unchanged and validated here by me: a second pair of eyes
+		self.assertEqual((by_leaf[1]["kind"], by_leaf[1]["to_level"]), ("validated", 4))
+
+	def test_my_proofreading_of_a_page_is_not_my_validation_of_it(self):
+		from sok_resdesk import wikisource
+
+		self.send_setup()
+		self.fake_wikimedia()
+		# someone else corrected page 3 here: it is theirs to send
+		frappe.db.set_value(
+			"RD Page Text", {"item": ITEM, "leaf": 2, "is_current": 1}, "proofread_by", "Guest"
+		)
+		by_leaf = {p["leaf"]: p for p in wikisource.send_plan(ITEM)["pages"]}
+		self.assertEqual(by_leaf[2]["kind"], "")
+		self.assertIn("someone else", by_leaf[2]["skip"])
+		# the wiki says I proofread page 2 myself: Wikisource wants a different validator
+		self.fake_wikimedia(page_user={"Page:Kanaka.pdf/2": "Volunteer"})
+		by_leaf = {p["leaf"]: p for p in wikisource.send_plan(ITEM)["pages"]}
+		self.assertIn("another person", by_leaf[1]["skip"])
+
+	def test_pages_with_markup_or_already_proofread_there_are_never_overwritten(self):
+		from sok_resdesk import pagetext, wikisource
+
+		self.send_setup()
+		self.fake_wikimedia()
+		# page 1 (leaf 0) is validated on the wiki; page 2 (leaf 1) is proofread there and changed here
+		pagetext.save(ITEM, 0, "mine", "Proofreading", "Proofread", reindex=False)
+		pagetext.save(ITEM, 1, "different", "Proofreading", "Proofread", reindex=False)
+		by_leaf = {p["leaf"]: p for p in wikisource.send_plan(ITEM)["pages"]}
+		self.assertIn("Already validated", by_leaf[0]["skip"])
+		self.assertIn("not overwritten", by_leaf[1]["skip"])
+
+	def test_sending_edits_the_page_as_me_and_names_the_revision(self):
+		from sok_resdesk import wikisource
+
+		self.send_setup()
+		sent, _revid = self.fake_wikimedia()
+		out = wikisource.send_pages(ITEM, [{"leaf": 2, "revid": 100}, {"leaf": 1, "revid": 100}])
+		self.assertEqual([r["result"] for r in out], ["proofread", "validated"])
+		first, second = sent
+		self.assertEqual(
+			(first["title"], first["baserevid"], first["nocreate"]), ("Page:Kanaka.pdf/3", 100, 1)
+		)
+		self.assertIn('<pagequality level="3" user="Volunteer" /></noinclude>corrected text', first["text"])
+		self.assertIn('<pagequality level="4" user="Volunteer" /></noinclude>ಎರಡನೇ ಪುಟ', second["text"])
+		self.assertNotIn("bot", first)  # a person's edit, not a bot's
+		self.assertIsNotNone(frappe.db.get_value("RD Wikimedia Account", "Administrator", "last_used"))
+
+	def test_a_page_that_changed_since_the_review_is_not_sent(self):
+		from sok_resdesk import wikisource
+		from sok_resdesk.core.wikimedia import WikimediaError
+
+		self.send_setup()
+		sent, _revid = self.fake_wikimedia()
+		out = wikisource.send_pages(ITEM, [{"leaf": 2, "revid": 99}])  # reviewed against an older revision
+		self.assertIn("changed on Wikisource", out[0]["result"])
+		self.assertEqual(sent, [])
+		# the wiki's own check, if someone edits between our read and our edit
+		with mock.patch(
+			"sok_resdesk.core.wikimedia.WikimediaClient.post", side_effect=WikimediaError("editconflict: x")
+		):
+			out = wikisource.send_pages(ITEM, [{"leaf": 2, "revid": 100}])
+		self.assertIn("changed on Wikisource meanwhile", out[0]["result"])
+
+	def test_without_a_licence_or_an_account_nothing_is_sent(self):
+		from sok_resdesk import wikisource
+
+		self.send_setup(licence="")
+		self.fake_wikimedia()
+		self.assertIn("Choose the licence", wikisource.send_plan(ITEM)["problem"])
+		with self.assertRaisesRegex(frappe.ValidationError, "Choose the licence"):
+			wikisource.send_pages(ITEM, [{"leaf": 2, "revid": 100}])
+		frappe.db.set_single_value("RD Settings", "ground_truth_licence", "CC-BY-SA-4.0")
+		frappe.db.delete("RD Wikimedia Account", {"name": "Administrator"})
+		self.assertIn("Connect your own", wikisource.send_plan(ITEM)["problem"])
