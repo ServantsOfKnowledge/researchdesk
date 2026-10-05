@@ -135,7 +135,7 @@ def description_page(
 		f"|source={source}",
 		f"|author={_plain(author)}",
 		f"|permission={_plain(permission)}",
-		f"|other versions=",
+		"|other versions=",
 	]
 	if accession:
 		lines.append(f"|accession number={_plain(accession)}")
