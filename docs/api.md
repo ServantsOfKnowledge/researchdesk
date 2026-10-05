@@ -147,6 +147,7 @@ only; 10 a minute.
 | `sok_resdesk.preservation.export_book` (`item`) · `export_collection` (`collection`) · `exports` · `download_export` (`file`) | BagIt bags of a book (at once) or a collection's preserved books (in the background); the exports made; download one |
 | `sok_resdesk.ocr.enqueue_scoring` (`limit`) · `sok_resdesk.jobs.score_ocr_now` | score the OCR quality of books not scored yet, in one background job; returns how many |
 | `sok_resdesk.search_queue.get_overview` | the search engine's queue: book records and page text waiting, tasks a minute, time to go, failures, page text held or pending, task history |
+| `sok_resdesk.search_queue.send_now` | start sending waiting page text now (managers; not while held) |
 | `sok_resdesk.search_queue.books_first` · `hold_page_text` (`hold`=1/0) · `clear_history` (`days`) | cancel the waiting page text so books are listed next (it is sent again later); hold or resume page text; forget finished tasks older than `days` (7) |
 | `sok_resdesk.api.page` (`item_id`, `leaf`) | one page for the page reader: image address, text, printed number, last leaf (text needs read access) |
 | `sok_resdesk.api.page_image` (`item_id`, `leaf`) | a page of a book not on archive.org, drawn from its PDF (JPEG; read access, open books) |

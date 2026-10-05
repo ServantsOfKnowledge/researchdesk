@@ -578,6 +578,7 @@ page text held back, and how many finished tasks it still remembers.
 |---|---|
 | **Books first** | cancels the page text waiting in the engine, so the book records behind it are next: new books reach the portal within minutes. The books whose page text was cancelled are marked *Page Text Pending* and their text is sent again in the background, from the text kept on this server, as fast as the engine keeps up. Nothing is lost |
 | **Hold page text** / **Resume page text** | while held, books are still catalogued and listed on the portal, and their page text waits (marked pending). Resume sends it. Useful during busy hours, or while the engine recovers |
+| **Send now** | starts sending the waiting page text at once, instead of at the next ten-minute turn. It still goes only as fast as the engine has room, and not while page text is on hold |
 | **Clear finished tasks** | forgets the record of tasks finished more than a week ago (done every night by itself): on a big catalogue it grows to gigabytes |
 | **Cancel all waiting** | cancels everything waiting, book records too, keeping track of it: page text is sent again, and the book records count as not sent (*Send them* on the Machine card) |
 
@@ -586,7 +587,11 @@ by default): when a new book has waited more than 15 minutes behind page text, a
 minutes. The Search queue card shows when it last did.
 
 Page text that waits is sent every 10 minutes, a few books at a time, whenever the engine has
-fewer than 150 tasks waiting.
+fewer than 150 tasks waiting. **Page text held back** on the card says how many books wait and,
+when they are not on their way, **why**: *on hold* (Resume page text), *paused* (Pause All),
+*the scheduler is off*, *page-level search is off*, *the engine is busy* (more than 150 tasks
+waiting: it goes when the queue drains) or *the engine has tasks but finishes none* (look at the
+Server page). With none of these it is just waiting its turn: 17,000 books take hours to days.
 
 ### Search indexing is stuck
 

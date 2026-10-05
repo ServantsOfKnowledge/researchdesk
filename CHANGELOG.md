@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.46.1 (2026-10-26): Why page text is waiting, and Send now
+
+- **Background Jobs → Search queue** says **why** page text waiting to be sent is not moving
+  (on hold, background work paused, scheduler off, page-level search off, the engine busy, or the
+  engine finishing nothing), and has a **Send now** button for managers that starts sending at
+  once instead of at the next ten-minute turn
+- Docs: [Operations → Search queue](docs/operations.md#the-search-queue)
+
 ## 0.46.0 (2026-10-26): The institution's profile at install
 
 - `./install.sh` asks **what kind of institution** this is (numbers that combine, e.g. `2,4`), the

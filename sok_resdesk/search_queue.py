@@ -84,7 +84,62 @@ def overview(client: MeiliClient | None = None) -> dict:
 		"auto": bool(cint(frappe.db.get_single_value("RD Settings", "auto_books_first"))),
 		"auto_last": frappe.cache.get_value("resdesk:auto-books-first-last"),
 		"pages_pending": frappe.db.count("RD Item", {"pages_pending": 1}),
+		"pending_why": pending_why(waiting_all, per_minute),
 	}
+
+
+def pending_why(waiting: int, per_minute: float) -> dict | None:
+	"""Why page text waiting to be sent is not moving: {"code", "message"}, or None when it is
+	on its way (the engine has room and the sender runs every ten minutes)."""
+	from frappe.utils.scheduler import is_scheduler_disabled
+
+	from sok_resdesk import features
+	from sok_resdesk.holding import is_paused
+
+	if not frappe.db.count("RD Item", {"pages_pending": 1}):
+		return None
+	if cint(frappe.db.get_single_value("RD Settings", "hold_page_text", cache=False)):
+		return {"code": "held", "message": _("Page text is on hold. Resume page text to send it.")}
+	if is_paused():
+		return {
+			"code": "paused",
+			"message": _("Background work is paused (Pause All). Resume All to carry on."),
+		}
+	if is_scheduler_disabled():
+		return {
+			"code": "scheduler",
+			"message": _("The scheduler is off, so nothing is sent by itself. Send now sends a batch."),
+		}
+	if not features.on("page_search") or not cint(frappe.db.get_single_value("RD Settings", "index_pages")):
+		return {
+			"code": "off",
+			"message": _("Page-level search is off (Settings), so page text is not sent."),
+		}
+	if waiting > MAX_WAITING // 2:  # the ten-minute turn starts a batch below this
+		return {
+			"code": "busy",
+			"message": _(
+				"The search engine has {0} tasks waiting; page text goes when it has fewer than 150."
+			).format(f"{waiting:,}"),
+		}
+	if waiting and not per_minute:
+		return {
+			"code": "stalled",
+			"message": _("The search engine has tasks waiting but finished none in the last half hour."),
+		}
+	return {"code": "waiting", "message": _("Waiting its turn: sent 25 books at a time, every ten minutes.")}
+
+
+@frappe.whitelist()
+def send_now() -> dict:
+	"""Managers: start sending waiting page text now instead of at the next ten-minute turn. It
+	still goes only as fast as the engine has room, and not while page text is on hold."""
+	frappe.only_for(MANAGERS)
+	if cint(frappe.db.get_single_value("RD Settings", "hold_page_text", cache=False)):
+		frappe.throw(_("Page text is on hold: resume it first."))
+	_queue_send()
+	frappe.cache.delete_value("resdesk:search-queue")
+	return {"queued": True, "waiting": frappe.db.count("RD Item", {"pages_pending": 1})}
 
 
 @frappe.whitelist()

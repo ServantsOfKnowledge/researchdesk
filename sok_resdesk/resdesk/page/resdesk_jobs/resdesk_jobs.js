@@ -86,6 +86,7 @@ class ResDeskJobs {
 			)
 		);
 		this.$body.on("click", "[data-hold-pages]", (e) => q("hold_page_text", { hold: $(e.currentTarget).data("hold-pages") }));
+		this.$body.on("click", "[data-send-pages]", () => q("send_now"));
 		this.$body.on("click", "[data-clear-history]", () =>
 			q("clear_history", {}, __("Clear the search engine's record of tasks finished more than a week ago? Nothing in the index changes."))
 		);
@@ -193,7 +194,9 @@ class ResDeskJobs {
 			<tr><td>${__("Book records waiting")}</td><td><b>${n(Q.waiting_books)}</b></td></tr>
 			<tr><td>${__("Page text waiting")}</td><td><b>${n(Q.waiting_pages)}</b>${Q.waiting_other ? ` · ${__("other")} ${n(Q.waiting_other)}` : ""}</td></tr>
 			<tr><td>${__("Getting through")}</td><td>${__("{0} tasks a minute", [Q.done_per_minute])}${Q.waiting && eta ? ` · ${__("{0} to go", [eta])}` : ""}${Q.failed_lately ? ` · <span class="text-danger">${__("{0} failed in the last half hour", [Q.failed_lately])}</span>` : ""}</td></tr>
-			<tr><td>${__("Page text held back")}</td><td>${Q.held ? `<b class="text-warning">${__("on hold")}</b> · ` : ""}${__("{0} books waiting to send", [n(Q.pages_pending)])}</td></tr>
+			<tr><td>${__("Page text held back")}</td><td>${Q.held ? `<b class="text-warning">${__("on hold")}</b> · ` : ""}${__("{0} books waiting to send", [n(Q.pages_pending)])}${
+				Q.pending_why ? `<br><span class="small ${Q.pending_why.code === "waiting" ? "text-muted" : "text-warning"}">${frappe.utils.escape_html(Q.pending_why.message)}</span>` : ""
+			}</td></tr>
 			<tr><td>${__("Task history")}</td><td>${__("{0} finished tasks remembered", [n(Q.history)])}</td></tr>
 			<tr><td>${__("Books first")}</td><td>${Q.auto ? __("automatic: when a new book waits over 15 minutes behind page text") : __("by hand only")}${
 				Q.auto_last ? ` · ${__("last done by itself {0}: {1} page-text tasks moved back", [frappe.datetime.comment_when(Q.auto_last.at), Q.auto_last.cancelled])}` : ""
@@ -205,6 +208,7 @@ class ResDeskJobs {
 		return `${rows}${hint}<div style="display:flex;gap:6px;flex-wrap:wrap">
 			<button class="btn btn-xs ${Q.waiting_pages ? "btn-primary" : "btn-default"}" data-books-first ${Q.waiting_pages ? "" : "disabled"}>${__("Books first")}</button>
 			<button class="btn btn-xs btn-default" data-hold-pages="${Q.held ? 0 : 1}">${Q.held ? __("Resume page text") : __("Hold page text")}</button>
+			<button class="btn btn-xs btn-default" data-send-pages ${Q.pages_pending && !Q.held ? "" : "disabled"}>${__("Send now")}</button>
 			<button class="btn btn-xs btn-default" data-clear-history>${__("Clear finished tasks")}</button>
 			<button class="btn btn-xs btn-default" data-cancel-search ${Q.waiting ? "" : "disabled"}>${__("Cancel all waiting")}</button>
 		</div>`;
