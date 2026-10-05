@@ -229,3 +229,12 @@ the `release.yml` workflow tags it: when CI passes on `main` and `__version__` h
 it creates the tag and a GitHub release (notes from the changelog entry) and starts the image
 build. **Actions → Release → Run workflow** does the same by hand. Installs only see releases
 by their tag, so an untagged version is invisible to the Server page and `./upgrade.sh`.
+
+## Signed commits (Verified on GitHub)
+
+GitHub shows a commit as **Verified** only if it is signed with a key registered on the author's
+account, with an email that account has verified. `scripts/setup-signing.sh you@example.org` sets
+that up on the machine where you commit: it makes (or reuses) an SSH signing key, points git at it
+and prints the public key to add on GitHub under Settings → SSH and GPG keys → *Signing Key*. Only
+new commits are signed; do not rewrite pushed history to sign old ones (it would change the hashes
+the release tags point at).
