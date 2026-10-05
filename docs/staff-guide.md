@@ -143,6 +143,31 @@ JSON-LD names the person with `sameAs`; DOIs carry name identifiers. **Undo** ta
 back. **Accept Near-Certain Matches** (Settings) accepts, without a person, only a single person
 with the same name whose dates fit and no rival close behind; everything else waits for you.
 
+### Giving back to Wikidata and the Library of Congress
+
+Matching teaches the library things the authorities don't know yet. **Authorities → Give back**
+gathers them:
+
+- **names**: the person's name as the library's books print it, in their script (ಕನಕದಾಸ for
+  someone Wikidata names only in English): a label where Wikidata has none in that language,
+  otherwise another name (alias);
+- **author links**: on the library's book items on Wikidata (the ones a Wikidata Push Target
+  created or found), *author* linked to the person, with the name as printed (*stated as*), where
+  the item names the author only as text. Books pushed from now on link matched authors that
+  way from the start.
+
+**Work it out again** asks Wikidata what each person and book already has (it takes a minute).
+Then either **Download QuickStatements** (the list in the format of Wikidata's batch tool: a
+Wikidata editor reviews it at quickstatements.toolforge.org and runs it under their own
+account, the usual way for libraries new to Wikidata) or **Send to Wikidata** through the
+library's Wikidata Push Target (a dry-run target only counts what would be sent). Nothing on
+Wikidata is changed or removed; each statement cites the book's page on the portal.
+
+Subjects with no Library of Congress heading (*None of these*, or nothing found) are listed by
+**Download for SACO**, with how many books use each and example titles: libraries in the
+Library of Congress's SACO programme propose new headings from such lists. There is no service
+to propose them directly.
+
 ## Collections
 
 A **collection** is your own group of books with its own page on the portal: a subject, an

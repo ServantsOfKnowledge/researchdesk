@@ -261,6 +261,8 @@ P = {
 	"instance": "P31",
 	"title": "P1476",
 	"author_string": "P2093",
+	"author": "P50",
+	"stated_as": "P1932",
 	"date": "P577",
 	"language": "P407",
 	"ia": "P724",
@@ -305,9 +307,19 @@ def wikidata_entity(record: dict, portal_url: str = "") -> dict:
 			P["title"], "monolingualtext", {"text": title, "language": lang if lang != "mul" else "en"}, src
 		),
 	]
+	ids = record.get("creator_ids") or []
 	for i, name in enumerate(record.get("creators") or []):
-		c = _claim(P["author_string"], "string", name[:400], src)
-		c["qualifiers"] = {"P1545": [_snak("P1545", "string", str(i + 1))]}  # series ordinal
+		qid = (ids[i] if i < len(ids) else {}).get("wikidata")
+		if qid:
+			# the author matched to a person (Desk → Authorities): linked, with the name as printed
+			c = _claim(P["author"], "wikibase-entityid", _item(qid), src)
+			c["qualifiers"] = {
+				"P1545": [_snak("P1545", "string", str(i + 1))],
+				P["stated_as"]: [_snak(P["stated_as"], "string", name[:400])],
+			}
+		else:
+			c = _claim(P["author_string"], "string", name[:400], src)
+			c["qualifiers"] = {"P1545": [_snak("P1545", "string", str(i + 1))]}  # series ordinal
 		claims.append(c)
 	if year:
 		claims.append(
@@ -397,6 +409,14 @@ class WikidataClient:
 		if "error" in out:
 			raise PushError(f"Wikidata: {out['error'].get('info')}")
 		return out["entity"]["id"]
+
+	def edit(self, qid: str, data: dict, summary: str) -> None:
+		"""Add labels, aliases or statements to an item (Desk → Authorities → Give back)."""
+		out = self._post(
+			action="wbeditentity", id=qid, data=json.dumps(data), token=self._csrf, summary=summary, bot=1
+		)
+		if "error" in out:
+			raise PushError(f"Wikidata: {out['error'].get('info')}")
 
 	def add_missing(self, qid: str, data: dict, summary: str) -> int:
 		"""Add statements for properties the item doesn't have yet. Never changes existing ones."""

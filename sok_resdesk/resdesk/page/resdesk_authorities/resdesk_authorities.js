@@ -37,6 +37,19 @@ class ResDeskAuthorities {
 		on("[data-reject]", ($b) => this.call("reject", { kind: this.kind, name: $b.data("reject") }));
 		on("[data-undo]", ($b) => this.call("undo", { kind: this.kind, name: $b.data("undo") }));
 		on("[data-again]", ($b) => this.again($b.data("again")));
+		on("[data-give-refresh]", () =>
+			frappe.call("sok_resdesk.contribute.refresh").then(() =>
+				frappe.show_alert({ message: __("Asking Wikidata what it has; refresh this page in a minute."), indicator: "blue" })
+			)
+		);
+		on("[data-give-send]", () => {
+			const target = this.$body.find(".rda-target").val();
+			frappe.confirm(__("Send these edits to Wikidata through {0}?", [frappe.utils.escape_html(target)]), () =>
+				frappe.call({ method: "sok_resdesk.contribute.send", args: { target } }).then(() =>
+					frappe.show_alert({ message: __("Sending in the background."), indicator: "blue" })
+				)
+			);
+		});
 		this.$body.on("input", ".rda-search", frappe.utils.debounce((e) => ((this.q = e.target.value.trim()), this.refresh()), 300));
 	}
 
@@ -48,10 +61,60 @@ class ResDeskAuthorities {
 	}
 
 	refresh() {
+		if (this.kind === "give") {
+			return frappe.call("sok_resdesk.contribute.plan").then((r) => {
+				this.give = r.message;
+				this.render_give();
+			});
+		}
 		frappe.call({ method: "sok_resdesk.authority.overview", args: { kind: this.kind, status: this.status, q: this.q } }).then((r) => {
 			this.data = r.message;
 			this.render();
 		});
+	}
+
+	tabs() {
+		return [
+			["creator", __("Authors")],
+			["subject", __("Subjects")],
+			["give", __("Give back")],
+		]
+			.map(([k, l]) => `<button class="btn btn-sm ${k === this.kind ? "btn-primary" : "btn-default"}" data-kind="${k}">${l}</button>`)
+			.join(" ");
+	}
+
+	render_give() {
+		const esc = frappe.utils.escape_html;
+		const g = this.give;
+		const kinds = { label: __("Name added as a label"), alias: __("Name added as an alias"), author: __("Author linked on a book") };
+		const rows = (g.edits || [])
+			.map(
+				(e) => `<tr><td><a href="https://www.wikidata.org/wiki/${esc(e.qid)}" target="_blank" rel="noopener">${esc(e.qid)}</a></td>
+				<td>${esc(kinds[e.kind] || e.kind)}${e.lang ? ` (${esc(e.lang)})` : ""}</td>
+				<td>${e.kind === "author" ? `<a href="https://www.wikidata.org/wiki/${esc(e.person)}" target="_blank" rel="noopener">${esc(e.person)}</a>, ${__("stated as")} ` : ""}<span${e.lang ? ` lang="${esc(e.lang)}"` : ""}>${esc(e.value)}</span></td></tr>`
+			)
+			.join("");
+		const last = g.last_send
+			? `<p class="small">${__("Last sent")}: ${esc(g.last_send.when)} · ${g.last_send.dry_run ? __("dry run: {0} edits on {1} items would be made", [g.last_send.edits, g.last_send.items]) : __("{0} edits on {1} items, {2} failed", [g.last_send.edits, g.last_send.items, g.last_send.failed])}</p>`
+			: "";
+		const targets = (g.targets || []).map((t) => `<option value="${esc(t.name)}">${esc(t.name)}${t.dry_run ? ` (${__("dry run")})` : ""}</option>`).join("");
+		this.$body.html(`
+			<p class="text-muted rda-intro">${__("What the library has learned while matching its authors, given back to Wikidata: people's names in the scripts of the library's books, and author links on the library's book items on Wikidata. Nothing already on Wikidata is changed or removed. Download the list as QuickStatements for a Wikidata editor to review and run under their own account, or send it through the library's Wikidata Push Target.")}</p>
+			<div class="rda-bar">${this.tabs()}</div>
+			<div class="rda-give">
+				<p>${g.made_on ? __("Worked out {0} from {1} matched people and {2} books on Wikidata.", [frappe.datetime.comment_when(g.made_on), g.people, g.books]) : __("Not worked out yet.")}
+					<button class="btn btn-xs btn-default" data-give-refresh>${__("Work it out again")}</button></p>
+				<p><b>${g.counts.label}</b> ${__("names in a new language")} · <b>${g.counts.alias}</b> ${__("other names")} · <b>${g.counts.author}</b> ${__("author links")}</p>
+				<div class="rda-acts">
+					<a class="btn btn-sm btn-default" href="/api/method/sok_resdesk.contribute.quickstatements">${__("Download QuickStatements")}</a>
+					${targets ? `<select class="form-control input-sm rda-target" aria-label="${__("Wikidata Push Target")}">${targets}</select><button class="btn btn-sm btn-primary" data-give-send>${__("Send to Wikidata")}</button>` : `<span class="text-muted small">${__("To send directly, add a Wikidata Push Target (Research Desk → Metadata).")}</span>`}
+				</div>
+				${last}
+				<h5>${__("Subjects for the Library of Congress")}</h5>
+				<p class="small">${__("{0} subjects have no LCSH heading. Libraries in the SACO programme can propose new headings; the spreadsheet lists them with how many books use each and example titles.", [g.saco])}
+					<a class="btn btn-xs btn-default" href="/api/method/sok_resdesk.contribute.saco">${__("Download for SACO")}</a></p>
+				${rows ? `<table class="table table-bordered small"><thead><tr><th>${__("Wikidata item")}</th><th>${__("Edit")}</th><th>${__("Value")}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}
+			</div>`);
 	}
 
 	find() {
@@ -93,12 +156,7 @@ class ResDeskAuthorities {
 		const esc = frappe.utils.escape_html;
 		const d = this.data;
 		const creator = this.kind === "creator";
-		const tabs = [
-			["creator", __("Authors")],
-			["subject", __("Subjects")],
-		]
-			.map(([k, l]) => `<button class="btn btn-sm ${k === this.kind ? "btn-primary" : "btn-default"}" data-kind="${k}">${l}</button>`)
-			.join(" ");
+		const tabs = this.tabs();
 		const states = RDA_STATES.map(
 			(s) => `<button class="btn btn-xs ${s === this.status ? "btn-primary" : "btn-default"}" data-status="${esc(s)}">${esc(__(s))} <span class="badge">${d.counts[s] || 0}</span></button>`
 		).join(" ");

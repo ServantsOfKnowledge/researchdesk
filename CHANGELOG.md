@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.38.0 (2026-10-17): Giving back to the authorities
+
+- **Authorities → Give back**: what the library learned while matching its authors, for
+  Wikidata: people's names as the library's books print them, in their scripts (a label where
+  Wikidata has none in that language, else another name), and *author* links (P50, *stated as*
+  the printed name, citing the book's page) on the library's book items on Wikidata. **Download
+  QuickStatements** for a Wikidata editor to review and run, or **Send to Wikidata** through
+  the library's Wikidata Push Target (a dry-run target only counts). Nothing on Wikidata is
+  changed or removed
+- Books pushed to Wikidata link matched authors as people (P50) from the start, with the name as
+  printed; unmatched authors stay as text (P2093)
+- **Download for SACO**: subjects with no Library of Congress heading, with how many books use
+  each and example titles, for libraries proposing new headings through SACO
+
 ## 0.37.0 (2026-10-16): The cataloguer's review queue; Settings by use
 
 - **Desk → Review Queue**: books whose records need a person's eye, the most important questions

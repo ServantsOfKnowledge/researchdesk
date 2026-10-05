@@ -25,7 +25,7 @@ VIAF = "https://viaf.org/viaf/"
 HUMAN = "Q5"
 # properties read from a Wikidata person
 P_INSTANCE, P_BIRTH, P_DEATH, P_VIAF = "P31", "P569", "P570", "P214"
-LABEL_LANGUAGES = ("en", "kn", "hi", "sa", "ta", "te", "ml", "mr", "bn", "gu", "pa", "or")
+LABEL_LANGUAGES = ("en", "kn", "hi", "sa", "ta", "te", "ml", "mr", "bn", "gu", "pa", "or", "gom", "ne", "tcy")
 
 # titles and words that are not part of the name ("Sri", "Dr.", "Pandit", "Late"…)
 HONORIFICS = {
