@@ -11,7 +11,8 @@ Research Desk → **My Wikimedia Account**. The page lists the steps:
 1. Open the registration page (the link on that page) while logged in to Wikimedia.
 2. Propose an **OAuth 2.0** consumer and tick *This consumer is for use only by* your own
    username. An owner-only consumer needs no approval.
-3. Grant *Edit existing pages* and *Create, edit, and move pages*.
+3. Grant *Edit existing pages* and *Create, edit, and move pages*, and, to send photographs to
+   Commons, *Upload new files*.
 4. Submit, copy the **access token** Wikimedia shows, and paste it under **Connect**.
 
 Research Desk asks Wikimedia who the token belongs to and whether it may edit, then keeps it
@@ -52,3 +53,30 @@ share on those terms. Until it is chosen the button explains what to do.
 
 After sending, *Refresh from Source* on the book reads the pages again so this library shows the
 wiki's new level.
+
+## Giving photographs to Wikimedia Commons
+
+A photograph item (see [Photographs](photographs.md)) has **Actions → Send to Wikimedia Commons**.
+It uploads the original file under your own account, with a description page and, when the photograph
+names Wikidata items under *Depicts*, a structured-data *depicts* statement for each.
+
+Nothing is sent before you have seen it. The dialog shows the file name Commons will give it (you
+can change it), the description, the categories you choose, the licence, the author, what it
+depicts, and the description page exactly as Commons will receive it. It checks with Commons as you
+go: whether it already has the same file (by checksum), whether the name is taken, and whether each
+category exists. You then confirm that the photograph is yours to give, or that its owner agreed,
+under that licence, and that publishing on Commons cannot be taken back.
+
+What stops it, with the reason on screen:
+
+- **A licence Commons does not take.** Only CC0, CC BY, CC BY-SA and public-domain marks go; the
+  photograph's *Licence URL* (Rights) says which. NC and ND licences are refused, as is no licence.
+- **No author.** Commons credits the photographer: name them under Creators.
+- **A photograph that is not open to read here**, or whose original is not held here.
+- **A file over 100 MB**, or not a JPEG, PNG, TIFF or WebP.
+- **A token that may not upload**: register the consumer again with *Upload new files* granted.
+- **A duplicate, a name already taken, a category that does not exist.** Commons' own warnings are
+  never overridden.
+
+After sending, the item records the Commons file name, who sent it and when, and links to it; the
+button goes away. One photograph is sent at a time, by a person who looked at it.

@@ -76,6 +76,43 @@ class WikimediaClient:
 			return out
 		raise WikimediaError("The wiki is busy (maxlag); try again later")
 
+	def upload(self, filename: str, path: str, text: str, comment: str) -> dict:
+		"""Upload a file (Commons). Warnings (a duplicate, a name taken…) are refused, never ignored."""
+		import mimetypes
+
+		mime = mimetypes.guess_type(path)[0] or "application/octet-stream"
+		for attempt in range(5):
+			with open(path, "rb") as f:
+				out = self._read(
+					self.session.post(
+						self.api,
+						data={
+							"action": "upload",
+							"format": "json",
+							"formatversion": 2,
+							"maxlag": self.maxlag,
+							"filename": filename,
+							"text": text,
+							"comment": comment,
+							"token": self.csrf(),
+						},
+						files={"file": (filename, f, mime)},
+						timeout=self.timeout * 10,
+					)
+				)
+			if out.get("error", {}).get("code") == "maxlag":
+				time.sleep(5 * (attempt + 1))
+				continue
+			self._check(out)
+			up = out.get("upload", {})
+			if up.get("result") != "Success":
+				warnings = up.get("warnings") or {}
+				raise WikimediaError(
+					"warning: " + ", ".join(f"{k}" for k in warnings) if warnings else "upload not accepted"
+				)
+			return up
+		raise WikimediaError("The wiki is busy (maxlag); try again later")
+
 	@staticmethod
 	def _check(out: dict) -> None:
 		err = out.get("error")

@@ -18,7 +18,9 @@ PHOTO = "ph-Ratha-at-dusk"
 PLAIN = "ph-IMG_0042"
 
 
-class TestPhotographs(OpsTestCase):
+class PhotoBase(OpsTestCase):
+	"""A folder of photographs, ready to be ingested (shared with the Commons tests)."""
+
 	def setUp(self):
 		super().setUp()
 		frappe.db.set_single_value(
@@ -101,6 +103,8 @@ class TestPhotographs(OpsTestCase):
 		run_ingest(run.name, foreground=True)
 		return frappe.get_doc("RD Ingest Run", run.name)
 
+
+class TestPhotographs(PhotoBase):
 	def test_every_image_is_a_photograph_with_its_exif_and_its_own_words(self):
 		from sok_resdesk.catalogue import item_to_record
 		from sok_resdesk.core import photo

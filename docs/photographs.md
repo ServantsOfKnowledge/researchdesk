@@ -46,7 +46,7 @@ section on the item while it is empty and is never put back over a person's edit
   size for deep zoom), and the original can be downloaded where access allows. The originals are what
   *Preservation* keeps when it is on.
 - **Tags**: subjects like any book's, and who is shown, where, the event, and the **Wikidata items** it
-  depicts (`Q` numbers), ready for sharing with Wikimedia Commons.
+  depicts (`Q` numbers), ready for sharing with Wikimedia Commons (Actions → Send to Wikimedia Commons: see [Giving back to Wikimedia](wikimedia.md#giving-photographs-to-wikimedia-commons)).
 
 ## Looking at a photograph
 

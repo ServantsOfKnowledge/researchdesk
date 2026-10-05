@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.59.0 (2026-11-06): Photographs to Wikimedia Commons
+
+- **Actions → Send to Wikimedia Commons** on a photograph: uploads the original under the sender's own
+  Wikimedia account, with a description page (Information template, licence, author, place, categories)
+  and a *depicts* statement for each Wikidata item the photograph names
+- Reviewed before sending: the file name (editable), description and categories, the description page as
+  Commons will get it, whether Commons already has the file (checksum), whether the name is taken and
+  whether each category exists. The sender confirms the photograph is theirs to give under the licence
+- Only free licences go (CC0, CC BY, CC BY-SA, public domain); a photograph with no author, not open to
+  read, or without its original is refused with the reason; Commons' warnings are never overridden
+- The item records the Commons file, who sent it and when. Tokens now ask for *Upload new files* too
+
 ## 0.58.1 (2026-11-06): Libraries and archives keep manuscripts and photographs
 
 - Manuscripts and palm leaves, and photographs, are included for **every kind of library and archive**

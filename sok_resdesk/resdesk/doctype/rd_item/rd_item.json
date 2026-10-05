@@ -75,6 +75,9 @@
   "ph_gps",
   "ph_dimensions",
   "ph_sha256",
+  "commons_file",
+  "commons_sent_by",
+  "commons_sent_on",
   "section_rights",
   "licence_url",
   "rights",
@@ -1005,6 +1008,25 @@
    "label": "SHA-256 of the Original",
    "read_only": 1,
    "description": "Taken when the photograph was brought in, to show later that the original is unchanged."
+  },
+  {
+   "fieldname": "commons_file",
+   "fieldtype": "Data",
+   "label": "On Commons As",
+   "read_only": 1,
+   "description": "Set when the photograph was sent to Wikimedia Commons."
+  },
+  {
+   "fieldname": "commons_sent_by",
+   "fieldtype": "Data",
+   "label": "Sent to Commons By",
+   "read_only": 1
+  },
+  {
+   "fieldname": "commons_sent_on",
+   "fieldtype": "Datetime",
+   "label": "Sent to Commons On",
+   "read_only": 1
   }
  ],
  "links": [],

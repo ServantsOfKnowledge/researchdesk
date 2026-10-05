@@ -43,6 +43,9 @@ frappe.ui.form.on("RD Item", {
 		if (frm.doc.source === "Wikisource" && frm.doc.wiki_index) {
 			frm.add_custom_button(__("Send to Wikisource"), () => send_to_wikisource(frm), __("Actions"));
 		}
+		if (frm.doc.item_type === "Photograph" && !frm.doc.commons_file && frappe.user.has_role(["System Manager", "ResDesk Manager", "ResDesk Cataloguer", "ResDesk Proofreader"])) {
+			frm.add_custom_button(__("Send to Wikimedia Commons"), () => send_to_commons(frm), __("Actions"));
+		}
 		if (frm.doc.item_type === "Manuscript") {
 			frm.add_custom_button(__("Label the Leaves"), () => label_leaves(frm), __("Actions"));
 		}
@@ -285,6 +288,53 @@ function send_to_wikisource(frm) {
 				});
 			},
 		});
+		d.show();
+	});
+}
+
+// Give the photograph to Wikimedia Commons under my own account, after seeing exactly what goes.
+function send_to_commons(frm) {
+	const esc = frappe.utils.escape_html;
+	const ask = (d) => ({ item: frm.doc.name, filename: d ? d.get_value("filename") : "", description: d ? d.get_value("description") : "", categories: d ? d.get_value("categories") : "" });
+	const show = (d, p) => {
+		const warn = [];
+		if (p.problem) warn.push(p.problem);
+		if (p.duplicate && p.duplicate.length) warn.push(__("Commons already has this file as {0}.", [p.duplicate.map(esc).join(", ")]));
+		if (p.name_taken) warn.push(__("A file with this name already exists on Commons: choose another."));
+		if (p.missing_categories && p.missing_categories.length) warn.push(__("These categories do not exist on Commons: {0}.", [p.missing_categories.map(esc).join(", ")]));
+		d.get_field("review").$wrapper.html(
+			(warn.length ? `<div class="alert alert-warning">${warn.map((w) => `<div>${w}</div>`).join("")}</div>` : "") +
+				`<p class="text-muted">${__("Licence")}: <b>${esc(p.licence || "—")}</b> · ${__("Author")}: <b>${esc(p.author || "—")}</b> · ${__("Depicts")}: ${p.depicts.length ? p.depicts.map((x) => esc(x.qid + (x.label ? " " + x.label : ""))).join(", ") : "—"}</p>` +
+				(p.wikitext ? `<details open><summary>${__("The description page, as Commons will get it")}</summary><pre style="max-height:16em;overflow:auto;font-size:12px">${esc(p.wikitext)}</pre></details>` : "")
+		);
+		d.plan = p;
+		d.set_df_property("confirmed", "hidden", p.problem ? 1 : 0);
+	};
+	frappe.call({ method: "sok_resdesk.commons.plan", args: ask(null), freeze: true, freeze_message: __("Checking with Commons…") }).then((r) => {
+		const p = r.message;
+		const d = new frappe.ui.Dialog({
+			title: __("Send to Wikimedia Commons as {0}", [p.account || __("…")]),
+			size: "large",
+			fields: [
+				{ fieldname: "filename", fieldtype: "Data", label: __("File name on Commons"), default: p.filename, description: __("Describe what it shows; this is its permanent name.") },
+				{ fieldname: "description", fieldtype: "Small Text", label: __("Description"), default: p.description },
+				{ fieldname: "categories", fieldtype: "Small Text", label: __("Commons categories"), default: (p.categories || []).join("\n"), description: __("One per line; each must already exist on Commons.") },
+				{ fieldtype: "Button", fieldname: "check", label: __("Check again"), click: () => frappe.call({ method: "sok_resdesk.commons.plan", args: ask(d), freeze: true }).then((x) => show(d, x.message)) },
+				{ fieldname: "review", fieldtype: "HTML" },
+				{ fieldname: "confirmed", fieldtype: "Check", label: __("This photograph is mine to give, or its owner agreed, under the licence above, and I accept it cannot be taken back.") },
+			],
+			primary_action_label: __("Send"),
+			primary_action() {
+				if (!d.get_value("confirmed")) return frappe.msgprint(__("Confirm that the photograph is yours to give first."));
+				frappe.call({ method: "sok_resdesk.commons.send", args: { ...ask(d), confirmed: 1 }, freeze: true, freeze_message: __("Uploading…") }).then((res) => {
+					d.hide();
+					const x = res.message;
+					frappe.msgprint({ title: __("Sent"), message: `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.file)}</a>` + (x.depicts && x.depicts !== "added" ? `<p>${esc(x.depicts)}</p>` : "") });
+					frm.reload_doc();
+				});
+			},
+		});
+		show(d, p);
 		d.show();
 	});
 }

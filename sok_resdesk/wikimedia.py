@@ -21,7 +21,7 @@ DOCTYPE = "RD Wikimedia Account"
 STEPS = [
 	"Open the Wikimedia registration page (the link below) while logged in to your Wikimedia account.",
 	"Propose an OAuth 2.0 consumer. Tick “This consumer is for use only by” followed by your own Wikimedia username (owner-only: no approval needed).",
-	"Under grants choose “Edit existing pages” and “Create, edit, and move pages”; for Wikisource work that is all.",
+	"Under grants choose “Edit existing pages” and “Create, edit, and move pages”; for sending photographs to Commons also “Upload new files”.",
 	"Submit. Wikimedia shows the consumer's **access token**: copy it here, under Connect.",
 ]
 
