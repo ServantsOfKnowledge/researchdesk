@@ -234,6 +234,8 @@ def portal_language() -> None:
 	logged in, which is right for the Desk and nothing else."""
 	if frappe.session.user == "Guest" or not getattr(frappe, "request", None):
 		return  # visitors: Frappe reads the cookie itself
+	if frappe.form_dict.get("_lang"):
+		return  # a page asked for in a language (?_lang=kn, the hreflang links) gets it
 	lang = frappe.request.cookies.get("preferred_language") or ""
 	if not lang:
 		return

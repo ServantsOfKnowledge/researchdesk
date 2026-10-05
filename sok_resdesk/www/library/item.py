@@ -71,9 +71,12 @@ def get_context(context):
 	context.highwire = citations.highwire_tags(record, root)
 	context.json_ld = json.dumps(citations.json_ld(record, root), ensure_ascii=False)
 	context.coins = citations.coins(record, root)
+	from sok_resdesk.core.seo import describe
+
 	context.metatags = {
 		"title": context.title,
-		"description": (record.get("description") or "")[:300],
+		"description": describe(record, context.portal_title),  # search results and link previews
 		"image": record.get("thumbnail_url"),
+		"og:type": "book",
 	}
 	return context

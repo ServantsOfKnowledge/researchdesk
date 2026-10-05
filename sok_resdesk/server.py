@@ -576,6 +576,15 @@ def health() -> list[dict]:
 			)
 		)
 
+	try:
+		from sok_resdesk.security import checks as security_checks
+
+		out += security_checks()  # HTTPS, the Administrator password, logins, the search engine's key
+	except Exception as e:
+		out.append(
+			_check("security", _("Security"), "warn", _("could not be checked: {0}").format(str(e)[:100]))
+		)
+
 	view = updates_view()
 	if view["newer"]:
 		out.append(_check("updates", _("Updates"), "info", _("{0} is available").format(view["latest"])))

@@ -58,8 +58,14 @@ jinja = {
 	]
 }
 # the portal's scripts in the reader's language, and the language switch (translations.py)
-update_website_context = ["sok_resdesk.translations.website_context"]
+update_website_context = [
+	"sok_resdesk.translations.website_context",
+	# canonical address, the page in each portal language, noindex for searches (seo.py)
+	"sok_resdesk.seo.website_context",
+]
 # / shows the library to everyone, also to logged-in staff whose role has another home page
+# security headers on every response (security.py)
+after_request = ["sok_resdesk.security.add_headers"]
 before_request = [
 	"sok_resdesk.portal.home_is_library",
 	# portal pages in the language chosen on the portal; the Desk in the account's own

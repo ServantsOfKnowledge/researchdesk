@@ -193,21 +193,40 @@ def _session() -> requests.Session:
 	return s
 
 
+def trusted_hosts() -> tuple[str, ...]:
+	"""The repositories the library set up itself: they may be on its own network. Any other
+	address a record gives is fetched only if it is on the public internet (core/netguard.py)."""
+	from urllib.parse import urlparse
+
+	urls = frappe.get_all("RD Ingest Profile", filters={"source": "Repository (OAI-PMH)"}, pluck="oai_url")
+	return tuple({urlparse(u or "").hostname or "" for u in urls} - {""})
+
+
+def _get(url: str, **kwargs):
+	from sok_resdesk.core import netguard
+
+	return netguard.get(_session(), url, trusted_hosts(), **kwargs)
+
+
 def find_pdf(landing: str) -> str:
 	"""The PDF a record's web page offers (citation_pdf_url, else a PDF link), or ''."""
+	from sok_resdesk.core.netguard import Blocked
+
 	try:
-		resp = _session().get(landing, timeout=60)
+		resp = _get(landing, timeout=60)
 		if resp.status_code >= 400 or "html" not in resp.headers.get("Content-Type", "html"):
 			return ""
 		return harvest.pdf_from_landing(resp.text, resp.url)
-	except requests.RequestException:
+	except (requests.RequestException, Blocked):
 		return ""
 
 
 def download_pdf(url: str) -> bytes | None:
 	"""The PDF, or None when it can't be had (refused, not a PDF, or bigger than MAX_PDF_BYTES)."""
+	from sok_resdesk.core.netguard import Blocked
+
 	try:
-		with _session().get(url, timeout=120, stream=True) as resp:
+		with _get(url, timeout=120, stream=True) as resp:
 			if resp.status_code >= 400:
 				return None
 			size = cint(resp.headers.get("Content-Length"))
@@ -221,7 +240,7 @@ def download_pdf(url: str) -> bytes | None:
 				chunks.append(chunk)
 		data = b"".join(chunks)
 		return data if data[:5] == b"%PDF-" else None
-	except requests.RequestException:
+	except (requests.RequestException, Blocked):
 		return None
 
 

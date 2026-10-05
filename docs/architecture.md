@@ -18,7 +18,11 @@ offline or sending to partners; `python3 scripts/docs_pdf.py` makes one from the
    page is read.
 4. **Standards at every edge**: OAI-PMH, MARCXML, Dublin Core, schema.org, Highwire tags,
    COinS, BibTeX/RIS/CSL, W3C Web Annotation, ARK, OCFL, BagIt. There are no bespoke integrations.
-5. **Pure-Python core.** Normalisation, citations, MARC, OAI-PMH, ARKs, OCFL, the second copy,
+5. **Secure and findable by default**: security headers, rate limits, login lock-out and
+   strong passwords, outside addresses fetched only on the public internet; a sitemap of every
+   book, descriptions, canonical addresses and language alternates (`security.py`, `seo.py`,
+   `core/seo.py`, `core/netguard.py`; [Server → Security](server.md#security)).
+6. **Pure-Python core.** Normalisation, citations, MARC, OAI-PMH, ARKs, OCFL, the second copy,
    BagIt, OCR quality, page zones, OCR languages, transliteration, annotation anchoring and server
    equipment checks live in
    `sok_resdesk/core/` with no Frappe imports, so they are unit-tested in milliseconds and

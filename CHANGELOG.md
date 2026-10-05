@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.41.0 (2026-10-21): Findable and secure by default
+
+- **Search engines**: `/sitemap.xml` lists every published public book (parts of 40,000), the
+  collections and the About page; `/robots.txt` points to it and keeps crawlers out of the Desk,
+  the API, proofreading, notes and searches (your own lines from Website Settings are kept).
+  Every portal page has a description (made from the catalogue when a book has none), its
+  cover for link previews (Open Graph, Twitter), a canonical address and the same page in each
+  portal language (`hreflang`); searches and filtered lists are not indexed; the home page
+  describes the library and its search box (schema.org). A members-only portal turns crawlers
+  away
+- **Security headers** on every response: no content sniffing, no framing by other sites, no
+  plugins, forms only to the portal, a strict referrer, HSTS over HTTPS
+- **Logins**: an account is locked for 5 minutes after 5 wrong passwords, and strong passwords
+  are required (from Frappe's 10 tries and 1 minute; settings a library chose itself are kept)
+- **Server → Security** checks: HTTPS, the Administrator password still `admin`, developer
+  mode, password strength, lock-out, two-factor login, the search engine's key; alerts like the
+  other checks
+- Links from outside (a repository record's PDF and web page) are fetched only on the public
+  internet, never on this server's network; redirects are checked at every hop
+- Docs: [Server → Security](docs/server.md#security) and [Search engines](docs/server.md#search-engines)
+
 ## 0.40.0 (2026-10-20): Scans without text, loose PDFs; the Desk in its own language
 
 - **The Desk keeps your account's language.** The portal's language switch changed the

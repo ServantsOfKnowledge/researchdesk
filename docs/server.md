@@ -49,6 +49,53 @@ What each health line means:
 
 The page refreshes itself every 15 seconds.
 
+## Security
+
+Research Desk is secure by default; the Server page's health list says what is left to do,
+under the same alerts as everything else (one alert when a check turns red, one when it is
+fine again):
+
+| Check | What it wants | Fix |
+|---|---|---|
+| **HTTPS** | the portal's address starts with `https://` | `./resdesk.sh https on <domain>` gets a Let's Encrypt certificate ([Installation](installation.md)) |
+| **Administrator password** | not the default `admin` | `./resdesk.sh password`, or Desk → avatar → *My Settings* → Change Password |
+| **Developer mode** | off on a public server | `./resdesk.sh dev off` |
+| **Password strength** | strong passwords required | System Settings → Password |
+| **Wrong passwords** | an account locked for a while after a few wrong tries (5 tries, 5 minutes since 0.41) | System Settings → Login |
+| **Two-factor login** | worth turning on for staff | System Settings → Login → Two Factor Authentication |
+| **Search engine key** | Meilisearch needs a key | set by the installer; Settings → Search |
+
+What it does on its own:
+
+- **Security headers** on every page and answer: content types are never guessed
+  (`nosniff`), other sites can't frame the portal or the Desk (`frame-ancestors`,
+  `X-Frame-Options`), no plugins, forms post only to the portal, a strict referrer, and HSTS
+  over HTTPS.
+- **Rate limits** on every public endpoint, per visitor (searches, pages, citations, downloads,
+  sign-up), so a scraper or a script gets *429 Too Many Requests* instead of slowing the portal.
+- **Fetching only public addresses**: links that come from outside (a repository record's PDF,
+  its web page) are fetched only when they point at the public internet, never at this
+  server's own network or a cloud's metadata service (the repositories you set up yourself
+  may be on your network).
+- **Members-only portals stay out of search engines**: with *Login required*, robots.txt
+  turns every crawler away and the sitemap is empty.
+
+## Search engines
+
+Every published public book is in the **sitemap** (`/sitemap.xml`, an index of parts of 40,000
+books, with the collections and the About page), and **robots.txt** points to it while keeping
+crawlers out of the Desk, the API, proofreading, notes and searches. Submit
+`https://<your portal>/sitemap.xml` in Google Search Console and Bing Webmaster Tools once; they
+read it again by themselves. Lines you add in *Website Settings → Robots.txt* are kept.
+
+Each page tells search engines and link previews what it is: a **description** (a book's own,
+or one made from the catalogue: *A book by Kanakadasa from 1931 in Kannada. Read it and search
+inside its text…*), its cover as the **image** (Open Graph and Twitter cards), its **canonical
+address**, and the same page in each portal language (`hreflang`, `?_lang=kn`). Book pages also
+carry schema.org JSON-LD, Highwire and COinS tags for Google Scholar and Zotero; the home page
+says it is a library with a search box. Searches and filtered lists are followed but not indexed,
+so search engines list books rather than endless result pages.
+
 ## Book limit
 
 A machine can only hold so many books before searching slows down or the disk fills up.

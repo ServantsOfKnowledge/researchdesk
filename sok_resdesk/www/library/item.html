@@ -6,7 +6,6 @@
 {# Zotero, Google Scholar and other tools read these tags #}
 {% for name, value in highwire %}<meta name="{{ name }}" content="{{ value }}">
 {% endfor %}
-<link rel="canonical" href="{{ portal_url }}">
 <link rel="alternate" type="application/x-bibtex" href="/api/method/sok_resdesk.api.cite?item_id={{ item.item_id | urlencode }}&format=bibtex" title="BibTeX">
 <link rel="alternate" type="application/x-research-info-systems" href="/api/method/sok_resdesk.api.cite?item_id={{ item.item_id | urlencode }}&format=ris" title="RIS">
 <script type="application/ld+json">{{ json_ld }}</script>
