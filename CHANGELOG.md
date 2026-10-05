@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.44.3 (2026-10-24): Collection pictures shown whole
+
+- Collection pictures are shown whole, on the collections page and on each collection's page,
+  instead of being cropped to fill the box: logos and wide banners alike
+
 ## 0.44.2 (2026-10-24): Every OCR language
 
 - Tesseract now comes with **every language model** it has (Debian's `tesseract-ocr-all`), in the
