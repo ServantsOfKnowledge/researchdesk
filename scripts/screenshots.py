@@ -5,6 +5,7 @@
     python3 scripts/screenshots.py --url https://library.example.org --password …
 
 Needs Playwright:  pip install playwright && python3 -m playwright install chromium
+(or CHROMIUM_PATH=/path/to/chrome for a Chromium already installed)
 (./resdesk.sh screenshots uses Playwright's own Docker image when this machine has no Playwright,
 and with --site puts the pictures into the library's help instead: the Server page's
 *Retake help pictures* button does that.)
@@ -48,7 +49,14 @@ SHOTS: dict[str, tuple[str, str, str]] = {
 	"desk-collection": ("staff", "/app/rd-collection", "open-first"),
 	"desk-settings": ("staff", "/app/rd-settings", ""),
 	"desk-about": ("staff", "/app/rd-about-page", "scroll:[data-fieldname=section_steps]"),
+	"desk-library-system": ("staff", "/app/rd-library-system", "open-first"),
 }
+
+# The Desk pictures show what staff see. Administrator sees Frappe's own tools too (Settings → The
+# Desk), so when the pictures are taken with Administrator's password, they are taken as this
+# staff account instead: made (or switched on) for the pictures and switched off afterwards.
+PICTURE_ACCOUNT = "help-pictures@example.org"
+STAFF_ROLES = ("ResDesk Manager", "ResDesk Cataloguer")
 
 
 def env_file() -> dict:
@@ -69,18 +77,18 @@ async def take(args) -> list[str]:
 	out.mkdir(parents=True, exist_ok=True)
 	done = []
 	async with async_playwright() as p:
-		browser = await p.chromium.launch()
+		# CHROMIUM_PATH: a Chromium already on the machine, when Playwright's own download is missing
+		browser = await p.chromium.launch(executable_path=os.environ.get("CHROMIUM_PATH") or None)
 		guest = await browser.new_context(viewport=VIEWPORT, locale="en-US", color_scheme=args.theme)
 		# the first-visit tips only on the home-page picture (it asks for them with ?tips=1)
 		await guest.add_init_script("try { localStorage.setItem('rd-tips-seen', '1') } catch (e) {}")
-		staff = await browser.new_context(viewport=VIEWPORT, locale="en-US", color_scheme=args.theme)
-		login = await staff.new_page()
-		await login.goto(f"{args.url}/login")
-		await login.fill("#login_email", args.user)
-		await login.fill("#login_password", args.password)
-		await login.click(".btn-login")
-		await login.wait_for_timeout(3000)
-		await login.close()
+		admin = await browser.new_context(viewport=VIEWPORT, locale="en-US", color_scheme=args.theme)
+		await log_in(admin, args.url, args.user, args.password)
+		staff, account = admin, None
+		if args.user == "Administrator":
+			account = await picture_account(admin, args.url, on=True)
+			staff = await browser.new_context(viewport=VIEWPORT, locale="en-US", color_scheme=args.theme)
+			await log_in(staff, args.url, PICTURE_ACCOUNT, account)
 
 		for name, (who, path, action) in SHOTS.items():
 			if args.only and name not in args.only:
@@ -137,8 +145,64 @@ async def take(args) -> list[str]:
 				print(f"  ✗ {name}: {e}", file=sys.stderr)
 			finally:
 				await page.close()
+		if account:
+			await picture_account(admin, args.url, on=False)
 		await browser.close()
 	return done
+
+
+async def log_in(context, url: str, user: str, password: str) -> None:
+	page = await context.new_page()
+	await page.goto(f"{url}/login")
+	await page.fill("#login_email", user)
+	await page.fill("#login_password", password)
+	await page.click(".btn-login")
+	await page.wait_for_timeout(3000)
+	await page.close()
+
+
+async def picture_account(admin, url: str, on: bool) -> str:
+	"""Switch the pictures' staff account on (made the first time, a new password each run) or off.
+	Done through the Desk's own calls, as Administrator. Returns the password."""
+	import secrets
+
+	password = secrets.token_urlsafe(18) + "-Rd7"
+	page = await admin.new_page()
+	try:
+		await page.goto(f"{url}/app/user")
+		await page.wait_for_function("window.frappe && frappe.csrf_token", timeout=20000)
+		await page.evaluate(
+			"""async ([email, password, roles, on]) => {
+				const exists = await frappe.xcall('frappe.client.get_count', {doctype: 'User', filters: {name: email}});
+				if (!on) {
+					if (exists) await frappe.xcall('frappe.client.set_value', {doctype: 'User', name: email, fieldname: 'enabled', value: 0});
+					return;
+				}
+				if (exists) {
+					await frappe.xcall('frappe.client.set_value', {doctype: 'User', name: email, fieldname: {enabled: 1, new_password: password}});
+				} else {
+					await frappe.xcall('frappe.client.insert', {doc: {doctype: 'User', email, first_name: 'Help', last_name: 'Pictures',
+						language: 'en', send_welcome_email: 0, new_password: password, roles: roles.map(role => ({role}))}});
+				}
+			}""",
+			[PICTURE_ACCOUNT, password, list(STAFF_ROLES), on],
+		)
+	finally:
+		await page.close()
+	return password
+
+
+def record_taken(out: Path, done: list[str]) -> None:
+	"""For a library's own pictures (--out elsewhere): which shipped picture each one stands in for,
+	so the help goes back to the shipped one once an upgrade changes it (sok_resdesk/help.py)."""
+	import hashlib
+	import json
+
+	taken = {}
+	for name in done:
+		shipped = OUT / f"{name}.png"
+		taken[f"{name}.png"] = hashlib.sha256(shipped.read_bytes()).hexdigest() if shipped.exists() else ""
+	(out / "taken.json").write_text(json.dumps(taken, indent=1))
 
 
 def shrink(path: Path) -> None:
@@ -180,6 +244,8 @@ def main() -> int:
 		return 1
 	print(f"Taking screenshots of {args.url} into {args.out}/")
 	done = asyncio.run(take(args))
+	if Path(args.out).resolve() != OUT.resolve():
+		record_taken(Path(args.out), done)
 	wanted = len(args.only or SHOTS)
 	print(f"{len(done)} of {wanted} taken.")
 	return 0 if len(done) == wanted else 1

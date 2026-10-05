@@ -38,8 +38,9 @@ someone. More on searching: [Searching](searching.md).
 **Browse collections** (or **All collections**) on the home page lists every collection on one
 page: each main collection as a heading with all its sub-collections under it (a deeper one shows
 the path to it, *Kannada books › Kannada poetry*), and the collections that stand alone under
-**More collections**. The links at the top jump to each group. Each collection has its own page
-with the same search and filters, limited to that collection.
+**More collections**. The links at the top jump to each group. Each collection has its own page,
+with its picture (often the one its collection has on archive.org) and the same search and
+filters, limited to that collection.
 
 ![A collection page](../sok_resdesk/public/images/guide/portal-collection.png)
 
@@ -55,6 +56,10 @@ Click a title to open its page. You'll find:
 - **Cite** and **Add to my list** (below);
 - under the reader, the book's **details** (identifier, date, subjects, collections, rights) and
   **about this book**; **Details ↓** at the top jumps there;
+- **In a library's catalogue**: when a library holds the printed book too, a link to its record
+  in that library's online catalogue (to borrow it or see where it is shelved);
+- some books are only a library's catalogue record, with no digital copy here: their page has
+  the details and the link to the library's catalogue;
 - **the text, to read your way**: the book's text as an **EPUB** e-book (for reading apps,
   screen readers, braille displays and large print, with the printed page numbers) or **plain
   text**. Pages people proofread are in their corrected form; the file says how much of the

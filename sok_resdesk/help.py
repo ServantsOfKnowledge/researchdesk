@@ -61,20 +61,76 @@ def _path(page: helpdocs.Page) -> Path:
 
 
 SITE_PICTURES = "resdesk-guide"  # the site's own pictures (./resdesk.sh screenshots --site)
+TAKEN = "taken.json"  # beside them: which shipped picture each one stood in for
+
+
+def _shipped(name: str) -> Path:
+	return Path(frappe.get_app_path("sok_resdesk", "public", "images", "guide", name))
+
+
+def site_pictures() -> dict[str, str]:
+	"""This library's own pictures that are still current, {name: url}. A picture retaken on the
+	site (Server page → Retake help pictures) stands in for the one that comes with Research Desk
+	only until an upgrade changes that one: then the screen it shows has changed, and the new
+	shipped picture is truer than the library's old one. Pictures retaken before this was recorded
+	count as old."""
+	import hashlib
+	import json
+	import os
+
+	from sok_resdesk import __version__
+
+	folder = Path(frappe.get_site_path("public", "files", SITE_PICTURES))
+	marker = folder / TAKEN
+	try:
+		stamp = int(os.path.getmtime(marker))
+	except OSError:
+		return {}
+
+	def current() -> dict[str, str]:
+		try:
+			taken = json.loads(marker.read_text())
+		except (OSError, ValueError):
+			return {}
+		out = {}
+		for name, digest in taken.items():
+			mine = folder / name
+			if not mine.exists():
+				continue
+			try:
+				shipped = hashlib.sha256(_shipped(name).read_bytes()).hexdigest()
+			except OSError:
+				shipped = digest  # a picture only this library has
+			if shipped == digest:
+				out[name] = f"/files/{SITE_PICTURES}/{name}?v={int(os.path.getmtime(mine))}"
+		return out
+
+	return frappe.cache.get_value(f"resdesk:site-pictures:{__version__}:{stamp}", current) or {}
+
+
+def outdated_site_pictures() -> int:
+	"""How many of this library's own pictures an upgrade has made out of date (the Server page)."""
+	try:
+		folder = Path(frappe.get_site_path("public", "files", SITE_PICTURES))
+		mine = {p.name for p in folder.glob("*.png")}
+	except OSError:
+		return 0
+	return len(mine - set(site_pictures()))
 
 
 def image_url(name: str) -> str:
-	"""A guide picture: this library's own screenshot when the Server page's *Retake help pictures*
-	took one (in the site's files), else the one that comes with Research Desk."""
-	import os
+	"""A guide picture: this library's own when it is still current (above), else the one that
+	comes with Research Desk, its address carrying the version so browsers fetch it anew after an
+	upgrade instead of showing the one they kept."""
+	from sok_resdesk import __version__
 
 	try:
-		path = frappe.get_site_path("public", "files", SITE_PICTURES, name)
-		if os.path.exists(path):
-			return f"/files/{SITE_PICTURES}/{name}?v={int(os.path.getmtime(path))}"
+		mine = site_pictures().get(name)
+		if mine:
+			return mine
 	except Exception:
 		pass
-	return f"{helpdocs.IMAGE_URL}/{name}"
+	return f"{helpdocs.IMAGE_URL}/{name}?v={__version__}"
 
 
 def _render(page: helpdocs.Page, where: str) -> dict:

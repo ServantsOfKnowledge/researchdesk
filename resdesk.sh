@@ -126,7 +126,7 @@ case "$cmd" in
       ls "$OUTDIR"/*.png >/dev/null 2>&1 || { echo "No pictures were taken."; exit 1; }
       HELP_DIR="sites/$SITE/public/files/resdesk-guide"
       if [ "$MODE" = native ]; then
-        mkdir -p "$BENCH_DIR/$HELP_DIR" && cp "$OUTDIR"/*.png "$BENCH_DIR/$HELP_DIR/"
+        mkdir -p "$BENCH_DIR/$HELP_DIR" && cp "$OUTDIR"/*.png "$OUTDIR"/taken.json "$BENCH_DIR/$HELP_DIR/"
       else
         docker compose exec -T backend mkdir -p "/home/frappe/frappe-bench/$HELP_DIR"
         docker compose cp "$OUTDIR/." "backend:/home/frappe/frappe-bench/$HELP_DIR/"

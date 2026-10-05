@@ -23,9 +23,14 @@ never see the Desk; they use the portal at `/`, the site's front page (book page
   [below](#the-getting-started-checklist)). Hide it when you're done.
 - **Shortcuts**: Ingest Profiles, Items, Collections, Background Jobs, People & Roles, Server,
   Open Portal, Settings and Help.
-- **Cards** list everything else: the catalogue (items, collections, authors, subjects), ingest
-  (profiles, runs, background jobs), setup, readers (sign-up requests, users) and metadata
-  (exports, spreadsheet imports, push targets).
+- **Cards** list everything else: the *catalogue* (items, collections, authors, subjects,
+  authorities, the review queue, readers' notes, page texts, ground truth, preservation), *ingest*
+  (profiles, runs, background jobs), *setup* (settings, the About page, portal translations, help,
+  the server), *readers* (people and roles, sign-up requests, users) and *metadata* (exports,
+  spreadsheet imports, push targets, [library systems](koha.md#option-e-bring-the-librarys-catalogue-in-link-it-send-the-links-back)).
+
+The Desk shows only Research Desk: Frappe's own tools stay with the Administrator account
+([Only Research Desk in the Desk](#only-research-desk-in-the-desk)).
 
 ## Help, tours and the checklist
 

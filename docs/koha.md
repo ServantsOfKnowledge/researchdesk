@@ -105,6 +105,8 @@ links to them, so its OPAC offers *Read online* on every book that has a digital
 
 Desk → Research Desk → **Library Systems** → New:
 
+![A library system: where its records come from, its catalogue's record address, and where links go back](../sok_resdesk/public/images/guide/desk-library-system.png)
+
 | Field | Meaning |
 |---|---|
 | **System** | Koha, Evergreen, SOUL, e-Granthalaya or Other |

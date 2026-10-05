@@ -233,14 +233,17 @@ The help pages show screenshots of Research Desk. **Retake help pictures** (Serv
 Backups; needs the [updater helper](#the-updater-helper)) takes them again from **this
 library**, with its own name, logo, books and collections, and the help shows them as soon as
 they are ready (a few minutes). They are kept in the site's files, so upgrades keep them and
-backups with files include them.
+backups with files include them. When an upgrade changes a screen, its picture goes back to the
+one that comes with Research Desk (which shows the new screen) until you retake them; the Server
+page says how many are out of date.
 
 On the server the same is `./resdesk.sh screenshots --site`. Nothing needs installing: when the
 server has no Playwright (the browser the pictures are taken with), it runs in Playwright's own
 Docker image (`mcr.microsoft.com/playwright/python`, with the Playwright package fetched into
 it from PyPI; `PLAYWRIGHT_VERSION` in `.env` picks another version). Without `--site`, the pictures go into the code (`sok_resdesk/public/images/guide/`),
-for changes to the project's own documentation. Pictures of the Desk are taken logged in as
-Administrator (the password in `.env`); `--query WORDS` chooses the search shown in the results
+for changes to the project's own documentation. Pictures of the Desk show what staff see: with
+Administrator's password (in `.env`) they are taken as a staff account, *Help Pictures*
+(`help-pictures@example.org`), switched on for the pictures and off again afterwards; `--query WORDS` chooses the search shown in the results
 pictures (default: `history`, so pick words your catalogue finds).
 
 ## Alerts

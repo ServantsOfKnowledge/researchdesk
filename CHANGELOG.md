@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.44.1 (2026-10-24): Help pages never stuck on an old version
+
+- **Help pictures follow upgrades**: the pictures that come with Research Desk carry the version
+  in their address, so browsers fetch the new ones after an upgrade instead of showing the ones
+  they kept. A library's own pictures (*Retake help pictures*) stand in only while the screen they
+  show is unchanged; once an upgrade changes it, the help shows the new picture again and the
+  Server page says how many to retake
+- Pictures of the Desk are taken as a staff account (*Help Pictures*), so they show what staff see
+- Help brought up to date: the Research Desk workspace (review queue, authorities, library
+  systems), the Library Systems screen, catalogue links and collection pictures on the portal
+
 ## 0.44.0 (2026-10-24): Collection pictures from archive.org
 
 - Collections that mirror archive.org get **that collection's own picture** (its curators' logo,

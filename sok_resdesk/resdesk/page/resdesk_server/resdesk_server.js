@@ -435,7 +435,8 @@ class ResDeskServer {
 				${can_act ? `<button class="btn btn-xs btn-default" data-server-backup>${__("Back up on the server (site-backups/)")}</button>` : ""}
 			</div>
 			${can_act ? `<p class="small text-muted">${__("Help pictures: the help pages show screenshots of Research Desk. Take them from this library, with its own name, logo and books:")}
-				<button class="btn btn-xs btn-default" data-help-pictures>${__("Retake help pictures")}</button></p>` : ""}
+				<button class="btn btn-xs btn-default" data-help-pictures>${__("Retake help pictures")}</button>
+				${d.help_pictures_outdated ? `<br>${pill(__("{0} out of date", [d.help_pictures_outdated]), "orange")} ${__("An upgrade changed these screens, so the help shows the pictures that come with Research Desk until you retake them.")}` : ""}</p>` : ""}
 			${
 				d.backups.length
 					? `<table class="table table-sm rds-table small"><tbody>${d.backups

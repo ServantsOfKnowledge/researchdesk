@@ -997,6 +997,15 @@ def ping() -> dict:
 # -- the page -----------------------------------------------------------------------------------
 
 
+def _outdated_pictures() -> int:
+	try:
+		from sok_resdesk.help import outdated_site_pictures
+
+		return outdated_site_pictures()
+	except Exception:
+		return 0
+
+
 @frappe.whitelist()
 def status() -> dict:
 	frappe.only_for(MANAGERS)
@@ -1015,6 +1024,7 @@ def status() -> dict:
 		"health": health(),
 		"disk": disk_usage(),
 		"backups": list_backups()[:20],
+		"help_pictures_outdated": _outdated_pictures(),
 		"last_backup": json.loads(frappe.db.get_default("resdesk_last_backup") or "{}"),
 		"backup_schedule": s.get("backup_schedule") or "Off",
 		"backup_keep": cint(s.get("backup_keep")) or 7,
