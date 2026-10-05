@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.42.0 (2026-10-22): The library's own catalogue, linked
+
+- **Desk → Library Systems**: bring in the catalogue of Koha (or Evergreen, SOUL, e-Granthalaya,
+  any system) from a MARC export (MARCXML or ISO 2709) or its OAI-PMH server, and see which of
+  its records are books here: by the archive.org link already in a record, by ISBN, or by title
+  (in its own script or romanised), authors and year. Confident matches are linked; unsure ones
+  wait under **Records to Review** for a cataloguer (*This is the book* / *Not a Match*), and a
+  person's decision is kept through later imports
+- **Links sent back**: through a Koha Push Target each linked biblio gets an 856 link to the
+  book here (and to archive.org), fetched fresh and otherwise untouched; for other systems,
+  **Download Records With Links** (MARCXML to overlay)
+- Book pages link to the library's own record (*In <library>'s catalogue*); records with no
+  match can be catalogued here too, so print-only books are found on the portal
+- Docs: [Koha & interoperability → Option E](docs/koha.md#option-e-bring-the-librarys-catalogue-in-link-it-send-the-links-back)
+
 ## 0.41.0 (2026-10-21): Findable and secure by default
 
 - **Search engines**: `/sitemap.xml` lists every published public book (parts of 40,000), the

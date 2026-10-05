@@ -96,6 +96,41 @@ book is edited. It remembers each biblionumber, so later pushes update the same 
 under **Research Desk → Push Targets**; see
 [Pushing metadata to other systems](collections-and-metadata.md#koha).
 
+## Option E: bring the library's catalogue in, link it, send the links back
+
+Most libraries already have their books catalogued in Koha (or Evergreen, SOUL, e-Granthalaya
+or another system). Research Desk can read that catalogue, find which of its records are books
+it already holds (scanned, on archive.org or in a repository), and give the library system the
+links to them, so its OPAC offers *Read online* on every book that has a digital copy.
+
+Desk → Research Desk → **Library Systems** → New:
+
+| Field | Meaning |
+|---|---|
+| **System** | Koha, Evergreen, SOUL, e-Granthalaya or Other |
+| **Bring Its Records From** | a **MARC File** (MARCXML or ISO 2709 `.mrc`, UTF-8; Koha → Tools → Export catalog) or **OAI-PMH** (Koha: `https://<opac>/cgi-bin/koha/oai.pl`, format `marc21`) |
+| **Catalogue Record Address** | a record in the library's OPAC, `{id}` for its number: `https://<opac>/cgi-bin/koha/opac-detail.pl?biblionumber={id}`. Book pages here link to it (*In <library>'s catalogue*) |
+| **Send Links Back Through** | a Koha Push Target ([Option C](#option-c-research-desk-pushes-records-into-koha)): its credentials are used to add the links |
+| **Link Text** | what the link says in the OPAC (`856 $z`, *Read online*) |
+| **Catalogue Records With No Match Here** | records that match no book here become catalogue entries too (no digital copy), so print-only books are found on the portal with a link to the OPAC |
+
+**Import Now** reads the records (each is kept as received) and matches them:
+
+1. a record whose 856 already points to an archive.org book here, or with the same **ISBN**, is
+   that book;
+2. otherwise the search engine finds candidates by **title** (the record's own-script title from
+   880 and its romanised 245 alike) and each is scored on title, **authors** and **year**. A
+   confident, unambiguous match is **Linked**; an unsure one waits under **Records to Review**,
+   where a cataloguer picks *This is the book* or *Not a Match*. A person's decision is never
+   undone by a later import.
+
+**Send Links Back** (Koha): every linked biblio is fetched from Koha as it is now and gets an
+`856 4 1` with the link to the book here (and one to archive.org when the book is there), only
+if it doesn't have it already; nothing else in the record changes, and each record is sent once.
+For any other system, **Download Records With Links** gives the linked records as the system
+gave them, with the links added, as MARCXML to import there (match on the record number to
+overlay).
+
 ## Option D: Research Desk on its own
 
 Everything a reader needs (discovery, faceted search, full text, reading, citation) works

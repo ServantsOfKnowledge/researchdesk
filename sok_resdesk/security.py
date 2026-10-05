@@ -85,7 +85,9 @@ def checks() -> list[dict]:
 			"https",
 			_("HTTPS"),
 			"warn" if "localhost" in url or "127.0.0.1" in url else "bad",
-			_("the portal's address is {0}: passwords travel unencrypted. ./resdesk.sh https on DOMAIN").format(url),
+			_(
+				"the portal's address is {0}: passwords travel unencrypted. ./resdesk.sh https on DOMAIN"
+			).format(url),
 		)
 	)
 	out.append(

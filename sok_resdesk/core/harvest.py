@@ -182,6 +182,32 @@ class Harvester:
 			return len(node.findall(f"{OAI}header"))
 		return None
 
+	def raw_records(self, prefix: str = "marc21", set_spec: str = "", from_: str = "") -> Iterator[tuple]:
+		"""(identifier, deleted, metadata element) for every record, in any metadata format (a
+		library system's MARCXML, for core/marcin.py), following resumption tokens."""
+		params = {"verb": "ListRecords", "metadataPrefix": prefix}
+		if set_spec:
+			params["set"] = set_spec
+		if from_:
+			params["from"] = from_
+		while True:
+			root = self._get(params)
+			node = root.find(f"{OAI}ListRecords") if root is not None else None
+			if node is None:
+				return
+			for rec in node.findall(f"{OAI}record"):
+				header = rec.find(f"{OAI}header")
+				meta = rec.find(f"{OAI}metadata")
+				yield (
+					(header.findtext(f"{OAI}identifier") or "").strip() if header is not None else "",
+					header is not None and header.get("status") == "deleted",
+					meta[0] if meta is not None and len(meta) else None,
+				)
+			token = (node.findtext(f"{OAI}resumptionToken") or "").strip()
+			if not token:
+				return
+			params = {"verb": "ListRecords", "resumptionToken": token}
+
 	def get_record(self, identifier: str, prefix: str = "oai_dc") -> dict | None:
 		root = self._get(
 			{"verb": "GetRecord", "identifier": identifier, "metadataPrefix": prefix or "oai_dc"}

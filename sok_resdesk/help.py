@@ -39,6 +39,8 @@ SCREEN_HELP = {
 	"resdesk-authorities": ("staff-guide", "authors-and-subjects"),
 	"resdesk-review": ("staff-guide", "the-review-queue"),
 	"RD Review Flag": ("staff-guide", "the-review-queue"),
+	"RD Library System": ("koha", "option-e-bring-the-librarys-catalogue-in-link-it-send-the-links-back"),
+	"RD Library Record": ("koha", "option-e-bring-the-librarys-catalogue-in-link-it-send-the-links-back"),
 	"RD Server Task": ("server", "upgrading-from-the-desk"),
 	"RD Tombstone": ("preservation", "tombstones"),
 	"RD Annotation": ("staff-guide", "readers-notes"),

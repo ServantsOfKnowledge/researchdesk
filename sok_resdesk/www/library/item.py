@@ -72,6 +72,12 @@ def get_context(context):
 	context.json_ld = json.dumps(citations.json_ld(record, root), ensure_ascii=False)
 	context.coins = citations.coins(record, root)
 	from sok_resdesk.core.seo import describe
+	from sok_resdesk.librarysystems import catalogue_links
+
+	try:
+		context.catalogue_links = catalogue_links(record["item_id"])  # the libraries' own records of it
+	except Exception:
+		context.catalogue_links = []
 
 	context.metatags = {
 		"title": context.title,

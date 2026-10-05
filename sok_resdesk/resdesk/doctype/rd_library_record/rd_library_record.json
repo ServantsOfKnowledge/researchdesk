@@ -1,0 +1,203 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-22 10:00:00.000000",
+ "modified": "2026-10-22 11:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Library Record",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "field_order": [
+  "record_key",
+  "library_system",
+  "record_id",
+  "title",
+  "alt_title",
+  "creators",
+  "year",
+  "isbn",
+  "column_break_1",
+  "status",
+  "item",
+  "score",
+  "why",
+  "decided_by",
+  "sent_on",
+  "send_state",
+  "candidates",
+  "candidates_html",
+  "marcxml"
+ ],
+ "fields": [
+  {
+   "fieldname": "record_key",
+   "fieldtype": "Data",
+   "label": "Key",
+   "unique": 1,
+   "hidden": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "library_system",
+   "fieldtype": "Link",
+   "label": "Library System",
+   "options": "RD Library System",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "record_id",
+   "fieldtype": "Data",
+   "label": "Record Number",
+   "read_only": 1,
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "alt_title",
+   "fieldtype": "Data",
+   "label": "Other Title",
+   "read_only": 1
+  },
+  {
+   "fieldname": "creators",
+   "fieldtype": "Small Text",
+   "label": "Authors",
+   "read_only": 1
+  },
+  {
+   "fieldname": "year",
+   "fieldtype": "Data",
+   "label": "Year",
+   "read_only": 1
+  },
+  {
+   "fieldname": "isbn",
+   "fieldtype": "Data",
+   "label": "ISBN",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "New\nLinked\nTo Review\nNo Match\nNot This Book\nCatalogued",
+   "default": "New",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Book Here",
+   "options": "RD Item",
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "score",
+   "fieldtype": "Float",
+   "label": "Score",
+   "read_only": 1,
+   "precision": "3"
+  },
+  {
+   "fieldname": "why",
+   "fieldtype": "Data",
+   "label": "Matched By",
+   "read_only": 1
+  },
+  {
+   "fieldname": "decided_by",
+   "fieldtype": "Link",
+   "label": "Decided By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sent_on",
+   "fieldtype": "Datetime",
+   "label": "Links Sent On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "send_state",
+   "fieldtype": "Data",
+   "label": "Sending",
+   "read_only": 1
+  },
+  {
+   "fieldname": "candidates",
+   "fieldtype": "Code",
+   "label": "Candidates",
+   "read_only": 1,
+   "hidden": 1,
+   "options": "JSON"
+  },
+  {
+   "fieldname": "candidates_html",
+   "fieldtype": "HTML",
+   "label": "Candidates"
+  },
+  {
+   "fieldname": "marcxml",
+   "fieldtype": "Code",
+   "label": "Record as Received",
+   "read_only": 1,
+   "hidden": 1,
+   "options": "XML"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "links": [],
+ "track_changes": 0,
+ "autoname": "hash",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 0,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 0,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "write": 1,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1
+  }
+ ],
+ "title_field": "title",
+ "description": "One catalogue record from a library system, and the book here it is (Desk → Library Systems)."
+}

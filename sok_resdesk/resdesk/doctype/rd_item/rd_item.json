@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-10 10:00:00.000000",
+ "modified": "2026-10-22 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Item",
@@ -135,7 +135,7 @@
    "fieldname": "source",
    "fieldtype": "Select",
    "label": "Source",
-   "options": "Internet Archive\nLocal\nRepository\nOther",
+   "options": "Internet Archive\nLocal\nRepository\nLibrary System\nOther",
    "default": "Internet Archive",
    "in_standard_filter": 1
   },

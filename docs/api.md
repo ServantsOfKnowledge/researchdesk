@@ -126,6 +126,9 @@ only; 10 a minute.
 | `sok_resdesk.transfer.quick_export` (`export_format`, and `search`, `collection` or `filters`) | download an export straight away (≤ 2,000 books); bigger ones: `POST /api/resource/RD Export` |
 | `sok_resdesk.transfer.preview_import` · `apply_import` (`name` of an RD Metadata Import) | check, then apply, an edited spreadsheet |
 | `sok_resdesk.outbound.test_connection` (`target`) | check a push target's address and login |
+| `sok_resdesk.librarysystems.start` (`system`, `action`: import / match / send) | a library system: import its records and match them, match again, or send links back (background) |
+| `sok_resdesk.librarysystems.decide` (`record`, `item` or `not_a_match`) | a cataloguer's decision on a library record |
+| `sok_resdesk.librarysystems.download_with_links` (`system`) | the linked records with their 856 links, MARCXML to import into the library system |
 | `sok_resdesk.outbound.start` (`target`, `dry_run`, `force`, `items`) | start a push run, returns its name |
 | `sok_resdesk.outbound.cancel` (`run_name`) | stop a push run |
 | `sok_resdesk.ingest.cancel_run` (`run`) | same as `jobs.stop_run` (kept for older scripts) |

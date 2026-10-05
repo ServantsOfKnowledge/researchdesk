@@ -198,6 +198,20 @@ class KohaClient:
 			raise PushError(f"Koha did not return a biblio id: {r.text[:200]}")
 		return str(biblio_id)
 
+	def get(self, biblio_id: str) -> str:
+		"""A biblio's MARCXML as Koha holds it now."""
+		r = self.session.get(
+			f"{self.api}/biblios/{biblio_id}",
+			headers=self._headers({"Accept": "application/marcxml+xml"}),
+			timeout=60,
+			**self._kw(),
+		)
+		if r.status_code == 404:
+			raise PushError("gone")
+		if r.status_code != 200:
+			raise PushError(f"Koha answered {r.status_code}: {r.text[:200]}")
+		return r.text
+
 	def update(self, biblio_id: str, marcxml: str) -> None:
 		r = self.session.put(
 			f"{self.api}/biblios/{biblio_id}",

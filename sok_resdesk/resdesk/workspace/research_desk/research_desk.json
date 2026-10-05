@@ -308,7 +308,7 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "link_count": 0,
+   "link_count": 2,
    "onboard": 0,
    "label": "Metadata",
    "link_type": "DocType",
@@ -363,9 +363,29 @@
    "link_to": "RD External Record",
    "link_type": "DocType",
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "link_count": 0,
+   "onboard": 0,
+   "label": "Library Systems",
+   "link_to": "RD Library System",
+   "link_type": "DocType",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "link_count": 0,
+   "onboard": 0,
+   "label": "Library Records",
+   "link_to": "RD Library Record",
+   "link_type": "DocType",
+   "type": "Link"
   }
  ],
- "modified": "2026-10-15 12:00:00.000000",
+ "modified": "2026-10-22 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "ResDesk",
  "name": "Research Desk",

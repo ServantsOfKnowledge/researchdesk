@@ -1,0 +1,191 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-22 10:00:00.000000",
+ "modified": "2026-10-22 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Library System",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "field_order": [
+  "system_name",
+  "system_type",
+  "source_kind",
+  "marc_file",
+  "oai_url",
+  "oai_set",
+  "column_break_1",
+  "opac_url",
+  "push_target",
+  "link_note",
+  "catalogue_unmatched",
+  "status_section",
+  "imported_on",
+  "records",
+  "linked",
+  "column_break_2",
+  "proposed",
+  "unmatched",
+  "progress"
+ ],
+ "fields": [
+  {
+   "fieldname": "system_name",
+   "fieldtype": "Data",
+   "label": "Name",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1,
+   "description": "The library system, as staff know it (e.g. University Library Koha)."
+  },
+  {
+   "fieldname": "system_type",
+   "fieldtype": "Select",
+   "label": "System",
+   "options": "Koha\nEvergreen\nSOUL\ne-Granthalaya\nOther",
+   "default": "Koha",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "source_kind",
+   "fieldtype": "Select",
+   "label": "Bring Its Records From",
+   "options": "MARC File\nOAI-PMH",
+   "default": "MARC File",
+   "description": "A MARC export (MARCXML or .mrc, UTF-8: Koha → Tools → Export catalog), or the system's OAI-PMH server (Koha: /cgi-bin/koha/oai.pl, format marc21)."
+  },
+  {
+   "fieldname": "marc_file",
+   "fieldtype": "Attach",
+   "label": "MARC File",
+   "depends_on": "eval:doc.source_kind=='MARC File'"
+  },
+  {
+   "fieldname": "oai_url",
+   "fieldtype": "Data",
+   "label": "OAI-PMH Address",
+   "depends_on": "eval:doc.source_kind=='OAI-PMH'"
+  },
+  {
+   "fieldname": "oai_set",
+   "fieldtype": "Data",
+   "label": "Set (optional)",
+   "depends_on": "eval:doc.source_kind=='OAI-PMH'"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "opac_url",
+   "fieldtype": "Data",
+   "label": "Catalogue Record Address",
+   "description": "The address of a record in the library's online catalogue, {id} for the record's number: for Koha https://opac.example.org/cgi-bin/koha/opac-detail.pl?biblionumber={id}. Book pages here link to it."
+  },
+  {
+   "fieldname": "push_target",
+   "fieldtype": "Link",
+   "label": "Send Links Back Through",
+   "options": "RD Push Target",
+   "description": "A Koha Push Target: each linked record in Koha gets 856 links to the book here (and on archive.org). Empty: download the records with their links as MARCXML and import them in the library system."
+  },
+  {
+   "fieldname": "link_note",
+   "fieldtype": "Data",
+   "label": "Link Text",
+   "default": "Read online",
+   "description": "What the 856 link says in the library's catalogue ($z)."
+  },
+  {
+   "fieldname": "catalogue_unmatched",
+   "fieldtype": "Check",
+   "label": "Catalogue Records With No Match Here",
+   "default": "0",
+   "description": "Records that match no book here become catalogue entries too (no digital copy), so print-only books are found on the portal with a link to the library's catalogue."
+  },
+  {
+   "fieldname": "status_section",
+   "fieldtype": "Section Break",
+   "label": "Last Import"
+  },
+  {
+   "fieldname": "imported_on",
+   "fieldtype": "Datetime",
+   "label": "Imported On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "records",
+   "fieldtype": "Int",
+   "label": "Records",
+   "read_only": 1
+  },
+  {
+   "fieldname": "linked",
+   "fieldtype": "Int",
+   "label": "Linked",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "proposed",
+   "fieldtype": "Int",
+   "label": "To Review",
+   "read_only": 1
+  },
+  {
+   "fieldname": "unmatched",
+   "fieldtype": "Int",
+   "label": "No Match Here",
+   "read_only": 1
+  },
+  {
+   "fieldname": "progress",
+   "fieldtype": "Data",
+   "label": "Progress",
+   "read_only": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "links": [],
+ "track_changes": 0,
+ "autoname": "field:system_name",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1
+  }
+ ],
+ "title_field": "system_name",
+ "description": "A library system (Koha or any other) whose catalogue is matched to the books here (Desk → Library Systems)."
+}

@@ -53,6 +53,9 @@
 				{% if item.on_archive_org and can_read %}
 				<a class="rd-btn" href="https://archive.org/details/{{ item.item_id }}" target="_blank" rel="noopener">{{ _("Internet Archive") }} ↗</a>
 				{% endif %}
+				{% for c in catalogue_links %}
+				<a class="rd-btn" href="{{ c.url }}" rel="noopener">{{ _("In {0}'s catalogue").format(c.system) }} ↗</a>
+				{% endfor %}
 				{% if viewer.staff %}
 				<a class="rd-btn" href="/app/rd-item/{{ item.item_id | urlencode }}">{{ _("Edit") }}</a>
 				{% endif %}

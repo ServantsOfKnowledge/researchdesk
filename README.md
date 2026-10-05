@@ -39,6 +39,8 @@ Choose a collection, a search or a list of items on archive.org, and Research De
   language of its own for a verse or footnote), a page part by part (columns, headings) or whole
   books worst first; and share the corrected pages as **open OCR ground truth** under the
   library's chosen licence
+- **link the library's own catalogue**: Koha's (or any library system's) records matched to the
+  books here, and *Read online* links sent back into them
 - give books **DOIs** from DataCite for chosen collections (optional, for DataCite members)
 - give every book and page a **permanent ARK** (on once the library's NAAN is assigned), with
   tombstones so no link ever dies
