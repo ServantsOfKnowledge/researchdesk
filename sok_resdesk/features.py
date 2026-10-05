@@ -179,7 +179,12 @@ class Profile:
 PROFILES: dict[str, Profile] = {
 	p.key: p
 	for p in (
-		Profile("small", "Small library or school", frozenset({"ocr", "folders"}), "light"),
+		Profile(
+			"small",
+			"Small library or school",
+			frozenset({"ocr", "folders", "manuscripts", "photographs"}),
+			"light",
+		),
 		Profile(
 			"portal",
 			"Public research portal",
@@ -195,6 +200,8 @@ PROFILES: dict[str, Profile] = {
 					"sharing",
 					"statistics",
 					"media",
+					"manuscripts",
+					"photographs",
 				}
 			),
 			"standard",
@@ -202,13 +209,33 @@ PROFILES: dict[str, Profile] = {
 		Profile(
 			"members",
 			"Members-only institution",
-			frozenset({"page_search", "reader_accounts", "library_systems", "review", "sharing"}),
+			frozenset(
+				{
+					"page_search",
+					"reader_accounts",
+					"library_systems",
+					"review",
+					"sharing",
+					"manuscripts",
+					"photographs",
+				}
+			),
 			"standard",
 		),
 		Profile(
 			"archive",
 			"Archive keeping its own copies",
-			frozenset({"preservation", "identifiers", "folders", "review", "media"}),
+			frozenset(
+				{
+					"preservation",
+					"identifiers",
+					"folders",
+					"review",
+					"media",
+					"manuscripts",
+					"photographs",
+				}
+			),
 			"standard",
 		),
 		Profile(
@@ -225,13 +252,15 @@ PROFILES: dict[str, Profile] = {
 					"library_systems",
 					"deposit",
 					"review",
+					"manuscripts",
+					"photographs",
 				}
 			),
 			"standard",
 		),
 		Profile(
 			"manuscripts",
-			"Manuscript or palm-leaf library",
+			"Manuscript library or archive",
 			frozenset(
 				{
 					"page_search",

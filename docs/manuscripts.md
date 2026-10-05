@@ -1,8 +1,10 @@
 # Manuscripts and palm leaves
 
 Manuscripts and palm leaves are a **feature of the libraries that keep them**: Settings → Features →
-*Manuscripts and palm leaves*, part of the *Manuscript or palm-leaf library* profile (switched off, a
-manuscript folder is not collected and the leaf-labelling and transcription list are not offered).
+*Manuscripts and palm leaves*. Libraries and archives of every kind include it (small, public research
+portal, members-only, archive, repository), and the *Manuscript library or archive* kind is for those that
+mostly hold such material. Switched off, a manuscript folder is not collected and the leaf-labelling and
+transcription list are not offered.
 
 Manuscripts, palm-leaf bundles and other handwritten material are catalogued like any book, with
 what is special about them kept alongside: a description of the object, leaf labels like *12a* and

@@ -2,8 +2,9 @@
 
 A photograph is an item of its own: one picture with its details, kept as it came. Libraries and archives
 that hold photographs (a family's, a temple's, a newspaper's, a field worker's) switch on **Photographs**
-in Settings → Features; it is part of the *Manuscript or palm-leaf library* and *Photograph archive*
-profiles, and not of the others.
+in Settings → Features. Libraries and archives of every kind include it, and the *Manuscript library or
+archive* and *Photograph archive* kinds are for those that mostly hold such material; only the
+*Language-technology partner* kind leaves it out.
 
 ## Bringing photographs in
 

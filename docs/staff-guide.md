@@ -249,7 +249,7 @@ uses.
 
 **Your institution** (the installer asks it first; [Installation](installation.md#docker-one-command)): tick every kind that fits: *Small library or school*, *Public research
 portal*, *Members-only institution*, *Archive keeping its own copies*, *University or repository
-front*, *Language-technology partner*, *Manuscript or palm-leaf library*, *Photograph archive*. They combine: a library can be a public research portal and
+front*, *Language-technology partner*, *Manuscript library or archive*, *Photograph archive*. They combine: a library can be a public research portal and
 an archive at once. Ticking or unticking one sets the features to what the ticked kinds need, and
 the resource preset (Settings → Server) to the largest of theirs. You can still change each feature
 afterwards.

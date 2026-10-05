@@ -323,13 +323,13 @@ Every setting:
 
 | Setting | What it does |
 |---|---|
-| Small library or school | Switches on: OCR, books from folders and servers. Resources: light. |
-| Public research portal | Switches on: page-level full-text search, OCR, proofreading and ground truth, readers' notes, authority control, review queue, permanent identifiers, sharing metadata, usage statistics. Resources: standard. |
-| Members-only institution | Switches on: page-level full-text search, reader accounts, library systems, review queue, sharing metadata. Resources: standard. |
-| Archive keeping its own copies | Switches on: preservation, permanent identifiers, books from folders and servers, review queue. Resources: standard. |
-| University or repository front | Switches on: page-level full-text search, OCR, books from repositories, books from folders and servers, permanent identifiers, sharing metadata, library systems. Resources: standard. |
+| Small library or school | Switches on: OCR, books from folders and servers, manuscripts and palm leaves, photographs. Resources: light. |
+| Public research portal | Switches on: page-level full-text search, OCR, proofreading and ground truth, readers' notes, authority control, review queue, permanent identifiers, sharing metadata, usage statistics, audio and video, manuscripts and palm leaves, photographs. Resources: standard. |
+| Members-only institution | Switches on: page-level full-text search, reader accounts, library systems, review queue, sharing metadata, manuscripts and palm leaves, photographs. Resources: standard. |
+| Archive keeping its own copies | Switches on: preservation, permanent identifiers, books from folders and servers, review queue, audio and video, manuscripts and palm leaves, photographs. Resources: standard. |
+| University or repository front | Switches on: page-level full-text search, OCR, books from repositories, books from folders and servers, permanent identifiers, sharing metadata, library systems, repository deposit, review queue, manuscripts and palm leaves, photographs. Resources: standard. |
 | Language-technology partner | Switches on: page-level full-text search, OCR, proofreading and ground truth, sharing metadata. Resources: server. |
-| Manuscript or palm-leaf library | Switches on: page-level full-text search, proofreading and ground truth, manuscripts and palm leaves, photographs, books from folders and servers, audio and video, preservation, permanent identifiers, review queue, sharing metadata. Resources: standard. |
+| Manuscript library or archive | For libraries and archives that hold manuscripts, palm leaves and photographs. Switches on: page-level full-text search, proofreading and ground truth, manuscripts and palm leaves, photographs, books from folders and servers, audio and video, preservation, permanent identifiers, review queue, sharing metadata. Resources: standard. |
 | Photograph archive | Switches on: photographs, books from folders and servers, preservation, permanent identifiers, review queue, sharing metadata. Resources: standard. |
 
 **General**

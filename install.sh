@@ -163,7 +163,7 @@ else
     echo "    1  Small library or school        4  Archive keeping its own copies"
     echo "    2  Public research portal          5  University or repository front"
     echo "    3  Members-only institution        6  Language-technology partner"
-    echo "    7  Manuscript or palm-leaf library 8  Photograph archive"
+    echo "    7  Manuscript library or archive   8  Photograph archive"
   fi
   ask PROFILES      "Kinds of institution"                               "$PROFILES"
   PROFILES=$(echo "$PROFILES" | tr ' ' ',' \

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.58.1 (2026-11-06): Libraries and archives keep manuscripts and photographs
+
+- Manuscripts and palm leaves, and photographs, are included for **every kind of library and archive**
+  (small library, public research portal, members-only, archive, university or repository); only the
+  language-technology partner kind leaves them out. The special kind is now called **Manuscript library or
+  archive**. A library that had chosen its kinds gets the two features as they say on upgrade
+
 ## 0.58.0 (2026-11-06): Manuscripts and photographs, as profiled features
 
 - **Manuscripts and palm leaves** and **Photographs** are now features of the institutions that keep them

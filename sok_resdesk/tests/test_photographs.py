@@ -170,12 +170,14 @@ class TestPhotographs(OpsTestCase):
 	def test_profiles_say_who_keeps_manuscripts_and_photographs(self):
 		from sok_resdesk import features
 
-		for key in ("manuscripts", "photos"):
-			self.assertIn("photographs", features.PROFILES[key].features)
-		self.assertIn("manuscripts", features.PROFILES["manuscripts"].features)
+		# libraries and archives can keep both; the manuscript kind and the photograph kind exist for those that mostly do
+		for key in ("small", "portal", "members", "archive", "repository", "manuscripts"):
+			self.assertIn("manuscripts", features.PROFILES[key].features, key)
+			self.assertIn("photographs", features.PROFILES[key].features, key)
+		self.assertIn("photographs", features.PROFILES["photos"].features)
 		self.assertNotIn("manuscripts", features.PROFILES["photos"].features)
-		self.assertNotIn("photographs", features.PROFILES["portal"].features)
-		self.assertNotIn("manuscripts", features.PROFILES["small"].features)
+		self.assertNotIn("manuscripts", features.PROFILES["langtech"].features)
+		self.assertEqual(features.PROFILES["manuscripts"].label, "Manuscript library or archive")
 
 	def test_the_photograph_is_zoomable_and_a_iiif_manifest(self):
 		from werkzeug.test import EnvironBuilder
