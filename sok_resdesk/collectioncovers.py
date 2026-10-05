@@ -49,7 +49,10 @@ def fetch(collection: str, identifier: str | None = None, force: bool = False) -
 		return {"ok": False, "message": _("archive.org has no image for {0}.").format(identifier)}
 	data, ext = got
 	if not readable(data):
-		return {"ok": False, "message": _("The image archive.org sent for {0} is damaged.").format(identifier)}
+		return {
+			"ok": False,
+			"message": _("The image archive.org sent for {0} is damaged.").format(identifier),
+		}
 	old = doc.source_cover
 	f = frappe.get_doc(
 		{

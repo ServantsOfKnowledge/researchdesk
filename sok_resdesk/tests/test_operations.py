@@ -112,7 +112,9 @@ class OpsTestCase(IntegrationTestCase):
 		frappe.db.delete("RD Push Target", {"name": ("like", "rdtest%")})
 		frappe.db.delete("RD Collection Rule", {"parent": ("like", "rdtest%")})
 		for f in frappe.get_all(
-			"File", filters={"attached_to_doctype": "RD Collection", "attached_to_name": ("like", "rdtest%")}, pluck="name"
+			"File",
+			filters={"attached_to_doctype": "RD Collection", "attached_to_name": ("like", "rdtest%")},
+			pluck="name",
 		):
 			frappe.delete_doc("File", f, force=True, ignore_permissions=True)
 		frappe.db.delete("RD Collection", {"name": ("like", "rdtest%")})

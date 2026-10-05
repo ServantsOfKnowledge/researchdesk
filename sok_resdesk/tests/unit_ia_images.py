@@ -42,7 +42,9 @@ def test_the_thumbnail_file_first_then_the_image_service():
 	jpg = b"\xff\xd8\xff\xe0thumb"
 	s = Session(
 		{
-			"/metadata/coll": Resp(200, data={"metadata": {"title": "C"}, "files": [{"name": "__ia_thumb.jpg"}]}),
+			"/metadata/coll": Resp(
+				200, data={"metadata": {"title": "C"}, "files": [{"name": "__ia_thumb.jpg"}]}
+			),
 			"/download/coll/__ia_thumb.jpg": Resp(200, jpg),
 		}
 	)
@@ -58,6 +60,9 @@ def test_the_thumbnail_file_first_then_the_image_service():
 	s = Session({"/metadata/gone": Resp(200, data={})})
 	assert IAClient(delay=0, session=s).collection_image("gone") is None
 	s = Session(
-		{"/metadata/html": Resp(200, data={"metadata": {}, "files": []}), "/services/img/html": Resp(200, b"<html>")}
+		{
+			"/metadata/html": Resp(200, data={"metadata": {}, "files": []}),
+			"/services/img/html": Resp(200, b"<html>"),
+		}
 	)
 	assert IAClient(delay=0, session=s).collection_image("html") is None

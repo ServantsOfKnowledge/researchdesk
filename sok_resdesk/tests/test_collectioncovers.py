@@ -7,6 +7,7 @@ from frappe.tests import IntegrationTestCase
 
 from sok_resdesk import collectioncovers
 
+
 def tiny_image(fmt="JPEG"):
 	import io
 
@@ -36,7 +37,12 @@ class TestCollectionCovers(IntegrationTestCase):
 		p.start()
 		self.addCleanup(p.stop)
 		self.coll = frappe.get_doc(
-			{"doctype": "RD Collection", "title": "rdtest covers", "slug": "rdtest-covers", "mirror_of": "rdtestcovers"}
+			{
+				"doctype": "RD Collection",
+				"title": "rdtest covers",
+				"slug": "rdtest-covers",
+				"mirror_of": "rdtestcovers",
+			}
 		).insert(ignore_permissions=True)
 		self.addCleanup(self._clean)
 
@@ -81,4 +87,6 @@ class TestCollectionCovers(IntegrationTestCase):
 		frappe.db.set_value("RD Collection", self.coll.name, "mirror_of", None)
 		self.assertTrue(collectioncovers.get_image(self.coll.name, "servantsofknowledge")["ok"])
 		self.assertEqual(self.ia.asked, ["servantsofknowledge"])
-		self.assertEqual(frappe.db.get_value("RD Collection", self.coll.name, "image_from"), "servantsofknowledge")
+		self.assertEqual(
+			frappe.db.get_value("RD Collection", self.coll.name, "image_from"), "servantsofknowledge"
+		)
