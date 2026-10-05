@@ -267,6 +267,7 @@ afterwards.
 | Preservation | the library's own checked copies, fixity, a second copy, BagIt |
 | Permanent identifiers | ARKs, DOIs, tombstones |
 | Books from folders and servers | IA-style folders and loose PDFs |
+| Audio and video | [recordings with a player and a time-coded transcript](audio-video.md) |
 | Manuscripts and palm leaves | [their description, leaf labels and transcription](manuscripts.md) |
 | Repository deposit | people [deposit their own work](deposit.md) for review, with licence and embargo |
 | Books from a Calibre library | a [Calibre library](calibre.md) read in place: details, covers, PDF text, other formats to download |

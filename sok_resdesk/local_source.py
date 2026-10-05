@@ -16,6 +16,7 @@ import requests
 
 from sok_resdesk.catalogue import item_to_record, upsert_item
 from sok_resdesk.core import calibre, leafimages
+from sok_resdesk.core import media as mediafiles
 from sok_resdesk.core.deposit import DepositStore
 from sok_resdesk.core.folder import FolderStore, HttpStore, ItemStore, StoreError, open_store
 from sok_resdesk.core.normalize import normalize_ia_item
@@ -190,6 +191,11 @@ def ingest_local_one(
 	from sok_resdesk.ingest import cache_enabled, write_cached_pages
 	from sok_resdesk.search import SearchError, index_record
 
+	if hasattr(store, "is_media") and store.is_media(loc):
+		from sok_resdesk import features
+
+		if not features.on("media"):
+			return "unchanged", 0  # switched off: not collected
 	signature = store.signature(loc, item_id)
 	existing = frappe.db.get_value("RD Item", item_id, ["source_signature", "source"], as_dict=True)
 	if existing and not force and existing.source_signature == signature:
@@ -211,9 +217,23 @@ def ingest_local_one(
 
 	# a loose PDF's name says nothing about archive.org: never looked up there
 	calibre_book = store.kind == "calibre"  # its books are its own, never looked for on archive.org
+	recording = hasattr(store, "is_media") and store.is_media(loc)
 	on_ia = (
-		bool(profile.check_archive_org) and not is_bare(loc) and not calibre_book and on_archive_org(item_id)
+		bool(profile.check_archive_org)
+		and not is_bare(loc)
+		and not calibre_book
+		and not recording
+		and on_archive_org(item_id)
 	)
+	segments = store.transcript(loc) if recording and fetch_text else []
+	if recording:
+		pages, text_source = (
+			[
+				{"leaf": n, "label": mediafiles.fmt(s["start"]), "text": s["text"]}
+				for n, s in enumerate(segments)
+			],
+			"WebVTT or SRT" if segments else "",
+		)
 	pdf, thumb = store.pdf_name(item_id, loc), store.thumb_name(loc)
 	bundle = hasattr(store, "is_bundle") and store.is_bundle(loc)
 	options = leafimages.sidecar_options(store.read(loc, leafimages.SIDECAR)) if bundle else {}
@@ -221,6 +241,19 @@ def ingest_local_one(
 	if fetch_text and not pages and pdf and not on_ia:
 		pages, text_source, count = pdf_text(store, item_id, loc, pdf)
 		record["page_count"] = count or record.get("page_count") or 0
+	if recording:
+		playable = store.media_files(loc)
+		timed = [(n, store.file_path(loc, n)) for n in playable]
+		lengths = [int(round(mediafiles.duration_of(path))) if path else 0 for _n, path in timed]
+		record["item_type"] = mediafiles.kind_of(playable[0]) if playable else "Audio"
+		record["duration"] = max(lengths, default=0)
+		record["media_files"] = "\n".join(
+			f"{n}|{mediafiles.ext_of(n).lstrip('.').upper()}|{secs}"
+			for (n, _p), secs in zip(timed, lengths, strict=True)
+		)
+		record["page_count"] = len(segments)
+		record["leaf_times"] = mediafiles.times_json(segments) if segments else ""
+		record["on_archive_org"] = False
 	if bundle:
 		names = store.leaves(loc)
 		record["page_count"] = len(names)
@@ -235,7 +268,18 @@ def ingest_local_one(
 			"local_path": loc,
 			"local_pdf": pdf or "",
 			"local_thumb": thumb or "",
-			"local_files": "\n".join(store.downloads(loc)) if hasattr(store, "downloads") else "",
+			"local_files": "\n".join(store.downloads(loc))
+			if hasattr(store, "downloads")
+			else (
+				"\n".join(
+					[
+						*store.media_files(loc),
+						*[f for f in store.list_files(loc) if mediafiles.ext_of(f) in mediafiles.TRANSCRIPTS],
+					]
+				)
+				if recording
+				else ""
+			),
 			"local_images": "\n".join(store.leaves(loc)) if bundle else "",
 			"text_source": text_source,
 			"source_signature": signature,
@@ -251,6 +295,15 @@ def ingest_local_one(
 		record["ark"] = record.get("ark") or ""
 
 	name, created = upsert_item(record, raw=meta, profile=profile.name)
+	if recording:
+		# the recording's own fields from its .json: set while they are empty, never over a person's edit
+		_meta, rec = mediafiles.sidecar(
+			store.read(loc, mediafiles.stem_of(loc.rsplit("/", 1)[-1]) + ".json"), ""
+		)
+		current = frappe.db.get_value("RD Item", name, list(rec) or ["name"], as_dict=True)
+		fill = {k: v for k, v in rec.items() if not (current or {}).get(k)}
+		if fill:
+			frappe.db.set_value("RD Item", name, fill, update_modified=False)
 	if bundle:
 		# the manuscript's own fields from bundle.json: set while they are empty, never over a person's edit
 		current = frappe.db.get_value("RD Item", name, list(options["manuscript"]) or ["name"], as_dict=True)

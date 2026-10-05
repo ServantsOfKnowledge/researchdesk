@@ -46,6 +46,24 @@ frappe.ui.form.on("RD Item", {
 		if (frm.doc.item_type === "Manuscript") {
 			frm.add_custom_button(__("Label the Leaves"), () => label_leaves(frm), __("Actions"));
 		}
+		if (frm.doc.media_files) {
+			if (frm.doc.source === "Local") {
+				frm.add_custom_button(__("Read the Length"), () => frappe.call({ method: "sok_resdesk.media.read_length", args: { item: frm.doc.name }, freeze: true }).then(() => frm.reload_doc()), __("Actions"));
+			}
+			if (!frm.doc.leaf_times && frm.doc.duration) {
+				frm.add_custom_button(
+					__("Lay out Transcript Segments"),
+					() =>
+						frappe.prompt(
+							[{ fieldname: "seconds", fieldtype: "Int", label: __("Seconds in a segment"), default: 60, description: __("People transcribe one segment at a time: a minute is usual, 30 seconds for fast speech.") }],
+							(v) => frappe.call({ method: "sok_resdesk.media.lay_out_segments", args: { item: frm.doc.name, seconds: v.seconds }, freeze: true }).then(() => frm.reload_doc()),
+							__("Lay out Transcript Segments"),
+							__("Lay out")
+						),
+					__("Actions")
+				);
+			}
+		}
 		frm.add_custom_button(
 			__("Re-index"),
 			() =>

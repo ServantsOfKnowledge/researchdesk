@@ -53,6 +53,7 @@
   "feature_folders",
   "feature_repositories",
   "feature_library_systems",
+  "feature_media",
   "feature_deposit",
   "feature_sharing",
   "feature_reader_accounts",
@@ -449,6 +450,13 @@
    "label": "Library systems",
    "default": "1",
    "description": "A Koha or other library catalogue matched to the books here, links sent back. Off saves the imports and matching."
+  },
+  {
+   "fieldname": "feature_media",
+   "fieldtype": "Check",
+   "label": "Audio and video",
+   "default": "1",
+   "description": "Recordings with a player and a time-coded transcript, in folders and from archive.org. Off saves the player pages and the transcripts."
   },
   {
    "fieldname": "feature_deposit",

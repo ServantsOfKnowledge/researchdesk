@@ -36,7 +36,7 @@ class TestFeatures(IntegrationTestCase):
 
 	def test_profiles_combine(self):
 		feats, preset = features.from_profiles(["small", "archive"])
-		self.assertEqual(feats, {"ocr", "folders", "preservation", "identifiers", "review"})
+		self.assertEqual(feats, {"ocr", "folders", "preservation", "identifiers", "review", "media"})
 		self.assertEqual(preset, "standard")  # the larger of light and standard
 		s = self.switch(profile_small=1)
 		self.assertEqual(s.resource_preset, "light")

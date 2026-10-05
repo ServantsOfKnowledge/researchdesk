@@ -117,6 +117,12 @@ FEATURES: dict[str, Feature] = {
 			doctypes=("RD Library System", "RD Library Record"),
 		),
 		Feature(
+			"media",
+			"Audio and video",
+			"recordings with a player and a time-coded transcript, in folders and from archive.org",
+			"the player pages and the recordings' transcripts",
+		),
+		Feature(
 			"deposit",
 			"Repository deposit",
 			"people deposit their own work (files, licence, embargo) for a reviewer to accept",
@@ -176,6 +182,7 @@ PROFILES: dict[str, Profile] = {
 					"identifiers",
 					"sharing",
 					"statistics",
+					"media",
 				}
 			),
 			"standard",
@@ -189,7 +196,7 @@ PROFILES: dict[str, Profile] = {
 		Profile(
 			"archive",
 			"Archive keeping its own copies",
-			frozenset({"preservation", "identifiers", "folders", "review"}),
+			frozenset({"preservation", "identifiers", "folders", "review", "media"}),
 			"standard",
 		),
 		Profile(

@@ -11,6 +11,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from sok_resdesk.core import media
+
 # ISO 639-3 code -> English label. Covers what appears in SOK and common Indic
 # holdings; unknown values are kept as-is so nothing is lost.
 LANGUAGES: dict[str, str] = {
@@ -215,6 +217,9 @@ def guess_item_type(meta: dict) -> str:
 	return "Book"
 
 
+MEDIA_TYPES = ("audio", "movies", "etree")  # IA media types that are recordings
+
+
 def normalize_ia_item(identifier: str, meta: dict, files: list[dict] | None = None) -> dict:
 	"""Map one IA metadata record to the RD Item shape used by the catalogue."""
 	files = files or []
@@ -233,10 +238,24 @@ def normalize_ia_item(identifier: str, meta: dict, files: list[dict] | None = No
 	except (TypeError, ValueError):
 		page_count = 0
 
+	mediatype = first(meta.get("mediatype"))
+	playable = (
+		media.ia_media(files, "movies" if mediatype == "movies" else "audio")
+		if mediatype in MEDIA_TYPES
+		else []
+	)
+	item_type = (
+		("Video" if mediatype == "movies" else "Audio") if mediatype in MEDIA_TYPES else guess_item_type(meta)
+	)
+
 	return {
 		"item_id": identifier,
 		"source": "Internet Archive",
-		"item_type": guess_item_type(meta),
+		"item_type": item_type,
+		"media_files": "\n".join(f"{p['name']}|{p['format']}|{int(p['length'])}" for p in playable),
+		"duration": int(
+			max([p["length"] for p in playable], default=0) or media.length_of(first(meta.get("length")))
+		),
 		"title": clean_text(first(meta.get("title"))) or identifier,
 		"alt_title": clean_text(first(meta.get("alt_title"))),
 		"creators": creators,

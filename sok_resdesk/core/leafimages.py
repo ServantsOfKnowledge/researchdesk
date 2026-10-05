@@ -12,6 +12,8 @@ import io
 import json
 import re
 
+from sok_resdesk.core import media
+
 IMAGE_EXT = (".jpg", ".jpeg", ".png", ".tif", ".tiff")
 SIDECAR = "bundle.json"
 MAX_SIDE = 8000  # a longer side is scaled down when a leaf is first read (palm leaves are long and thin)
@@ -39,6 +41,8 @@ def leaf_names(files: list[str]) -> list[str]:
 def is_bundle(files: list[str]) -> bool:
 	"""A folder is a bundle of leaves when it has images, no IA metadata, no PDF and no Calibre book."""
 	if any(f.endswith("_meta.xml") or f.lower().endswith(".pdf") for f in files):
+		return False
+	if any(media.is_media(f) for f in files):  # a recording's poster and stills are not leaves
 		return False
 	return len(leaf_names(files)) >= MIN_LEAVES or SIDECAR in files and bool(leaf_names(files))
 

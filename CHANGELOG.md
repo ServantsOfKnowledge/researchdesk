@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.57.0 (2026-11-05): Audio and video
+
+- **Recordings**: in a Folder or Server profile, a media file (MP3, M4A, AAC, OGG, OPUS, WAV, FLAC, MP4,
+  M4V, WEBM, OGV) is an item, with the files of the same name belonging to it: more formats, a WebVTT
+  or SRT transcript, a poster and a `<name>.json` of details (title, authors, language, speakers, place,
+  recorded on, the speaker's consent). Its length is read from the file
+- **From archive.org**: an Internet Archive profile can **Also Bring in Audio and Video** (audio, video, live
+  music), played from archive.org, with the item's own WebVTT or SRT transcript
+- **A player with a time-coded transcript**: the transcript is kept as segments (pages with a start and an
+  end), so search finds words in a recording, a hit opens it at that moment (`?page=`), the segment being
+  played is followed, a click plays from there, and proofreaders correct a segment in place, a second
+  person validating it. A recording with no transcript gets blank segments to transcribe (Item → Actions →
+  *Read the Length*, *Lay out Transcript Segments*)
+- **Captions** for a video's player from the current transcript, a **IIIF** A/V manifest (a canvas with a
+  duration, the transcript as time-range annotations), range requests so a player can skip about
+- A new feature, **Audio and video** (sixteen now), in Settings → Features and in the *Public research portal* and
+  *Archive* profiles; off means not collected; see [Audio and video](docs/audio-video.md). Adds the
+  mutagen library to read lengths (ffprobe is the fallback; plain WAV needs neither)
+
 ## 0.56.0 (2026-11-04): One sidebar, and no way into Frappe's desktop
 
 - **Research Desk's sidebar holds every screen**, in sections: Catalogue (profiles, runs, items,

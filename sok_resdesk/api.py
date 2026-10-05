@@ -249,6 +249,64 @@ def page_image(item_id: str, leaf: int = 0, width: int = 0):
 	return resp
 
 
+def _segments(record: dict) -> list[dict]:
+	"""A recording's transcript: [{leaf, start, end, label, text, status}] in time order, every
+	segment (blank ones too, for people to fill), with proofreaders' corrections laid over."""
+	from sok_resdesk.core import media
+	from sok_resdesk.ingest import fetch_pages
+
+	times = media.times_from(record.get("leaf_times"))
+	if not times:
+		return []
+	try:
+		pages = {p["leaf"]: p for p in fetch_pages(record["item_id"])} if record.get("has_page_text") else {}
+	except Exception:
+		pages = {}
+	return [
+		{
+			"leaf": leaf,
+			"start": start,
+			"end": end,
+			"label": media.fmt(start),
+			"text": (pages.get(leaf) or {}).get("text") or "",
+			"status": (pages.get(leaf) or {}).get("status") or "",
+		}
+		for leaf, (start, end) in sorted(times.items())
+	]
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=120, seconds=60)
+def transcript(item_id: str):
+	"""A recording's transcript as time-coded segments (the player follows and seeks by them)."""
+	from sok_resdesk import pagetext
+
+	record = get_record(item_id)
+	if not record or not record.get("media"):
+		frappe.throw(_("Item not found"), frappe.DoesNotExistError)
+	if not access.can_read(record.get("visibility")):
+		return {"login_needed": True}
+	return {"segments": _segments(record), "can_proofread": pagetext.can_proofread()}
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=120, seconds=60)
+def captions(item_id: str):
+	"""A recording's transcript as WebVTT captions (for the player's own captions menu)."""
+	from sok_resdesk.core import media
+
+	record = get_record(item_id)
+	if not record or not record.get("media"):
+		raise frappe.PageDoesNotExistError
+	if not access.can_read(record.get("visibility")):
+		raise frappe.PermissionError
+	vtt = media.to_vtt(_segments(record), record.get("language") or "")
+	resp = Response(vtt, mimetype="text/vtt")
+	public = record.get("visibility") == "Public"
+	resp.headers["Cache-Control"] = "public, max-age=600" if public else "private, max-age=60"
+	return resp
+
+
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=240, seconds=60)
 def page(item_id: str, leaf: int = 0):

@@ -33,6 +33,7 @@ SCRIPTS = (
 	"library.js",
 	"proofread.js",
 	"readaloud.js",
+	"media.js",
 	"reader.js",
 	"tips.js",
 	"zoom.js",

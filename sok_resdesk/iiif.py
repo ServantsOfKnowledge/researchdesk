@@ -101,6 +101,8 @@ def manifest(item_id: str) -> Response:
 	if refused:
 		return refused
 	base = base_url()
+	if record.get("media"):
+		return _media_manifest(record, base)
 	local = drawn_here(record)
 	size, pages = iiif.NOMINAL, cint(record.get("page_count"))
 	if local:
@@ -144,6 +146,31 @@ def manifest(item_id: str) -> Response:
 		marcxml_url=f"{base}/api/method/sok_resdesk.api.marcxml?item_ids={item_id}",
 		pdf_url=record.get("pdf_url") if record.get("access_status") == "Open" else "",
 		text_pages=bool(record.get("has_page_text")),
+		thumbnail=record.get("thumbnail_url") or "",
+		collections=[(n, t) for n, t in collections],
+	)
+	return _json(data, public=_public(record))
+
+
+def _media_manifest(record: dict, base: str) -> Response:
+	from sok_resdesk.api import _segments
+
+	item_id = record["item_id"]
+	if record.get("access_status") != "Open":
+		return _error(404, "This recording's files are not open")
+	collections = frappe.get_all(
+		"RD Collection",
+		filters={"published": 1, "name": ("in", record.get("curated_collections") or ["-"])},
+		fields=["name", "title"],
+		as_list=True,
+	)
+	data = iiif.media_manifest(
+		record,
+		base,
+		segments=_segments(record),
+		provider=portal_title(),
+		book_url=f"{base}/library/item/{item_id}",
+		marcxml_url=f"{base}/api/method/sok_resdesk.api.marcxml?item_ids={item_id}",
 		thumbnail=record.get("thumbnail_url") or "",
 		collections=[(n, t) for n, t in collections],
 	)

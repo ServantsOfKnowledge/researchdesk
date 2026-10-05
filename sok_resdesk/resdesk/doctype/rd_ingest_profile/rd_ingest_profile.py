@@ -106,4 +106,5 @@ class RDIngestProfile(Document):
 			extra_filter=self.extra_filter or "",
 			query=self.ia_query or "",
 			identifiers=(self.identifiers or "").splitlines(),
+			media=bool(self.get("include_media")),
 		)

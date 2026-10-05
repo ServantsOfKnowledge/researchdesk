@@ -10,7 +10,8 @@ license = "MIT"
 dynamic = ["version"]
 # No third-party dependencies beyond what Frappe already ships (requests).
 # boto3: the second preservation copy on S3-compatible storage (core/replica.py)
-dependencies = ["boto3>=1.34"]
+# mutagen: the length of an audio or video file, read from its headers (core/media.py); ffprobe is the fallback
+dependencies = ["boto3>=1.34", "mutagen>=1.47"]
 
 [build-system]
 requires = ["flit_core >=3.4,<4"]

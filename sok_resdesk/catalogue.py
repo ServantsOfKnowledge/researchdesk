@@ -91,6 +91,9 @@ def item_to_record(doc) -> dict:
 		"downloads": _downloads(doc),
 		"local_images": doc.get("local_images") or "",
 		"manuscript": _manuscript(doc),
+		"media": _media(doc),
+		"recording": _recording(doc),
+		"leaf_times": doc.get("leaf_times") or "",
 		"leaf_labels": _leaf_labels(doc),
 		"from_repository": doc.source == "Repository",
 		"from_wikisource": doc.source == "Wikisource",
@@ -144,6 +147,47 @@ def _manuscript(doc) -> list[dict]:
 	return [{"label": label, "value": str(doc.get(f))} for f, label in MANUSCRIPT_FIELDS if doc.get(f)]
 
 
+RECORDING_FIELDS = (
+	("rec_speakers", "Speakers"),
+	("rec_place", "Place recorded"),
+	("rec_recorded_on", "Recorded on"),
+	("rec_consent", "Speaker's consent"),
+)
+
+
+def _recording(doc) -> list[dict]:
+	return [
+		{"label": label, "value": ", ".join(str(doc.get(f)).split("\n"))}
+		for f, label in RECORDING_FIELDS
+		if doc.get(f)
+	]
+
+
+def _media(doc) -> dict | None:
+	"""A recording's playable files and length, for the player: None for anything else."""
+	if not doc.get("media_files"):
+		return None
+	from urllib.parse import quote
+
+	files = []
+	for line in doc.media_files.splitlines():
+		name, _, rest = line.partition("|")
+		fmt, _, secs = rest.partition("|")
+		if not name:
+			continue
+		if doc.source == "Internet Archive" or doc.on_archive_org:
+			url = f"https://archive.org/download/{quote(doc.item_id, safe='')}/{quote(name)}"
+		else:
+			url = f"{base_url()}/api/method/sok_resdesk.api.file?item_id={quote(doc.item_id, safe='')}&name={quote(name, safe='')}"
+		from sok_resdesk.core.media import mime_of
+
+		files.append(
+			{"name": name, "format": fmt, "seconds": int(secs or 0), "url": url, "mime": mime_of(name)}
+		)
+	kind = doc.item_type if doc.item_type in ("Audio", "Video") else "Audio"
+	return {"kind": kind, "duration": doc.get("duration") or 0, "files": files}
+
+
 def _leaf_labels(doc) -> dict:
 	from sok_resdesk.core.leaves import clean
 
@@ -155,6 +199,9 @@ def _downloads(doc) -> list[dict]:
 	the Download PDF button."""
 	from urllib.parse import quote
 
+	if doc.get("media_files") and doc.source != "Local":  # archive.org's own files of a recording
+		media = _media(doc)
+		return [{"label": f["format"] or f["name"], "url": f["url"]} for f in (media or {}).get("files", [])]
 	if doc.source != "Local" or not doc.get("local_files"):
 		return []
 	out = []
@@ -287,6 +334,9 @@ def upsert_item(
 		"local_thumb",
 		"local_files",
 		"local_images",
+		"media_files",
+		"duration",
+		"leaf_times",
 		"text_source",
 		"source_signature",
 		"item_type",

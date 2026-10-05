@@ -54,7 +54,8 @@ def get_context(context):
 	# two readers side by side: the book reader (archive.org's, as before) and the page reader
 	# (page image and its text, page links and page citations); ?view=text opens the second
 	# a manuscript has its leaves beside a place to transcribe them, even before any text exists
-	context.page_reader = bool(
+	media = record.get("media")
+	context.page_reader = not media and bool(
 		record.get("has_page_text")
 		or record.get("on_archive_org")
 		or record.get("item_type") == "Manuscript"
@@ -64,7 +65,9 @@ def get_context(context):
 	# Reader: the Internet Archive's BookReader when the book is there, the PDF from our own files,
 	# or for a repository's book its record and PDF there (other sites' PDFs often refuse a frame)
 	context.reader = (
-		"ia"
+		"media"
+		if media
+		else "ia"
 		if record.get("on_archive_org")
 		else "remote"
 		if record.get("from_repository") or record.get("from_wikisource")

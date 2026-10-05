@@ -55,6 +55,15 @@
   "ms_colophon",
   "ms_provenance",
   "leaf_labels",
+  "section_recording",
+  "rec_speakers",
+  "rec_place",
+  "column_break_rec",
+  "rec_recorded_on",
+  "rec_consent",
+  "duration",
+  "media_files",
+  "leaf_times",
   "section_rights",
   "licence_url",
   "rights",
@@ -162,7 +171,7 @@
    "fieldname": "item_type",
    "fieldtype": "Select",
    "label": "Document Type",
-   "options": "Book\nPeriodical\nArticle\nThesis\nReport\nManuscript\nMap\nOther",
+   "options": "Book\nPeriodical\nArticle\nThesis\nReport\nManuscript\nMap\nAudio\nVideo\nOther",
    "default": "Book",
    "in_standard_filter": 1
   },
@@ -862,6 +871,64 @@
    "label": "Leaf Images",
    "read_only": 1,
    "description": "For a book that is a folder of photographs: the image files, one per line, in leaf order."
+  },
+  {
+   "fieldname": "section_recording",
+   "fieldtype": "Section Break",
+   "label": "Recording",
+   "collapsible": 1,
+   "depends_on": "eval:doc.item_type=='Audio' || doc.item_type=='Video' || doc.media_files",
+   "description": "What an audio or video recording needs besides the details above. Shown on the book's page."
+  },
+  {
+   "fieldname": "rec_speakers",
+   "fieldtype": "Small Text",
+   "label": "Speakers",
+   "description": "One per line: who is heard or seen."
+  },
+  {
+   "fieldname": "rec_place",
+   "fieldtype": "Data",
+   "label": "Place Recorded"
+  },
+  {
+   "fieldname": "column_break_rec",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rec_recorded_on",
+   "fieldtype": "Data",
+   "label": "Recorded On",
+   "description": "As exactly as known: 1987-03-14, March 1987, 1980s."
+  },
+  {
+   "fieldname": "rec_consent",
+   "fieldtype": "Select",
+   "label": "Speaker's Consent",
+   "options": "\nConsent on file\nSpeaker asked for restrictions\nPublic event, none needed",
+   "description": "Who agreed to the recording being shared. Restrictions are set under Access."
+  },
+  {
+   "fieldname": "duration",
+   "fieldtype": "Int",
+   "label": "Duration (seconds)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "media_files",
+   "fieldtype": "Long Text",
+   "label": "Playable Files",
+   "read_only": 1,
+   "hidden": 1,
+   "description": "name|format|seconds, one per line, best first."
+  },
+  {
+   "fieldname": "leaf_times",
+   "fieldtype": "Long Text",
+   "label": "Segment Times",
+   "read_only": 1,
+   "hidden": 1,
+   "description": "The start and end seconds of every transcript segment, as JSON from the segment number."
   }
  ],
  "links": [],

@@ -135,6 +135,15 @@ def _source_pages(
 		store = store_for_item(frappe.get_doc("RD Item", item_id))
 		if not store:
 			return []
+		if hasattr(store, "is_media") and store.is_media(local.local_path):  # a recording's transcript
+			from sok_resdesk.core.media import fmt
+
+			pages = [
+				{"leaf": n, "label": fmt(s["start"]), "text": s["text"]}
+				for n, s in enumerate(store.transcript(local.local_path))
+			]
+			_fetched(item_id, pages, use_cache)
+			return pages
 		data = store.load_item(item_id, local.local_path)
 		pages, _src = store.page_texts(item_id, local.local_path, data.get("page_numbers"))
 		if not pages:
@@ -142,6 +151,10 @@ def _source_pages(
 		_fetched(item_id, pages, use_cache)
 		return pages
 	ia = ia or client()
+	if frappe.db.get_value("RD Item", item_id, "media_files"):  # archive.org's recording: its transcript
+		pages = media_pages(ia, item_id, files)[0]
+		_fetched(item_id, pages, use_cache)
+		return pages
 	if files is None:  # callers that have the metadata pass both
 		try:
 			data = ia.metadata(item_id)
@@ -152,6 +165,27 @@ def _source_pages(
 	pages = ia.page_texts(item_id, page_numbers, files)
 	_fetched(item_id, pages, use_cache)
 	return pages
+
+
+def media_pages(ia: IAClient, item_id: str, files: list[dict] | None = None) -> tuple[list[dict], list[dict]]:
+	"""(pages, segments) of an archive.org recording's WebVTT or SRT file: one page per segment."""
+	from urllib.parse import quote
+
+	from sok_resdesk.core import media
+
+	try:
+		if files is None:
+			files = ia.metadata(item_id).get("files") or []
+		name = media.ia_transcript_file(files)
+		if not name:
+			return [], []
+		resp = ia._get(f"https://archive.org/download/{quote(item_id, safe='')}/{quote(name)}")
+		if resp.status_code != 200:
+			return [], []
+	except IAError:
+		return [], []
+	segs = media.segments(media.parse_cues(resp.text))
+	return [{"leaf": n, "label": media.fmt(s["start"]), "text": s["text"]} for n, s in enumerate(segs)], segs
 
 
 def _fetched(item_id: str, pages: list[dict], use_cache: bool) -> None:
@@ -266,7 +300,26 @@ def _ingest_one(
 	created = created or bool(first_pass)  # listed by the first pass, but new to this run
 
 	pages: list[dict] = []
-	if fetch_text and record["has_page_text"]:
+	if fetch_text and record.get("media_files"):
+		from sok_resdesk.core import media
+
+		pages, segs = media_pages(ia, item_id, files)
+		if pages:
+			if cache_enabled():
+				write_cached_pages(item_id, pages)
+			frappe.db.set_value(
+				"RD Item",
+				name,
+				{
+					"has_page_text": 1,
+					"has_fulltext": 1,
+					"page_count": len(pages),
+					"leaf_times": media.times_json(segs),
+					"text_source": "WebVTT or SRT (archive.org)",
+				},
+				update_modified=False,
+			)
+	elif fetch_text and record["has_page_text"]:
 		pages = fetch_pages(item_id, ia, data.get("page_numbers"), refresh=refresh, files=files)
 	try:
 		record = item_to_record(frappe.get_doc("RD Item", name))

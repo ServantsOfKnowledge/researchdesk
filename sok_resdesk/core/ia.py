@@ -85,6 +85,7 @@ class IAClient:
 		extra_filter: str = "",
 		query: str = "",
 		identifiers: list[str] | None = None,
+		media: bool = False,
 	) -> str:
 		"""Turn an ingest profile into an IA Lucene query."""
 		if scope_type == "Identifier List":
@@ -102,8 +103,10 @@ class IAClient:
 			base = f"collection:({collection.strip()})"
 		if extra_filter.strip():
 			base += f" AND ({extra_filter.strip()})"
-		# Research Desk is about texts; skip audio/video/collection records.
-		return base + " AND mediatype:(texts)"
+		# Research Desk is about texts; audio and video only when the profile asks for them.
+		return base + (
+			" AND mediatype:(texts OR audio OR movies OR etree)" if media else " AND mediatype:(texts)"
+		)
 
 	def count(self, query: str) -> int:
 		# advancedsearch with rows=0 is the reliable way to count; the scrape API's

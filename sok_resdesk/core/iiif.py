@@ -228,6 +228,74 @@ def manifest(
 	return out
 
 
+def media_manifest(record: dict, base: str, segments: list[dict] | None = None, **kw) -> dict:
+	"""A recording as a Manifest: one Canvas with a duration, painted with its sound or video, and
+	the transcript as supplementing annotations that point at time ranges (`canvas#t=start,end`)."""
+	rec = record["media"]
+	files = rec["files"]
+	kind = "Sound" if rec["kind"] == "Audio" else "Video"
+	segs = [s for s in segments or [] if (s.get("text") or "").strip()]
+	duration = rec.get("duration") or max([s["end"] for s in segments or []] + [0])
+	out = manifest(record, base, pages=0, image_url=lambda _leaf: "", **kw)
+	cid = canvas_id(base, record["item_id"], 0)
+	body = {"id": files[0]["url"], "type": kind, "format": files[0]["mime"], "duration": duration}
+	if len(files) > 1:  # the other formats: a choice, the first the default
+		body = {
+			"type": "Choice",
+			"items": [
+				{"id": f["url"], "type": kind, "format": f["mime"], "duration": duration} for f in files
+			],
+		}
+	canvas: dict = {
+		"id": cid,
+		"type": "Canvas",
+		"label": value(record.get("title") or record["item_id"], record.get("language")),
+		"duration": duration,
+		"items": [
+			{
+				"id": f"{cid}/page",
+				"type": "AnnotationPage",
+				"items": [
+					{
+						"id": f"{cid}/media",
+						"type": "Annotation",
+						"motivation": "painting",
+						"body": body,
+						"target": cid,
+					}
+				],
+			}
+		],
+	}
+	if kind == "Video":
+		canvas["width"], canvas["height"] = 1280, 720
+	if segs:
+		code = lang(record.get("language"))
+		canvas["annotations"] = [
+			{
+				"id": f"{cid}/transcript",
+				"type": "AnnotationPage",
+				"items": [
+					{
+						"id": f"{cid}/transcript/{n}",
+						"type": "Annotation",
+						"motivation": "supplementing",
+						"body": {
+							"type": "TextualBody",
+							"value": s["text"],
+							"format": "text/plain",
+							**({"language": code} if code != "none" else {}),
+						},
+						"target": f"{cid}#t={s['start']:g},{s['end']:g}",
+					}
+					for n, s in enumerate(segs)
+				],
+			}
+		]
+	out["items"] = [canvas]
+	return out
+
+
 def text_annotations(base: str, item_id: str, leaf: int, text: str, code: str | None = None) -> dict:
 	"""The text of one page as an annotation page that supplements its canvas."""
 	body = {"type": "TextualBody", "value": text, "format": "text/plain"}

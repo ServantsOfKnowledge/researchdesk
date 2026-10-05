@@ -474,3 +474,15 @@ html[data-rd-colours="sepia"] body, html[data-rd-colours="sepia"] .navbar, html[
 .rd-zoom__stage:active { cursor: grabbing; }
 .rd-zoom__stage img { position: absolute; left: 0; top: 0; transform-origin: 0 0; max-width: none; user-select: none; }
 .rd-zoom-open { margin-top: 6px; }
+
+/* Recordings: the player and its transcript */
+.rd-media { margin: 1rem 0; }
+.rd-media video { width: 100%; max-height: 70vh; background: #000; border-radius: 6px; }
+.rd-media audio { width: 100%; }
+.rd-media__bar { display: flex; gap: .75rem; align-items: center; margin: .25rem 0 .5rem; }
+.rd-media__transcript { list-style: none; margin: 0; padding: 0; max-height: 28rem; overflow: auto; border: 1px solid var(--rd-line, #ddd); border-radius: 6px; }
+.rd-seg { display: flex; gap: .75rem; align-items: baseline; padding: .4rem .6rem; border-bottom: 1px solid var(--rd-line, #eee); }
+.rd-seg.is-now { background: var(--rd-accent-soft, #e9f3ee); }
+.rd-seg__time { font-variant-numeric: tabular-nums; min-width: 4.5rem; text-align: left; border: 0; background: none; color: var(--rd-link, #1d5fa8); cursor: pointer; padding: 0; }
+.rd-seg__text { flex: 1; }
+.rd-seg__label { display: block; flex: 1; }

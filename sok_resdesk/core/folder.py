@@ -44,6 +44,7 @@ from urllib.parse import quote, unquote, urljoin, urlparse
 import requests
 
 from sok_resdesk.core import leafimages, scandata
+from sok_resdesk.core import media as mediafiles
 
 META_SUFFIX = "_meta.xml"
 SERVABLE = {".pdf", ".jpg", ".jpeg", ".png", ".gif", ".txt", ".epub", ".webp"}
@@ -281,6 +282,8 @@ class ItemStore:
 
 	def thumb_name(self, loc: str) -> str | None:
 		files = self.list_files(loc)
+		if mediafiles.is_media(loc):  # a poster with the recording's name
+			return next((f for f in files if mediafiles.ext_of(f) in mediafiles.POSTERS), None)
 		for name in ("__ia_thumb.jpg", "cover.jpg", "thumbnail.jpg"):
 			if name in files:
 				return name
@@ -355,6 +358,22 @@ class FolderStore(ItemStore):
 				if limit and seen >= limit:
 					return
 				continue
+			if not metas and any(mediafiles.is_media(f) for f in filenames):
+				# recordings: one item per name (its formats, transcript and poster belong to it)
+				stems = set()
+				for name in sorted(filenames):
+					stem = mediafiles.stem_of(name).lower()
+					if name.startswith(".") or not mediafiles.is_media(name) or stem in stems:
+						continue
+					stems.add(stem)
+					group = mediafiles.preferred(
+						[f for f in filenames if mediafiles.stem_of(f).lower() == stem]
+					)
+					rel = os.path.relpath(os.path.join(dirpath, group[0]), self.root)
+					yield mediafiles.media_id(rel), rel
+					seen += 1
+					if limit and seen >= limit:
+						return
 			if not metas:
 				# loose PDFs: each a book (the folder's subfolders are looked at too)
 				for name in sorted(filenames):
@@ -378,9 +397,41 @@ class FolderStore(ItemStore):
 				return
 
 	def _folder(self, loc: str) -> str:
-		return os.path.dirname(loc) if is_bare(loc) else loc
+		return os.path.dirname(loc) if is_bare(loc) or mediafiles.is_media(loc) else loc
+
+	# -- recordings: a media file's loc is the file itself; its stem's files belong to it -------------
+
+	def is_media(self, loc: str) -> bool:
+		return mediafiles.is_media(loc)
+
+	def _group(self, loc: str) -> list[str]:
+		"""Every file of the recording: its formats, transcripts, poster and details."""
+		stem = mediafiles.stem_of(os.path.basename(loc)).lower()
+		path = self._path(os.path.dirname(loc))
+		try:
+			names = sorted(f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)))
+		except FileNotFoundError:
+			return []
+		keep = (*mediafiles.EXT, *mediafiles.TRANSCRIPTS, *mediafiles.POSTERS, ".json")
+		return [f for f in names if mediafiles.stem_of(f).lower() == stem and mediafiles.ext_of(f) in keep]
+
+	def media_files(self, loc: str) -> list[str]:
+		return mediafiles.preferred(self._group(loc))
+
+	def transcript(self, loc: str) -> list[dict]:
+		"""The recording's segments from its WebVTT or SRT file (none when it has neither)."""
+		for ext in mediafiles.TRANSCRIPTS:
+			for f in self._group(loc):
+				if mediafiles.ext_of(f) == ext:
+					data = self.read(loc, f) or b""
+					segs = mediafiles.segments(mediafiles.parse_cues(data.decode("utf-8", "replace")))
+					if segs:
+						return segs
+		return []
 
 	def list_files(self, loc: str) -> list[str]:
+		if mediafiles.is_media(loc):
+			return self._group(loc)
 		if is_bare(loc):
 			return [os.path.basename(loc)] if os.path.isfile(self._path(loc)) else []
 		path = self._path(loc)
@@ -408,6 +459,20 @@ class FolderStore(ItemStore):
 		return leafimages.leaf_names(self.list_files(loc)) if self.is_bundle(loc) else []
 
 	def load_item(self, identifier: str, loc: str) -> dict:
+		if mediafiles.is_media(loc):
+			names = self.media_files(loc)
+			if not names:
+				raise StoreError(f"{loc}: not found")
+			stem = mediafiles.stem_of(os.path.basename(loc))
+			meta, rec = mediafiles.sidecar(self.read(loc, stem + ".json"), stem)
+			meta.update(
+				{
+					"identifier": identifier,
+					"mediatype": "movies" if mediafiles.kind_of(names[0]) == "Video" else "audio",
+				}
+			)
+			meta["recording"] = rec
+			return {"metadata": meta, "files": [{"name": f} for f in self._group(loc)], "page_numbers": None}
 		if self.is_bundle(loc):
 			names = self.leaves(loc)
 			meta = leafimages.sidecar_meta(
@@ -435,6 +500,12 @@ class FolderStore(ItemStore):
 		}
 
 	def signature(self, loc: str, identifier: str) -> str:
+		if mediafiles.is_media(loc):
+			parts = []
+			for name in self._group(loc):
+				st = os.stat(self._path(os.path.dirname(loc), name))
+				parts.append(f"{name}:{st.st_size}:{int(st.st_mtime)}")
+			return hashlib.sha1("|".join(parts).encode()).hexdigest()[:16]
 		if self.is_bundle(loc):
 			parts = []
 			for name in [*self.leaves(loc), leafimages.SIDECAR]:

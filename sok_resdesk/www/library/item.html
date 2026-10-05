@@ -37,7 +37,7 @@
 				{{ item.year or _("Undated") }}
 				{% if item.publisher %} · {{ item.publisher }}{% endif %}
 				{% if item.language_label %} · <a href="{{ library_url() }}?language_label={{ item.language_label | urlencode }}">{{ item.language_label }}</a>{% endif %}
-				{% if item.page_count %} · {{ item.page_count }} {{ _("pages") }}{% endif %}
+				{% if item.media %}{% if item.media.duration %} · <span id="rd-meta-length" data-seconds="{{ item.media.duration }}"></span>{% endif %}{% elif item.page_count %} · {{ item.page_count }} {{ _("pages") }}{% endif %}
 			</p>
 			<div class="rd-actions">
 				{% if can_read %}
@@ -96,6 +96,27 @@
 				</form>
 				<ol id="rd-inside-hits" class="rd-inside__hits"></ol>
 			</div>
+			{% if item.media %}
+			<div class="rd-media" id="rd-media" data-item="{{ item.item_id }}" data-kind="{{ item.media.kind | lower }}" data-start="{{ start_leaf }}">
+				{% if item.media.kind == "Video" %}
+				<video id="rd-player" controls preload="metadata" playsinline{% if item.thumbnail_url %} poster="{{ item.thumbnail_url }}"{% endif %}>
+					{% for f in item.media.files %}<source src="{{ f.url }}" type="{{ f.mime }}">{% endfor %}
+					{% if item.leaf_times %}<track kind="captions" src="/api/method/sok_resdesk.api.captions?item_id={{ item.item_id | urlencode }}" srclang="{{ lang_tag(item.language) or 'en' }}" label="{{ _('Transcript') }}">{% endif %}
+				</video>
+				{% else %}
+				<audio id="rd-player" controls preload="metadata">
+					{% for f in item.media.files %}<source src="{{ f.url }}" type="{{ f.mime }}">{% endfor %}
+				</audio>
+				{% endif %}
+				<p class="rd-muted rd-media__note">{% if item.media.duration %}{{ _("Length") }}: <span id="rd-media-length" data-seconds="{{ item.media.duration }}"></span>{% endif %}
+					{% if item.media.files|length > 1 %} · {{ item.media.files|map(attribute="format")|join(", ") }}{% endif %}</p>
+				<h3 class="rd-media__h">{{ _("Transcript") }}</h3>
+				<div class="rd-media__bar"><button class="rd-btn" type="button" id="rd-media-follow" aria-pressed="true">{{ _("Follow the recording") }}</button>
+					<span class="rd-muted" id="rd-media-status" role="status"></span></div>
+				<ol class="rd-media__transcript" id="rd-media-transcript"{% if lang_tag(item.language) %} lang="{{ lang_tag(item.language) }}"{% endif %}><li class="rd-muted">{{ _("Loading…") }}</li></ol>
+			</div>
+			{% endif %}
+			{% if not item.media %}
 			{% if page_reader %}
 			<div class="rd-views" role="tablist" aria-label="{{ _('Reader') }}">
 				<button type="button" role="tab" class="rd-view{% if start_view == 'book' %} is-active{% endif %}" data-view="book" aria-selected="{{ 'true' if start_view == 'book' else 'false' }}">{{ _("Book reader") }}</button>
@@ -155,6 +176,7 @@
 			</div>
 			{% endif %}
 			{% endif %}
+			{% endif %}
 		</section>
 
 		<section class="rd-book-about" id="rd-about">
@@ -174,6 +196,7 @@
 						{% for c in curated %}<a class="rd-chip" href="/library/collection/{{ c.name | urlencode }}">{{ c.title }}</a>{% endfor %}
 					</dd>{% endif %}
 					{% for m in item.manuscript %}<dt>{{ _(m.label) }}</dt><dd>{{ m.value }}</dd>{% endfor %}
+					{% for m in item.recording %}<dt>{{ _(m.label) }}</dt><dd>{{ m.value }}</dd>{% endfor %}
 					{% if item.item_type and item.item_type != "Book" %}<dt>{{ _("Type") }}</dt><dd>{{ _(item.item_type) }}</dd>{% endif %}
 					{% if item.collections %}<dt>{{ _("Source collections") }}</dt><dd>{{ item.collections | join(", ") }}</dd>{% endif %}
 					<dt>{{ _("Access") }}</dt><dd>{{ item.access_status }}{% if item.visibility != "Public" %} · {{ _("members only") if item.visibility == "Login to find" else _("login to read") }}{% endif %}</dd>
@@ -235,6 +258,7 @@
 <script src="{{ asset('js/item.js') }}"></script>
 <script src="{{ asset('js/reader.js') }}"></script>
 <script src="{{ asset('js/zoom.js') }}"></script>
+<script src="{{ asset('js/media.js') }}"></script>
 <script src="{{ asset('js/readaloud.js') }}"></script>
 <script src="{{ asset('js/annotate.js') }}"></script>
 <script src="{{ asset('js/proofread.js') }}"></script>
