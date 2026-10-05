@@ -72,7 +72,12 @@
 			$("img", fig).addEventListener("error", () => {
 				fig.innerHTML = `<p class="rd-muted">${esc(__("This page image isn't available here."))} <a href="#" data-to-book>${esc(__("Open it in the book reader"))}</a></p>`;
 			});
-			if (d.leaf < d.last) new Image().src = d.image.replace(/n\d+\.jpg$/, `n${d.leaf + 1}.jpg`); // the next one, ready
+			// the next one, ready (archive.org's …/n12.jpg, or a page drawn here: …&leaf=12)
+			if (d.leaf < d.last) {
+				new Image().src = d.image
+					.replace(/n\d+\.jpg$/, `n${d.leaf + 1}.jpg`)
+					.replace(/([?&]leaf=)\d+/, `$1${d.leaf + 1}`);
+			}
 		} else if (d.pdf) {
 			fig.innerHTML = `<p class="rd-muted"><a href="${esc(d.pdf)}#page=${d.leaf + 1}" target="_blank" rel="noopener">${esc(__("See this page in the PDF"))}</a></p>`;
 		} else {

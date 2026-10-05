@@ -64,11 +64,13 @@ def _fix(part: str, mode: str, osname: str, models: list[str] | None = None, add
 		return "./resdesk.sh requirements install python"
 	if part == "ocr":
 		if osname == "mac":
-			return "brew install tesseract tesseract-lang"
+			return "brew install tesseract tesseract-lang poppler"
 		if osname == "debian":
 			pkgs = " ".join(f"tesseract-ocr-{m}" for m in (models or ["kan", "eng"]))
-			return f"sudo apt-get install tesseract-ocr {pkgs}"
-		return _("Install Tesseract and its language models with this system's package manager.")
+			return f"sudo apt-get install tesseract-ocr poppler-utils {pkgs}"
+		return _(
+			"Install Tesseract, its language models and poppler (pdftoppm) with this system's package manager."
+		)
 	return ""
 
 
@@ -256,6 +258,19 @@ def check() -> list[dict]:
 			"4.0",
 			_fix("ocr", mode, osname, [m for m, _n in wanted] + ["eng"]),
 			"ocr" if mode == "native" else "",
+		)
+	)
+	pop = eq.program("pdftoppm", ("-v",))
+	add(
+		eq.item(
+			"poppler",
+			ocr,
+			"Poppler (pdftoppm)",
+			_("drawing the pages of PDFs: OCR, proofreading and Page & text for books not on archive.org"),
+			"ok" if pop else "warn",
+			pop.get("version", ""),
+			fix="" if pop else _fix("ocr", mode, osname),
+			install="" if pop or mode != "native" else "ocr",
 		)
 	)
 	for model, books in wanted:

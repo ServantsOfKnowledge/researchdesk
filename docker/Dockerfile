@@ -38,7 +38,7 @@ ARG OCR_LANGS="kan hin mar san tam tel mal ben guj pan ori eng"
 # the list the image was built with, for Server → Requirements
 ENV RESDESK_OCR_LANGS="${OCR_LANGS}"
 RUN apt-get update -q \
- && apt-get install -y -q --no-install-recommends tesseract-ocr \
+ && apt-get install -y -q --no-install-recommends tesseract-ocr poppler-utils \
       $(for l in ${OCR_LANGS}; do echo tesseract-ocr-$l; done) \
  && rm -rf /var/lib/apt/lists/*
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh

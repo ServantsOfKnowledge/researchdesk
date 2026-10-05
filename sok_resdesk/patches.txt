@@ -20,3 +20,4 @@ sok_resdesk.patches.v0_20.score_ocr #0.21: run again now that unscored books are
 sok_resdesk.patches.v0_21.auto_books_first
 sok_resdesk.patches.v0_20.score_ocr #0.21.2: one job instead of hundreds
 sok_resdesk.patches.v0_24.page_order
+sok_resdesk.patches.v0_40.desk_language

@@ -29,6 +29,7 @@ from sok_resdesk.core.normalize import normalize_ia_item
 from sok_resdesk.core.pdftext import has_text_layer, pages_from_pdf
 
 PART = "oai"  # parts of a harvest, one per batch, kept until the run ends
+SCAN = "PDF without text (scan)"  # the same as pdfs.SCAN: a book waiting for OCR
 _parts: dict[str, dict] = {}  # this worker's parts read so far: name -> {item_id: record}
 
 
@@ -235,7 +236,7 @@ def read_pdf(url: str) -> tuple[list[dict], int, str]:
 		return [], 0, ""
 	if has_text_layer(pages):
 		return pages, len(pages), "PDF text layer"
-	return [], len(pages), "PDF without text (scan)"
+	return [], len(pages), SCAN
 
 
 def ingest_one(entry: list, profile, fetch_text: bool, force: bool = False, buffer=None) -> tuple[str, int]:
@@ -262,6 +263,12 @@ def ingest_one(entry: list, profile, fetch_text: bool, force: bool = False, buff
 	meta = harvest.to_meta(rec, repository_name(profile))
 	record = normalize_ia_item(item_id, meta, [])
 	pages, count, text_source = read_pdf(pdf) if fetch_text else ([], 0, "")
+	if text_source == SCAN:
+		from sok_resdesk.pdfs import read_ocr_pages
+
+		ocrd = read_ocr_pages(item_id)  # read with OCR here before: still its text
+		if ocrd is not None:
+			pages, text_source = ocrd, "OCR here"
 	restricted = record["access_status"] == "Restricted"
 	record.update(
 		{
@@ -290,6 +297,11 @@ def ingest_one(entry: list, profile, fetch_text: bool, force: bool = False, buff
 		write_cached_pages(item_id, pages)
 	if pages:
 		frappe.db.set_value("RD Item", name, "page_order", PAGE_ORDER, update_modified=False)
+	if text_source == SCAN and not restricted:
+		from sok_resdesk.pdfs import forget_pages, queue_ocr
+
+		forget_pages(item_id)
+		queue_ocr(item_id)  # Settings → Catalogue → Read Scans with OCR
 	try:
 		from sok_resdesk.pagetext import apply
 

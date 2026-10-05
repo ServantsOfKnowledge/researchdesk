@@ -60,7 +60,11 @@ jinja = {
 # the portal's scripts in the reader's language, and the language switch (translations.py)
 update_website_context = ["sok_resdesk.translations.website_context"]
 # / shows the library to everyone, also to logged-in staff whose role has another home page
-before_request = ["sok_resdesk.portal.home_is_library"]
+before_request = [
+	"sok_resdesk.portal.home_is_library",
+	# portal pages in the language chosen on the portal; the Desk in the account's own
+	"sok_resdesk.translations.portal_language",
+]
 
 # Install / migrate -----------------------------------------------------------
 
@@ -134,6 +138,8 @@ scheduler_events = {
 		"sok_resdesk.review.nightly",
 		# the search engine's record of finished tasks, kept to the last week
 		"sok_resdesk.search_queue.daily",
+		# scans without text still waiting to be read with OCR
+		"sok_resdesk.pdfs.daily",
 	],
 	"weekly": [
 		"sok_resdesk.ingest.run_scheduled_weekly",

@@ -48,12 +48,13 @@ case "$part" in
       have brew || die "Homebrew is required on macOS: https://brew.sh"
       brew list --versions tesseract >/dev/null 2>&1 || brew install tesseract
       brew list --versions tesseract-lang >/dev/null 2>&1 || brew install tesseract-lang
+      brew list --versions poppler >/dev/null 2>&1 || brew install poppler   # draws PDFs' pages
     elif [ -f /etc/debian_version ]; then
-      pkgs="tesseract-ocr"
+      pkgs="tesseract-ocr poppler-utils"
       for l in $OCR_LANGS; do pkgs="$pkgs tesseract-ocr-$l"; done
       as_admin env DEBIAN_FRONTEND=noninteractive apt-get install -y -q $pkgs
     else
-      die "Install Tesseract and its language models with this system's package manager."
+      die "Install Tesseract, its language models and poppler (pdftoppm) with this system's package manager."
     fi
     ok "Tesseract $(tesseract --version 2>&1 | head -1 | awk '{print $2}') with $(tesseract --list-langs 2>/dev/null | tail -n +2 | tr '\n' ' ')"
     ;;

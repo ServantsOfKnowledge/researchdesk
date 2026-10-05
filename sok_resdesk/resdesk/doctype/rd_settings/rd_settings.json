@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-15 12:00:00.000000",
+ "modified": "2026-10-19 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -62,6 +62,9 @@
   "mirror_min_books",
   "column_break_iac",
   "mirror_skip",
+  "scans_section",
+  "ocr_scans",
+  "pdf_space_gb",
   "authority_section",
   "authority_nightly",
   "authority_auto_accept",
@@ -479,6 +482,25 @@
    "label": "Skip These archive.org Collections",
    "depends_on": "mirror_all_collections",
    "description": "archive.org collection identifiers that should not get a page, one per line (for example a big general collection most of your books are also in)."
+  },
+  {
+   "fieldname": "scans_section",
+   "fieldtype": "Section Break",
+   "label": "Scans Without Text"
+  },
+  {
+   "fieldname": "ocr_scans",
+   "fieldtype": "Check",
+   "label": "Read Scans with OCR",
+   "default": "1",
+   "description": "Books whose PDF has no text (scans from a repository or your folders) are read with Tesseract in the background, in the book's languages, so they can be searched inside and proofread. Needs Tesseract and its language models (Server → Requirements). Books on archive.org already come with their text."
+  },
+  {
+   "fieldname": "pdf_space_gb",
+   "fieldtype": "Float",
+   "label": "Space for Downloaded PDFs (GB)",
+   "default": "5",
+   "description": "PDFs fetched from repositories and book servers to draw their pages (for OCR, proofreading and Page & text) are kept here up to this size; the least used go first."
   },
   {
    "fieldname": "authority_section",

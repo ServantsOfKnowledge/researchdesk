@@ -364,6 +364,13 @@ Every setting:
 | Smallest Collection to Show | Only make a page for archive.org collections with at least this many of your books. |
 | Skip These archive.org Collections | archive.org collection identifiers that should not get a page, one per line (for example a big general collection most of your books are also in). |
 
+**Scans Without Text**
+
+| Setting | What it does |
+|---|---|
+| Read Scans with OCR | Books whose PDF has no text (scans from a repository or your folders) are read with Tesseract in the background, in the book's languages, so they can be searched inside and proofread. Needs Tesseract and its language models (Server → Requirements). Books on archive.org already come with their text. |
+| Space for Downloaded PDFs (GB) | PDFs fetched from repositories and book servers to draw their pages (for OCR, proofreading and Page & text) are kept here up to this size; the least used go first. |
+
 **Authorities**
 
 | Setting | What it does |

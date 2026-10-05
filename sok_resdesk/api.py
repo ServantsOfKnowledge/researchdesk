@@ -204,13 +204,42 @@ def search_inside(item_id: str, q: str, limit: int = 50):
 
 
 def page_image_url(record: dict, leaf: int) -> str:
-	"""The page image: archive.org serves every page of a book it holds as …/page/n<leaf>.jpg.
-	Books only in the library's own folders have no page images here yet (their PDF has them)."""
-	if record.get("on_archive_org"):
-		from urllib.parse import quote
+	"""The page image: archive.org serves every page of a book it holds as …/page/n<leaf>.jpg;
+	books from repositories and the library's folders have theirs drawn from their PDF here."""
+	from urllib.parse import quote
 
+	if record.get("on_archive_org"):
 		return f"https://archive.org/download/{quote(record['item_id'], safe='')}/page/n{int(leaf)}.jpg"
+	from sok_resdesk.pdfs import has_pdf
+
+	if has_pdf(record) and record.get("access_status") == "Open":
+		return (
+			f"{base_url()}/api/method/sok_resdesk.api.page_image"
+			f"?item_id={quote(record['item_id'], safe='')}&leaf={int(leaf)}"
+		)
 	return ""
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=180, seconds=60)
+def page_image(item_id: str, leaf: int = 0):
+	"""A page of a book that isn't on archive.org, drawn from its PDF (kept once drawn)."""
+	from sok_resdesk.core.pdfrender import RenderError
+	from sok_resdesk.pdfs import has_pdf, page_jpeg
+
+	record = get_record(item_id)
+	if not record or not has_pdf(record):
+		raise frappe.PageDoesNotExistError
+	if record.get("access_status") != "Open" or not access.can_read(record.get("visibility")):
+		raise frappe.PermissionError
+	try:
+		data = page_jpeg(record["item_id"], max(0, cint(leaf)))
+	except RenderError as e:
+		raise frappe.PageDoesNotExistError from e
+	resp = Response(data, mimetype="image/jpeg")
+	public = record.get("visibility") == "Public"
+	resp.headers["Cache-Control"] = "public, max-age=604800" if public else "private, max-age=3600"
+	return resp
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])

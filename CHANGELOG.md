@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.40.0 (2026-10-20): Scans without text, loose PDFs; the Desk in its own language
+
+- **The Desk keeps your account's language.** The portal's language switch changed the
+  account's language of whoever was logged in, so staff who looked at the portal in Kannada got
+  a half-Kannada Desk. The switch is now for the portal only (a cookie); the portal follows it
+  for logged-in readers too. Staff accounts it had changed go back to the site's language on
+  upgrade (choose another under *My Settings → Language* if you want it)
+- **Scans without text are read with OCR** as they come in (Settings → Catalogue → *Read Scans
+  with OCR*, on): a book whose PDF has no text layer, from a repository or your folders, is
+  read with Tesseract in the background in its languages; the text is kept here and is the
+  book's text for search, *Page & text* and proofreading. **Read with OCR** on the book's form
+- **Loose PDFs are books**: in a folder with no `_meta.xml`, each PDF is catalogued from its
+  title and author (or its file name), its text layer read, or OCR'd when it is a scan
+- **Page images for books not on archive.org**: drawn from their PDF for *Page & text*,
+  proofreading and re-OCR (poppler's `pdftoppm`, now in the Docker image and the native
+  installs; Server → Requirements shows it)
+- Folder books with a PDF but no OCR files get the PDF's text layer
+
 ## 0.39.0 (2026-10-19): Books from repositories (DSpace, EPrints, OAI-PMH)
 
 - **A new source for Ingest Profiles: Repository (OAI-PMH).** Give a DSpace, EPrints, Islandora,

@@ -140,6 +140,29 @@ def file_url(item_id: str, name: str) -> str:
 	return f"/api/method/sok_resdesk.api.file?item_id={quote(item_id, safe='')}&name={quote(name, safe='')}"
 
 
+SCAN = "PDF without text (scan)"  # the same as pdfs.SCAN: a book waiting for OCR
+
+
+def pdf_text(store: ItemStore, item_id: str, loc: str, pdf: str) -> tuple[list[dict], str, int]:
+	"""(pages, where from, pages in the PDF) for a book whose folder has a PDF and no other text:
+	the PDF's text layer, the text read with OCR here before, or nothing yet (a scan: OCR
+	follows)."""
+	from sok_resdesk.core.pdftext import has_text_layer, pages_from_pdf
+	from sok_resdesk.pdfs import read_ocr_pages
+
+	path = store.file_path(loc, pdf) if hasattr(store, "file_path") else None
+	try:
+		pages = pages_from_pdf(path or store.read(loc, pdf) or b"")
+	except Exception:  # damaged, or not a PDF after all
+		return [], "", 0
+	if has_text_layer(pages):
+		return pages, "PDF text layer", len(pages)
+	ocrd = read_ocr_pages(item_id)
+	if ocrd is not None:
+		return ocrd, "OCR here", len(pages)
+	return [], SCAN, len(pages)
+
+
 def ingest_local_one(
 	store: ItemStore,
 	item_id: str,
@@ -170,9 +193,15 @@ def ingest_local_one(
 			if book.strip():
 				pages, text_source = sections_from_text(book), "djvu.txt"
 
-	on_ia = bool(profile.check_archive_org) and on_archive_org(item_id)
+	from sok_resdesk.core.folder import is_bare
+
+	# a loose PDF's name says nothing about archive.org: never looked up there
+	on_ia = bool(profile.check_archive_org) and not is_bare(loc) and on_archive_org(item_id)
 	pdf, thumb = store.pdf_name(item_id, loc), store.thumb_name(loc)
 	restricted = record["access_status"] == "Restricted"
+	if fetch_text and not pages and pdf and not on_ia:
+		pages, text_source, count = pdf_text(store, item_id, loc, pdf)
+		record["page_count"] = count or record.get("page_count") or 0
 	record.update(
 		{
 			"source": "Local",
@@ -199,6 +228,11 @@ def ingest_local_one(
 		from sok_resdesk.ingest import PAGE_ORDER
 
 		frappe.db.set_value("RD Item", name, "page_order", PAGE_ORDER, update_modified=False)
+	if text_source == SCAN and not restricted:
+		from sok_resdesk.pdfs import forget_pages, queue_ocr
+
+		forget_pages(item_id)
+		queue_ocr(item_id)  # Settings → Catalogue → Read Scans with OCR
 	try:
 		record = item_to_record(frappe.get_doc("RD Item", name))
 		from sok_resdesk.pagetext import apply

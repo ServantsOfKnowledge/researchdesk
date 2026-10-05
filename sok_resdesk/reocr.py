@@ -8,7 +8,8 @@
   where it scores better than the text the page has (core/ocrquality.py). Pages people have
   proofread are never touched.
 
-Page images come from archive.org (one request per page, at the pace set in Settings).
+Page images come from archive.org (one request per page, at the pace set in Settings), or are
+drawn from the book's PDF for books from repositories and the library's folders (pdfs.py).
 """
 
 from __future__ import annotations
@@ -43,11 +44,14 @@ def page_image(item_id: str, leaf: int) -> bytes:
 	from sok_resdesk.ingest import client
 
 	record = get_record(item_id, published_only=False, check_access=False)
+	if record and not record.get("on_archive_org"):
+		from sok_resdesk.pdfs import has_pdf, page_png
+
+		if has_pdf(record):
+			return page_png(item_id, leaf)  # drawn from the book's PDF
 	url = page_image_url(record, leaf) if record else ""
 	if not url:
-		raise ocr_engine.OcrError(
-			_("This book has no page images to read (only books on archive.org, for now).")
-		)
+		raise ocr_engine.OcrError(_("This book has no page images to read: no archive.org scan and no PDF."))
 	resp = client()._get(url)
 	if resp.status_code != 200 or not resp.content:
 		raise ocr_engine.OcrError(

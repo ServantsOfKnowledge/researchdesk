@@ -142,6 +142,8 @@ only; 10 a minute.
 | `sok_resdesk.search_queue.get_overview` | the search engine's queue: book records and page text waiting, tasks a minute, time to go, failures, page text held or pending, task history |
 | `sok_resdesk.search_queue.books_first` · `hold_page_text` (`hold`=1/0) · `clear_history` (`days`) | cancel the waiting page text so books are listed next (it is sent again later); hold or resume page text; forget finished tasks older than `days` (7) |
 | `sok_resdesk.api.page` (`item_id`, `leaf`) | one page for the page reader: image address, text, printed number, last leaf (text needs read access) |
+| `sok_resdesk.api.page_image` (`item_id`, `leaf`) | a page of a book not on archive.org, drawn from its PDF (JPEG; read access, open books) |
+| `sok_resdesk.pdfs.ocr_now` (`item_id`) | staff: read a book's PDF with OCR, every page, in the background |
 | `sok_resdesk.api.cite_page` (`item_id`, `leaf`, `label`) | one page's citation in every format, and its link |
 | `sok_resdesk.annotations.page_notes` (`item_id`, `leaf`) | the notes on one page this visitor may see (anchored in the page text as it is now), and what they may do |
 | `sok_resdesk.annotations.add` (`item_id`, `leaf`, `kind`, `body`, `tags`, `link`, `entity` (a Wikidata Q-number), `start`+`end` or `region`=`x,y,w,h` in percent, `visibility`=`Private`/`Group`/`Public`, `research_group`, `page_label`) · `edit` (`name`, fields) · `remove` (`name`) | add, change or delete a note (logged in; only its author changes it) |

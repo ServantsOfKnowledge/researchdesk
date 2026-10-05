@@ -77,7 +77,8 @@ profile does it straight away.
 Books arrive in batches in the background. Only the details and the text of each page are
 downloaded; scans stay on archive.org (or your server) and are shown from there. Details:
 [Choosing & ingesting books](ingesting.md), [Your own folders & servers](local-folders.md) and
-[Books from repositories](repositories.md).
+[Books from repositories](repositories.md); loose PDFs and scans read with OCR:
+[Loose PDFs and scans without text](local-folders.md#loose-pdfs-and-scans-without-text).
 
 **Background Jobs** shows every run, queued job and schedule, with progress, and lets you
 **Pause** and **Resume** a run, **Pause All** background work, or stop it

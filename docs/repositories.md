@@ -59,7 +59,10 @@ with page links and page citations, notes and proofreading as for any book.
 
 Many older theses and books in repositories are scans whose PDF has no text layer. Those are
 catalogued (they appear in searches by title, author and subject) with *Text Taken From: PDF
-without text (scan)*. Reading their text with OCR as they come in is the next release.
+without text (scan)* and, with Settings → Catalogue → *Read Scans with OCR* on (the default),
+read with Tesseract in the background in the book's languages: see
+[Loose PDFs and scans without text](local-folders.md#loose-pdfs-and-scans-without-text). Their
+pages are drawn from the PDF for *Page & text* and proofreading.
 
 ## Things to know
 

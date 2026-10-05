@@ -215,15 +215,38 @@ READING_SETTINGS = (
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 def set_language(lang: str) -> dict:
-	"""The portal's language switch: a cookie for everyone, and the account's language too
-	for a logged-in reader (which is what Frappe goes by for them)."""
+	"""The portal's language switch: a cookie, for the portal only. The account's own language
+	(what the Desk is shown in) is never changed by it: staff who looked at the portal in
+	Kannada kept getting a half-Kannada Desk (before 0.40)."""
 	if lang != "en" and lang not in portal_languages():
 		frappe.throw(_("This portal is not offered in that language."))
 	frappe.local.cookie_manager.set_cookie("preferred_language", lang)
-	if frappe.session.user != "Guest":
-		frappe.db.set_value("User", frappe.session.user, "language", lang)
-		frappe.clear_cache(user=frappe.session.user)
 	return {"lang": lang}
+
+
+# the Desk and its calls keep the account's language; everything else is the portal
+DESK_PATHS = ("/app", "/desk", "/assets", "/files", "/private", "/socket.io", "/login", "/update-password")
+
+
+def portal_language() -> None:
+	"""before_request: a logged-in reader's portal pages (and the portal's own calls) in the
+	language they chose with the switch. Frappe itself goes by the account's language for anyone
+	logged in, which is right for the Desk and nothing else."""
+	if frappe.session.user == "Guest" or not getattr(frappe, "request", None):
+		return  # visitors: Frappe reads the cookie itself
+	lang = frappe.request.cookies.get("preferred_language") or ""
+	if not lang:
+		return
+	path = frappe.request.path or "/"
+	if path.startswith(DESK_PATHS):
+		return
+	if path.startswith("/api/"):
+		# a call from a Desk page keeps the account's language; one from the portal follows the switch
+		referer = frappe.request.headers.get("Referer") or ""
+		if "/app" in referer or "/desk" in referer or not referer:
+			return
+	if lang == "en" or lang in portal_languages():
+		frappe.local.lang = lang
 
 
 # ---- the Desk page ------------------------------------------------------------------------------

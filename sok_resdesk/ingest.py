@@ -111,6 +111,11 @@ def _source_pages(
 			from sok_resdesk.page_order import fix_book
 
 			return fix_book(item_id, cached, ia)  # cached in the old order: put right once
+	from sok_resdesk.pdfs import read_ocr_pages
+
+	ocrd = read_ocr_pages(item_id)  # a scan read with OCR here: its only text
+	if ocrd is not None:
+		return ocrd
 	local = frappe.db.get_value("RD Item", item_id, ["source", "local_store", "local_path"], as_dict=True)
 	if local and local.source == "Repository":
 		from sok_resdesk.repository import source_pages

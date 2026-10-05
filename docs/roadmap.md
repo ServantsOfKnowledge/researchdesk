@@ -112,7 +112,8 @@
 - [ ] Machine drafts for Portal Translations (e.g. IndicTrans2 or a translation service), checked
       by a person before they show
 - [x] Books from DSpace, EPrints and any OAI-PMH repository, with their PDFs' text (0.39)
-- [ ] More sources: Wikisource, bare PDFs with no OCR (OCR on ingest)
+- [x] Loose PDFs in folders, and scans without text read with OCR as they come in (0.40)
+- [ ] More sources: Wikisource
 - [ ] Offline collections (Kiwix packages) for schools and places with poor connections
 
 ## v1.0: library-grade

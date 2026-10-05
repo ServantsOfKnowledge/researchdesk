@@ -16,6 +16,10 @@ Two stores share one interface:
 * ``FolderStore``: a directory on this machine (local disk, USB, NAS mount).
   Item folders may be nested at any depth; an item is any folder holding a
   ``*_meta.xml``.
+* ``FolderStore`` also takes **loose PDFs**: in a folder with no ``*_meta.xml``, each PDF is a
+  book of its own (``theses/2019/Some thesis.pdf`` → ``Some-thesis``), catalogued from what the
+  PDF says about itself (title, author) and its file name. Its text is the PDF's text layer, or
+  OCR here for a scan (pdfs.py).
 * ``HttpStore``: a web server exposing the same layout
   (``<base>/<identifier>/<file>``). Items are listed from a manifest
   (``identifiers.txt``, one relative path per line) or from the server's
@@ -283,6 +287,44 @@ class ItemStore:
 		return None
 
 
+def bare_id(file_name: str) -> str:
+	"""A catalogue identifier for a loose PDF, from its file name: letters, digits, dots,
+	hyphens and underscores, as archive.org identifiers (``Some thesis (2019).pdf`` →
+	``Some-thesis-2019``)."""
+	stem = os.path.splitext(os.path.basename(file_name))[0]
+	safe = re.sub(r"[^A-Za-z0-9._-]+", "-", stem).strip("-._")[:90]
+	return safe or "pdf-" + hashlib.sha1(stem.encode()).hexdigest()[:10]
+
+
+_JUNK_TITLE = re.compile(r"^(untitled|microsoft word - |document\d*$|scan\d*$|img\d*|\s*$)", re.I)
+
+
+def bare_meta(identifier: str, file_name: str, info: dict) -> dict:
+	"""IA-style metadata for a loose PDF: the PDF's own title and author when they look like a
+	book's (not "Microsoft Word - draft.docx" or "Scan0001"), else its file name."""
+	title = info.get("title") or ""
+	if _JUNK_TITLE.match(title) or title.lower().endswith((".doc", ".docx", ".pdf", ".tif")):
+		title = ""
+	stem = os.path.splitext(os.path.basename(file_name))[0]
+	meta = {
+		"identifier": identifier,
+		"title": title or re.sub(r"[_]+|\s{2,}", " ", stem).strip(),
+		"mediatype": "texts",
+	}
+	if info.get("author") and not _JUNK_TITLE.match(info["author"]):
+		meta["creator"] = [a.strip() for a in re.split(r";|\band\b", info["author"]) if a.strip()]
+	if info.get("keywords"):
+		meta["subject"] = [k.strip() for k in re.split(r"[;,]", info["keywords"]) if k.strip()]
+	if info.get("subject"):
+		meta["description"] = info["subject"]
+	return meta
+
+
+def is_bare(loc: str) -> bool:
+	"""A loose PDF's location is the PDF's own path."""
+	return loc.lower().endswith(".pdf")
+
+
 class FolderStore(ItemStore):
 	kind = "folder"
 
@@ -306,6 +348,17 @@ class FolderStore(ItemStore):
 				dirnames[:] = []
 			metas = [f for f in filenames if f.endswith(META_SUFFIX)]
 			if not metas:
+				# loose PDFs: each a book (the folder's subfolders are looked at too)
+				for name in sorted(filenames):
+					if (
+						name.lower().endswith(".pdf")
+						and not name.startswith(".")
+						and not name.endswith("_text.pdf")
+					):
+						yield bare_id(name), os.path.relpath(os.path.join(dirpath, name), self.root)
+						seen += 1
+						if limit and seen >= limit:
+							return
 				continue
 			folder = os.path.basename(dirpath)
 			meta = f"{folder}{META_SUFFIX}" if f"{folder}{META_SUFFIX}" in metas else metas[0]
@@ -316,7 +369,12 @@ class FolderStore(ItemStore):
 			if limit and seen >= limit:
 				return
 
+	def _folder(self, loc: str) -> str:
+		return os.path.dirname(loc) if is_bare(loc) else loc
+
 	def list_files(self, loc: str) -> list[str]:
+		if is_bare(loc):
+			return [os.path.basename(loc)] if os.path.isfile(self._path(loc)) else []
 		path = self._path(loc)
 		try:
 			return sorted(f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)))
@@ -325,16 +383,34 @@ class FolderStore(ItemStore):
 
 	def read(self, loc: str, name: str) -> bytes | None:
 		try:
-			with open(self._path(loc, name), "rb") as f:
+			with open(self._path(self._folder(loc), name), "rb") as f:
 				return f.read()
 		except (FileNotFoundError, IsADirectoryError):
 			return None
 
 	def file_path(self, loc: str, name: str) -> str | None:
-		path = self._path(loc, name)
+		path = self._path(self._folder(loc), name)
 		return path if os.path.isfile(path) else None
 
+	def load_item(self, identifier: str, loc: str) -> dict:
+		if not is_bare(loc):
+			return super().load_item(identifier, loc)
+		from sok_resdesk.core.pdfrender import pdf_info
+
+		path = self._path(loc)
+		if not os.path.isfile(path):
+			raise StoreError(f"{loc}: not found")
+		name = os.path.basename(loc)
+		return {
+			"metadata": bare_meta(identifier, name, pdf_info(path)),
+			"files": [{"name": name}],
+			"page_numbers": None,
+		}
+
 	def signature(self, loc: str, identifier: str) -> str:
+		if is_bare(loc):
+			st = os.stat(self._path(loc))
+			return hashlib.sha1(f"{loc}:{st.st_size}:{int(st.st_mtime)}".encode()).hexdigest()[:16]
 		parts = []
 		for name in self.list_files(loc):
 			if name.endswith((META_SUFFIX, ".gz", ".html", ".xml", ".txt", ".pdf")):

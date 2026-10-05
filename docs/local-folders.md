@@ -112,6 +112,37 @@ Readers never talk to the book server directly: PDFs and covers are streamed thr
 Desk, so the server can stay on a private network (it only has to be reachable from the
 Research Desk machine).
 
+## Loose PDFs and scans without text
+
+Not everything comes in item folders. **A folder of plain PDFs** works too: in a folder with no
+`*_meta.xml`, every PDF is a book of its own (sub-folders are looked at as well), so a shelf of
+theses or a scanner's output folder can be pointed at as it is.
+
+| | |
+|---|---|
+| Identifier | from the file name: `theses/Vachana sahitya (1931).pdf` → `Vachana-sahitya-1931` |
+| Title, author | what the PDF says about itself when it looks like a book's (not *Microsoft Word - draft.docx* or *Scan0001*), else the file name; subjects from its keywords |
+| Text | the PDF's text layer, page by page; for a **scan without text**, OCR here (below) |
+| On archive.org? | never looked up: a file name says nothing about archive.org |
+
+Correct titles, authors, years and languages on the book's form (or in a spreadsheet import);
+the [review queue](staff-guide.md#the-review-queue) lists the books missing a year or a language.
+
+**Scans without text are read with OCR** (Settings → Catalogue → *Read Scans with OCR*, on by
+default): a book whose PDF has no text layer (here or from a [repository](repositories.md)) is
+read with Tesseract in the background, every page in the book's languages (set *OCR Languages*
+on the book first if the catalogue doesn't say). That takes a few seconds a page; the book's
+*Re-OCR* line shows how far it is. The text is kept in `sites/<site>/private/resdesk-ocr`
+(include it in backups: `./resdesk.sh backup --with-files`), so search inside the book,
+*Page & text* and proofreading work as for any book. **Read with OCR** on the book's form reads
+one again. It needs Tesseract and its language models, and poppler for drawing the pages:
+Server → Requirements shows what is missing.
+
+**Pages drawn from the PDF.** Books not on archive.org now show their page images in
+*Page & text* and for proofreading: each page is drawn from the book's PDF when first asked
+for and kept (`private/resdesk-page-images`). PDFs held elsewhere (a repository, a book server)
+are fetched once and kept up to Settings → Catalogue → *Space for Downloaded PDFs* (5 GB).
+
 ## New and changed books: drop-folder mode
 
 Set the profile's **Schedule** to *Hourly* (or *Daily* for big web servers). On each run:

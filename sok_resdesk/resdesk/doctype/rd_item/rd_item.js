@@ -98,6 +98,23 @@ frappe.ui.form.on("RD Item", {
 				}),
 			__("Actions")
 		);
+		// a scan whose PDF has no text: every page read with OCR (Settings → Read Scans with OCR)
+		if (frm.doc.source !== "Internet Archive" && !frm.doc.on_archive_org && (frm.doc.local_pdf || frm.doc.remote_pdf)) {
+			frm.add_custom_button(
+				__("Read with OCR"),
+				() =>
+					frappe.confirm(
+						__("Read every page of this book's PDF with OCR, in its languages? Its text becomes what this reading finds (pages people proofread keep their text). This takes a few seconds a page, in the background."),
+						() =>
+							frappe.call({
+								method: "sok_resdesk.pdfs.ocr_now",
+								args: { item_id: frm.doc.name },
+								callback: () => frappe.show_alert({ message: __("Queued: the book's Re-OCR line shows how far it is"), indicator: "green" }),
+							})
+					),
+				__("Actions")
+			);
+		}
 		// the library's own copy (Settings → Preservation)
 		frm.add_custom_button(
 			__("Preserve Now"),

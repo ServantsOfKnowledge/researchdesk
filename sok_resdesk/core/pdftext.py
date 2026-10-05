@@ -12,13 +12,13 @@ import re
 MIN_CHARS_PER_PAGE = 20  # less than this on most pages: the text layer is missing or empty
 
 
-def pages_from_pdf(data: bytes, max_pages: int = 5000) -> list[dict]:
+def pages_from_pdf(data: bytes | str, max_pages: int = 5000) -> list[dict]:
 	"""[{leaf, label, text}] for each page (leaf counts from 0, as page images do; label is the
 	printed page number the PDF gives, if any). Empty pages are kept, so leaves stay in step
 	with the PDF's pages."""
 	from pypdf import PdfReader
 
-	reader = PdfReader(io.BytesIO(data))
+	reader = PdfReader(data if isinstance(data, str) else io.BytesIO(data))  # a path, or the bytes
 	try:
 		labels = list(reader.page_labels)
 	except Exception:

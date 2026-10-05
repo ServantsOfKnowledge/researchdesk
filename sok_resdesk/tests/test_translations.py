@@ -117,3 +117,45 @@ class TestOnThePortal(TranslationsTestCase):
 		frappe.local.lang = "en"
 		self.assertEqual(translations.tr("rdtest Old maps"), "rdtest Old maps")
 		self.assertEqual(translations.script_messages("en"), {})
+
+
+class TestDeskKeepsItsLanguage(TranslationsTestCase):
+	"""0.40: the portal's language switch is for the portal; the Desk keeps the account's language."""
+
+	def request(self, path, referer=""):
+		from types import SimpleNamespace
+
+		return SimpleNamespace(
+			path=path, cookies={"preferred_language": "kn"}, headers={"Referer": referer} if referer else {}
+		)
+
+	def test_switch_leaves_the_account_alone(self):
+		from unittest import mock
+
+		from sok_resdesk import translations
+
+		self._offer("kn")
+		before = frappe.db.get_value("User", "Administrator", "language")
+		with mock.patch.object(frappe.local, "cookie_manager", mock.MagicMock(), create=True):
+			translations.set_language("kn")
+		self.assertEqual(frappe.db.get_value("User", "Administrator", "language"), before)
+
+	def test_portal_pages_follow_the_switch_and_the_desk_does_not(self):
+		from sok_resdesk import translations
+
+		self._offer("kn")
+		had, saved = hasattr(frappe.local, "request"), getattr(frappe.local, "request", None)
+		self.addCleanup(
+			lambda: setattr(frappe.local, "request", saved) if had else delattr(frappe.local, "request")
+		)
+		for path, referer, lang in (
+			("/library", "", "kn"),
+			("/library/item/x", "", "kn"),
+			("/api/method/sok_resdesk.api.page", "https://lib.example/library/item/x", "kn"),
+			("/app/rd-item", "", "en"),
+			("/api/method/frappe.desk.form.load.getdoc", "https://lib.example/app/rd-item/x", "en"),
+		):
+			frappe.local.lang = "en"
+			frappe.local.request = self.request(path, referer)
+			translations.portal_language()
+			self.assertEqual(frappe.local.lang, lang, path)

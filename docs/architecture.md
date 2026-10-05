@@ -236,7 +236,14 @@ Sources are pluggable at two points: a client that lists and fetches items (like
 `core/normalize.normalize_ia_item`). The OAI-PMH source shows the pattern end to end:
 `core/harvest.py` (the protocol client, Dublin Core to the record shape, finding the PDF),
 `core/pdftext.py` (a PDF's text layer page by page) and `repository.py` (planning a run,
-one record in a batch, the book's text when the cache doesn't have it). See [Development → Adding a source](development.md#adding-a-new-source).
+one record in a batch, the book's text when the cache doesn't have it).
+
+**Books with a PDF and no archive.org scan** (repositories, folders, loose PDFs): `pdfs.py`
+finds the book's PDF (its own file, our preservation copy, or a copy fetched and kept within a
+size limit), draws its pages with poppler's `pdftoppm` (`core/pdfrender.py`, or the page's
+embedded image without poppler) for *Page & text*, proofreading and re-OCR, and reads a scan
+without text with Tesseract in a background job. OCR'd text is kept in `private/resdesk-ocr`
+(it can't be fetched again) and comes before every other source in `ingest.fetch_pages`. See [Development → Adding a source](development.md#adding-a-new-source).
 
 ## Access control
 
