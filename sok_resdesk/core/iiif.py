@@ -293,64 +293,154 @@ def collection(
 
 
 def sizes_for(width: int, height: int) -> list[dict]:
-	"""The widths served for a page `width` × `height` px (never larger than the page), smallest first."""
+	"""The widths listed for a page `width` × `height` px (never larger than the page), smallest first."""
 	widths = sorted({w for w in IMAGE_WIDTHS if w < width} | {width})
 	return [{"width": w, "height": max(1, round(height * w / width))} for w in widths]
 
 
+TILE = 512
+PROFILE = "level2"
+MAX_OUT_PIXELS = 25_000_000  # the biggest image one request may ask for
+
+
 def image_info(base: str, item_id: str, leaf: int, width: int, height: int) -> dict:
-	sizes = sizes_for(width, height)
+	scale, factors = 1, []
+	while True:  # tiles at every scale, down to the first at which the whole page fits one tile
+		factors.append(scale)
+		if max(width, height) // scale < TILE:
+			break
+		scale *= 2
 	return {
 		"@context": IMAGE,
 		"id": service_id(base, item_id, leaf),
 		"type": "ImageService3",
 		"protocol": "http://iiif.io/api/image",
-		"profile": "level0",
+		"profile": PROFILE,
 		"width": width,
 		"height": height,
 		"maxWidth": width,
-		"sizes": sizes,
+		"sizes": sizes_for(width, height),
+		"tiles": [{"width": TILE, "height": TILE, "scaleFactors": factors}],
+		"extraFormats": ["png"],
+		"extraQualities": ["color", "gray", "bitonal"],
+		"extraFeatures": ["mirroring", "sizeUpscaling"],
 	}
 
 
 def service(base: str, item_id: str, leaf: int) -> dict:
-	return {"id": service_id(base, item_id, leaf), "type": "ImageService3", "profile": "level0"}
+	return {"id": service_id(base, item_id, leaf), "type": "ImageService3", "profile": PROFILE}
 
 
 class BadRequest(ValueError):
-	"""An image request the level 0 service doesn't serve (status 400, or 501 for a feature)."""
+	"""An image request that can't be served (status 400, or 501 for a feature not offered)."""
 
 	def __init__(self, message: str, status: int = 400):
 		super().__init__(message)
 		self.status = status
 
 
-def parse_image_request(rest: str, page_width: int) -> int:
-	"""`{region}/{size}/{rotation}/{quality}.{format}` → the width to serve.
+_NUM = r"\d+(?:\.\d+)?"
 
-	Level 0: the whole page only (region `full`), at `max` or one of the listed widths (`w,`),
-	unrotated (`0`), `default` quality, as JPEG."""
+
+def _region(region: str, width: int, height: int) -> tuple[int, int, int, int]:
+	if region in ("full", "max"):
+		return 0, 0, width, height
+	if region == "square":
+		side = min(width, height)
+		return (width - side) // 2, (height - side) // 2, (width + side) // 2, (height + side) // 2
+	pct = region.startswith("pct:")
+	body = region[4:] if pct else region
+	m = re.fullmatch(rf"({_NUM}),({_NUM}),({_NUM}),({_NUM})", body)
+	if not m:
+		raise BadRequest("A region is full, square, x,y,w,h or pct:x,y,w,h")
+	x, y, w, h = (float(v) for v in m.groups())
+	if pct:
+		x, y, w, h = x * width / 100, y * height / 100, w * width / 100, h * height / 100
+	left, top = round(x), round(y)
+	right, bottom = min(width, round(x + w)), min(height, round(y + h))
+	if left >= width or top >= height or right <= left or bottom <= top:
+		raise BadRequest("That region is outside the page or has no area")
+	return left, top, right, bottom
+
+
+def _size(size: str, rw: int, rh: int) -> tuple[int, int]:
+	up = size.startswith("^")
+	body = size[1:] if up else size
+	if body in ("max", "full"):
+		w, h = rw, rh
+	elif m := re.fullmatch(rf"pct:({_NUM})", body):
+		f = float(m.group(1)) / 100
+		w, h = round(rw * f), round(rh * f)
+	elif m := re.fullmatch(r"!(\d+),(\d+)", body):
+		f = min(int(m.group(1)) / rw, int(m.group(2)) / rh)
+		w, h = round(rw * f), round(rh * f)
+	elif m := re.fullmatch(r"(\d+),(\d+)", body):
+		w, h = int(m.group(1)), int(m.group(2))
+	elif m := re.fullmatch(r"(\d+),", body):
+		w = int(m.group(1))
+		h = round(rh * w / rw)
+	elif m := re.fullmatch(r",(\d+)", body):
+		h = int(m.group(1))
+		w = round(rw * h / rh)
+	else:
+		raise BadRequest("A size is max, w, ,h, w,h, !w,h or pct:n")
+	if w < 1 or h < 1:
+		raise BadRequest("That size has no pixels")
+	if (w > rw or h > rh) and not up:
+		raise BadRequest("The page is not served larger than it is (^ asks for that)")
+	if w * h > MAX_OUT_PIXELS:
+		raise BadRequest("That image is larger than this server makes")
+	return w, h
+
+
+def image_plan(rest: str, width: int, height: int) -> dict:
+	"""`{region}/{size}/{rotation}/{quality}.{format}` for a page `width` × `height` → what to make:
+	{"region": (left, top, right, bottom), "size": (w, h), "rotation": 0/90/180/270, "mirror": bool,
+	"quality": "color"/"gray"/"bitonal", "format": "jpg"/"png"} (IIIF Image API 3.0, level 2)."""
 	parts = rest.strip("/").split("/")
 	if len(parts) != 4:
 		raise BadRequest("An image request is region/size/rotation/quality.format")
 	region, size, rotation, last = parts
 	quality, _, fmt = last.partition(".")
-	if region not in ("full", "max"):
-		raise BadRequest("Only the whole page is served (region full)", 501)
-	if rotation != "0":
-		raise BadRequest("Pages are not rotated (rotation 0)", 501)
-	if quality != "default":
-		raise BadRequest("Only the default quality is served", 501)
-	if fmt != "jpg":
-		raise BadRequest("Pages are served as JPEG (.jpg)", 501)
-	if size in ("max", "full"):
-		return page_width
-	m = re.fullmatch(r"\^?(\d+),", size)
-	if not m:
-		raise BadRequest("Sizes are max or a width such as 800,", 501)
-	want = int(m.group(1))
-	if want not in {s["width"] for s in sizes_for(page_width, 1)}:
-		raise BadRequest(
-			f"Served widths: {', '.join(str(s['width']) for s in sizes_for(page_width, 1))}", 501
-		)
-	return want
+	box = _region(region, width, height)
+	out = _size(size, box[2] - box[0], box[3] - box[1])
+	mirror = rotation.startswith("!")
+	if (rotation[1:] if mirror else rotation) not in ("0", "90", "180", "270"):
+		raise BadRequest("Pages turn in quarters only (0, 90, 180, 270)", 501)
+	if quality not in ("default", "color", "gray", "bitonal"):
+		raise BadRequest("Qualities are default, color, gray and bitonal", 501)
+	if fmt not in ("jpg", "png"):
+		raise BadRequest("Pages are served as .jpg or .png", 501)
+	return {
+		"region": box,
+		"size": out,
+		"rotation": int(rotation.lstrip("!")),
+		"mirror": mirror,
+		"quality": "color" if quality == "default" else quality,
+		"format": fmt,
+	}
+
+
+def render_plan(im, plan: dict) -> tuple[bytes, str]:
+	"""The image the plan asks for, cut from the Pillow image `im`: (bytes, content type)."""
+	import io
+
+	from PIL import Image, ImageOps
+
+	out = im.crop(plan["region"])
+	if out.size != plan["size"]:
+		out = out.resize(plan["size"], Image.LANCZOS)
+	if plan["mirror"]:
+		out = ImageOps.mirror(out)
+	if plan["rotation"]:
+		out = out.rotate(-plan["rotation"], expand=True)  # clockwise, as IIIF turns
+	if plan["quality"] == "gray":
+		out = out.convert("L")
+	elif plan["quality"] == "bitonal":
+		out = out.convert("L").point(lambda v: 255 if v >= 128 else 0).convert("1")
+	buf = io.BytesIO()
+	if plan["format"] == "png":
+		out.save(buf, "PNG")
+		return buf.getvalue(), "image/png"
+	out.convert("RGB").save(buf, "JPEG", quality=85)
+	return buf.getvalue(), "image/jpeg"

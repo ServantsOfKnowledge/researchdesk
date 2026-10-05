@@ -15,7 +15,7 @@ import frappe
 import requests
 
 from sok_resdesk.catalogue import item_to_record, upsert_item
-from sok_resdesk.core import calibre
+from sok_resdesk.core import calibre, leafimages
 from sok_resdesk.core.deposit import DepositStore
 from sok_resdesk.core.folder import FolderStore, HttpStore, ItemStore, StoreError, open_store
 from sok_resdesk.core.normalize import normalize_ia_item
@@ -215,10 +215,16 @@ def ingest_local_one(
 		bool(profile.check_archive_org) and not is_bare(loc) and not calibre_book and on_archive_org(item_id)
 	)
 	pdf, thumb = store.pdf_name(item_id, loc), store.thumb_name(loc)
+	bundle = hasattr(store, "is_bundle") and store.is_bundle(loc)
+	options = leafimages.sidecar_options(store.read(loc, leafimages.SIDECAR)) if bundle else {}
 	restricted = record["access_status"] == "Restricted"
 	if fetch_text and not pages and pdf and not on_ia:
 		pages, text_source, count = pdf_text(store, item_id, loc, pdf)
 		record["page_count"] = count or record.get("page_count") or 0
+	if bundle:
+		names = store.leaves(loc)
+		record["page_count"] = len(names)
+		record["item_type"] = options["item_type"]
 	record.update(
 		{
 			"source": "Local",
@@ -230,6 +236,7 @@ def ingest_local_one(
 			"local_pdf": pdf or "",
 			"local_thumb": thumb or "",
 			"local_files": "\n".join(store.downloads(loc)) if hasattr(store, "downloads") else "",
+			"local_images": "\n".join(store.leaves(loc)) if bundle else "",
 			"text_source": text_source,
 			"source_signature": signature,
 		}
@@ -237,15 +244,28 @@ def ingest_local_one(
 	if not on_ia:
 		record["source_url"] = ""
 		record["thumbnail_url"] = file_url(item_id, thumb) if thumb else ""
+		if bundle:  # the first leaf, small
+			record["thumbnail_url"] = (
+				f"/api/method/sok_resdesk.api.page_image?item_id={quote(item_id, safe='')}&leaf=0&width=300"
+			)
 		record["ark"] = record.get("ark") or ""
 
 	name, created = upsert_item(record, raw=meta, profile=profile.name)
+	if bundle:
+		# the manuscript's own fields from bundle.json: set while they are empty, never over a person's edit
+		current = frappe.db.get_value("RD Item", name, list(options["manuscript"]) or ["name"], as_dict=True)
+		fill = {k: v for k, v in options["manuscript"].items() if not (current or {}).get(k)}
+		if fill:
+			frappe.db.set_value("RD Item", name, fill, update_modified=False)
 	if pages and cache_enabled():
 		write_cached_pages(item_id, pages)
 	if pages:
 		from sok_resdesk.ingest import PAGE_ORDER
 
 		frappe.db.set_value("RD Item", name, "page_order", PAGE_ORDER, update_modified=False)
+	if bundle and options["ocr"] and fetch_text and not restricted:
+		text_source = SCAN  # printed leaves are read with OCR (a manuscript is transcribed by people)
+		frappe.db.set_value("RD Item", name, "text_source", SCAN, update_modified=False)
 	if text_source == SCAN and not restricted:
 		from sok_resdesk.pdfs import forget_pages, queue_ocr
 

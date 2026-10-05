@@ -214,30 +214,33 @@ def page_image_url(record: dict, leaf: int) -> str:
 		from sok_resdesk.wikisource import page_image_url as wiki_image
 
 		return wiki_image(record, leaf)
-	from sok_resdesk.pdfs import has_pdf
+	from sok_resdesk.pdfs import can_draw, has_leaf_images
 
-	if has_pdf(record) and record.get("access_status") == "Open":
+	if can_draw(record) and record.get("access_status") == "Open":
+		# a photograph is shown at screen size; the zoom viewer asks for it whole (full=1)
+		size = "&width=1600" if has_leaf_images(record) else ""
 		return (
 			f"{base_url()}/api/method/sok_resdesk.api.page_image"
-			f"?item_id={quote(record['item_id'], safe='')}&leaf={int(leaf)}"
+			f"?item_id={quote(record['item_id'], safe='')}&leaf={int(leaf)}{size}"
 		)
 	return ""
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=180, seconds=60)
-def page_image(item_id: str, leaf: int = 0):
-	"""A page of a book that isn't on archive.org, drawn from its PDF (kept once drawn)."""
+def page_image(item_id: str, leaf: int = 0, width: int = 0):
+	"""A page of a book that isn't on archive.org, drawn from its PDF or taken from its photograph
+	(kept once drawn). `width` scales it to that many pixels (at most 4000); without it a page is whole."""
 	from sok_resdesk.core.pdfrender import RenderError
-	from sok_resdesk.pdfs import has_pdf, page_jpeg
+	from sok_resdesk.pdfs import can_draw, page_jpeg
 
 	record = get_record(item_id)
-	if not record or not has_pdf(record):
+	if not record or not can_draw(record):
 		raise frappe.PageDoesNotExistError
 	if record.get("access_status") != "Open" or not access.can_read(record.get("visibility")):
 		raise frappe.PermissionError
 	try:
-		data = page_jpeg(record["item_id"], max(0, cint(leaf)))
+		data = page_jpeg(record["item_id"], max(0, cint(leaf)), min(max(0, cint(width)), 4000))
 	except RenderError as e:
 		raise frappe.PageDoesNotExistError from e
 	resp = Response(data, mimetype="image/jpeg")

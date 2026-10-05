@@ -69,6 +69,8 @@
 		const fig = $("#rd-pages-image");
 		if (d.image) {
 			fig.innerHTML = `<img src="${esc(d.image)}" alt="${esc(__("Page image {0}", [d.leaf + 1]))}" loading="eager">`;
+			// the page whole, to look at closely (zoom.js)
+			fig.insertAdjacentHTML("beforeend", `<button type="button" class="rd-btn rd-btn--plain rd-zoom-open" data-zoom="${esc(d.image.replace(/&width=\d+/, ""))}" data-alt="${esc(__("Page image {0}", [d.leaf + 1]))}">${esc(__("Zoom"))}</button>`);
 			$("img", fig).addEventListener("error", () => {
 				fig.innerHTML = `<p class="rd-muted">${esc(__("This page image isn't available here."))} <a href="#" data-to-book>${esc(__("Open it in the book reader"))}</a></p>`;
 			});

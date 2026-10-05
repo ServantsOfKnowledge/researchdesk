@@ -92,7 +92,7 @@ class TestIIIF(IntegrationTestCase):
 			m = self.data(resp)
 			body = m["items"][0]["items"][0]["items"][0]["body"]
 			self.assertTrue(body["id"].endswith("/iiif/image/rdtestiiif-pdf/0/full/max/0/default.jpg"))
-			self.assertEqual(body["service"][0]["profile"], "level0")
+			self.assertEqual(body["service"][0]["profile"], "level2")
 			self.assertEqual((m["items"][0]["width"], m["items"][0]["height"]), (1000, 1400))
 			info = self.data(self.get("/iiif/image/rdtestiiif-pdf/1/info.json")[1])
 			self.assertEqual([s["width"] for s in info["sizes"]], [400, 800, 1000])
@@ -100,8 +100,16 @@ class TestIIIF(IntegrationTestCase):
 			self.assertEqual(status, 200)
 			self.assertEqual(Image.open(io.BytesIO(resp.get_data())).size, (800, 1120))
 			self.assertEqual(self.get("/iiif/image/rdtestiiif-pdf/1/full/max/0/default.jpg")[0], 200)
-			self.assertEqual(self.get("/iiif/image/rdtestiiif-pdf/1/full/90,/0/default.jpg")[0], 501)
-			self.assertEqual(self.get("/iiif/image/rdtestiiif-pdf/1/full/max/90/default.jpg")[0], 501)
+			# a region, turned and in grey: what a deep-zoom viewer asks for
+			status, resp = self.get("/iiif/image/rdtestiiif-pdf/1/100,200,300,400/150,/90/gray.png")
+			self.assertEqual(status, 200)
+			self.assertEqual(resp.headers["Content-Type"], "image/png")
+			self.assertEqual(Image.open(io.BytesIO(resp.get_data())).size, (200, 150))
+			self.assertEqual(self.get("/iiif/image/rdtestiiif-pdf/1/full/max/45/default.jpg")[0], 501)
+			self.assertEqual(self.get("/iiif/image/rdtestiiif-pdf/1/5000,0,10,10/max/0/default.jpg")[0], 400)
+			self.assertEqual(
+				self.get("/iiif/image/rdtestiiif-pdf/1/full/2000,/0/default.jpg")[0], 400
+			)  # not larger
 		# a book on archive.org has no service here
 		self.assertEqual(self.get("/iiif/image/rdtestiiif-ia/0/info.json")[0], 404)
 

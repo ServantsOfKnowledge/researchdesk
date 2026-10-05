@@ -33,10 +33,12 @@ All under the portal's address (`https://library.example.org` below):
   *Page & text* reader shows) and links to archive.org's own IIIF manifest for those who want its
   deep-zoom image service.
 - **Books from repositories and the library's own folders**: their pages are drawn here from the
-  PDF, so this library serves them through a small **IIIF Image API 3.0 service (level 0)**: the
-  whole page, as `max` or at widths 400, 800 or 1600 (never larger than the page), unrotated, in
-  JPEG. Viewers use it to show the right size for the screen. There is no tiling, so deep zoom on
-  a big page loads the whole image.
+  PDF (or are the book's own photographs), so this library serves them through a **IIIF Image API
+  3.0 service at level 2**: any region (`x,y,w,h`, `pct:`, `square`), any size (`w,`, `,h`, `w,h`,
+  `!w,h`, `pct:n`, `max`; larger than the page only with `^`), turned in quarters (and mirrored with
+  `!`), in colour, grey or black and white, as JPEG or PNG. `info.json` lists 512-pixel tiles at
+  every scale, so deep-zoom viewers (Mirador, Universal Viewer, OpenSeadragon) load only what they
+  show. One request makes an image of at most 25 million pixels.
 
 Page sizes on a canvas are the first page's (or a standard size for archive.org's books); viewers
 read the real size from the image.

@@ -45,8 +45,22 @@ validates the leaf (as for any page). The first transcribed leaf makes the book 
 and the book's *Pages proofread* count follows. **Proofreading** on the portal (/library/proofread)
 lists manuscripts to transcribe, those with the fewest leaves done first.
 
+## Photographs that are not on archive.org
+
+A folder of photographs of the leaves is a book in a folder source (see
+[folders of photographs](local-folders.md#folders-of-photographs-manuscripts-palm-leaves-bound-volumes)):
+the leaves are the images in order, the details can come from a `bundle.json`, and the photographs
+stay where they are.
+
+## Looking closely
+
+Beside every page image, **Zoom** opens it whole and full screen: the wheel or two fingers zoom,
+dragging moves it, double-click zooms in, **↻** turns it a quarter, and `+` `−` `0` and the arrow
+keys work from the keyboard. Other viewers (Mirador, Universal Viewer) open the book's IIIF
+manifest, and its [image service](iiif.md) serves regions and tiles for deep zoom.
+
 ## What is not here yet
 
-Reading handwriting automatically (handwritten-text recognition) and a viewer with deep zoom for
-very large images are planned. Until then transcription is by people, and a library can share
-the corrected leaves as ground truth (Settings → Proofreading) to train a recogniser.
+Reading handwriting automatically (handwritten-text recognition) is planned. Until then
+transcription is by people, and a library can share the corrected leaves as ground truth
+(Settings → Proofreading) to train a recogniser.

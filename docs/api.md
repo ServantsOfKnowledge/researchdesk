@@ -152,7 +152,7 @@ only; 10 a minute.
 | `sok_resdesk.search_queue.send_now` | start sending waiting page text now (managers; not while held) |
 | `sok_resdesk.search_queue.books_first` · `hold_page_text` (`hold`=1/0) · `clear_history` (`days`) | cancel the waiting page text so books are listed next (it is sent again later); hold or resume page text; forget finished tasks older than `days` (7) |
 | `sok_resdesk.api.page` (`item_id`, `leaf`) | one page for the page reader: image address, text, printed number, last leaf (text needs read access) |
-| `sok_resdesk.api.page_image` (`item_id`, `leaf`) | a page of a book not on archive.org, drawn from its PDF (JPEG; read access, open books) |
+| `sok_resdesk.api.page_image` (`item_id`, `leaf`, `width`) | a page of a book not on archive.org, drawn from its PDF or taken from its photograph (JPEG; `width` scales it, at most 4000; read access, open books) |
 | `sok_resdesk.pdfs.ocr_now` (`item_id`) | staff: read a book's PDF with OCR, every page, in the background |
 | `sok_resdesk.api.cite_page` (`item_id`, `leaf`, `label`) | one page's citation in every format, and its link |
 | `sok_resdesk.annotations.page_notes` (`item_id`, `leaf`) | the notes on one page this visitor may see (anchored in the page text as it is now), and what they may do |

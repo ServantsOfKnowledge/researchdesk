@@ -143,6 +143,33 @@ Server → Requirements shows what is missing.
 for and kept (`private/resdesk-page-images`). PDFs held elsewhere (a repository, a book server)
 are fetched once and kept up to Settings → Catalogue → *Space for Downloaded PDFs* (5 GB).
 
+## Folders of photographs (manuscripts, palm leaves, bound volumes)
+
+A folder of images (JPEG, PNG or TIFF) with no `_meta.xml` and no PDF is **one book**: its leaves
+are the images in the natural order of their names (`leaf2` before `leaf10`). A single photograph
+alone is not a book, unless the folder has a `bundle.json`. Such a book is a **Manuscript** unless
+its details say otherwise.
+
+An optional `bundle.json` beside the images gives the details:
+
+```json
+{
+  "title": "Ramayana, Aranyakanda",
+  "creator": ["Valmiki"],
+  "language": "san",
+  "date": "1823",
+  "item_type": "Manuscript",
+  "manuscript": {"script": "Grantha", "material": "Palm leaf", "leaves": 40, "dimensions": "5 x 34"}
+}
+```
+
+Without it the folder's name is the title. Fields under `manuscript` fill the book's *Manuscript*
+section while they are empty and are never put back over a person's edit. Set `"item_type": "Book"`
+for printed pages: they are read with OCR; a manuscript is transcribed by people
+([Manuscripts and palm leaves](manuscripts.md)). The photographs stay where they are; the portal
+draws each at screen size and gives the whole photograph to the zoom viewer and to IIIF viewers.
+Photographs larger than 8000 pixels on a side are scaled down when first read.
+
 ## New and changed books: drop-folder mode
 
 Set the profile's **Schedule** to *Hourly* (or *Daily* for big web servers). On each run:

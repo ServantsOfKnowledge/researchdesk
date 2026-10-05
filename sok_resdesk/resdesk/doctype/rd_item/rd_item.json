@@ -92,6 +92,7 @@
   "local_pdf",
   "local_thumb",
   "local_files",
+  "local_images",
   "text_source",
   "source_signature",
   "section_preservation",
@@ -854,6 +855,13 @@
    "hidden": 1,
    "read_only": 1,
    "description": "The labels of the leaves (1a, 1b, 2a…) as a JSON map from image number; set with Label the Leaves."
+  },
+  {
+   "fieldname": "local_images",
+   "fieldtype": "Long Text",
+   "label": "Leaf Images",
+   "read_only": 1,
+   "description": "For a book that is a folder of photographs: the image files, one per line, in leaf order."
   }
  ],
  "links": [],

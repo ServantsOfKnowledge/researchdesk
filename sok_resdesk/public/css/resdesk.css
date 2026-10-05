@@ -465,3 +465,12 @@ html[data-rd-colours="sepia"] body, html[data-rd-colours="sepia"] .navbar, html[
 .rd-help__toc a, .rd-help__nav li a { display: inline-block; min-height: 24px; padding: 2px 0; }
 .footer-powered, .footer-powered a, .footer-powered .text-muted { color: var(--text-color, #333) !important; }
 .footer-powered a { text-decoration: underline; }
+
+/* Zoom: a page image full screen */
+.rd-zoom { padding: 0; border: 0; width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh; background: #111; color: #fff; }
+.rd-zoom::backdrop { background: #000; }
+.rd-zoom__bar { position: absolute; z-index: 2; top: 8px; left: 8px; display: flex; gap: 6px; }
+.rd-zoom__stage { position: absolute; inset: 0; overflow: hidden; cursor: grab; touch-action: none; outline-offset: -3px; }
+.rd-zoom__stage:active { cursor: grabbing; }
+.rd-zoom__stage img { position: absolute; left: 0; top: 0; transform-origin: 0 0; max-width: none; user-select: none; }
+.rd-zoom-open { margin-top: 6px; }

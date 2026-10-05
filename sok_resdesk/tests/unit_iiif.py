@@ -68,7 +68,7 @@ def test_an_image_service_on_the_painting():
 	m = make(service=lambda leaf: iiif.service(BASE, "kanakadasa1950", leaf), size=(1200, 1700))
 	body = m["items"][0]["items"][0]["items"][0]["body"]
 	assert body["service"] == [
-		{"id": f"{BASE}/iiif/image/kanakadasa1950/0", "type": "ImageService3", "profile": "level0"}
+		{"id": f"{BASE}/iiif/image/kanakadasa1950/0", "type": "ImageService3", "profile": "level2"}
 	]
 	assert (m["items"][0]["width"], m["items"][0]["height"]) == (1200, 1700)
 
@@ -98,34 +98,82 @@ def test_collections_page_through_big_ones():
 
 def test_image_info_lists_only_widths_the_page_has():
 	info = iiif.image_info(BASE, "x", 4, 1000, 1400)
-	assert info["profile"] == "level0" and info["type"] == "ImageService3"
+	assert info["profile"] == "level2" and info["type"] == "ImageService3"
 	assert [s["width"] for s in info["sizes"]] == [400, 800, 1000]
 	assert info["sizes"][0]["height"] == 560
 	assert [s["width"] for s in iiif.image_info(BASE, "x", 0, 2000, 2800)["sizes"]] == [400, 800, 1600, 2000]
 
 
-@pytest.mark.parametrize(
-	"rest,width",
-	[("full/max/0/default.jpg", 1000), ("full/full/0/default.jpg", 1000), ("full/800,/0/default.jpg", 800)],
-)
-def test_image_requests_served(rest, width):
-	assert iiif.parse_image_request(rest, 1000) == width
+def plan(rest, w=1000, h=1400):
+	return iiif.image_plan(rest, w, h)
+
+
+def test_the_tiles_listed_cover_the_page_at_every_scale():
+	info = iiif.image_info(BASE, "x", 0, 4000, 600)
+	assert info["tiles"] == [{"width": 512, "height": 512, "scaleFactors": [1, 2, 4, 8]}]
+	assert iiif.image_info(BASE, "x", 0, 300, 200)["tiles"][0]["scaleFactors"] == [1]
+	assert "sizeUpscaling" in info["extraFeatures"]
+
+
+def test_regions():
+	assert plan("full/max/0/default.jpg")["region"] == (0, 0, 1000, 1400)
+	assert plan("100,200,300,400/max/0/default.jpg")["region"] == (100, 200, 400, 600)
+	assert plan("pct:10,10,50,50/max/0/default.jpg")["region"] == (100, 140, 600, 840)
+	assert plan("square/max/0/default.jpg")["region"] == (0, 200, 1000, 1200)
+	assert plan("900,1300,500,500/max/0/default.jpg")["region"] == (900, 1300, 1000, 1400)  # clipped
+
+
+def test_sizes():
+	assert plan("full/800,/0/default.jpg")["size"] == (800, 1120)
+	assert plan("full/,700/0/default.jpg")["size"] == (500, 700)
+	assert plan("full/300,300/0/default.jpg")["size"] == (300, 300)  # exactly, not keeping the shape
+	assert plan("full/!500,500/0/default.jpg")["size"] == (357, 500)
+	assert plan("full/pct:25/0/default.jpg")["size"] == (250, 350)
+	assert plan("0,0,100,100/200,/0/default.jpg".replace("200,", "^200,"))["size"] == (
+		200,
+		200,
+	)  # upscaled on request
+
+
+def test_rotation_quality_and_format():
+	p = plan("full/max/!270/gray.png")
+	assert (p["rotation"], p["mirror"], p["quality"], p["format"]) == (270, True, "gray", "png")
+	assert plan("full/max/0/default.jpg")["quality"] == "color"
+
+
+def test_the_pixels_come_out_as_asked():
+	from PIL import Image
+
+	im = Image.new("RGB", (400, 200), (255, 0, 0))
+	im.paste((0, 0, 255), (200, 0, 400, 200))  # the right half is blue
+	data, kind = iiif.render_plan(im, iiif.image_plan("200,0,200,200/100,/0/default.jpg", 400, 200))
+	assert kind == "image/jpeg"
+	import io
+
+	with Image.open(io.BytesIO(data)) as out:
+		assert out.size == (100, 100) and out.getpixel((50, 50))[2] > 200  # blue
+	turned, _k = iiif.render_plan(im, iiif.image_plan("full/max/90/default.png", 400, 200))
+	with Image.open(io.BytesIO(turned)) as out:
+		assert out.size == (200, 400)  # a quarter turn swaps the sides
+		assert out.getpixel((100, 50))[0] > 200  # the red half is now at the top (clockwise)
 
 
 @pytest.mark.parametrize(
 	"rest,status",
 	[
 		("full/max", 400),
-		("square/max/0/default.jpg", 501),
-		("0,0,100,100/max/0/default.jpg", 501),
-		("full/max/90/default.jpg", 501),
-		("full/max/0/gray.jpg", 501),
-		("full/max/0/default.png", 501),
-		("full/!400,400/0/default.jpg", 501),
-		("full/777,/0/default.jpg", 501),
+		("full/max/0/default", 501),
+		("full/max/45/default.jpg", 501),
+		("full/max/0/sepia.jpg", 501),
+		("full/max/0/default.webp", 501),
+		("2000,0,10,10/max/0/default.jpg", 400),
+		("full/2000,/0/default.jpg", 400),  # larger than the page without ^
+		("full/0,/0/default.jpg", 400),
+		("full/banana/0/default.jpg", 400),
+		("full/20000,/0/default.jpg".replace("20000", "^20000"), 400),  # over what the server makes
 	],
 )
 def test_image_requests_refused(rest, status):
 	with pytest.raises(iiif.BadRequest) as e:
-		iiif.parse_image_request(rest, 1000)
+		plan(rest)
 	assert e.value.status == status

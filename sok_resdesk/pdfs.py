@@ -24,7 +24,7 @@ from frappe import _
 from frappe.utils import cint, flt
 
 from sok_resdesk import features
-from sok_resdesk.core import ocr_engine
+from sok_resdesk.core import leafimages, ocr_engine
 from sok_resdesk.core.pdfrender import OCR_DPI, VIEW_DPI, RenderError, page_count, render
 from sok_resdesk.holding import hold_when_paused
 
@@ -50,6 +50,33 @@ def has_pdf(record: dict) -> bool:
 		not record.get("on_archive_org")
 		and (record.get("local_pdf") or record.get("from_repository") or record.get("served_from_copy"))
 		and record.get("pdf_url")
+	)
+
+
+def has_leaf_images(record: dict) -> bool:
+	"""A book that is a folder of photographs (a palm-leaf bundle, a manuscript)."""
+	return bool(record.get("local_images") and not record.get("on_archive_org"))
+
+
+def can_draw(record: dict) -> bool:
+	"""Whether this server can give a page image of the book: from its PDF or from its leaf images."""
+	return has_pdf(record) or has_leaf_images(record)
+
+
+def leaf_image_names(item_id: str) -> list[str]:
+	return [n for n in (frappe.db.get_value("RD Item", item_id, "local_images") or "").splitlines() if n]
+
+
+def leaf_image_path(item_id: str, leaf: int) -> str | None:
+	"""The photograph of leaf `leaf` (from 0) in the book's folder."""
+	names = leaf_image_names(item_id)
+	if not 0 <= leaf < len(names):
+		return None
+	from sok_resdesk.local_source import store_for_item
+
+	store = store_for_item(frappe.get_doc("RD Item", item_id))
+	return (
+		store.file_path(frappe.db.get_value("RD Item", item_id, "local_path"), names[leaf]) if store else None
 	)
 
 
@@ -121,26 +148,54 @@ def _prune(folder: str) -> None:
 			pass
 
 
-def page_jpeg(item_id: str, leaf: int) -> bytes:
-	"""Page `leaf` for the screen (kept once drawn)."""
-	cached = os.path.join(
-		_dir("resdesk-page-images"), _safe(item_id)[:2].lower(), _safe(item_id), f"{leaf}.jpg"
-	)
-	if os.path.exists(cached):
-		with open(cached, "rb") as f:
-			return f.read()
-	path = pdf_path(item_id)
-	if not path:
-		raise RenderError(_("This book's PDF can't be reached."))
-	data = render(path, leaf, VIEW_DPI, grey=False, fmt="jpeg")
-	os.makedirs(os.path.dirname(cached), exist_ok=True)
-	with open(cached, "wb") as f:
-		f.write(data)
-	return data
+def page_jpeg(item_id: str, leaf: int, width: int = 0) -> bytes:
+	"""Page `leaf` for the screen (kept once drawn); with `width`, scaled to that many pixels
+	(kept too). A book of photographs gives each photograph at full size."""
+	folder = os.path.join(_dir("resdesk-page-images"), _safe(item_id)[:2].lower(), _safe(item_id))
+	cached = os.path.join(folder, f"{leaf}.jpg")
+	if not os.path.exists(cached):
+		if frappe.db.get_value("RD Item", item_id, "local_images"):
+			image = leaf_image_path(item_id, leaf)
+			if not image:
+				raise RenderError(_("This leaf's photograph can't be reached."))
+			try:
+				data = leafimages.to_jpeg(leafimages.open_image(image))
+			except (OSError, ValueError) as e:  # damaged, not an image after all, or too large
+				raise RenderError(str(e)[:200]) from e
+		else:
+			path = pdf_path(item_id)
+			if not path:
+				raise RenderError(_("This book's PDF can't be reached."))
+			data = render(path, leaf, VIEW_DPI, grey=False, fmt="jpeg")
+		os.makedirs(folder, exist_ok=True)
+		with open(cached, "wb") as f:
+			f.write(data)
+	if width > 0:
+		sized = os.path.join(folder, f"{leaf}.w{width}.jpg")
+		if not os.path.exists(sized):
+			with open(cached, "rb") as f:
+				small = leafimages.resize_to_width(f.read(), width)
+			with open(sized, "wb") as f:
+				f.write(small)
+		cached = sized
+	with open(cached, "rb") as f:
+		return f.read()
 
 
 def page_png(item_id: str, leaf: int) -> bytes:
 	"""Page `leaf` at 300 dpi in grey, for Tesseract."""
+	if frappe.db.get_value("RD Item", item_id, "local_images"):
+		image = leaf_image_path(item_id, leaf)
+		if not image:
+			raise ocr_engine.OcrError(_("This leaf's photograph can't be reached."))
+		import io
+
+		try:
+			buf = io.BytesIO()
+			leafimages.open_image(image, 4500).convert("L").save(buf, "PNG")
+			return buf.getvalue()
+		except (OSError, ValueError) as e:
+			raise ocr_engine.OcrError(str(e)[:200]) from e
 	path = pdf_path(item_id)
 	if not path:
 		raise ocr_engine.OcrError(_("This book's PDF can't be reached."))
@@ -224,8 +279,9 @@ def ocr_book(item_id: str) -> dict:
 
 	from sok_resdesk.reocr import _state, engine_name, models_for
 
-	path = pdf_path(item_id)
-	if not path:
+	bundle = leaf_image_names(item_id)
+	path = None if bundle else pdf_path(item_id)
+	if not path and not bundle:
 		_state(item_id, _("not read: its PDF can't be reached"))
 		return {"read": 0}
 	try:
@@ -234,10 +290,11 @@ def ocr_book(item_id: str) -> dict:
 		_state(item_id, _("not read: {0}").format(str(e)[:120]))
 		return {"read": 0}
 	try:
-		labels = list(PdfReader(path).page_labels)
+		labels = [] if bundle else list(PdfReader(path).page_labels)
 	except Exception:
 		labels = []
-	count, pages, failed, started = page_count(path), [], 0, time.monotonic()
+	count = len(bundle) if bundle else page_count(path)
+	pages, failed, started = [], 0, time.monotonic()
 	for leaf in range(count):
 		if frappe.cache.get_value("resdesk:stop-background"):
 			_state(item_id, _("stopped at page {0}: read again from Re-OCR").format(leaf + 1))

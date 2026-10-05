@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.55.0 (2026-11-03): Folders of photographs and deep zoom
+
+- **A folder of photographs is a book**: a folder of JPEG, PNG or TIFF images (a palm-leaf bundle,
+  a manuscript, a volume shot page by page) with no `_meta.xml` and no PDF is catalogued as one
+  book in a Folder or Server source; its leaves are the images in natural order. An optional
+  `bundle.json` gives its details (title, authors, language, and the manuscript's own fields).
+  Photographs stay where they are; printed ones (`"item_type": "Book"`) are read with OCR, a
+  manuscript is transcribed by people
+- **IIIF Image API at level 2** for every page drawn here: regions, any size, quarter turns and
+  mirroring, colour, grey or black and white, JPEG or PNG, with 512-pixel tiles listed so
+  deep-zoom viewers load only what they show
+- **Zoom** beside every page image: full screen, wheel/pinch, drag, quarter turn, keyboard; the
+  portal gives a photograph at screen size and the whole photograph to the viewer
+- See [folders of photographs](docs/local-folders.md) and [Manuscripts and palm leaves](docs/manuscripts.md)
+
 ## 0.54.0 (2026-11-02): Manuscripts and palm leaves
 
 - **A manuscript's own details**: a *Manuscript* section on the book (holding institution,

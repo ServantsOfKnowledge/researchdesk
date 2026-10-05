@@ -55,7 +55,10 @@ def get_context(context):
 	# (page image and its text, page links and page citations); ?view=text opens the second
 	# a manuscript has its leaves beside a place to transcribe them, even before any text exists
 	context.page_reader = bool(
-		record.get("has_page_text") or record.get("on_archive_org") or record.get("item_type") == "Manuscript"
+		record.get("has_page_text")
+		or record.get("on_archive_org")
+		or record.get("item_type") == "Manuscript"
+		or record.get("local_images")
 	)
 	context.start_view = "text" if context.page_reader and frappe.form_dict.get("view") == "text" else "book"
 	# Reader: the Internet Archive's BookReader when the book is there, the PDF from our own files,

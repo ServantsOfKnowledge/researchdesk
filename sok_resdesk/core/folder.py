@@ -43,7 +43,7 @@ from urllib.parse import quote, unquote, urljoin, urlparse
 
 import requests
 
-from sok_resdesk.core import scandata
+from sok_resdesk.core import leafimages, scandata
 
 META_SUFFIX = "_meta.xml"
 SERVABLE = {".pdf", ".jpg", ".jpeg", ".png", ".gif", ".txt", ".epub", ".webp"}
@@ -347,6 +347,14 @@ class FolderStore(ItemStore):
 			if dirpath.count(os.sep) - base_depth >= MAX_SCAN_DEPTH:
 				dirnames[:] = []
 			metas = [f for f in filenames if f.endswith(META_SUFFIX)]
+			if not metas and leafimages.is_bundle(filenames):
+				rel = os.path.relpath(dirpath, self.root)
+				yield leafimages.bundle_id(rel), rel
+				dirnames[:] = []  # a bundle's subfolders are not books
+				seen += 1
+				if limit and seen >= limit:
+					return
+				continue
 			if not metas:
 				# loose PDFs: each a book (the folder's subfolders are looked at too)
 				for name in sorted(filenames):
@@ -392,7 +400,26 @@ class FolderStore(ItemStore):
 		path = self._path(self._folder(loc), name)
 		return path if os.path.isfile(path) else None
 
+	def is_bundle(self, loc: str) -> bool:
+		return not is_bare(loc) and leafimages.is_bundle(self.list_files(loc))
+
+	def leaves(self, loc: str) -> list[str]:
+		"""The image names of a bundle in leaf order."""
+		return leafimages.leaf_names(self.list_files(loc)) if self.is_bundle(loc) else []
+
 	def load_item(self, identifier: str, loc: str) -> dict:
+		if self.is_bundle(loc):
+			names = self.leaves(loc)
+			meta = leafimages.sidecar_meta(
+				self.read(loc, leafimages.SIDECAR), os.path.basename(loc.rstrip("/"))
+			)
+			meta["identifier"] = identifier
+			meta["imagecount"] = len(names)
+			return {
+				"metadata": meta,
+				"files": [{"name": f} for f in self.list_files(loc)],
+				"page_numbers": None,
+			}
 		if not is_bare(loc):
 			return super().load_item(identifier, loc)
 		from sok_resdesk.core.pdfrender import pdf_info
@@ -408,6 +435,15 @@ class FolderStore(ItemStore):
 		}
 
 	def signature(self, loc: str, identifier: str) -> str:
+		if self.is_bundle(loc):
+			parts = []
+			for name in [*self.leaves(loc), leafimages.SIDECAR]:
+				try:
+					st = os.stat(self._path(loc, name))
+				except OSError:
+					continue
+				parts.append(f"{name}:{st.st_size}:{int(st.st_mtime)}")
+			return hashlib.sha1("|".join(parts).encode()).hexdigest()[:16]
 		if is_bare(loc):
 			st = os.stat(self._path(loc))
 			return hashlib.sha1(f"{loc}:{st.st_size}:{int(st.st_mtime)}".encode()).hexdigest()[:16]

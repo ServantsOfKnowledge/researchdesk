@@ -91,9 +91,9 @@ def _page_size(item_id: str) -> tuple[int, int]:
 
 def drawn_here(record: dict) -> bool:
 	"""Pages of this book are drawn here from its PDF (so this library serves the image)."""
-	from sok_resdesk.pdfs import has_pdf
+	from sok_resdesk.pdfs import can_draw
 
-	return not record.get("on_archive_org") and has_pdf(record) and record.get("access_status") == "Open"
+	return not record.get("on_archive_org") and can_draw(record) and record.get("access_status") == "Open"
 
 
 def manifest(item_id: str) -> Response:
@@ -270,21 +270,14 @@ def image(item_id: str, leaf: str, rest: str) -> Response:
 	from sok_resdesk.pdfs import page_jpeg
 
 	try:
-		data = page_jpeg(item_id, n)
-		with Image.open(io.BytesIO(data)) as im:
-			width, height = im.size
-			want = iiif.parse_image_request(rest, width)
-			if want != width:
-				buf = io.BytesIO()
-				im.convert("RGB").resize((want, max(1, round(height * want / width)))).save(
-					buf, "JPEG", quality=85
-				)
-				data = buf.getvalue()
+		with Image.open(io.BytesIO(page_jpeg(item_id, n))) as im:
+			plan = iiif.image_plan(rest, *im.size)
+			data, mimetype = iiif.render_plan(im.convert("RGB"), plan)
 	except iiif.BadRequest as e:
 		return _error(e.status, str(e))
 	except (RenderError, OSError):
 		return _error(404, "No such page")
-	resp = Response(data, mimetype="image/jpeg")
+	resp = Response(data, mimetype=mimetype)
 	_headers(resp, _public(record))
 	if _public(record):
 		resp.headers["Cache-Control"] = "public, max-age=604800"

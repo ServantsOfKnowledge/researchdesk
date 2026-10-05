@@ -35,6 +35,7 @@ SCRIPTS = (
 	"readaloud.js",
 	"reader.js",
 	"tips.js",
+	"zoom.js",
 )
 PYTHON = ("about.py", "portal.py", "api.py", "annotations.py", "access.py", "catalogue.py")
 CACHE_KEY = "resdesk:portal-phrases"

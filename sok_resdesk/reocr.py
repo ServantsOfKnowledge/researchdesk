@@ -46,10 +46,10 @@ def page_image(item_id: str, leaf: int) -> bytes:
 
 	record = get_record(item_id, published_only=False, check_access=False)
 	if record and not record.get("on_archive_org"):
-		from sok_resdesk.pdfs import has_pdf, page_png
+		from sok_resdesk.pdfs import can_draw, page_png
 
-		if has_pdf(record):
-			return page_png(item_id, leaf)  # drawn from the book's PDF
+		if can_draw(record):
+			return page_png(item_id, leaf)  # drawn from the book's PDF, or its photograph
 	url = page_image_url(record, leaf) if record else ""
 	if not url:
 		raise ocr_engine.OcrError(_("This book has no page images to read: no archive.org scan and no PDF."))
