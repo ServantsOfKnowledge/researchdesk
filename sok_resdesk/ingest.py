@@ -123,6 +123,12 @@ def _source_pages(
 		pages = source_pages(item_id)
 		_fetched(item_id, pages, use_cache)
 		return pages
+	if local and local.source == "Wikisource":
+		from sok_resdesk.wikisource import source_pages as wiki_pages
+
+		pages = wiki_pages(item_id)
+		_fetched(item_id, pages, use_cache)
+		return pages
 	if local and local.source == "Local":
 		from sok_resdesk.local_source import sections_from_text, store_for_item
 
@@ -173,6 +179,10 @@ def count_profile(profile: str) -> dict:
 		from sok_resdesk.repository import harvester
 
 		count = harvester(doc).count(doc.oai_prefix or "oai_dc", doc.oai_set or "")
+	elif doc.is_wikisource:
+		from sok_resdesk.wikisource import index_titles
+
+		count = len(index_titles(doc))
 	elif doc.scope_type == "Metadata File":
 		count = len(read_metadata_file(doc)["rows"])
 	elif doc.scope_type == "Identifier List":
@@ -211,6 +221,10 @@ def refresh_item(item_id: str) -> str:
 		from sok_resdesk.repository import refresh
 
 		refresh(doc)
+	elif doc.source == "Wikisource":
+		from sok_resdesk.wikisource import refresh as refresh_wiki
+
+		refresh_wiki(doc)
 	elif doc.source == "Local":
 		from sok_resdesk.local_source import ingest_local_one, store_for_item
 
@@ -438,6 +452,12 @@ def plan_run(
 			from sok_resdesk import repository
 
 			ids = repository.plan(run_name, profile, limit, lambda m: _log(run_name, m, verbose))
+			only_new = False
+		elif profile.is_wikisource:
+			# the Index pages (a category's and the listed ones): each is a book, read in its batch
+			from sok_resdesk import wikisource
+
+			ids = wikisource.plan(run_name, profile, limit, lambda m: _log(run_name, m, verbose))
 			only_new = False
 		elif profile.is_folder:
 			# Every item goes to a batch: unchanged ones are skipped there by comparing
@@ -980,6 +1000,12 @@ def run_batch(run_name: str, item_ids: list, batch_no: int = 0, verbose: bool = 
 						from sok_resdesk import repository
 
 						outcome, pages = repository.ingest_one(
+							list(entry), profile, fetch_text, force=refresh, buffer=buffer
+						)
+					elif profile.is_wikisource:
+						from sok_resdesk import wikisource
+
+						outcome, pages = wikisource.ingest_one(
 							list(entry), profile, fetch_text, force=refresh, buffer=buffer
 						)
 					else:

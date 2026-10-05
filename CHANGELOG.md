@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.48.0 (2026-10-27): Books from Wikisource
+
+- **A new source, Wikisource**: an Ingest Profile names a Wikisource (`kn.wikisource.org`,
+  `sa.wikisource.org`, any language's) and a category of Index pages and/or a list of them. Each
+  Index page becomes a book with its details, and the text of its pages, taken at the level you
+  choose (any text, proofread or validated), becomes its page text: searchable inside the text,
+  readable beside the page image, with the text source saying whether it is all proofread
+- Page images are drawn by Wikisource from the scan; the book links to its Index page and the
+  scan, and is a [IIIF manifest](docs/iiif.md) too. The record says the text is CC BY-SA 4.0
+- **Check Wikisource** on the profile counts the Index pages and shows the first book
+- Part of *Books from repositories* in Settings → Features
+- Docs: [Books from Wikisource](docs/wikisource.md)
+
 ## 0.47.0 (2026-10-26): IIIF
 
 - **Every book is a IIIF manifest** (`/iiif/<book>/manifest`, Presentation 3.0): its metadata, one

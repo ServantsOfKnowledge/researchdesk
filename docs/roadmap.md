@@ -126,7 +126,7 @@
       books (0.46)
 - [ ] Help pictures for members-only libraries, taken as a reader account
 - [x] IIIF: a manifest for every book, collections, page text as annotations, an image service for books drawn from PDFs (0.47)
-- [ ] More sources: Wikisource
+- [x] Books from Wikisource, with their proofread page text and images (0.48)
 - [ ] Offline collections (Kiwix packages) for schools and places with poor connections
 
 ## v1.0: library-grade

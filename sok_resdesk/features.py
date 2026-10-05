@@ -105,9 +105,9 @@ FEATURES: dict[str, Feature] = {
 		Feature(
 			"repositories",
 			"Books from repositories",
-			"DSpace, EPrints and any OAI-PMH repository",
+			"DSpace, EPrints and any OAI-PMH repository, and books transcribed on Wikisource",
 			"the harvests",
-			sources=("Repository (OAI-PMH)",),
+			sources=("Repository (OAI-PMH)", "Wikisource"),
 		),
 		Feature(
 			"library_systems",

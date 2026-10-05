@@ -66,6 +66,31 @@ frappe.ui.form.on("RD Ingest Profile", {
 			);
 		}
 
+		if (frm.doc.source === "Wikisource") {
+			frm.add_custom_button(__("Check Wikisource"), () =>
+				frappe.call({
+					method: "sok_resdesk.wikisource.check",
+					args: { profile: frm.doc.name },
+					freeze: true,
+					freeze_message: __("Asking the Wikisource…"),
+					callback: (r) => {
+						const m = r.message, esc = frappe.utils.escape_html, s = m.sample;
+						frappe.msgprint({
+							title: esc(frm.doc.wiki_site),
+							indicator: m.books ? "green" : "orange",
+							message:
+								`<p>${__("{0} Index pages (books) found.", [m.books])}</p>` +
+								(s
+									? `<p><b>${__("The first")}</b>: ${esc(s.title)}${s.author ? " · " + esc(s.author) : ""}${s.year ? " · " + esc(s.year) : ""}<br>` +
+									  `${__("Scan pages")}: ${s.pages || __("not stated")}<br>` +
+									  `${__("Catalogued as")} <code>${esc(s.item_id)}</code></p>`
+									: `<p>${__("Nothing to bring in yet: check the category or the Index titles.")}</p>`),
+						});
+					},
+				})
+			);
+		}
+
 		frm.add_custom_button(__("Run Ingest"), () => {
 			const limit = frm.doc.max_items ? frm.doc.max_items : __("all");
 			frappe.confirm(__("Start ingesting up to {0} items in the background?", [limit]), () => {

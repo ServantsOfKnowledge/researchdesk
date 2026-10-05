@@ -113,8 +113,8 @@ def manifest(item_id: str) -> Response:
 				pages = page_count(pdf_path(item_id))
 		except Exception:
 			local = False  # the PDF can't be read: no image service for it
-	if record.get("on_archive_org"):
-		from sok_resdesk.api import page_image_url
+	if record.get("on_archive_org") or record.get("from_wikisource"):
+		from sok_resdesk.api import page_image_url  # archive.org's, or the Wikisource's, own images
 
 		image_url = lambda leaf: page_image_url(record, leaf)  # noqa: E731
 	elif local:

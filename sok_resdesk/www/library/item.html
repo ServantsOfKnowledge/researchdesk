@@ -109,10 +109,10 @@
 					src="{{ pdf_url }}#page={{ start_leaf + 1 }}" loading="lazy"></iframe>
 				{% elif reader == "remote" %}
 				<div class="rd-card">
-					<p>{{ _("This book is kept by the repository it comes from. Read it there:") }}</p>
+					<p>{{ _("This book is kept by the site it comes from (a repository or Wikisource). Read it there:") }}</p>
 					<p>
 						{% if can_read and pdf_url %}<a class="rd-btn" href="{{ pdf_url }}" rel="noopener">{{ _("Open the PDF") }}</a>{% endif %}
-						{% if item.source_url %}<a class="rd-btn" href="{{ item.source_url }}" rel="noopener">{{ _("The record in its repository") }}</a>{% endif %}
+						{% if item.source_url %}<a class="rd-btn" href="{{ item.source_url }}" rel="noopener">{{ _("Its page at the source") }}</a>{% endif %}
 					</p>
 					{% if page_reader %}<p class="rd-muted">{{ _("Its text, page by page, is under Page & text.") }}</p>{% endif %}
 				</div>

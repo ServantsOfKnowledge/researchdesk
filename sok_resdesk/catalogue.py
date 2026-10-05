@@ -89,6 +89,9 @@ def item_to_record(doc) -> dict:
 		"local_pdf": doc.local_pdf or "",
 		"pdf_url": _pdf_url(doc),
 		"from_repository": doc.source == "Repository",
+		"from_wikisource": doc.source == "Wikisource",
+		"wiki_site": doc.get("wiki_site") or "",
+		"wiki_index": doc.get("wiki_index") or "",
 		"modified": doc.modified,
 		"curated_collections": [r.collection for r in doc.get("curated_collections") or []],
 		"set_specs": [c for c in (doc.collections or "").splitlines() if c.strip()]
@@ -239,6 +242,8 @@ def upsert_item(
 		"item_type",
 		"oai_identifier",
 		"remote_pdf",
+		"wiki_site",
+		"wiki_index",
 	)
 	for field in simple:
 		if locked and field in DESCRIPTIVE:

@@ -50,6 +50,13 @@ PAGES = [
 		"For library staff",
 	),
 	Page(
+		"wikisource",
+		"wikisource.md",
+		"Books from Wikisource",
+		"staff",
+		"For library staff",
+	),
+	Page(
 		"collections-and-metadata",
 		"collections-and-metadata.md",
 		"Collections, metadata & pushing",

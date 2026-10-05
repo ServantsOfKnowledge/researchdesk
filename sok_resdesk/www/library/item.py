@@ -60,7 +60,7 @@ def get_context(context):
 		"ia"
 		if record.get("on_archive_org")
 		else "remote"
-		if record.get("from_repository")
+		if record.get("from_repository") or record.get("from_wikisource")
 		else ("pdf" if record.get("pdf_url") else "none")
 	)
 	context.pdf_url = record.get("pdf_url") or ""
@@ -74,7 +74,7 @@ def get_context(context):
 		if context.can_read
 		and features.on("sharing")
 		and record.get("page_count")
-		and (record.get("on_archive_org") or iiif.drawn_here(record))
+		and (record.get("on_archive_org") or record.get("from_wikisource") or iiif.drawn_here(record))
 		else ""
 	)
 	context.formats = [(k, v[0]) for k, v in citations.FORMATS.items()]

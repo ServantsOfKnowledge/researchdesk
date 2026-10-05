@@ -210,6 +210,10 @@ def page_image_url(record: dict, leaf: int) -> str:
 
 	if record.get("on_archive_org"):
 		return f"https://archive.org/download/{quote(record['item_id'], safe='')}/page/n{int(leaf)}.jpg"
+	if record.get("from_wikisource"):
+		from sok_resdesk.wikisource import page_image_url as wiki_image
+
+		return wiki_image(record, leaf)
 	from sok_resdesk.pdfs import has_pdf
 
 	if has_pdf(record) and record.get("access_status") == "Open":

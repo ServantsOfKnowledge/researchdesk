@@ -8,6 +8,7 @@ from frappe.model.document import Document
 from sok_resdesk.core.ia import IAClient, IAError
 
 REPOSITORY = "Repository (OAI-PMH)"
+WIKISOURCE = "Wikisource"
 IDS_IN_ONE_QUERY = 100  # identifiers per archive.org search (a longer address is refused)
 
 
@@ -25,6 +26,10 @@ class RDIngestProfile(Document):
 			frappe.throw(str(e))
 		if self.is_repository:
 			self._repository_defaults()
+		if self.is_wikisource:
+			self.keep_in_sync = 0
+			self.catalogue_first = 0
+			self.wiki_site = (self.wiki_site or "").strip()
 
 	def _repository_defaults(self):
 		"""An identifier prefix (from the repository's address when none is given), letters,
@@ -51,8 +56,12 @@ class RDIngestProfile(Document):
 		return self.source == REPOSITORY
 
 	@property
+	def is_wikisource(self) -> bool:
+		return self.source == WIKISOURCE
+
+	@property
 	def on_archive_org(self) -> bool:
-		return not (self.is_folder or self.is_repository)
+		return not (self.is_folder or self.is_repository or self.is_wikisource)
 
 	def identifier_list(self) -> list[str]:
 		"""The profile's identifiers, once each, in order (one per line; commas and spaces too)."""
@@ -71,6 +80,14 @@ class RDIngestProfile(Document):
 				raise IAError("Give the repository's OAI-PMH address")
 			return f"records at {self.oai_url.strip()}" + (
 				f" in set {self.oai_set.strip()}" if self.oai_set else ""
+			)
+		if self.is_wikisource:
+			if not (self.wiki_site or "").strip():
+				raise IAError("Give the Wikisource's address, e.g. kn.wikisource.org")
+			if not (self.wiki_category or "").strip() and not (self.wiki_indexes or "").strip():
+				raise IAError("Give a category of Index pages, or list Index pages")
+			return f"books on {self.wiki_site.strip()}" + (
+				f" in {self.wiki_category.strip()}" if (self.wiki_category or "").strip() else ""
 			)
 		if self.scope_type == "Metadata File":
 			where = (self.metadata_path or "").strip() or (self.metadata_file or "").strip()
