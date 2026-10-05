@@ -554,9 +554,9 @@
    "fieldname": "desk_scope",
    "fieldtype": "Select",
    "label": "What Staff See in the Desk",
-   "options": "Research Desk only, except Administrator\nResearch Desk only for staff; System Managers see everything\nEverything (Frappe's own tools too)",
-   "default": "Research Desk only, except Administrator",
-   "description": "Applies to everyone with a ResDesk staff role or System Manager. Changing it updates every account straight away."
+   "options": "Research Desk only, for everyone (Frappe's tools are under Administration)\nResearch Desk only, except Administrator\nResearch Desk only for staff; System Managers see everything\nEverything (Frappe's own tools too)",
+   "default": "Research Desk only, for everyone (Frappe's tools are under Administration)",
+   "description": "Research Desk's sidebar holds every screen an administrator needs, Frappe's users, roles, system settings and logs included (under Administration), and the way to Frappe's own desktop is closed. The other choices give Administrator, or System Managers, Frappe's desktop back. Changing it updates every account straight away."
   },
   {
    "fieldname": "analytics_section",

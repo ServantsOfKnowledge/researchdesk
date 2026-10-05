@@ -61,7 +61,7 @@ def test_every_portal_script_translates_its_words():
 	"""Each portal script takes __ from a11y.js (window.rdT), so a reader's language reaches it;
 	and the list in translations.py covers every portal script."""
 	listed = set(_portal_scripts())
-	desk_only = {"desk_help.js", "analytics.js"}
+	desk_only = {"desk_help.js", "desk_only.js", "analytics.js"}
 	on_disk = {p.name for p in SCRIPTS.glob("*.js")} - desk_only
 	assert listed == on_disk, f"translations.SCRIPTS and public/js differ: {sorted(listed ^ on_disk)}"
 	for name in listed - {"a11y.js"}:

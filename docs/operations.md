@@ -376,7 +376,7 @@ Every setting:
 
 | Setting | What it does |
 |---|---|
-| What Staff See in the Desk | Applies to everyone with a ResDesk staff role or System Manager. Changing it updates every account straight away. Choices: *Research Desk only, except Administrator*, *Research Desk only for staff; System Managers see everything*, *Everything (Frappe's own tools too)*. |
+| What Staff See in the Desk | Research Desk's sidebar holds every screen an administrator needs, Frappe's users, roles, system settings and logs included (under Administration), and the way to Frappe's own desktop is closed. The other choices give Administrator, or System Managers, Frappe's desktop back. Changing it updates every account straight away. Choices: *Research Desk only, for everyone (Frappe's tools are under Administration)*, *Research Desk only, except Administrator*, *Research Desk only for staff; System Managers see everything*, *Everything (Frappe's own tools too)*. |
 
 **Usage Statistics**
 

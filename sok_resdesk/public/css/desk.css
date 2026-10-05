@@ -10,3 +10,7 @@
 [id^="page-resdesk-"] .btn-danger { background-color: #b42318 !important; border-color: #b42318 !important; color: #fff !important; }
 /* room to tap the help's page list (2.5.8) */
 #page-resdesk-help .rdh-nav li a { display: inline-block; min-height: 24px; padding: 2px 0; }
+
+/* Research Desk is the whole Desk (js/desk_only.js): no home icon back to Frappe's desktop */
+.rd-desk-only .navbar-breadcrumbs li:first-child a[href="/desk"] { display: none; }
+.rd-desk-only .navbar-breadcrumbs li:first-child:has(a[href="/desk"]) { display: none; }

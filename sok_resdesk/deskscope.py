@@ -6,7 +6,10 @@ A Module Profile, *Research Desk only*, hides every other module from the Desk's
 app screen and its search; everyone lands in Research Desk. Nothing about what a person may open
 changes (roles decide that): Users, for instance, stays reachable from Research Desk → People.
 
-The built-in Administrator account always sees everything: it is the way into Frappe's own tools.
+By default this holds for the built-in Administrator account too: Frappe's own screens that an
+administrator needs (users, roles, system settings, logs…) are in Research Desk's sidebar, under
+*Administration*, so nobody has to find their way back from Frappe's own desktop. Settings → The
+Desk can give Administrator (or every System Manager) Frappe's desktop back.
 """
 
 from __future__ import annotations
@@ -17,13 +20,14 @@ PROFILE = "Research Desk only"
 KEEP = ("ResDesk",)
 APP = "sok_resdesk"
 STAFF_ROLES = ("ResDesk Manager", "ResDesk Cataloguer", "ResDesk Proofreader", "System Manager")
+ALL = "Research Desk only, for everyone (Frappe's tools are under Administration)"
 EVERYONE = "Research Desk only, except Administrator"
 STAFF = "Research Desk only for staff; System Managers see everything"
 OFF = "Everything (Frappe's own tools too)"
 
 
 def scope() -> str:
-	return frappe.db.get_single_value("RD Settings", "desk_scope") or EVERYONE
+	return frappe.db.get_single_value("RD Settings", "desk_scope") or ALL
 
 
 def ensure_profile() -> str:
@@ -72,10 +76,12 @@ def trim_boot(bootinfo):
 	"""The apps screen and its sidebars: Frappe 16 builds them from Workspace Sidebars and app
 	icons, not from blocked modules, so for these users only Research Desk's are kept."""
 	user = frappe.session.user
-	if user in ("Administrator", "Guest"):
+	if user == "Guest":
 		return
-	if frappe.db.get_value("User", user, "module_profile") != PROFILE:
+	admin_too = user == "Administrator" and scope() == ALL
+	if not admin_too and frappe.db.get_value("User", user, "module_profile") != PROFILE:
 		return
+	bootinfo.resdesk_desk_only = True  # desk_only.js keeps the way back to Frappe's desktop closed
 	sidebars = bootinfo.get("workspace_sidebar_item") or {}
 	bootinfo.workspace_sidebar_item = {
 		k: v for k, v in sidebars.items() if not v.get("module") or v.get("module") in KEEP

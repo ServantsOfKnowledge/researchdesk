@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.56.0 (2026-11-04): One sidebar, and no way into Frappe's desktop
+
+- **Research Desk's sidebar holds every screen**, in sections: Catalogue (profiles, runs, items,
+  collections, deposits, review, authorities), Exchange (exports, imports, library systems, push
+  targets), Readers and Research, Keeping, Running the Library, and **Administration**: Frappe's
+  users, roles, permissions, system settings, email, logs, files, translations and data import,
+  for System Managers only. Switched-off features' screens leave it
+- **Frappe's desktop is closed** for everyone, Administrator included: its apps screen is gone,
+  its home icon is hidden and its address leads back to Research Desk; opening a Frappe screen from
+  Administration keeps Research Desk's sidebar. *What Staff See in the Desk* has a new default,
+  *Research Desk only, for everyone*; the other choices give Frappe's desktop back to Administrator,
+  to System Managers or to everyone. A library on the old default is moved to the new one
+
 ## 0.55.0 (2026-11-03): Folders of photographs and deep zoom
 
 - **A folder of photographs is a book**: a folder of JPEG, PNG or TIFF images (a palm-leaf bundle,

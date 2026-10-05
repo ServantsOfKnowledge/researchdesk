@@ -342,6 +342,12 @@ def apply(doc=None) -> None:
 	"""After the switches change (and after every upgrade): the Desk shows only what is on."""
 	frappe.clear_cache()  # the cached settings the gates read
 	refresh_workspace()
+	try:
+		from sok_resdesk import sidebar
+
+		sidebar.refresh()
+	except Exception:
+		frappe.log_error(title="Research Desk: the Desk's sidebar was not rebuilt")
 	from sok_resdesk.access import apply_signup_setting
 	from sok_resdesk.analytics import apply_settings as apply_analytics
 
@@ -418,6 +424,12 @@ def trim_boot(bootinfo) -> None:
 
 
 def after_migrate() -> None:
+	try:
+		from sok_resdesk import sidebar
+
+		sidebar.refresh()  # the Desk's sidebar: every screen, less switched-off features'
+	except Exception:
+		frappe.log_error(title="Research Desk: the Desk's sidebar was not built")
 	try:
 		refresh_workspace()  # the migrate synced the shipped workspace back in
 	except Exception:

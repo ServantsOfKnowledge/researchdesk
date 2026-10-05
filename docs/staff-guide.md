@@ -29,7 +29,9 @@ never see the Desk; they use the portal at `/`, the site's front page (book page
   the server), *readers* (people and roles, sign-up requests, users) and *metadata* (exports,
   spreadsheet imports, push targets, [library systems](koha.md#option-e-bring-the-librarys-catalogue-in-link-it-send-the-links-back)).
 
-The Desk shows only Research Desk: Frappe's own tools stay with the Administrator account
+The Desk shows only Research Desk, and its sidebar holds every screen: the catalogue, exchange,
+readers and research, keeping, running the library and (for System Managers) an **Administration**
+section with Frappe's users, roles, system settings and logs
 ([Only Research Desk in the Desk](#only-research-desk-in-the-desk)).
 
 ## Help, tours and the checklist
@@ -392,13 +394,21 @@ Manager, and everyone lands in Research Desk after logging in. Nothing a person 
 changes: roles still decide that, and everything staff need (People & Roles, Users, Background
 Jobs, Server) is linked from Research Desk.
 
-The built-in **Administrator** account always sees everything: it is the way into Frappe's own
-tools when a developer or the server's administrator needs them. Settings → *Readers & Access* →
-**The Desk** → *What Staff See in the Desk* changes this:
+The sidebar lists **every Research Desk screen** in sections (Catalogue, Exchange, Readers and
+Research, Keeping, Running the Library), each shown only to those who may open it, and the screens
+of a switched-off feature are not listed. For System Managers, including the built-in
+**Administrator** account, an **Administration** section adds Frappe's own tools an administrator
+needs: Users, Roles, User Permissions, the Permission Manager, System Settings, Email Accounts,
+Email Queue, Error Log, Scheduled Job Log, Access Log, Files, Translations, Module Profiles and Data
+Import. Frappe's own desktop (the apps screen) is closed for everyone, so there is one place to work
+and no way to get lost: its home icon is gone and its address leads back to Research Desk.
 
-| Choice | Who sees Frappe's own tools |
+Settings → *Readers & Access* → **The Desk** → *What Staff See in the Desk* changes this:
+
+| Choice | Who sees Frappe's own desktop |
 |---|---|
-| Research Desk only, except Administrator (the default) | Administrator only |
+| Research Desk only, for everyone (the default) | nobody; Frappe's tools are under Administration |
+| Research Desk only, except Administrator | Administrator only |
 | Research Desk only for staff; System Managers see everything | Administrator and System Managers |
 | Everything (Frappe's own tools too) | everyone, as in plain Frappe |
 
