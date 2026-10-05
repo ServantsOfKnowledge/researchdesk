@@ -60,6 +60,26 @@ researchdesk/
     ├── portal.py           helpers for portal pages (collection cards, facet labels)
     ├── api.py              public API
     ├── oai.py              OAI-PMH endpoint (Frappe store for core/oai.py)
+    ├── about.py            the About page (/about), edited in the Desk
+    ├── authority.py        authority control: authors matched to Wikidata and VIAF, subjects to LCSH
+    ├── contribute.py       giving back to Wikidata (names in their scripts, author links)
+    ├── review.py           the cataloguer's review queue
+    ├── features.py         features and institution profiles (Settings → Features)
+    ├── deskscope.py        the Desk shows Research Desk only (trimmed boot, redirects)
+    ├── sidebar.py          the Desk's one sidebar: every screen in sections, plus Administration
+    ├── seo.py  security.py robots.txt, sitemap and link previews; secure-by-default headers and lock-out
+    ├── translations.py     the portal in Kannada and other languages
+    ├── collectioncovers.py collection pictures from archive.org
+    ├── librarysystems.py   a library system's catalogue (Koha, MARC) matched and linked back
+    ├── iiif.py  opds.py    /iiif/… manifests and image service; /opds catalogue for e-reader apps (answered before routing)
+    ├── pdfs.py             pages of books not on archive.org drawn as images, OCR of scans, leaf images
+    ├── wikimedia.py        each person's own Wikimedia account (OAuth 2.0 token, encrypted)
+    ├── wikisource.py       Wikisource as a source, and sending proofread pages back
+    ├── commons.py          sending a photograph to Wikimedia Commons (review, licence check, depicts)
+    ├── calibre_export.py   exporting a collection as a Calibre library
+    ├── deposit.py          repository deposit: people give their work, a reviewer accepts it
+    ├── manuscripts.py      manuscripts and palm leaves: labelling leaves, transcription from blank
+    ├── media.py            audio and video: lengths, transcript segments
     ├── commands.py         `bench … resdesk` CLI
     ├── setup.py            roles, defaults, sample profiles, setup wizard, branding
     ├── native_wsgi.py      gunicorn entry point for native installs (static files, default site)

@@ -253,9 +253,22 @@ class CalibreStore(ItemStore):
 		}
 
 	def page_texts(self, identifier: str, loc: str, page_numbers=None) -> tuple[list[dict], str]:
-		return [], ""  # a PDF's text is read from the PDF; other formats are catalogued, not read
+		return [], ""  # a PDF's text is read from the PDF; an EPUB's comes from book_text() as sections
+
+	TEXT_FORMATS = (".epub", ".txt", ".htm", ".html")
 
 	def book_text(self, identifier: str, loc: str) -> str:
+		"""The text of the book's EPUB (or text/HTML file), so it can be searched; a PDF's is read
+		from the PDF instead."""
+		from sok_resdesk.core.ebooktext import file_text
+
+		if self.pdf_name(identifier, loc):
+			return ""
+		for f in sorted(self.format_files(loc), key=lambda n: (not n.lower().endswith(".epub"), n)):
+			if f.lower().endswith(self.TEXT_FORMATS):
+				text = file_text(self.file_path(loc, f) or "")
+				if text.strip():
+					return text
 		return ""
 
 	def scan_leaves(self, identifier: str, loc: str, files=None) -> list:

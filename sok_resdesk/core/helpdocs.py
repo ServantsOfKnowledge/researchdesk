@@ -71,6 +71,13 @@ PAGES = [
 		"For library staff",
 	),
 	Page(
+		"opds",
+		"opds.md",
+		"OPDS: the library in an e-reader app",
+		"staff",
+		"For library staff",
+	),
+	Page(
 		"calibre",
 		"calibre.md",
 		"Books from a Calibre library",

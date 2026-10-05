@@ -39,9 +39,13 @@ its uuid), so it stays the same if the library is rebuilt or moved.
 
 - **PDF**: read like any PDF: its text layer is the book's page text, a scan without text is read
   with OCR, and the book can be read page by page.
-- **EPUB, MOBI, AZW3 and other formats**: catalogued and **downloadable** from the book's page
-  (*Download EPUB*, *Download MOBI*…), by the book's usual access. Their text is not read yet,
-  so these books are found by their details, not by words inside them.
+- **EPUB** (and plain text or HTML files): catalogued, **downloadable** from the book's page, and
+  their text is read, chapter after chapter, so the book is found by words inside it. It is
+  searchable in sections (there are no pages to jump to). A book that also has a PDF is read from
+  the PDF.
+- **MOBI, AZW3 and other formats**: catalogued and **downloadable** (*Download MOBI*…), by the
+  book's usual access. Their text is not read, so these books are found by their details, not by
+  words inside them; keep an EPUB or PDF of the book as well to make it searchable.
 - Files a Calibre record names but that are missing on disk are not offered.
 - Calibre books are never looked up on archive.org.
 

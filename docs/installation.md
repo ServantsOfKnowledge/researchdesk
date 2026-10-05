@@ -79,7 +79,7 @@ questions (or takes `--profile`, `--languages`, `--books`):
 
 | Question | Answers | What it sets |
 |---|---|---|
-| Kinds of institution (they combine) | `1` small library or school, `2` public research portal, `3` members-only institution, `4` archive keeping its own copies, `5` university or repository front, `6` language-technology partner (numbers or names, e.g. `2,4` or `portal,archive`); empty: every feature on | the features that start on and the resource preset ([Features and your institution](staff-guide.md#features-and-your-institution)) |
+| Kinds of institution (they combine) | `1` small library or school, `2` public research portal, `3` members-only institution, `4` archive keeping its own copies, `5` university or repository front, `6` language-technology partner, `7` manuscript library or archive, `8` photograph archive (numbers or names, e.g. `2,4` or `portal,archive`); empty: every feature on | the features that start on and the resource preset ([Features and your institution](staff-guide.md#features-and-your-institution)) |
 | Languages of the books | Tesseract codes such as `kan hin` (English is added), or `all` | `OCR_LANGS`: the OCR models in the image |
 | About how many books | a number | from 50,000 books the *server* resource preset |
 

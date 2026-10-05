@@ -7,8 +7,8 @@ service. No Frappe imports: the glue (iiif.py) gathers what these functions need
   (Mirador, Universal Viewer, Annona…) opens it.
 * A **collection** per Research Desk collection (`/iiif/collection/<name>`) and one for the whole
   library (`/iiif/collection`), listing manifests.
-* An **image service** (level 0) for books whose pages are drawn here from their PDF
-  (`/iiif/image/<book>/<page>/…`): fixed widths, `max`, `full`, no cropping or rotation.
+* An **image service** (level 2) for books whose pages are drawn here from their PDF or leaf
+  images (`/iiif/image/<book>/<page>/…`): regions, sizes, rotation, tiles for deep zoom.
   Books on archive.org have their pages served by archive.org, and the manifest points there.
 """
 

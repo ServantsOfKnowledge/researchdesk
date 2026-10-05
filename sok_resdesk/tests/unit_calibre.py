@@ -97,3 +97,16 @@ def test_the_signature_changes_when_the_book_does_and_the_library_is_never_writt
 	same = hashlib.sha1(open(os.path.join(lib, "metadata.db"), "rb").read()).hexdigest()
 	list(calibre.CalibreStore(lib).iter_items())
 	assert same == hashlib.sha1(open(os.path.join(lib, "metadata.db"), "rb").read()).hexdigest()
+
+
+def test_an_epubs_text_is_read_for_search_but_not_a_pdfs(lib):
+	import os
+
+	from sok_resdesk.tests.unit_ebooktext import make
+
+	store = calibre.CalibreStore(lib)
+	loc = "Kanakadasa/Kirtanegalu (1)"
+	assert store.book_text(fx.ID_EPUB, loc) == ""  # the fixture's file is not a real EPUB: nothing, no error
+	make(os.path.join(lib, loc, "Kirtanegalu - Kanakadasa.epub"))
+	assert "Second" in store.book_text(fx.ID_EPUB, loc)
+	assert store.book_text(fx.ID_PDF, "Smith, John/Typed notes (2)") == ""  # a PDF is read from the PDF

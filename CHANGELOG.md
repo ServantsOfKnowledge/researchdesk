@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.61.0 (2026-11-06): E-reader catalogue, EPUB text, fewer fields
+
+- **OPDS** at `/opds`: the library as a catalogue for e-reader apps (KOReader, Thorium, Moon+ Reader…):
+  newest books, collections, search, covers and a download link for every file, under the portal's
+  access rules
+- **EPUB text**: the text of EPUB (and plain text or HTML) books in a Calibre library is read, so they
+  are found by words inside them. Previously only PDFs were
+- **The whole guide as an EPUB**: `python3 scripts/docs_epub.py` makes one book of every help page (readers,
+  staff, administrators) with the pictures, links between pages and a contents list; each release carries it
+- Help pages brought up to date (roadmap, source tree, installer kinds, image service level, ground truth,
+  Calibre text, OPDS), the help pictures retaken, and two pages' stray `<tags>` fixed
+- Libraries without the **manuscripts** or **photographs** feature no longer see those sections on an
+  item's form (unless the item already has such details)
+
 ## 0.60.0 (2026-11-06): Ground truth released by the people who made it
 
 - Everyone who proofreads or validates is asked to **release their corrections under an open licence of

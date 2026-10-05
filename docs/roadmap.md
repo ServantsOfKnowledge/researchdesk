@@ -127,7 +127,20 @@
 - [ ] Help pictures for members-only libraries, taken as a reader account
 - [x] IIIF: a manifest for every book, collections, page text as annotations, an image service for books drawn from PDFs (0.47)
 - [x] Books from Wikisource, with their proofread page text and images (0.48)
+- [x] Each person's own Wikimedia account (OAuth 2.0, encrypted, never shared): gifts to Wikidata under it (0.49)
+- [x] Proofread and validated pages sent back to Wikisource after a diff review, with conflict and licence checks (0.50)
+- [x] Calibre libraries as a source (catalogue and download, read in place) and a small Calibre collection out (0.51, 0.52)
+- [x] Repository deposit: people give their own work, a reviewer accepts it, with licences and embargoes (0.53)
+- [x] Manuscripts and palm leaves: leaf labels, transcription from blank, folders of leaf images (0.54)
+- [x] Folders of photographs as items; IIIF image service level 2 with a deep-zoom viewer (0.55)
+- [x] One Desk sidebar with every screen and an Administration section; Frappe's desktop closed (0.56)
+- [x] Audio and video with time-aligned transcripts, captions and IIIF manifests (0.57)
+- [x] Manuscripts and photographs as features of the libraries and archives that keep them; the *Manuscript library or archive* and *Photograph archive* kinds (0.58)
+- [x] Photographs to Wikimedia Commons under the sender's own account, with a review, a licence check and *depicts* (0.59)
+- [x] Ground truth released by the people who made it: each contributor's own open licence, a person's review before a set is published (0.60)
+- [x] The library in e-reader apps (OPDS), the text of EPUB books, and fewer fields for libraries without manuscripts or photographs (0.61)
 - [ ] Offline collections (Kiwix packages) for schools and places with poor connections
+- [ ] Archival description (fonds, series, file, item) and machine drafts of transcripts (speech and handwriting recognition), for a person to correct
 
 ## v1.0: library-grade
 
@@ -135,8 +148,7 @@
 - [ ] Holdings, patrons and circulation stay with Koha: Research Desk works alongside it
 - [ ] SRU/Z39.50 target for older ILS integrations
 - [ ] Usage statistics in COUNTER form, for libraries that report them
-- [ ] Archival description (fonds, series, file, item; EAD export) for small archives and
-      manuscript collections, after a design ([where it fits](architecture.md#where-it-fits-in-the-library-and-archive-ecosystem))
+- [ ] EAD export of archival description, once description is built ([where it fits](architecture.md#where-it-fits-in-the-library-and-archive-ecosystem))
 - [ ] Digitisation tracking: a book's way through scanning, QA and ingest, for small projects
 
 Ideas and priorities welcome: open an issue.

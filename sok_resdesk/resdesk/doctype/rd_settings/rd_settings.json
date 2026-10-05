@@ -875,7 +875,7 @@
    "fieldtype": "Check",
    "label": "Give Books ARKs",
    "default": "0",
-   "description": "Switch on when the ARK Alliance has given the library its NAAN (free: arks.org → Request a NAAN). Every book then gets a permanent ARK (the ones already here in the background), shown as Permanent link and used in citations, exports and OAI-PMH; the portal answers <portal>/ark:/… itself. Once on, the NAAN and shoulder can't be changed."
+   "description": "Switch on when the ARK Alliance has given the library its NAAN (free: arks.org → Request a NAAN). Every book then gets a permanent ARK (the ones already here in the background), shown as Permanent link and used in citations, exports and OAI-PMH; the portal answers the portal address followed by /ark:/… itself. Once on, the NAAN and shoulder can't be changed."
   },
   {
    "fieldname": "ark_naan",

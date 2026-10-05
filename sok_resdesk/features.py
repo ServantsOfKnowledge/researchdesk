@@ -484,7 +484,11 @@ def refresh_workspace() -> None:
 
 
 def trim_boot(bootinfo) -> None:
-	"""The Desk sidebar (Frappe 16 builds it apart from the workspace): the same screens go."""
+	"""The Desk sidebar (Frappe 16 builds it apart from the workspace): the same screens go. Forms
+	learn which features are off (bootinfo.resdesk_features_off), so a library without manuscripts
+	does not see the manuscript fields."""
+	if frappe.session.user != "Guest":
+		bootinfo.resdesk_features_off = [k for k in FEATURES if not on(k)]
 	hide = hidden_targets()
 	if not hide:
 		return

@@ -79,6 +79,8 @@ after_request = ["sok_resdesk.security.add_headers"]
 before_request = [
 	# /iiif/…: manifests and page images for IIIF viewers (answered here, before routing)
 	"sok_resdesk.iiif.before_request",
+	# /opds: the library as an e-reader catalogue (OPDS 1.2)
+	"sok_resdesk.opds.before_request",
 	"sok_resdesk.portal.home_is_library",
 	# portal pages in the language chosen on the portal; the Desk in the account's own
 	"sok_resdesk.translations.portal_language",

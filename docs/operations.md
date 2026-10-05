@@ -447,7 +447,7 @@ Every setting:
 
 | Setting | What it does |
 |---|---|
-| Give Books ARKs | Switch on when the ARK Alliance has given the library its NAAN (free: arks.org → Request a NAAN). Every book then gets a permanent ARK (the ones already here in the background), shown as Permanent link and used in citations, exports and OAI-PMH; the portal answers <portal>/ark:/… itself. Once on, the NAAN and shoulder can't be changed. |
+| Give Books ARKs | Switch on when the ARK Alliance has given the library its NAAN (free: arks.org → Request a NAAN). Every book then gets a permanent ARK (the ones already here in the background), shown as Permanent link and used in citations, exports and OAI-PMH; the portal answers the portal address followed by /ark:/… itself. Once on, the NAAN and shoulder can't be changed. |
 | ARK NAAN | The number the ARK Alliance gave this library (five or more digits). Needed before Give Books ARKs can be switched on; 99999, the Alliance's test number, is not accepted. |
 | ARK Shoulder | The prefix of the books' ARK names: letters then one digit (b1 for books). Fixed once ARKs are switched on. |
 

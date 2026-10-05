@@ -111,7 +111,7 @@ Desk → Research Desk → **Library Systems** → New:
 |---|---|
 | **System** | Koha, Evergreen, SOUL, e-Granthalaya or Other |
 | **Bring Its Records From** | a **MARC File** (MARCXML or ISO 2709 `.mrc`, UTF-8; Koha → Tools → Export catalog) or **OAI-PMH** (Koha: `https://<opac>/cgi-bin/koha/oai.pl`, format `marc21`) |
-| **Catalogue Record Address** | a record in the library's OPAC, `{id}` for its number: `https://<opac>/cgi-bin/koha/opac-detail.pl?biblionumber={id}`. Book pages here link to it (*In <library>'s catalogue*) |
+| **Catalogue Record Address** | a record in the library's OPAC, `{id}` for its number: `https://<opac>/cgi-bin/koha/opac-detail.pl?biblionumber={id}`. Book pages here link to it (*In the library's catalogue*) |
 | **Send Links Back Through** | a Koha Push Target ([Option C](#option-c-research-desk-pushes-records-into-koha)): its credentials are used to add the links |
 | **Link Text** | what the link says in the OPAC (`856 $z`, *Read online*) |
 | **Catalogue Records With No Match Here** | records that match no book here become catalogue entries too (no digital copy), so print-only books are found on the portal with a link to the OPAC |
