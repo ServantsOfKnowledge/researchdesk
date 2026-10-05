@@ -1,5 +1,9 @@
 # Architecture
 
+A PDF of this page and the [scaling guide](scaling.md) comes with every
+[release](https://github.com/ServantsOfKnowledge/researchdesk/releases/latest), for reading
+offline or sending to partners; `python3 scripts/docs_pdf.py` makes one from the current docs.
+
 ## Principles
 
 1. **The Internet Archive is the store of record for scans.** Research Desk links to images and
@@ -23,20 +27,20 @@
 ## Components
 
 ```
-┌──────────────── Docker Compose (or bench) ────────────────────────────────────────┐
-│                                                                                   │
-│  frontend (nginx) :8080 ──▶ backend (gunicorn · Frappe)                          │
-│                              │  www/library      public portal (Jinja + vanilla JS)│
-│                              │  api.py           search · cite · marc · stats      │
-│                              │  oai.py           OAI-PMH endpoint                  │
-│                              │  Desk             DocTypes, forms, workspace        │
-│                              ▼                                                    │
-│   MariaDB  ◀── catalogue ── Frappe ORM ──▶ search.py ──▶ Meilisearch              │
-│                                              ▲            rd_books · rd_pages      │
-│   redis-queue ──▶ queue worker ── ingest.py ─┘                                    │
-│                   │ re-OCR (Tesseract, several languages) · preservation copies (OCFL)  │
-│   scheduler (profiles, archive.org sync, fixity checks, second copies)            │
-└──────────────────────────────────────────────┼────────────────────────────────────┘
+┌──────────────── Docker Compose (or bench) ────────────────────────────────────────────┐
+│                                                                                       │
+│  frontend (nginx) :8080 ──▶ backend (gunicorn · Frappe)                               │
+│                             │  www/library      public portal (Jinja + vanilla JS)    │
+│                             │  api.py           search · cite · marc · stats          │
+│                             │  oai.py           OAI-PMH endpoint                      │
+│                             │  Desk             DocTypes, forms, workspace            │
+│                             ▼                                                         │
+│  MariaDB  ◀── catalogue ── Frappe ORM ──▶ search.py ──▶ Meilisearch                   │
+│                                             ▲            rd_books · rd_pages          │
+│  redis-queue ──▶ queue worker ── ingest.py ─┘                                         │
+│                  │ re-OCR (Tesseract, several languages) · preservation copies (OCFL) │
+│  scheduler (profiles, archive.org sync, fixity checks, second copies)                 │
+└──────────────────────────────────────────────┼────────────────────────────────────────┘
                                                ▼
                          archive.org: scrape API · metadata API · hOCR search text · page images
                          your folders / web server: meta.xml · OCR text · PDF

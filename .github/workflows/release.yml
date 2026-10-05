@@ -68,6 +68,19 @@ jobs:
           git tag -a "v$V" -m "v$V" "$(git rev-parse HEAD)"
           git push origin "refs/tags/v$V"
           gh release create "v$V" --verify-tag --title "v$V" --notes-file "$RUNNER_TEMP/notes.md"
+      - name: Attach the architecture document (PDF)
+        if: steps.v.outputs.new == 'true'
+        # the release is out already: a PDF that fails to build doesn't hold it back
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          V='${{ steps.v.outputs.version }}'
+          sudo apt-get install -y -qq fonts-noto-core >/dev/null   # Kannada, Devanagari… in the text
+          pip install -q markdown
+          python3 scripts/docs_pdf.py -o "dist/research-desk-architecture-$V.pdf"
+          gh release upload "v$V" "dist/research-desk-architecture-$V.pdf"
       - name: Build the Docker image for the tag
         if: steps.v.outputs.new == 'true'
         env:

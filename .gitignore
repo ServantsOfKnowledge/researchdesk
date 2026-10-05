@@ -14,3 +14,4 @@ site/
 library/*
 !library/README.md
 logs/
+dist/
