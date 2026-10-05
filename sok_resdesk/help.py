@@ -27,6 +27,7 @@ SCREEN_HELP = {
 	"RD Export": ("collections-and-metadata", "exporting-metadata"),
 	"RD Metadata Import": ("collections-and-metadata", "editing-many-books-with-a-spreadsheet"),
 	"RD Push Target": ("collections-and-metadata", "pushing-metadata-to-other-systems"),
+	"RD Wikimedia Account": ("wikimedia", "connect-your-account"),
 	"RD Push Run": ("collections-and-metadata", "pushing-metadata-to-other-systems"),
 	"RD External Record": ("collections-and-metadata", "pushing-metadata-to-other-systems"),
 	"RD Reader Request": ("access", "reader-accounts"),

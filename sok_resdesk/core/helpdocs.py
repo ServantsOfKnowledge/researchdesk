@@ -57,6 +57,13 @@ PAGES = [
 		"For library staff",
 	),
 	Page(
+		"wikimedia",
+		"wikimedia.md",
+		"Giving back to Wikimedia with your own account",
+		"staff",
+		"For library staff",
+	),
+	Page(
 		"collections-and-metadata",
 		"collections-and-metadata.md",
 		"Collections, metadata & pushing",

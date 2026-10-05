@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.49.0 (2026-10-28): Give back to Wikimedia under your own account
+
+- **My Wikimedia Account** (Desk → Research Desk): each person connects their own Wikimedia
+  account once, by pasting the access token of an owner-only OAuth 2.0 consumer they register
+  on meta.wikimedia.org (no approval wait; it works on Wikidata, Wikisource and Commons alike).
+  The token is checked with Wikimedia, kept encrypted, readable by nobody else (administrators
+  included) and used only for edits that person asks for
+- **Authorities → Give back** gains *Send as {username}*: names and author links for Wikidata
+  go to Wikidata under that person's own account, so its history credits them, with no bot flag
+  and with the wiki's lag limits respected. The shared Push Target still works for a library's
+  own bot
+- Documented in [Giving back to Wikimedia](docs/wikimedia.md)
+
 ## 0.48.0 (2026-10-27): Books from Wikisource
 
 - **A new source, Wikisource**: an Ingest Profile names a Wikisource (`kn.wikisource.org`,

@@ -42,6 +42,15 @@ class ResDeskAuthorities {
 				frappe.show_alert({ message: __("Asking Wikidata what it has; refresh this page in a minute."), indicator: "blue" })
 			)
 		);
+		on("[data-give-mine]", () =>
+			frappe.confirm(
+				__("Send these edits to Wikidata under your own Wikimedia account? Wikidata's history will show them as yours."),
+				() =>
+					frappe.call("sok_resdesk.contribute.send_mine").then(() =>
+						frappe.show_alert({ message: __("Sending in the background."), indicator: "blue" })
+					)
+			)
+		);
 		on("[data-give-send]", () => {
 			const target = this.$body.find(".rda-target").val();
 			frappe.confirm(__("Send these edits to Wikidata through {0}?", [frappe.utils.escape_html(target)]), () =>
@@ -99,7 +108,7 @@ class ResDeskAuthorities {
 			: "";
 		const targets = (g.targets || []).map((t) => `<option value="${esc(t.name)}">${esc(t.name)}${t.dry_run ? ` (${__("dry run")})` : ""}</option>`).join("");
 		this.$body.html(`
-			<p class="text-muted rda-intro">${__("What the library has learned while matching its authors, given back to Wikidata: people's names in the scripts of the library's books, and author links on the library's book items on Wikidata. Nothing already on Wikidata is changed or removed. Download the list as QuickStatements for a Wikidata editor to review and run under their own account, or send it through the library's Wikidata Push Target.")}</p>
+			<p class="text-muted rda-intro">${__("What the library has learned while matching its authors, given back to Wikidata: people's names in the scripts of the library's books, and author links on the library's book items on Wikidata. Nothing already on Wikidata is changed or removed. Send it under your own Wikimedia account (connect it once under My Wikimedia Account), download the list as QuickStatements to review and run yourself, or send it through the library's Wikidata Push Target.")}</p>
 			<div class="rda-bar">${this.tabs()}</div>
 			<div class="rda-give">
 				<p>${g.made_on ? __("Worked out {0} from {1} matched people and {2} books on Wikidata.", [frappe.datetime.comment_when(g.made_on), g.people, g.books]) : __("Not worked out yet.")}
@@ -107,6 +116,9 @@ class ResDeskAuthorities {
 				<p><b>${g.counts.label}</b> ${__("names in a new language")} · <b>${g.counts.alias}</b> ${__("other names")} · <b>${g.counts.author}</b> ${__("author links")}</p>
 				<div class="rda-acts">
 					<a class="btn btn-sm btn-default" href="/api/method/sok_resdesk.contribute.quickstatements">${__("Download QuickStatements")}</a>
+					${g.mine
+						? `<button class="btn btn-sm btn-primary" data-give-mine>${__("Send as {0}", [esc(g.mine)])}</button>`
+						: `<a class="btn btn-sm btn-default" href="/app/rd-wikimedia-account">${__("Connect my Wikimedia account to send as me")}</a>`}
 					${targets ? `<select class="form-control input-sm rda-target" aria-label="${__("Wikidata Push Target")}">${targets}</select><button class="btn btn-sm btn-primary" data-give-send>${__("Send to Wikidata")}</button>` : `<span class="text-muted small">${__("To send directly, add a Wikidata Push Target (Research Desk → Metadata).")}</span>`}
 				</div>
 				${last}

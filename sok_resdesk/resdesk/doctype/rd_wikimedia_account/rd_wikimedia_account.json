@@ -1,0 +1,108 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-28 10:00:00.000000",
+ "modified": "2026-10-28 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Wikimedia Account",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "autoname": "field:user",
+ "title_field": "wikimedia_user",
+ "show_title_field_in_link": 1,
+ "search_fields": "wikimedia_user",
+ "links": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "track_changes": 0,
+ "field_order": [
+  "user",
+  "wikimedia_user",
+  "connected_on",
+  "token",
+  "last_used",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "Research Desk User",
+   "options": "User",
+   "reqd": 1,
+   "unique": 1,
+   "read_only": 1,
+   "set_only_once": 1,
+   "description": "Whose Wikimedia account this is. Everyone connects their own: Wikimedia credits edits to the person who made them."
+  },
+  {
+   "fieldname": "wikimedia_user",
+   "fieldtype": "Data",
+   "label": "Wikimedia Username",
+   "read_only": 1,
+   "in_list_view": 1,
+   "description": "Found from the token when it is connected."
+  },
+  {
+   "fieldname": "connected_on",
+   "fieldtype": "Datetime",
+   "label": "Connected On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "token",
+   "fieldtype": "Password",
+   "label": "Access Token",
+   "read_only": 1,
+   "description": "The OAuth 2.0 access token for your Wikimedia account, kept encrypted. Only you can use it, and only to make edits you ask for."
+  },
+  {
+   "fieldname": "last_used",
+   "fieldtype": "Datetime",
+   "label": "Last Used",
+   "read_only": 1
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Rights the Token Has",
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "delete": 1,
+   "report": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1
+  },
+  {
+   "role": "ResDesk Proofreader",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1
+  }
+ ]
+}

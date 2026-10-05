@@ -141,7 +141,13 @@ def plan() -> dict:
 	targets = frappe.get_all(
 		"RD Push Target", filters={"target_type": "Wikidata", "enabled": 1}, fields=["name", "dry_run"]
 	)
+	from sok_resdesk import wikimedia
+
+	acc = frappe.db.get_value(
+		wikimedia.DOCTYPE, frappe.session.user, ["wikimedia_user"], as_dict=True
+	)  # my own account, when connected
 	return {
+		"mine": acc.wikimedia_user if acc else "",
 		"made_on": p.get("made_on"),
 		"people": p.get("people", 0),
 		"books": p.get("books", 0),
@@ -192,28 +198,58 @@ def send(target: str) -> dict:
 	return {"queued": True}
 
 
-def run_send(target: str) -> dict:
+@frappe.whitelist(methods=["POST"])
+@features.needs("authorities")
+def send_mine() -> dict:
+	"""Send the edits to Wikidata as me: under my own Wikimedia account, so Wikidata's history
+	credits me. Needs the account connected (Research Desk → My Wikimedia Account)."""
+	frappe.only_for(EDITORS)
+	from sok_resdesk import wikimedia
+
+	wikimedia.need_account()
+	frappe.enqueue(
+		"sok_resdesk.contribute.run_send",
+		queue="long",
+		timeout=4 * 3600,
+		target="",
+		as_user=frappe.session.user,
+	)
+	return {"queued": True}
+
+
+def run_send(target: str = "", as_user: str = "") -> dict:
+	"""Send the planned edits: through a Wikidata Push Target (the library's own account), or,
+	with `as_user`, as that person under their own Wikimedia account."""
+	from sok_resdesk import wikimedia
 	from sok_resdesk.catalogue import portal_title
+	from sok_resdesk.core.push import WikidataClient
+	from sok_resdesk.core.wikimedia import WIKIDATA_API
 	from sok_resdesk.outbound import _client as client_for
 
 	p = frappe.cache.get_value(PLAN_KEY) or {}
 	by_item: dict[str, list] = {}
 	for e in p.get("edits") or []:
 		by_item.setdefault(e["qid"], []).append(e)
-	t = frappe.get_doc("RD Push Target", target)
+	t = frappe.get_doc("RD Push Target", target) if target else None
+	dry = bool(t and t.dry_run)
 	result = {
-		"target": target,
-		"dry_run": bool(t.dry_run),
+		"target": target or "my own account",
+		"dry_run": dry,
 		"items": 0,
 		"edits": 0,
 		"failed": 0,
 		"when": str(now_datetime()),
 	}
-	if t.dry_run:
+	if dry:
 		result.update(items=len(by_item), edits=sum(len(v) for v in by_item.values()))
 	else:
-		client = client_for(t)
-		client.login()
+		if as_user:
+			client = WikidataClient(WIKIDATA_API, "", "", token=wikimedia.need_account(as_user))
+		else:
+			client = client_for(t)
+		result["by"] = client.login()
+		if as_user:
+			wikimedia.touch(as_user)
 		summary = SUMMARY.format(portal_title())
 		for qid, edits in by_item.items():
 			try:

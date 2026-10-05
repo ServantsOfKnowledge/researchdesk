@@ -14,6 +14,7 @@ The same pages are inside the app: **Help** on the portal (for readers) and **He
    - [Books from your own folders or servers](local-folders.md): IA-style item folders on disk, NAS or a web server; drop-folder mode
    - [Books from repositories](repositories.md): DSpace, EPrints and any OAI-PMH repository; their PDFs' text page by page; kept in step
    - [Books from Wikisource](wikisource.md): scanned books transcribed and proofread on any language's Wikisource, with their page text and page images
+   - [Giving back to Wikimedia](wikimedia.md): connect your own Wikimedia account; what you send to Wikidata is sent as you
 4. [Searching](searching.md): books vs. inside-the-text search, filters, Kannada and other scripts
 5. [Citations & reading lists](citations.md): formats, Zotero, sharing a bibliography
 6. [Who can see what](access.md): members-only books, public catalogue or internal library, reader sign-up and approval, bulk changes

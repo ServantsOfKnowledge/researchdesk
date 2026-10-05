@@ -266,6 +266,7 @@ afterwards.
 | Permanent identifiers | ARKs, DOIs, tombstones |
 | Books from folders and servers | IA-style folders and loose PDFs |
 | Books from repositories | DSpace, EPrints, any OAI-PMH repository, and [Wikisource](wikisource.md) |
+| Giving back to Wikimedia | each person connects their own [Wikimedia account](wikimedia.md); gifts to Wikidata go under it |
 | Library systems | a Koha or other catalogue matched to the books here |
 | Sharing metadata | the OAI-PMH provider, [IIIF manifests](iiif.md), and pushes to Koha, Wikidata, archive.org, webhooks |
 | Reader accounts | sign-up, sign-up requests, members-only reading |

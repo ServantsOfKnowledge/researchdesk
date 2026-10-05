@@ -85,6 +85,7 @@ cause. Details: [Server](server.md#how-the-updater-helper-works).
 | **RD Review Flag** | a question about a record for a cataloguer (Desk → Review Queue) | book, check (no year, wrong-looking year, language, script, author, title, subjects, duplicate), detail, weight, status (Open / Fixed / Ignored), who answered and when |
 | **RD Subject** | keyword / heading | subject_name, scheme; matched to LCSH: lcsh_id, heading, match, candidates |
 | **RD Ingest Profile** | *what* to ingest | source (archive.org, a folder or server, an OAI-PMH repository), scope (collection / query / identifiers), filter, max items, full text, schedule, keeping in step with archive.org (new, changed, removed; `synced_on`), portal collection; for a repository its address, set, identifier prefix and `harvested_until` |
+| **RD Wikimedia Account** | one person's own connection to Wikimedia | the person (record name), their Wikimedia username, when connected, the OAuth 2.0 access token (an encrypted Password field only that person can read or use), when last used |
 | **RD Ingest Run** | one execution | status, counts, log |
 | **RD Settings** | single | portal, branding, OAI, Meilisearch, IA politeness, machine resources, server & updates (update checks, backups, alerts), guest access, reader sign-up, access rules |
 | RD Access Rule | child table of settings | match_on (collection, subject, language, creator, source, profile), value, visibility |

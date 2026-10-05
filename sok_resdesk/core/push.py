@@ -375,12 +375,30 @@ def wikidata_entity(record: dict, portal_url: str = "") -> dict:
 
 
 class WikidataClient:
-	def __init__(self, api_url: str, username: str, password: str, session=None, maxlag: int = 5):
+	def __init__(
+		self,
+		api_url: str,
+		username: str,
+		password: str,
+		session=None,
+		maxlag: int = 5,
+		token: str = "",
+	):
+		"""By a bot password (`username`, `password`: the library's Wikidata Push Target), or as
+		a person with their own OAuth access token (`token`: Wikimedia credits the edit to them,
+		and it is not marked as a bot edit)."""
 		self.api = api_url
 		self.username, self.password = username, password
 		self.session = _session(session, USER_AGENT)
 		self.maxlag = maxlag
+		self.token = token.strip()
+		self.bot = not self.token  # a person's edits are never flagged as bot edits
+		if self.token:
+			self.session.headers["Authorization"] = f"Bearer {self.token}"
 		self._csrf = None
+
+	def _bot(self) -> dict:
+		return {"bot": 1} if self.bot else {}
 
 	def _get(self, **params) -> dict:
 		r = self.session.get(self.api, params={"format": "json", **params}, timeout=60)
@@ -399,6 +417,13 @@ class WikidataClient:
 		raise PushError("Wikidata is busy (maxlag); try again later")
 
 	def login(self) -> str:
+		if self.token:  # a person's access token: who it is, and the edit token
+			who = self._get(action="query", meta="userinfo").get("query", {}).get("userinfo", {})
+			if who.get("anon") or not who.get("name"):
+				raise PushError("Wikidata refused the access token: reconnect your Wikimedia account")
+			self._csrf = self._get(action="query", meta="tokens")["query"]["tokens"]["csrftoken"]
+			self.username = who["name"]
+			return who["name"]
 		token = self._get(action="query", meta="tokens", type="login")["query"]["tokens"]["logintoken"]
 		out = self._post(action="login", lgname=self.username, lgpassword=self.password, lgtoken=token)
 		if out.get("login", {}).get("result") != "Success":
@@ -418,7 +443,12 @@ class WikidataClient:
 
 	def create(self, data: dict, summary: str) -> str:
 		out = self._post(
-			action="wbeditentity", new="item", data=json.dumps(data), token=self._csrf, summary=summary, bot=1
+			action="wbeditentity",
+			new="item",
+			data=json.dumps(data),
+			token=self._csrf,
+			summary=summary,
+			**self._bot(),
 		)
 		if "error" in out:
 			raise PushError(f"Wikidata: {out['error'].get('info')}")
@@ -427,7 +457,12 @@ class WikidataClient:
 	def edit(self, qid: str, data: dict, summary: str) -> None:
 		"""Add labels, aliases or statements to an item (Desk → Authorities → Give back)."""
 		out = self._post(
-			action="wbeditentity", id=qid, data=json.dumps(data), token=self._csrf, summary=summary, bot=1
+			action="wbeditentity",
+			id=qid,
+			data=json.dumps(data),
+			token=self._csrf,
+			summary=summary,
+			**self._bot(),
 		)
 		if "error" in out:
 			raise PushError(f"Wikidata: {out['error'].get('info')}")
@@ -444,7 +479,7 @@ class WikidataClient:
 			data=json.dumps({"claims": missing}),
 			token=self._csrf,
 			summary=summary,
-			bot=1,
+			**self._bot(),
 		)
 		if "error" in out:
 			raise PushError(f"Wikidata: {out['error'].get('info')}")
