@@ -7,6 +7,9 @@
   another order in **Sort**, which now shows the order in use
 - Settings → Portal: **Default Order** (oldest first, newest first, title A–Z or relevance) and
   **Best Matches First When Searching**
+- Fixed: the red buttons on our Desk pages (e.g. *Stop now* on Background Jobs) have enough
+  contrast; the accessibility check uses a book whose page opens, and a test no longer leaves
+  deleted books in the search index (v0.35.0's checks stopped on those two)
 
 ## 0.35.0 (2026-10-13): Reading settings, the text to download, accessibility checks on every change; help pictures from the Desk
 

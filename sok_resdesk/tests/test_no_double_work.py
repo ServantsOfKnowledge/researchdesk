@@ -34,7 +34,15 @@ class TestNoDoubleWork(IntegrationTestCase):
 
 	@classmethod
 	def tearDownClass(cls):
-		# run_batch commits, so take out what these tests added (the book limit tests count books)
+		# run_batch commits, so take out what these tests added (the book limit tests count books),
+		# from the search index too: a book left there leads to a page that doesn't exist
+		from sok_resdesk.search import remove_record
+
+		for name in frappe.get_all("RD Item", filters={"name": ("like", "ndw-%")}, pluck="name"):
+			try:
+				remove_record(name)
+			except Exception:
+				pass
 		frappe.db.delete("RD Item", {"name": ("like", "ndw-%")})
 		frappe.db.delete("RD Ingest Run", {"profile": PROFILE})
 		frappe.db.commit()

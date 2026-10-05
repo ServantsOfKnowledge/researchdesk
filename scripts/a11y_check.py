@@ -42,12 +42,23 @@ DESK = [
 
 
 def first_book(base: str) -> str | None:
+	"""The first book the search finds whose page opens (the index can hold a book a test
+	deleted a moment ago)."""
 	try:
-		with urllib.request.urlopen(f"{base}/api/method/sok_resdesk.api.search?q=", timeout=30) as r:
+		with urllib.request.urlopen(
+			f"{base}/api/method/sok_resdesk.api.search?q=&per_page=20", timeout=30
+		) as r:
 			hits = json.load(r)["message"]["hits"]
-		return hits[0]["item_id"] if hits else None
 	except Exception:
 		return None
+	for hit in hits:
+		try:
+			with urllib.request.urlopen(f"{base}/library/item/{hit['item_id']}", timeout=30) as r:
+				if r.status == 200:
+					return hit["item_id"]
+		except Exception:
+			continue
+	return None
 
 
 def run_axe(page, axe: str, include: str | None) -> list[dict]:
