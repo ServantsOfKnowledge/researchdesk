@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.44.0 (2026-10-24): Collection pictures from archive.org
+
+- Collections that mirror archive.org get **that collection's own picture** (its curators' logo,
+  or the image archive.org shows), copied here when the collection is made and filled in for any
+  mirrored collection without one, existing ones included after the upgrade
+- **Librarians stay in charge**: an uploaded cover is never replaced; **Get Image from
+  archive.org** on a collection takes it again, or borrows any archive.org collection's or book's
+  picture for a collection of your own; *Use archive.org's Image* turns it off; the Collections
+  list's menu fills in every missing one
+- Docs: [Collection images](docs/collections-and-metadata.md#collection-images)
+
 ## 0.43.0 (2026-10-23): Staff work in Research Desk
 
 - **The Desk shows only Research Desk** to librarians, cataloguers and managers (System

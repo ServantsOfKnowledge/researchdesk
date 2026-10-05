@@ -28,6 +28,37 @@ frappe.ui.form.on("RD Collection", {
 				})
 			);
 		}
+		// its picture from archive.org: the collection it mirrors, or any identifier given here
+		frm.add_custom_button(__("Get Image from archive.org"), () => {
+			const take = (identifier) =>
+				frappe.call({
+					method: "sok_resdesk.collectioncovers.get_image",
+					args: { collection: frm.doc.name, identifier },
+					freeze: true,
+					freeze_message: __("Asking archive.org…"),
+					callback: (r) => {
+						frappe.show_alert({ message: r.message.message, indicator: r.message.ok ? "green" : "orange" }, 7);
+						if (r.message.ok) frm.reload_doc();
+					},
+				});
+			const own = frm.doc.cover_image && frm.doc.cover_image !== frm.doc.source_cover;
+			frappe.prompt(
+				[
+					{
+						fieldname: "identifier",
+						fieldtype: "Data",
+						label: __("archive.org Identifier"),
+						default: frm.doc.image_from || frm.doc.mirror_of || "",
+						reqd: 1,
+						description: __("A collection (or a book) on archive.org, as in archive.org/details/<b>identifier</b>.") +
+							(own ? "<br>" + __("This replaces the image you uploaded.") : ""),
+					},
+				],
+				(v) => take(v.identifier.trim()),
+				__("Get Image from archive.org"),
+				__("Get Image")
+			);
+		});
 		frm.add_custom_button(__("Export Metadata"), () => frappe.new_doc("RD Export", { scope: "Collection", collection: frm.doc.name }));
 		// bags of the collection's preserved books, for handing to another archive (BagIt)
 		frm.add_custom_button(__("Export BagIt"), () =>

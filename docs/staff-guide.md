@@ -174,7 +174,10 @@ to propose them directly.
 
 A **collection** is your own group of books with its own page on the portal: a subject, an
 author, a course, an exhibition. Add books by hand, in bulk from the Items list or a portal
-search, with a spreadsheet, or with rules that also catch new books as they arrive.
+search, with a spreadsheet, or with rules that also catch new books as they arrive. Collections
+that mirror archive.org get their picture from there; upload your own to replace it, or use **Get
+Image from archive.org** to take it again
+([Collection images](collections-and-metadata.md#collection-images)).
 
 ![A collection with rules](../sok_resdesk/public/images/guide/desk-collection.png)
 

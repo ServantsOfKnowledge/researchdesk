@@ -308,7 +308,11 @@ def refresh_mirrors(profile: str | None = None) -> dict:
 				"RD Ingest Profile", p.name, "portal_collection", target, update_modified=False
 			)
 	frappe.db.commit()
-	return {"made": made, "added": added, "removed": removed}
+	# their pictures from archive.org, for those with no cover yet
+	from sok_resdesk import collectioncovers
+
+	covers = collectioncovers.fill_missing()
+	return {"made": made, "added": added, "removed": removed, "covers": covers}
 
 
 def on_profile_update(doc, method=None) -> None:

@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-30 14:00:00.000000",
- "modified": "2026-10-08 10:00:00.000000",
+ "modified": "2026-10-24 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Collection",
@@ -18,6 +18,9 @@
   "give_dois",
   "column_break_c",
   "cover_image",
+  "image_source",
+  "image_from",
+  "source_cover",
   "curator",
   "sort_order",
   "item_count",
@@ -80,7 +83,30 @@
   {
    "fieldname": "cover_image",
    "fieldtype": "Attach Image",
-   "label": "Cover Image"
+   "label": "Cover Image",
+   "description": "An image for the collection card and page. Upload your own to replace archive.org's: it is never overwritten."
+  },
+  {
+   "fieldname": "image_source",
+   "fieldtype": "Check",
+   "label": "Use archive.org's Image",
+   "default": "1",
+   "description": "The cover comes from the archive.org collection this mirrors (or the identifier you gave on Get Image from archive.org), and fills in when it is missing. Untick to keep no image or only your own."
+  },
+  {
+   "fieldname": "image_from",
+   "fieldtype": "Data",
+   "label": "Image From (archive.org)",
+   "read_only": 1,
+   "depends_on": "image_from",
+   "description": "The archive.org identifier the cover was taken from."
+  },
+  {
+   "fieldname": "source_cover",
+   "fieldtype": "Data",
+   "label": "Cover Taken from archive.org",
+   "hidden": 1,
+   "read_only": 1
   },
   {
    "fieldname": "curator",

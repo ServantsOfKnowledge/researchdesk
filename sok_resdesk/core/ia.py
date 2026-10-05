@@ -179,6 +179,25 @@ class IAClient:
 			return None
 		return resp.content
 
+	def collection_image(self, identifier: str) -> tuple[bytes, str] | None:
+		"""A collection's (or item's) own image on archive.org, as (bytes, extension): the logo its
+		curators uploaded, else the picture archive.org shows for it. None when there is none."""
+		try:
+			files = self.metadata(identifier).get("files") or []
+		except IAError:
+			return None
+		names = [f.get("name") or "" for f in files]
+		from urllib.parse import quote
+
+		for name in image_candidates(names):
+			data = self._download(identifier, quote(name))
+			kind = image_kind(data)
+			if kind:
+				return data, kind
+		resp = self._get(f"https://archive.org/services/img/{identifier}")
+		kind = image_kind(resp.content) if resp.status_code == 200 else None
+		return (resp.content, kind) if kind else None
+
 	def download_file(self, identifier: str, filename: str, dest: str) -> dict:
 		"""Stream one file of an item to `dest` (big scans don't go through memory).
 		Returns {"bytes", "md5"} so the caller can compare with the md5 archive.org lists."""
@@ -231,6 +250,39 @@ class IAClient:
 				data = self._download(identifier, name)
 				return data.decode("utf-8", errors="replace") if data else ""
 		return ""
+
+
+IMAGE_MAX = 5 << 20
+
+
+def image_candidates(names: list[str]) -> list[str]:
+	"""The files that are a collection's picture, best first: the thumbnail archive.org shows,
+	then a logo or header the curators uploaded."""
+	lower = {n.lower(): n for n in names}
+	picks = [lower[n] for n in ("__ia_thumb.jpg",) if n in lower]
+	for n in names:
+		low = n.lower()
+		if low.endswith((".jpg", ".jpeg", ".png", ".gif", ".webp")) and any(
+			w in low for w in ("logo", "header", "banner", "cover")
+		):
+			picks.append(n)
+	return list(dict.fromkeys(picks))
+
+
+def image_kind(data: bytes | None) -> str | None:
+	"""jpg, png, gif or webp, from the bytes themselves (not a name or header); None for anything
+	else, an empty answer or one too big to be a collection's picture."""
+	if not data or len(data) > IMAGE_MAX:
+		return None
+	if data[:3] == b"\xff\xd8\xff":
+		return "jpg"
+	if data[:8] == b"\x89PNG\r\n\x1a\n":
+		return "png"
+	if data[:6] in (b"GIF87a", b"GIF89a"):
+		return "gif"
+	if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+		return "webp"
+	return None
 
 
 def files_from_formats(identifier: str, formats) -> list[dict]:

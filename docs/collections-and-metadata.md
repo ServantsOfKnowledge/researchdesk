@@ -21,7 +21,8 @@ Create one at **Research Desk → Collections → + Add**. Give it a title; the 
 |---|---|
 | Show on Portal | Lists it on `/library/collections` and gives it a page. Untick for a staff-only working set |
 | Featured on the Home Page | Shows it as a card on the portal home page |
-| Cover Image, Description, Curator | Shown on the collection page |
+| Cover Image, Description, Curator | Shown on the collection card and page. Upload your own image, or take archive.org's (below) |
+| Use archive.org's Image | Ticked: the cover comes from archive.org when it has none (see [Collection images](#collection-images)) |
 | Order on the Collections Page | Lower numbers first |
 | Rules | Optional. Books that match are added automatically (see below) |
 
@@ -43,6 +44,26 @@ Create one at **Research Desk → Collections → + Add**. Give it a title; the 
   (sub-collections too) gets a collection of the same name, kept up to date by itself, adding
   and removing books as archive.org does, with sub-collections shown under their parent
   ([Keeping in step with archive.org](ingesting.md#keeping-in-step-with-archiveorg)).
+
+### Collection images
+
+A collection that mirrors one on archive.org gets **that collection's own picture**: the logo its
+curators uploaded there, or the image archive.org shows for it. It is copied here when the
+collection is made, and any mirrored collection still without a cover gets one each time the
+mirrors are refreshed (after a run and after an upgrade), so the portal never waits on
+archive.org to show it.
+
+You stay in charge of it:
+
+- **Upload your own** Cover Image: it is never replaced. Only the image taken from archive.org
+  is refreshed.
+- **Get Image from archive.org** (on the collection) takes it again now. It asks for the
+  archive.org identifier, filled in with the collection it mirrors, so a collection of your own
+  can borrow any archive.org collection's (or book's) picture too. It replaces whatever cover is
+  there, your own included, so it says so first.
+- Untick **Use archive.org's Image** for a collection that should have no picture, or only yours.
+- **Collections list → menu → Get Missing Images from archive.org** fills in every collection
+  without a cover, in the background.
 
 ### On the portal
 

@@ -111,6 +111,10 @@ class OpsTestCase(IntegrationTestCase):
 			frappe.db.delete("RD Push Run", run)
 		frappe.db.delete("RD Push Target", {"name": ("like", "rdtest%")})
 		frappe.db.delete("RD Collection Rule", {"parent": ("like", "rdtest%")})
+		for f in frappe.get_all(
+			"File", filters={"attached_to_doctype": "RD Collection", "attached_to_name": ("like", "rdtest%")}, pluck="name"
+		):
+			frappe.delete_doc("File", f, force=True, ignore_permissions=True)
 		frappe.db.delete("RD Collection", {"name": ("like", "rdtest%")})
 		frappe.db.delete("RD Ingest Run", {"profile": ("like", "rdtest%")})
 		frappe.db.delete("RD Ingest Profile", {"name": ("like", "rdtest%")})
@@ -382,6 +386,19 @@ class TestSetupHelpers(OpsTestCase):
 		)
 
 
+def _jpeg():
+	import io
+
+	from PIL import Image
+
+	out = io.BytesIO()
+	Image.new("RGB", (4, 4), "teal").save(out, "JPEG")
+	return out.getvalue()
+
+
+JPEG = _jpeg()
+
+
 class FakeIA:
 	"""archive.org for the sync tests: a collection whose books come, change and go."""
 
@@ -402,6 +419,9 @@ class FakeIA:
 
 	def count(self, query):
 		return len(list(self.iter_identifiers(query)))
+
+	def collection_image(self, identifier):
+		return (JPEG, "jpg") if identifier == "rdtestcoll" else None
 
 	def metadata(self, identifier):
 		from sok_resdesk.core.ia import IAError
@@ -546,6 +566,10 @@ class TestIASync(OpsTestCase):
 		coll = frappe.db.get_value("RD Ingest Profile", self.profile.name, "portal_collection")
 		self.assertEqual(frappe.db.get_value("RD Collection", coll, "mirror_of"), "rdtestcoll")
 		self.assertEqual(frappe.db.count("RD Item Collection", {"collection": coll}), 4)
+		# its picture from archive.org, kept here
+		cover = frappe.db.get_value("RD Collection", coll, ["cover_image", "source_cover", "image_from"])
+		self.assertTrue(cover[0].startswith("/files/") and cover[0] == cover[1])
+		self.assertEqual(cover[2], "rdtestcoll")
 		ia_sync.refresh_mirrors()  # after an upgrade: all profiles, and nothing doubles
 		self.assertEqual(frappe.db.count("RD Collection", {"mirror_of": "rdtestcoll"}), 1)
 
