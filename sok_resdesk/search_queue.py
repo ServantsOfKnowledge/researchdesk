@@ -32,6 +32,9 @@ MANAGERS = ("System Manager", "ResDesk Manager")
 RATE_MINUTES = 30  # how far back the draining speed is measured
 SEND_BATCH = 25  # books whose page text goes in one send
 KEEP_HISTORY_DAYS = 7
+# seconds the Search queue panel's counts are kept: each refresh asks the engine six questions,
+# and every Desk tab with Background Jobs open refreshes every 5 seconds
+POLL_CACHE = 15
 
 
 def _iso(dt: _dt.datetime) -> str:
@@ -94,7 +97,7 @@ def get_overview() -> dict:
 		out = overview()
 	except SearchError as e:
 		out = {"error": str(e)[:300]}
-	frappe.cache.set_value("resdesk:search-queue", out, expires_in_sec=5)
+	frappe.cache.set_value("resdesk:search-queue", out, expires_in_sec=POLL_CACHE)
 	return out
 
 
@@ -324,9 +327,15 @@ def _clear(days: int) -> dict:
 	return {"deleted": deleted, "message": _("{0} finished tasks cleared.").format(deleted)}
 
 
-def weekly() -> None:
-	"""Scheduler: keep the task history to the last week."""
+def daily() -> None:
+	"""Scheduler: keep the task history to the last week. Every night rather than once a week: a
+	day's finished tasks are forgotten in one small task, where a week's made one big one that
+	held up indexing, and the engine never nears its own limit (a million tasks), where it
+	clears them itself in the middle of the day's work."""
 	try:
 		_clear(KEEP_HISTORY_DAYS)
 	except SearchError:
 		pass
+
+
+weekly = daily  # jobs queued before 0.38.1

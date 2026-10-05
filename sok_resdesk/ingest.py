@@ -238,7 +238,7 @@ def _ingest_one(
 	try:
 		record = item_to_record(frappe.get_doc("RD Item", name))
 		if buffer is not None:
-			return created, buffer.add(record, pages, replace_pages=not created)
+			return created, buffer.add(record, pages, replace_pages=not created, if_changed=True)
 		count = index_record(record, pages, replace_pages=not created)
 	except SearchError as e:
 		frappe.log_error("Research Desk: indexing failed", f"{item_id}: {e}")

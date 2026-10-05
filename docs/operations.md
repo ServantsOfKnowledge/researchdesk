@@ -528,7 +528,7 @@ page text held back, and how many finished tasks it still remembers.
 |---|---|
 | **Books first** | cancels the page text waiting in the engine, so the book records behind it are next: new books reach the portal within minutes. The books whose page text was cancelled are marked *Page Text Pending* and their text is sent again in the background, from the text kept on this server, as fast as the engine keeps up. Nothing is lost |
 | **Hold page text** / **Resume page text** | while held, books are still catalogued and listed on the portal, and their page text waits (marked pending). Resume sends it. Useful during busy hours, or while the engine recovers |
-| **Clear finished tasks** | forgets the record of tasks finished more than a week ago (done weekly by itself): on a big catalogue it grows to gigabytes |
+| **Clear finished tasks** | forgets the record of tasks finished more than a week ago (done every night by itself): on a big catalogue it grows to gigabytes |
 | **Cancel all waiting** | cancels everything waiting, book records too, keeping track of it: page text is sent again, and the book records count as not sent (*Send them* on the Machine card) |
 
 **Books first happens by itself** (Settings → Machine Resources → *Books First Automatically*, on
@@ -560,6 +560,41 @@ red when tasks wait and nothing is being worked on, and orange when one batch ha
 4. **While it catches up**, workers hold back by themselves: when more than 300 tasks wait, each
    worker waits (up to 15 minutes at a time) before sending more, so ingesting goes at the pace
    the engine can index. **Pause All** on Background Jobs stops new work completely.
+
+### The search engine is always busy
+
+`docker stats` (or Background Jobs → Machine with the monitor on) shows the search engine's CPU
+per core: *100%* is one core, fully used. It is busy while it has tasks waiting (the Search
+queue card counts them), and idle otherwise. Indexing page text is the heaviest work it does,
+so it is busy for as long as books come in.
+
+Research Desk sends it only real work (0.38.1):
+
+- **Index settings** are sent only when they differ from what the engine has. Before, every
+  ingest run, re-index and migration sent them again, each one a task of its own between the
+  books and pages around it.
+- **Catalogue edits** reach the engine only when they change something it keeps. A book's pages
+  (a few hundred documents) are rewritten only when a field they carry for filtering changed:
+  authors, year, language, subjects, collections, visibility, item type.
+- **Books fetched again** (*Update existing*, the daily sync with archive.org, a folder ingested
+  again) send their page text only when it changed. Otherwise only the book record goes, and its
+  pages get just the fields that changed.
+- **Fewer, bigger tasks**: workers send 25 books at a time, and the Desk's Background Jobs page
+  asks the engine how it is doing at most every 15 seconds, however many people have it open.
+- **Finished tasks** are forgotten every night rather than once a week: a small task each night
+  instead of one that held up indexing.
+
+**To keep it to a share of the machine**, cap it, then `./resdesk.sh resources apply`:
+
+```bash
+./resdesk.sh resources set MEILI_CPUS=2 MEILI_MAX_INDEXING_THREADS=2
+```
+
+`MEILI_CPUS` caps everything it does; `MEILI_MAX_INDEXING_THREADS` only indexing, so searches
+keep the rest. The *server* preset sets neither (indexing then takes up to half the machine's
+cores, the engine's own default). Indexing more slowly than books come in is fine: workers wait
+when more than 300 tasks are waiting, and the portal lists books as the engine takes them in.
+**Hold page text** (Search queue) during busy hours lets the engine do the light work only.
 
 ## Command reference
 

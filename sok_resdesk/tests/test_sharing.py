@@ -386,7 +386,7 @@ class TestCatalogueFirst(SharingTestCase):
 				}
 
 		class Buffer:
-			def add(self, record, pages, replace_pages=True):
+			def add(self, record, pages, replace_pages=True, if_changed=False):
 				return 0
 
 		created, _ = ingest._ingest_one(FakeIA(), f"{PREFIX}0094", None, fetch_text=False, buffer=Buffer())

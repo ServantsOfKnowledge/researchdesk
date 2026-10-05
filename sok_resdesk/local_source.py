@@ -206,7 +206,9 @@ def ingest_local_one(
 		# the folder's text with proofreaders' corrections laid over it (the cache keeps the folder's)
 		pages = apply(item_id, pages) if not restricted else []
 		if buffer is not None:
-			return ("created" if created else "updated"), buffer.add(record, pages, replace_pages=not created)
+			return ("created" if created else "updated"), buffer.add(
+				record, pages, replace_pages=not created, if_changed=True
+			)
 		count = index_record(record, pages, replace_pages=not created)
 	except SearchError as e:
 		frappe.log_error("Research Desk: indexing failed", f"{item_id}: {e}")

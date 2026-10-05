@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.38.1 (2026-10-18): A quieter search engine
+
+- The search engine is sent only real work. Index settings go only when they differ from what it
+  has; before, every ingest run, re-index and migration sent them again. Catalogue edits that
+  change nothing it keeps send nothing, and a book's pages are rewritten only when a field they
+  carry for filtering changed. Books fetched again (*Update existing*, the daily archive.org
+  sync, a folder ingested again) send their page text only when it changed
+- Fewer, bigger tasks: 25 books per send instead of 10; Background Jobs asks the engine how it
+  is doing at most every 15 seconds; finished tasks are forgotten every night instead of weekly
+- Operations guide: *The search engine is always busy*, how to read its CPU and how to cap it
+
 ## 0.38.0 (2026-10-17): Giving back to the authorities
 
 - **Authorities → Give back**: what the library learned while matching its authors, for

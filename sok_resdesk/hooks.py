@@ -132,11 +132,11 @@ scheduler_events = {
 		"sok_resdesk.authority.nightly",
 		# records that need a cataloguer's eye (Desk → Review Queue)
 		"sok_resdesk.review.nightly",
+		# the search engine's record of finished tasks, kept to the last week
+		"sok_resdesk.search_queue.daily",
 	],
 	"weekly": [
 		"sok_resdesk.ingest.run_scheduled_weekly",
-		# the search engine's record of finished tasks, kept to the last week
-		"sok_resdesk.search_queue.weekly",
 		# BagIt exports older than two weeks (they can be made again)
 		"sok_resdesk.preservation.clean_exports",
 	],

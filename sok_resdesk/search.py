@@ -162,24 +162,39 @@ class MeiliClient:
 		uid = task.get("taskUid")
 		if uid is None:
 			return task
-		start = time.monotonic()
+		start, pause = time.monotonic(), 0.2
 		while time.monotonic() - start < timeout:
 			info = self._req("GET", f"/tasks/{uid}")
 			if info.get("status") in ("succeeded", "failed", "canceled"):
 				if info.get("status") == "failed":
 					raise SearchError(str(info.get("error")))
 				return info
-			time.sleep(0.3)
+			time.sleep(pause)
+			# a quick task answers at once; a long one isn't asked three times a second
+			pause = min(pause * 1.5, 2.0)
 		return {"status": "timeout", "taskUid": uid}
 
 	def setup(self) -> None:
+		"""Make sure both indexes exist with Research Desk's settings. Only what differs is sent:
+		every settings change is a task the engine runs on its own, between the books and pages
+		around it, and may make it index everything again, so sending them all whenever an
+		ingest run started (or the site migrated) kept the engine busy for nothing."""
 		for index, conf in ((self.books, BOOK_SETTINGS), (self.pages, PAGE_SETTINGS)):
+			key = f"resdesk:meili-settings:{self.url}:{index}"
 			try:
-				self.wait(self._req("POST", "/indexes", json={"uid": index, "primaryKey": "id"}))
+				self._req("GET", f"/indexes/{index}")
 			except SearchError as e:
-				if "index_already_exists" not in str(e):
+				if " 404 " not in str(e):
 					raise
-			self.wait(self._req("PATCH", f"/indexes/{index}/settings", json=conf), timeout=120)
+				self.wait(self._req("POST", "/indexes", json={"uid": index, "primaryKey": "id"}))
+				frappe.cache.delete_value(key)
+			fingerprint = hashlib.sha1(json.dumps(conf, sort_keys=True).encode()).hexdigest()
+			if frappe.cache.get_value(key) == fingerprint:
+				continue
+			changed = settings_diff(conf, self._req("GET", f"/indexes/{index}/settings"))
+			if changed:
+				self.wait(self._req("PATCH", f"/indexes/{index}/settings", json=changed), timeout=120)
+			frappe.cache.set_value(key, fingerprint, expires_in_sec=86400)
 
 	def add(self, index: str, documents: list[dict], wait: bool = False) -> dict:
 		if not documents:
@@ -198,6 +213,23 @@ class MeiliClient:
 
 	def stats(self) -> dict:
 		return self._req("GET", "/stats")
+
+
+# the settings whose lists are sets: the engine may give them back in another order
+_UNORDERED = {"filterableAttributes", "sortableAttributes", "displayedAttributes"}
+
+
+def settings_diff(wanted: dict, current: dict) -> dict:
+	"""The part of `wanted` that the index's `current` settings don't already have."""
+
+	def same(key, a, b) -> bool:
+		if isinstance(a, dict) and isinstance(b, dict):
+			return all(k in b and same(k, v, b[k]) for k, v in a.items())
+		if isinstance(a, list) and isinstance(b, list) and key in _UNORDERED:
+			return sorted(map(str, a)) == sorted(map(str, b))
+		return a == b
+
+	return {k: v for k, v in wanted.items() if k not in (current or {}) or not same(k, v, current[k])}
 
 
 def _quote(value: str) -> str:
@@ -282,7 +314,7 @@ def index_record(
 	pages = pages or []
 	excerpt = " ".join(p["text"] for p in pages[:6])
 	client.add(client.books, [book_document(record, excerpt)])
-	count, uid = 0, None
+	count, uid, docs = 0, None, []
 	if pages and cint(s.index_pages):
 		if replace_pages:  # new books have no old pages to remove
 			client.delete_by_filter(client.pages, f"item_id = {_quote(record['item_id'])}")
@@ -295,12 +327,30 @@ def index_record(
 		record["item_id"],
 		{
 			"indexed_on": now_datetime(),
-			**({"indexed_pages": count, "pages_pending": 0, "page_task": uid or 0} if pages else {}),
+			**(
+				{
+					"indexed_pages": count,
+					"pages_pending": 0,
+					"page_task": uid or 0,
+					"page_text_hash": page_text_hash(docs) if count else "",
+				}
+				if pages
+				else {}
+			),
 			**quality_fields(pages),
 		},
 		update_modified=False,
 	)
 	return count
+
+
+def page_text_hash(docs: list[dict]) -> str:
+	"""A fingerprint of a book's page text as sent to the engine (what is on each page, not the
+	book's fields the pages carry): the same text need not be indexed again."""
+	h = hashlib.sha1()
+	for d in docs:
+		h.update(f"{d['leaf']}\x1f{d.get('label') or ''}\x1f{d['text']}\x1e".encode())
+	return h.hexdigest()
 
 
 def quality_fields(pages: list[dict] | None) -> dict:
@@ -390,8 +440,9 @@ class IndexBuffer:
 	once, then one for the old pages and a few big ones for the new pages."""
 
 	PAGE_CHUNK = 2000  # page documents per task
+	FLUSH_BOOKS = 25  # books per send: fewer, bigger tasks are less work for the engine than many small
 
-	def __init__(self, client: MeiliClient | None = None, flush_books: int = 10):
+	def __init__(self, client: MeiliClient | None = None, flush_books: int = FLUSH_BOOKS):
 		self.client = client
 		self.flush_books = flush_books
 		self.books: list[dict] = []
@@ -399,21 +450,49 @@ class IndexBuffer:
 		self.pages: list[dict] = []
 		self.counts: dict[str, int | None] = {}  # item -> pages indexed (None: no page text sent)
 		self.quality: dict[str, dict] = {}  # item -> its OCR quality fields
+		self.hashes: dict[str, str] = {}  # item -> fingerprint of the page text sent
+		self.same_text: list[str] = []  # books whose page text the engine already has
 
-	def add(self, record: dict, pages: list[dict], replace_pages: bool = True) -> int:
-		"""Queue one book (nothing is sent yet: see due and flush). Returns its page count."""
+	def add(
+		self, record: dict, pages: list[dict], replace_pages: bool = True, if_changed: bool = False
+	) -> int:
+		"""Queue one book (nothing is sent yet: see due and flush). Returns its page count.
+
+		if_changed: a book already in the catalogue, fetched again (an update, a sync with
+		archive.org). When its page text is what the engine already holds, only the book record
+		goes, and its pages get just the fields that changed: re-sending a few hundred pages
+		unchanged is most of what indexing costs."""
 		s = settings()
 		excerpt = " ".join(p["text"] for p in pages[:6])
 		self.books.append(book_document(record, excerpt))
 		docs = []
 		if pages and cint(s.index_pages):
 			docs = page_documents(record, pages, cint(s.max_page_chars) or 6000)
+			fingerprint = page_text_hash(docs)
+			if replace_pages and if_changed and self._already_sent(record["item_id"], fingerprint, len(docs)):
+				self.same_text.append(record["item_id"])
+				self.counts[record["item_id"]] = None
+				self.quality[record["item_id"]] = quality_fields(pages)
+				return len(docs)
 			if replace_pages:
 				self.stale.append(record["item_id"])
 			self.pages.extend(docs)
+			self.hashes[record["item_id"]] = fingerprint
 		self.counts[record["item_id"]] = len(docs) if pages else None
 		self.quality[record["item_id"]] = quality_fields(pages)
 		return len(docs)
+
+	@staticmethod
+	def _already_sent(item_id: str, fingerprint: str, count: int) -> bool:
+		held = frappe.db.get_value(
+			"RD Item", item_id, ["page_text_hash", "indexed_pages", "pages_pending"], as_dict=True
+		)
+		return bool(
+			held
+			and held.page_text_hash == fingerprint
+			and cint(held.indexed_pages) == count
+			and not cint(held.pages_pending)
+		)
 
 	@property
 	def due(self) -> bool:
@@ -424,9 +503,13 @@ class IndexBuffer:
 		if not self.books:
 			return
 		books, stale, pages, counts, quality = self.books, self.stale, self.pages, self.counts, self.quality
+		hashes, same_text = self.hashes, self.same_text
 		self.books, self.stale, self.pages, self.counts, self.quality = [], [], [], {}, {}
+		self.hashes, self.same_text = {}, []
 		client = self.client = self.client or MeiliClient.from_settings()
 		wait_for_room(client)
+		if same_text:  # before the new book records go, while the engine's copies are the old ones
+			_refresh_page_fields(client, {b["item_id"]: b for b in books if b["item_id"] in same_text})
 		client.add(client.books, books)
 		held = pages_held()  # Background Jobs → Search queue → Hold page text
 		page_task: dict[str, int] = {}  # item -> the last task carrying its pages
@@ -450,8 +533,28 @@ class IndexBuffer:
 					"indexed_pages": count,
 					"pages_pending": 0,
 					"page_task": page_task.get(item_id) or 0,
+					"page_text_hash": hashes.get(item_id, ""),
 				}
 			frappe.db.set_value("RD Item", item_id, values, update_modified=False)
+
+
+def _refresh_page_fields(client: MeiliClient, books: dict[str, dict]) -> None:
+	"""Give the pages of `books` (item -> new book document) the fields that changed, for the books
+	where one did."""
+	if not books:
+		return
+	flt = f"item_id IN [{', '.join(_quote(n) for n in books)}]"
+	held = {
+		d["item_id"]: d
+		for d in client._req(
+			"POST",
+			f"/indexes/{client.books}/documents/fetch",
+			json={"filter": flt, "fields": ["item_id", *PAGE_FIELDS], "limit": 1000},
+		).get("results", [])
+	}
+	repage = [n for n, b in books.items() if not same_fields(b, held.get(n) or {}, PAGE_FIELDS)]
+	if repage:
+		_update_page_fields(client, repage, books)
 
 
 def _task_uid(task) -> int | None:
@@ -505,7 +608,12 @@ PAGE_FIELDS = (
 def update_item_fields(names: list[str], client: MeiliClient | None = None, wait: bool = False) -> None:
 	"""Push catalogue edits (metadata, visibility, collections) to both indexes without
 	re-indexing page text. Book documents keep their text excerpt; page documents get the
-	fields they carry for filtering. Batched: one index task per 500 books / 10,000 pages."""
+	fields they carry for filtering. Batched: one index task per 200 books / 10,000 pages.
+
+	Only what changed is sent: a book whose search record is the same as the one the engine
+	holds is left alone, and its pages are rewritten only when a field they carry changed. Most
+	saves (an internal note, a review flag answered, an identifier added) change nothing the
+	engine keeps, and each rewrite of a book's few hundred pages is real indexing work."""
 	client = client or MeiliClient.from_settings()
 	names = [n for n in dict.fromkeys(names) if n]
 	last = None
@@ -519,45 +627,63 @@ def update_item_fields(names: list[str], client: MeiliClient | None = None, wait
 		for name in chunk:
 			doc = book_document(item_to_record(frappe.get_doc("RD Item", name)))
 			doc.pop("indexed_at", None)
+			doc.pop("text_excerpt", None)
 			books[name] = doc
 		flt = f"item_id IN [{', '.join(_quote(n) for n in chunk)}]"
 		indexed = {
-			d["item_id"]
+			d["item_id"]: d
 			for d in client._req(
 				"POST",
 				f"/indexes/{client.books}/documents/fetch",
-				json={"filter": flt, "fields": ["item_id"], "limit": 1000},
+				json={"filter": flt, "fields": list(next(iter(books.values()))), "limit": 1000},
 			).get("results", [])
 		}
 		new = [dict(b, text_excerpt="") for n, b in books.items() if n not in indexed]
 		if new:
 			last = client.add(client.books, new)
-		partial = [
-			{k: v for k, v in b.items() if k != "text_excerpt"} for n, b in books.items() if n in indexed
-		]
-		if partial:
-			last = client._req("PUT", f"/indexes/{client.books}/documents", json=partial)
-		updates, offset = [], 0
-		while True:
-			res = client._req(
-				"POST",
-				f"/indexes/{client.pages}/documents/fetch",
-				json={"filter": flt, "fields": ["id", "item_id"], "limit": 10000, "offset": offset},
-			)
-			rows = res.get("results", [])
-			for r in rows:
-				b = books.get(r["item_id"])
-				if b:
-					updates.append({"id": r["id"], **{k: b.get(k) for k in PAGE_FIELDS}})
-			offset += len(rows)
-			if len(updates) >= 10000 or not rows or offset >= res.get("total", 0):
-				if updates:
-					last = client._req("PUT", f"/indexes/{client.pages}/documents", json=updates)
-					updates = []
-			if not rows or offset >= res.get("total", 0):
-				break
+		changed = [b for n, b in books.items() if n in indexed and not same_fields(b, indexed[n], b)]
+		if changed:
+			last = client._req("PUT", f"/indexes/{client.books}/documents", json=changed)
+		# pages carry some of the book's fields (for filtering): only books where one of those changed
+		repage = [n for n, b in books.items() if n in indexed and not same_fields(b, indexed[n], PAGE_FIELDS)]
+		if repage:
+			last = _update_page_fields(client, repage, books) or last
 	if wait and last:
 		client.wait(last, timeout=120)  # so the next search already sees the change
+
+
+def same_fields(new: dict, held: dict, fields) -> bool:
+	"""Whether the engine's copy `held` already has `new`'s values for `fields` (None, missing and
+	an empty list count as the same: the engine leaves out what was sent empty)."""
+
+	def norm(v):
+		return None if v in (None, "", []) else v
+
+	return all(norm(new.get(f)) == norm(held.get(f)) for f in fields)
+
+
+def _update_page_fields(client: MeiliClient, names: list[str], books: dict[str, dict]):
+	flt = f"item_id IN [{', '.join(_quote(n) for n in names)}]"
+	updates, offset, last = [], 0, None
+	while True:
+		res = client._req(
+			"POST",
+			f"/indexes/{client.pages}/documents/fetch",
+			json={"filter": flt, "fields": ["id", "item_id"], "limit": 10000, "offset": offset},
+		)
+		rows = res.get("results", [])
+		for r in rows:
+			b = books.get(r["item_id"])
+			if b:
+				updates.append({"id": r["id"], **{k: b.get(k) for k in PAGE_FIELDS}})
+		offset += len(rows)
+		if len(updates) >= 10000 or not rows or offset >= res.get("total", 0):
+			if updates:
+				last = client._req("PUT", f"/indexes/{client.pages}/documents", json=updates)
+				updates = []
+		if not rows or offset >= res.get("total", 0):
+			break
+	return last
 
 
 def remove_record(item_id: str, client: MeiliClient | None = None) -> None:
@@ -733,6 +859,7 @@ def reset_pages_index() -> None:
 		client.wait(client._req("DELETE", f"/indexes/{client.pages}"), timeout=300)
 	except SearchError:
 		pass
+	frappe.db.sql("update `tabRD Item` set page_text_hash = '' where ifnull(page_text_hash, '') != ''")
 	client.setup()
 
 

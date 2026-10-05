@@ -4,6 +4,8 @@ bench --site <site> set-config allow_tests true
 bench --site <site> run-tests --app sok_resdesk
 """
 
+from unittest import mock
+
 import frappe
 from frappe.tests import IntegrationTestCase
 
@@ -120,7 +122,10 @@ class TestLocalFolderSource(IntegrationTestCase):
 		from sok_resdesk import search
 		from sok_resdesk.local_source import ingest_local_one, open_profile_store
 
-		search.index_record = lambda *a, **k: 2  # keep the search engine out of this test
+		# keep the search engine out of this test (and put it back for the tests after it)
+		p = mock.patch.object(search, "index_record", lambda *a, **k: 2)
+		p.start()
+		self.addCleanup(p.stop)
 		store = open_profile_store(self.profile)
 		items = list(store.iter_items())
 		self.assertEqual(items, [("rdtest.local0001", "shelf/rdtest.local0001")])

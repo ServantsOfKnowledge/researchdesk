@@ -1954,3 +1954,123 @@ class TestOcrLanguages(OpsTestCase):
 			self.assertEqual((method, kw["languages"]), ("sok_resdesk.reocr.ocr_page_job", ["kan", "san"]))
 			reocr.enqueue_book(book, "Whole page", '["san"]')
 			self.assertEqual(self.enqueued[-1][1]["languages"], ["san"])
+
+
+class TestEngineLoad(OpsTestCase):
+	"""0.38.1: the search engine is asked to do only real work (the real engine, on test indexes)."""
+
+	def setUp(self):
+		super().setUp()
+		from sok_resdesk import search
+
+		real = search.MeiliClient.from_settings()
+		self.client = search.MeiliClient(
+			real.url, real.session.headers.get("Authorization", "")[7:], "rdtestload"
+		)
+		self.drop()
+		p = mock.patch("sok_resdesk.search.MeiliClient.from_settings", return_value=self.client)
+		p.start()
+		self.addCleanup(p.stop)
+		self.addCleanup(self.drop)
+		# the settings changed here are rolled back after the test: so must the cached copy be
+		self.addCleanup(frappe.clear_document_cache, "RD Settings", "RD Settings")
+
+	def drop(self):
+		for index in (self.client.books, self.client.pages):
+			try:
+				self.client.wait(self.client._req("DELETE", f"/indexes/{index}"), timeout=60)
+			except Exception:
+				pass
+			frappe.cache.delete_value(f"resdesk:meili-settings:{self.client.url}:{index}")
+
+	def tasks(self, index, **params):
+		return self.client._req("GET", "/tasks", params={"indexUids": index, "limit": 1, **params})["total"]
+
+	def settle(self):
+		last = self.client._req("GET", "/tasks", params={"limit": 1})["results"][0]
+		self.client.wait({"taskUid": last["uid"]}, timeout=120)
+
+	def test_settings_are_sent_once(self):
+		from sok_resdesk import search
+
+		before = self.tasks(self.client.pages, types="settingsUpdate")  # earlier runs' indexes of this name
+		self.client.setup()
+		sent = self.tasks(self.client.pages, types="settingsUpdate")
+		self.assertEqual(sent, before + 1)
+		self.client.setup()  # remembered: nothing asked or sent
+		# forgotten (another worker, a restart): asked, found the same, still nothing sent
+		frappe.cache.delete_value(f"resdesk:meili-settings:{self.client.url}:{self.client.pages}")
+		self.client.setup()
+		self.assertEqual(self.tasks(self.client.pages, types="settingsUpdate"), sent)
+		self.assertEqual(
+			search.settings_diff(
+				search.PAGE_SETTINGS, self.client._req("GET", f"/indexes/{self.client.pages}/settings")
+			),
+			{},
+		)
+		# a setting that differs is sent on its own
+		self.assertEqual(
+			search.settings_diff(
+				{"searchCutoffMs": 900, "sortableAttributes": ["leaf"]},
+				{"searchCutoffMs": 1500, "sortableAttributes": ["leaf"]},
+			),
+			{"searchCutoffMs": 900},
+		)
+
+	def test_edits_that_change_nothing_send_nothing(self):
+		from sok_resdesk import search
+		from sok_resdesk.catalogue import item_to_record
+
+		self.client.setup()
+		name = _item(1)
+		frappe.db.set_single_value("RD Settings", {"index_pages": 1, "hold_page_text": 0})
+		frappe.clear_document_cache("RD Settings", "RD Settings")
+		pages = [{"leaf": i, "label": "", "text": f"page {i} text"} for i in range(3)]
+		search.index_record(item_to_record(frappe.get_doc("RD Item", name)), pages, self.client)
+		self.settle()
+		self.assertTrue(frappe.db.get_value("RD Item", name, "page_text_hash"))
+		books, page_tasks = self.tasks(self.client.books), self.tasks(self.client.pages)
+
+		search.update_item_fields([name], self.client, wait=True)  # saved, nothing the engine keeps changed
+		self.assertEqual((self.tasks(self.client.books), self.tasks(self.client.pages)), (books, page_tasks))
+
+		frappe.db.set_value("RD Item", name, "year", 1951)  # a field the pages carry
+		search.update_item_fields([name], self.client, wait=True)
+		self.assertEqual(self.tasks(self.client.books), books + 1)
+		self.assertEqual(self.tasks(self.client.pages), page_tasks + 1)
+		hit = self.client.search(self.client.pages, {"q": "", "filter": "year = 1951", "limit": 5})
+		self.assertEqual(len(hit["hits"]), 3)
+
+	def test_same_page_text_is_not_sent_again(self):
+		from sok_resdesk import search
+		from sok_resdesk.catalogue import item_to_record
+
+		self.client.setup()
+		name = _item(2)
+		frappe.db.set_single_value("RD Settings", {"index_pages": 1, "hold_page_text": 0})
+		frappe.clear_document_cache("RD Settings", "RD Settings")
+		pages = [{"leaf": i, "label": "", "text": f"page {i} text"} for i in range(3)]
+		buf = search.IndexBuffer(self.client)
+		buf.add(item_to_record(frappe.get_doc("RD Item", name)), pages, replace_pages=False)
+		buf.flush()
+		self.settle()
+		page_tasks = self.tasks(self.client.pages)
+		deletions = self.tasks(self.client.pages, types="documentDeletion")
+
+		# fetched again with the same text and a new year: the pages only get the year
+		frappe.db.set_value("RD Item", name, "year", 1952)
+		buf.add(item_to_record(frappe.get_doc("RD Item", name)), pages, if_changed=True)
+		buf.flush()
+		self.settle()
+		self.assertEqual(self.tasks(self.client.pages), page_tasks + 1)  # one field update, no delete
+		self.assertEqual(self.tasks(self.client.pages, types="documentDeletion"), deletions)
+		hit = self.client.search(self.client.pages, {"q": "", "filter": "year = 1952", "limit": 5})
+		self.assertEqual(len(hit["hits"]), 3)
+
+		# different text: sent again, the old pages first taken out
+		pages[1]["text"] = "corrected"
+		buf.add(item_to_record(frappe.get_doc("RD Item", name)), pages, if_changed=True)
+		buf.flush()
+		self.settle()
+		self.assertEqual(self.tasks(self.client.pages, types="documentDeletion"), deletions + 1)
+		self.assertEqual(self.client.search(self.client.pages, {"q": "corrected"})["hits"][0]["leaf"], 1)

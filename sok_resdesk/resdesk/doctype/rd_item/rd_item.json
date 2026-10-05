@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-08 10:00:00.000000",
+ "modified": "2026-10-09 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Item",
@@ -97,6 +97,7 @@
   "indexed_on",
   "pages_pending",
   "page_task",
+  "page_text_hash",
   "raw_metadata"
  ],
  "fields": [
@@ -685,6 +686,14 @@
    "fieldname": "page_task",
    "fieldtype": "Int",
    "label": "Page Text Task",
+   "read_only": 1,
+   "no_copy": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "page_text_hash",
+   "fieldtype": "Data",
+   "label": "Page Text Fingerprint",
    "read_only": 1,
    "no_copy": 1,
    "hidden": 1

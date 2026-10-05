@@ -991,7 +991,7 @@ def _indexing() -> dict | None:
 		"engine": engine,
 		**_stall(engine),
 	}
-	frappe.cache.set_value("resdesk:indexing", row, expires_in_sec=5)
+	frappe.cache.set_value("resdesk:indexing", row, expires_in_sec=15)  # five questions to the engine
 	return row
 
 
