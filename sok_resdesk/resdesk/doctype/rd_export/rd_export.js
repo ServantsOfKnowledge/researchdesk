@@ -3,6 +3,19 @@
 
 frappe.ui.form.on("RD Export", {
 	refresh(frm) {
+		if (frm.is_new() && frm.doc.export_format === "Calibre library (zip)") {
+			frm.add_custom_button(__("Estimate Size"), () =>
+				frappe.call({ method: "sok_resdesk.calibre_export.estimate", args: { values: frm.doc }, freeze: true, freeze_message: __("Counting the files…") }).then((r) => {
+					const e = r.message;
+					frappe.msgprint({
+						title: __("Calibre library"),
+						message:
+							__("{0} books chosen: {1} have files held here ({2} files, about {3} MB); {4} are listed in not-included.csv with a link to where they are.", [e.books, e.with_files, e.files, e.megabytes, e.not_included]) +
+							(e.problem ? `<p class="text-danger">${frappe.utils.escape_html(e.problem)}</p>` : ""),
+					});
+				})
+			);
+		}
 		if (frm.is_new()) {
 			frm.set_intro(__("Choose a format and which books, then Save: the file is made straight away (big exports run in the background and appear here when done)."), "blue");
 			return;

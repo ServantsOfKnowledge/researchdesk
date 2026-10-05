@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.52.0 (2026-10-31): A small Calibre collection to take away
+
+- **Export → Calibre library (zip)**: any set of books the Export screen can choose (a
+  collection, a search, selected books, a profile) written as folders Calibre adds in one step:
+  `Author/Title (n)/` with each book's files, `metadata.opf` and `cover.jpg`. **Estimate Size**
+  says what it will hold before it is made; the zip is built in the background
+- Only files held here go in (folder and Calibre sources, preservation copies), never a book
+  that is not open to read. Books whose files live elsewhere (archive.org, repositories,
+  Wikisource) are listed in `not-included.csv` with a link to where they are
+- See [Books from a Calibre library](docs/calibre.md#making-a-small-calibre-collection)
+
 ## 0.51.0 (2026-10-30): Books from a Calibre library
 
 - **Import a Calibre library**: a Folder or Server profile whose location holds a Calibre

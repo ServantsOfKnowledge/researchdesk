@@ -138,3 +138,77 @@ class TestCalibreImport(OpsTestCase):
 			)
 		finally:
 			frappe.set_user("Administrator")
+
+	# -- 0.52: a set of books written out as a Calibre folder ---------------------------------------
+
+	def test_exporting_writes_the_files_held_here_and_lists_the_rest(self):
+		import csv
+		import io
+		import os
+		import zipfile
+
+		from sok_resdesk import calibre_export, transfer
+
+		self.run_profile()
+		for name in (fx.ID_EPUB, fx.ID_PDF):
+			frappe.db.set_value("RD Item", name, "published", 1)
+		# a book of archive.org's: nothing of it is held here
+		frappe.get_doc(
+			{
+				"doctype": "RD Item",
+				"item_id": "calibre-rdtest-ia",
+				"title": "On archive.org",
+				"source": "Internet Archive",
+				"on_archive_org": 1,
+				"access_status": "Open",
+				"published": 1,
+			}
+		).insert(ignore_permissions=True)
+		export = frappe.get_doc(
+			{
+				"doctype": "RD Export",
+				"export_format": "Calibre library (zip)",
+				"scope": "Selected Books",
+				"filters_json": frappe.as_json([fx.ID_EPUB, fx.ID_PDF, fx.ID_BARE, "calibre-rdtest-ia"]),
+			}
+		).insert(ignore_permissions=True)
+		export.reload()
+		self.addCleanup(lambda: frappe.db.delete("File", {"attached_to_name": export.name}))
+		self.assertEqual((export.status, export.item_count), ("Done", 2), export.log)
+		path = frappe.get_site_path(export.file_url.lstrip("/"))
+		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
+		with zipfile.ZipFile(path) as z:
+			names = z.namelist()
+			self.assertTrue(any(n.endswith("Kirtanegalu - Kanakadasa.epub") for n in names))
+			self.assertTrue(any(n.endswith("Kirtanegalu - Kanakadasa.mobi") for n in names))
+			self.assertTrue(any(n.endswith("/cover.jpg") for n in names))
+			self.assertTrue(any(n.endswith("Typed notes - Smith, John.pdf") for n in names))
+			epub = next(n for n in names if n.endswith(".epub"))
+			self.assertEqual(z.read(epub), fx.EPUB)
+			rows = {
+				r["identifier"]: r for r in csv.DictReader(io.StringIO(z.read("not-included.csv").decode()))
+			}
+		self.assertEqual(sorted(rows), [fx.ID_BARE, "calibre-rdtest-ia"])
+		self.assertIn("archive.org", rows["calibre-rdtest-ia"]["why not included"])
+		self.assertIn("archive.org/details/calibre-rdtest-ia", rows["calibre-rdtest-ia"]["where it is"])
+		# the estimate says the same before anything is made
+		est = calibre_export.estimate(
+			{
+				"export_format": "Calibre library (zip)",
+				"scope": "Selected Books",
+				"filters_json": export.filters_json,
+			}
+		)
+		self.assertEqual((est["books"], est["with_files"], est["not_included"]), (4, 2, 2))
+		# the quick portal download is for records, not files
+		with self.assertRaisesRegex(frappe.ValidationError, "holds files"):
+			transfer.build("Calibre library (zip)", [fx.ID_EPUB])
+
+	def test_a_book_that_is_not_open_is_never_written_out(self):
+		from sok_resdesk import calibre_export
+
+		self.run_profile()
+		frappe.db.set_value("RD Item", fx.ID_PDF, {"access_status": "Restricted", "published": 1})
+		books, left = calibre_export.gather([fx.ID_PDF])
+		self.assertEqual((books, [r["item_id"] for r in left]), ([], [fx.ID_PDF]))
+		self.assertIn("Not open", left[0]["why"])

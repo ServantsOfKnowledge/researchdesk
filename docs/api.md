@@ -138,6 +138,7 @@ only; 10 a minute.
 | `sok_resdesk.outbound.cancel` (`run_name`) | stop a push run |
 | `sok_resdesk.ingest.cancel_run` (`run`) | same as `jobs.stop_run` (kept for older scripts) |
 | `sok_resdesk.transfer.rerun_export` (`name`) | rebuild an export's file with current data |
+| `sok_resdesk.calibre_export.estimate` (`values`: an Export's fields) | Staff: how many of the chosen books have files held here, how many files and megabytes, and what is left out, before a *Calibre library (zip)* export is made |
 | `sok_resdesk.help.get_page` (`slug`) | a help page (docs/*.md) as HTML with its table of contents, for the Desk |
 | `sok_resdesk.guide.checklist` · `checklist_mark` (`key`, `what`=`done`/`skipped`/`hide`/`show`) · `restart_checklist` | the getting-started checklist on the workspace (`show` brings a hidden one back, keeping its ticks; `restart_checklist` starts it afresh) |
 | `sok_resdesk.priority.set_worker_priority` (`nice`=`19`/`10`/`5`/`0`/`-5`) | choose the background workers' priority live; each worker applies it between two books (Background Jobs → Machine → Worker priority) |

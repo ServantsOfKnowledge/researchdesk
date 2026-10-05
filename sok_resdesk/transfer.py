@@ -36,7 +36,10 @@ FORMATS = {
 	"RIS": ("ris", "application/x-research-info-systems"),
 	"Internet Archive bulk-upload CSV": ("ia.csv", "text/csv"),
 	"Internet Archive meta.xml files (zip)": ("zip", "application/zip"),
+	"Calibre library (zip)": ("calibre.zip", "application/zip"),
 }
+CALIBRE = "Calibre library (zip)"  # made from files, not records: see calibre_export.py
+CALIBRE_BACKGROUND_OVER = 25
 
 
 # -- choosing books ------------------------------------------------------------------------------
@@ -87,6 +90,8 @@ def _records(names: list[str]):
 
 
 def build(fmt: str, names: list[str], stem: str = "export") -> tuple[str, bytes]:
+	if fmt == CALIBRE:
+		frappe.throw(_("A Calibre library holds files: make it from Desk → Research Desk → Exports."))
 	root = base_url()
 	records = list(_records(names))
 	ext = FORMATS[fmt][0]
@@ -145,7 +150,7 @@ def _set(name: str, **values):
 def start_export(name: str) -> None:
 	doc = frappe.get_doc("RD Export", name)
 	names = select_for_export(doc)
-	if len(names) > BACKGROUND_OVER:
+	if len(names) > (CALIBRE_BACKGROUND_OVER if doc.export_format == CALIBRE else BACKGROUND_OVER):
 		_set(name, status="Queued", item_count=len(names))
 		frappe.enqueue(
 			"sok_resdesk.transfer.run_export",
@@ -165,6 +170,19 @@ def run_export(name: str, names: list[str] | None = None) -> None:
 	_set(name, status="Running")
 	try:
 		names = names if names is not None else select_for_export(doc)
+		if doc.export_format == CALIBRE:
+			from sok_resdesk.calibre_export import build as build_calibre
+
+			file_url, books, summary = build_calibre(name, names)
+			_set(
+				name,
+				status="Done",
+				item_count=books,
+				file_url=file_url,
+				finished_on=now_datetime(),
+				log=summary,
+			)
+			return
 		stem = frappe.scrub(doc.collection or doc.profile or doc.source_collection or doc.scope or "export")
 		fname, content = build(doc.export_format, names, f"{stem}-{name.lower()}")
 		f = frappe.get_doc(

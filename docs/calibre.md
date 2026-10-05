@@ -50,3 +50,28 @@ its uuid), so it stays the same if the library is rebuilt or moved.
 As for every book: set **Access** on the profile (open, login to read, login to find). Only
 books readers may read can be downloaded, and only the files listed on the book (never
 `metadata.opf` or anything else in the folder).
+
+## Making a small Calibre collection
+
+For a small collection to take away (a branch library, a colleague, a reading device), Desk →
+Exports → New, **Format: Calibre library (zip)**, and choose the books as for any export: a
+collection, a search, selected books, an ingest profile. **Estimate Size** says how many of the
+chosen books have files held here, how many files and how many megabytes, before anything is
+made; the zip is then built in the background and appears on the Export when done.
+
+The zip holds a folder `Author/Title (n)/` for every book with its files (every format together),
+`metadata.opf` (its details in Calibre's own sidecar format: title, authors, date, publisher,
+language, tags, series, ISBN and a link back to the book here) and `cover.jpg` when it has one.
+Unzip it and, in Calibre, **Add books → Add books from directories, including sub-directories
+(Assume each directory has a single logical book)**, or on a command line
+`calibredb add --recurse --one-book-per-directory <folder>`. Calibre reads each folder's files
+and `metadata.opf`.
+
+- **Only files held here go in**: a Calibre or other folder source's own files and a book's copy
+  in the preservation store. A book that is not open to read is never written out.
+- **Books held elsewhere** (on archive.org, in a repository, on Wikisource or a book server) are
+  not copied. They are listed in `not-included.csv` with the reason and a link to where they
+  are, so each person can fetch the ones they want there. Calibre has no way to keep a link to a
+  file elsewhere and download it when clicked: a Calibre book is its files.
+- The same book always gets the same Calibre id, so an export made again can be told from
+  the first.
