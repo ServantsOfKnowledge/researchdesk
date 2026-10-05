@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.36.0 (2026-10-15): Authority control
+
+- **Desk → Authorities**: authors matched to people on **Wikidata** (and through them
+  **VIAF**), subjects to **Library of Congress Subject Headings**. Candidates are found in the
+  background (*Find matches*, or nightly in Settings → Authorities), the names with most books
+  first, each name searched in every form the catalogue has; they are scored by how alike the
+  names are, whether the candidate is a person, and whether their dates fit the books. A
+  cataloguer chooses **This one**, **None of these** or **Search again** (other words or a
+  Q-number); **Undo** takes a match back
+- A match fills in the Wikidata and VIAF identifiers, dates and a description; two catalogue
+  names for the same person can be **merged** (each book keeps its name as printed)
+- What a match changes: an **(about)** link beside the author on the book's page, to a page with
+  their books in the library (and readers' notes about them); MARC 100/700 with `$0` (VIAF) and
+  `$1` (Wikidata); matched subjects as LCSH headings (650 `$0`); JSON-LD `sameAs`; DataCite name
+  identifiers
+- **Accept Near-Certain Matches** (Settings, off by default): one person with the same name,
+  dates that fit and no rival close behind is accepted without a person
+- Fixed: book pages (and the pages about a person) lost the head's translations and reading
+  settings: the language switch and the scripts' Kannada words now reach book pages too
+
 ## 0.35.1 (2026-10-13): Oldest books first
 
 - The portal lists books **oldest first** (the library, collections and search), books without

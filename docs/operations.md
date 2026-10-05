@@ -416,6 +416,13 @@ Every setting:
 | Credit Line | How reusers should credit the set, e.g. <i>Servants of Knowledge and its volunteer proofreaders</i>. |
 | Name the Proofreaders | Put each page's proofreader and validator (their full names, never their emails) in the set's manifest. Ask them first. |
 
+**Authorities**
+
+| Setting | What it does |
+|---|---|
+| Find Authority Matches Nightly | Each night, look up 300 more authors on Wikidata and 300 subjects in the Library of Congress Subject Headings, and propose matches on Desk → Authorities (the names with most books first). |
+| Accept Near-Certain Matches | Accept a match without a person when it is near-certain: one person on Wikidata with the same name, dates that fit the books, and no other candidate close. Everything else waits for a cataloguer. |
+
 **DOIs (DataCite)**
 
 | Setting | What it does |

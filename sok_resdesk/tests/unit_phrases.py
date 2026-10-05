@@ -84,3 +84,12 @@ def test_scripts_show_no_untranslated_messages():
 		text = (SCRIPTS / name).read_text(encoding="utf-8")
 		bad = [line.strip() for line in text.splitlines() if shown.search(line)]
 		assert not bad, f"{name}: wrap these in __(): {bad[:3]}"
+
+
+def test_pages_keep_the_heads_translations_and_reading_settings():
+	"""A page that fills the head block must keep what translations.website_context puts there
+	(the scripts' Kannada words, the language switch, the reading settings): {{ super() }}."""
+	for path in [*(APP / "www").rglob("*.html"), *(APP / "templates").rglob("*.html")]:
+		text = path.read_text(encoding="utf-8")
+		for m in re.finditer(r"{%-?\s*block head_include\s*-?%}(.{0,40})", text, re.S):
+			assert "super()" in m.group(1), f"{path.name}: head_include without {{{{ super() }}}}"

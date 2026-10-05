@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-09-29 12:00:00.000000",
+ "modified": "2026-10-14 12:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Subject",
@@ -12,7 +12,15 @@
  "field_order": [
   "subject_name",
   "scheme",
-  "description"
+  "description",
+  "authority_section",
+  "match_status",
+  "matched_by",
+  "matched_on",
+  "match_candidates",
+  "column_break_auth",
+  "lcsh_id",
+  "lcsh_label"
  ],
  "fields": [
   {
@@ -35,6 +43,56 @@
    "fieldname": "description",
    "fieldtype": "Small Text",
    "label": "Description"
+  },
+  {
+   "fieldname": "authority_section",
+   "fieldtype": "Section Break",
+   "label": "Authority"
+  },
+  {
+   "fieldname": "match_status",
+   "fieldtype": "Select",
+   "label": "Match",
+   "options": "\nProposed\nConfirmed\nNo match",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "description": "Matched to a Library of Congress Subject Heading on Desk → Authorities: Proposed (a candidate to look at), Confirmed, or No match (none of the candidates)."
+  },
+  {
+   "fieldname": "matched_by",
+   "fieldtype": "Link",
+   "label": "Matched By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "matched_on",
+   "fieldtype": "Datetime",
+   "label": "Checked On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "match_candidates",
+   "fieldtype": "JSON",
+   "label": "Candidates",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "column_break_auth",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "lcsh_id",
+   "fieldtype": "Data",
+   "label": "LCSH ID",
+   "description": "e.g. sh85061212"
+  },
+  {
+   "fieldname": "lcsh_label",
+   "fieldtype": "Data",
+   "label": "LCSH Heading",
+   "length": 255
   }
  ],
  "links": [],

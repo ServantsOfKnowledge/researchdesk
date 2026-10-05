@@ -123,6 +123,8 @@ scheduler_events = {
 		"sok_resdesk.page_order.daily",
 		# DOIs for the books of collections that give them, and metadata changes sent to DataCite
 		"sok_resdesk.datacite.daily",
+		# authors and subjects matched to Wikidata / LCSH, when Settings → Authorities says so
+		"sok_resdesk.authority.nightly",
 	],
 	"weekly": [
 		"sok_resdesk.ingest.run_scheduled_weekly",

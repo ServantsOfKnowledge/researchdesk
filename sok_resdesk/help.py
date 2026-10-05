@@ -36,6 +36,7 @@ SCREEN_HELP = {
 	"resdesk-server": ("server", "the-server-page"),
 	"resdesk-people": ("staff-guide", "people-and-roles"),
 	"resdesk-translations": ("staff-guide", "the-portal-in-other-languages"),
+	"resdesk-authorities": ("staff-guide", "authors-and-subjects"),
 	"RD Server Task": ("server", "upgrading-from-the-desk"),
 	"RD Tombstone": ("preservation", "tombstones"),
 	"RD Annotation": ("staff-guide", "readers-notes"),

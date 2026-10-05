@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-13 12:00:00.000000",
+ "modified": "2026-10-14 12:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -735,6 +735,25 @@
    "label": "Name the Proofreaders",
    "default": "0",
    "description": "Put each page's proofreader and validator (their full names, never their emails) in the set's manifest. Ask them first."
+  },
+  {
+   "fieldname": "authority_section",
+   "fieldtype": "Section Break",
+   "label": "Authorities"
+  },
+  {
+   "fieldname": "authority_nightly",
+   "fieldtype": "Check",
+   "label": "Find Authority Matches Nightly",
+   "default": "0",
+   "description": "Each night, look up 300 more authors on Wikidata and 300 subjects in the Library of Congress Subject Headings, and propose matches on Desk → Authorities (the names with most books first)."
+  },
+  {
+   "fieldname": "authority_auto_accept",
+   "fieldtype": "Check",
+   "label": "Accept Near-Certain Matches",
+   "default": "0",
+   "description": "Accept a match without a person when it is near-certain: one person on Wikidata with the same name, dates that fit the books, and no other candidate close. Everything else waits for a cataloguer."
   },
   {
    "fieldname": "doi_section",

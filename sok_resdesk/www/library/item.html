@@ -2,7 +2,7 @@
 
 {% block title %}{{ title }} · {{ portal_title }}{% endblock %}
 
-{% block head_include %}
+{% block head_include %}{{ super() }}
 {# Zotero, Google Scholar and other tools read these tags #}
 {% for name, value in highwire %}<meta name="{{ name }}" content="{{ value }}">
 {% endfor %}
@@ -30,7 +30,7 @@
 			{% endif %}
 			<p class="rd-item__creators">
 				{% for c in item.creators %}
-				<a href="{{ library_url() }}?creators={{ c | urlencode }}">{{ c }}</a>{% if item.alt_creators[loop.index0] %} <span class="rd-muted">({{ item.alt_creators[loop.index0] }})</span>{% endif %}{% if not loop.last %}; {% endif %}
+				<a href="{{ library_url() }}?creators={{ c | urlencode }}">{{ c }}</a>{% if item.alt_creators[loop.index0] %} <span class="rd-muted">({{ item.alt_creators[loop.index0] }})</span>{% endif %}{% set ids = (item.creator_ids or [])[loop.index0] if (item.creator_ids or [])|length > loop.index0 else {} %}{% if ids and ids.wikidata %} <a class="rd-muted rd-about-person" href="/library/entity/{{ ids.wikidata }}" title="{{ _('About {0}').format(c) }}">({{ _("about") }})</a>{% endif %}{% if not loop.last %}; {% endif %}
 				{% endfor %}
 			</p>
 			<p class="rd-muted">

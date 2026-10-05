@@ -27,11 +27,27 @@ def portal_title() -> str:
 
 def item_to_record(doc) -> dict:
 	"""RD Item document -> plain dict (the shape the core/ modules expect)."""
-	creators, alt_creators = [], []
+	creators, alt_creators, creator_ids = [], [], []
 	for row in doc.creators or []:
 		creators.append(row.name_as_given or row.creator)
-		alt = frappe.db.get_value("RD Creator", row.creator, "alt_name") if row.creator else None
-		alt_creators.append(alt or "")
+		c = (
+			frappe.db.get_value(
+				"RD Creator", row.creator, ["alt_name", "wikidata_id", "viaf_id"], as_dict=True
+			)
+			if row.creator
+			else None
+		) or {}
+		alt_creators.append(c.get("alt_name") or "")
+		# the person's identifiers once matched (Desk → Authorities): exports and JSON-LD carry them
+		creator_ids.append({"wikidata": c.get("wikidata_id") or "", "viaf": c.get("viaf_id") or ""})
+	subject_ids = {}
+	if doc.subjects:
+		for s in frappe.get_all(
+			"RD Subject",
+			filters={"name": ("in", [r.subject for r in doc.subjects]), "lcsh_id": ("is", "set")},
+			fields=["name", "lcsh_id", "lcsh_label"],
+		):
+			subject_ids[s.name] = {"lcsh": s.lcsh_id, "label": s.lcsh_label or s.name}
 	return {
 		"item_id": doc.item_id,
 		"source": doc.source,
@@ -40,6 +56,8 @@ def item_to_record(doc) -> dict:
 		"alt_title": doc.alt_title or "",
 		"creators": creators,
 		"alt_creators": alt_creators,
+		"creator_ids": creator_ids,
+		"subject_ids": subject_ids,
 		"year": doc.year or None,
 		"decade": decade_of(doc.year),
 		"date_raw": doc.date_raw or "",

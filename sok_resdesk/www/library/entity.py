@@ -27,8 +27,12 @@ def get_context(context):
 	context.wikidata_url = wikidata.page_url(q)
 	context.books = by_book(notes)
 	context.count = len(notes)
+	# a person the catalogue's authors are matched to (Desk → Authorities): their books
+	from sok_resdesk.authority import creator_books
+
+	context.written = creator_books(q)
 	context.title = f"{context.label} · {context.portal_title}"
 	context.metatags = {"title": context.title, "description": context.description}
-	if not notes:
+	if not notes and not context.written:
 		context.metatags["robots"] = "noindex"
 	return context

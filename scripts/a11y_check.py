@@ -37,6 +37,7 @@ DESK = [
 	("People & Roles", "/app/resdesk-people", "#page-resdesk-people .layout-main-section"),
 	("Background Jobs", "/app/resdesk-jobs", "#page-resdesk-jobs .layout-main-section"),
 	("Portal Translations", "/app/resdesk-translations", "#page-resdesk-translations .layout-main-section"),
+	("Authorities", "/app/resdesk-authorities", "#page-resdesk-authorities .layout-main-section"),
 	("Help", "/app/resdesk-help", "#page-resdesk-help .layout-main-section"),
 ]
 

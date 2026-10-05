@@ -86,8 +86,18 @@ def to_marcxml_record(item: dict, base_url: str = "", with_namespace: bool = Fal
 	fields.append(_df("035", " ", " ", _sf("a", f"(IA){item['item_id']}")))
 	if item.get("language"):
 		fields.append(_df("041", "0", " ", _sf("a", item["language"])))
+	creator_ids = item.get("creator_ids") or []
+
+	def ids(i: int) -> list[str]:
+		# $0: the authority record (VIAF); $1: the real-world person (Wikidata)
+		c = creator_ids[i] if i < len(creator_ids) else {}
+		out = [_sf("0", f"http://viaf.org/viaf/{c['viaf']}")] if c.get("viaf") else []
+		if c.get("wikidata"):
+			out.append(_sf("1", f"http://www.wikidata.org/entity/{c['wikidata']}"))
+		return out
+
 	if creators:
-		fields.append(_df("100", "1", " ", _sf("a", _heading(creators[0])), _sf("e", "author")))
+		fields.append(_df("100", "1", " ", _sf("a", _heading(creators[0])), _sf("e", "author"), *ids(0)))
 	title = item.get("title") or item["item_id"]
 	fields.append(_df("245", "1" if creators else "0", "0", _sf("a", title)))
 	if item.get("alt_title") and item["alt_title"] != title:
@@ -127,10 +137,23 @@ def to_marcxml_record(item: dict, base_url: str = "", with_namespace: bool = Fal
 			_sf("c", "Servants of Knowledge / Internet Archive."),
 		)
 	)
+	subject_ids = item.get("subject_ids") or {}
 	for s in item.get("subjects") or []:
-		fields.append(_df("653", " ", " ", _sf("a", s)))
-	for name in creators[1:]:
-		fields.append(_df("700", "1", " ", _sf("a", _heading(name))))
+		lcsh = subject_ids.get(s)
+		if lcsh:  # matched to LCSH (Desk → Authorities): a controlled heading
+			fields.append(
+				_df(
+					"650",
+					" ",
+					"0",
+					_sf("a", lcsh["label"]),
+					_sf("0", f"http://id.loc.gov/authorities/subjects/{lcsh['lcsh']}"),
+				)
+			)
+		else:
+			fields.append(_df("653", " ", " ", _sf("a", s)))
+	for n, name in enumerate(creators[1:], 1):
+		fields.append(_df("700", "1", " ", _sf("a", _heading(name)), *ids(n)))
 	for alt in alt_creators:
 		if alt not in creators:
 			fields.append(_df("700", "1", " ", _sf("a", _heading(alt)), _sf("e", "romanized form")))

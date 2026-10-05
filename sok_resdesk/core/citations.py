@@ -74,14 +74,35 @@ def _initials(given: str) -> str:
 
 
 def _people(item: dict) -> list[dict]:
-	"""Creators with an optional romanised twin (matched by position)."""
+	"""Creators with an optional romanised twin and their authority ids (matched by position)."""
 	names = item.get("creators") or []
 	alts = item.get("alt_creators") or []
+	ids = item.get("creator_ids") or []
 	people = []
 	for i, name in enumerate(names):
 		alt = alts[i] if i < len(alts) else ""
-		people.append({"name": name, "alt": alt if alt and alt != name else ""})
+		people.append(
+			{"name": name, "alt": alt if alt and alt != name else "", "ids": ids[i] if i < len(ids) else {}}
+		)
 	return people
+
+
+def authority_uris(ids: dict) -> list[str]:
+	"""A person's Wikidata and VIAF identifiers as URIs (linked data, MARC $0/$1)."""
+	out = []
+	if (ids or {}).get("wikidata"):
+		out.append(f"http://www.wikidata.org/entity/{ids['wikidata']}")
+	if (ids or {}).get("viaf"):
+		out.append(f"http://viaf.org/viaf/{ids['viaf']}")
+	return out
+
+
+def _person_ld(person: dict) -> dict:
+	out = {"@type": "Person", "name": person["name"]}
+	uris = authority_uris(person.get("ids"))
+	if uris:
+		out["sameAs"] = uris
+	return out
 
 
 def display_title(item: dict) -> str:
@@ -419,7 +440,7 @@ def json_ld(item: dict, base_url: str = "") -> dict:
 		"@id": url_for(item, base_url),
 		"name": item.get("title") or item["item_id"],
 		"url": url_for(item, base_url),
-		"author": [{"@type": "Person", "name": p["name"]} for p in _people(item)],
+		"author": [_person_ld(p) for p in _people(item)],
 		"sameAs": item.get("source_url"),
 		"isAccessibleForFree": item.get("access_status") == "Open",
 	}

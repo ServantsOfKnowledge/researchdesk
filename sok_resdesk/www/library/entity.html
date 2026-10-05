@@ -2,13 +2,19 @@
 
 {% block title %}{{ title }}{% endblock %}
 
-{% block head_include %}<link rel="alternate" type="text/html" href="{{ wikidata_url }}" title="Wikidata">{% endblock %}
+{% block head_include %}{{ super() }}<link rel="alternate" type="text/html" href="{{ wikidata_url }}" title="Wikidata">{% endblock %}
 
 {% block page_content %}
 <div class="rd rd-entity">
 	<nav class="rd-crumbs"><a href="{{ library_url() }}">← {{ portal_title }}</a></nav>
 	<h1 class="rd-page-title">{{ label }}</h1>
 	<p>{% if description %}{{ description }} · {% endif %}<a href="{{ wikidata_url }}" rel="noopener">Wikidata {{ entity }}</a></p>
+	{% if written %}
+	<section class="rd-entity__books">
+		<h2>{{ _("Books by {0} in the library").format(label) }}</h2>
+		<ul>{% for b in written %}<li>{% set l = text_lang(b.title) %}<a href="/library/item/{{ b.item_id }}"{% if l %} lang="{{ l }}"{% endif %}>{{ b.title }}</a>{% if b.year %} <span class="rd-muted">· {{ b.year }}</span>{% endif %}</li>{% endfor %}</ul>
+	</section>
+	{% endif %}
 	{% if books %}
 	<p class="rd-muted">{{ _("Pages readers' notes say are about {0}: {1} notes in {2} books.").format(label, count, books|length) }}</p>
 	{% include "templates/includes/rd_notes_by_book.html" %}

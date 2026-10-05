@@ -121,6 +121,28 @@ To change many books at once, export a spreadsheet, edit it and import it back
 person or heading, so the portal can filter by them. Open a creator to add a romanised name,
 a sort name (Family, Given), or its VIAF and Wikidata identifiers.
 
+**Authorities** (Research Desk → Catalogue, or `/app/resdesk-authorities`) matches them to the
+records other libraries share: authors to people on **Wikidata** (and through Wikidata to
+**VIAF**), subjects to **Library of Congress Subject Headings**.
+
+1. **Find matches** looks up the next names in the background, the ones with most books first
+   (or switch on **Find Authority Matches Nightly** in Settings → Authorities). Each author is
+   searched in every form the catalogue has (as printed, romanised; Kannada names in Kannada).
+2. Under **Proposed**, each name shows its candidates with a score and the reasons: how alike
+   the names are, whether the candidate is a person, and whether their dates fit the books (a
+   writer born after the book was printed is unlikely). Choose **This one**, **None of these**,
+   or **Search again** with other words or a Wikidata Q-number.
+3. A match fills in the Wikidata and VIAF identifiers, the person's dates and a description. If
+   another catalogue name is the same person (*Purandaradasa* and *Purandara Dasa*), you are
+   offered to put all their books under one name; each book keeps its name as printed.
+
+What it changes: matched authors get an **(about)** link on their books' pages, to a page with
+everything the library has by them (and readers' notes about them); MARC records carry the VIAF
+and Wikidata identifiers (`$0`, `$1`) and matched subjects become LCSH headings (650 with `$0`);
+JSON-LD names the person with `sameAs`; DOIs carry name identifiers. **Undo** takes a match
+back. **Accept Near-Certain Matches** (Settings) accepts, without a person, only a single person
+with the same name whose dates fit and no rival close behind; everything else waits for you.
+
 ## Collections
 
 A **collection** is your own group of books with its own page on the portal: a subject, an

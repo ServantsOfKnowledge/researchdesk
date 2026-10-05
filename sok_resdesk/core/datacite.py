@@ -68,13 +68,34 @@ def doi_url(doi: str) -> str:
 
 def _creators(record: dict) -> list[dict]:
 	out = []
-	for name in record.get("creators") or []:
+	ids = record.get("creator_ids") or []
+	for i, name in enumerate(record.get("creators") or []):
 		if not name:
 			continue
 		family, given = split_name(name)
 		person = {"name": f"{family}, {given}" if given else family, "nameType": "Personal"}
 		if given:
 			person.update({"givenName": given, "familyName": family})
+		c = ids[i] if i < len(ids) else {}
+		identifiers = []
+		if c.get("viaf"):
+			identifiers.append(
+				{
+					"nameIdentifier": f"http://viaf.org/viaf/{c['viaf']}",
+					"nameIdentifierScheme": "VIAF",
+					"schemeUri": "http://viaf.org/viaf/",
+				}
+			)
+		if c.get("wikidata"):
+			identifiers.append(
+				{
+					"nameIdentifier": f"https://www.wikidata.org/wiki/{c['wikidata']}",
+					"nameIdentifierScheme": "Wikidata",
+					"schemeUri": "https://www.wikidata.org/wiki/",
+				}
+			)
+		if identifiers:
+			person["nameIdentifiers"] = identifiers
 		out.append(person)
 	return out or [{"name": ":unav", "nameType": "Organizational"}]
 

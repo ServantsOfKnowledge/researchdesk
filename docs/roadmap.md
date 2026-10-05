@@ -53,7 +53,7 @@
 - [x] Big ingests that don't stall or do work twice; failed books retried by themselves
 - [x] Worker priority from the Desk; the portal's book count kept up with the catalogue
 
-## v0.20 – v0.35: a research library (done)
+## v0.20 – v0.36: a research library (done)
 
 - [x] Permanent links: ARKs for every book and page (switched on once the NAAN is assigned), tombstones
 - [x] Preservation: OCFL copies with SHA-256 fixity checks and PREMIS-style events; a second copy
@@ -91,6 +91,9 @@
 - [x] Accessibility, second pass: reading settings (size, spacing, colours), the text of every
       book as an accessible EPUB 3 and plain text, axe-core checks of the portal and our Desk
       pages on every change; help pictures of the library itself, retaken from the Desk
+- [x] Authority control: authors matched to Wikidata and VIAF, subjects to LCSH, on Desk →
+      Authorities; the identifiers in MARC, JSON-LD and DOIs; a page for each person with their
+      books (Sears has no open service to match against)
 
 ## Next
 
@@ -100,7 +103,6 @@
       52(1)(zb)
 - [ ] Machine drafts for Portal Translations (e.g. IndicTrans2 or a translation service), checked
       by a person before they show
-- [ ] Authority control: reconcile creators with VIAF/Wikidata; subjects with LCSH/Sears
 - [ ] Cataloguer review queue for flagged records (no year, unknown language, duplicate titles)
 - [ ] More sources: Wikisource, DSpace/OAI-PMH repositories, bare PDFs with no OCR (OCR on ingest)
 - [ ] Offline collections (Kiwix packages) for schools and places with poor connections

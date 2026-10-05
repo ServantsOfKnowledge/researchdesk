@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-09-29 12:00:00.000000",
+ "modified": "2026-10-14 12:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Creator",
@@ -16,7 +16,16 @@
   "column_break_1",
   "viaf_id",
   "wikidata_id",
-  "notes"
+  "notes",
+  "authority_section",
+  "match_status",
+  "matched_by",
+  "matched_on",
+  "match_candidates",
+  "column_break_auth",
+  "born",
+  "died",
+  "authority_description"
  ],
  "fields": [
   {
@@ -59,6 +68,61 @@
    "fieldname": "notes",
    "fieldtype": "Small Text",
    "label": "Notes"
+  },
+  {
+   "fieldname": "authority_section",
+   "fieldtype": "Section Break",
+   "label": "Authority"
+  },
+  {
+   "fieldname": "match_status",
+   "fieldtype": "Select",
+   "label": "Match",
+   "options": "\nProposed\nConfirmed\nNo match",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "description": "Matched to a person on Wikidata on Desk → Authorities: Proposed (a candidate to look at), Confirmed, or No match (none of the candidates)."
+  },
+  {
+   "fieldname": "matched_by",
+   "fieldtype": "Link",
+   "label": "Matched By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "matched_on",
+   "fieldtype": "Datetime",
+   "label": "Checked On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "match_candidates",
+   "fieldtype": "JSON",
+   "label": "Candidates",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "column_break_auth",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "born",
+   "fieldtype": "Int",
+   "label": "Born"
+  },
+  {
+   "fieldname": "died",
+   "fieldtype": "Int",
+   "label": "Died"
+  },
+  {
+   "fieldname": "authority_description",
+   "fieldtype": "Data",
+   "label": "Description",
+   "length": 255,
+   "description": "From Wikidata, in English (e.g. \"Indian composer and poet\")."
   }
  ],
  "links": [],
