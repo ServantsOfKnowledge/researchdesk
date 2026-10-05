@@ -10,6 +10,9 @@
 - Fixed: the red buttons on our Desk pages (e.g. *Stop now* on Background Jobs) have enough
   contrast; the accessibility check uses a book whose page opens, and a test no longer leaves
   deleted books in the search index (v0.35.0's checks stopped on those two)
+- Fixed (found by the checks on a real archive.org book): Page & text's page image, which
+  scrolls for large scans, can be reached and scrolled with the keyboard; the *Log in* link
+  beside the notes is underlined
 
 ## 0.35.0 (2026-10-13): Reading settings, the text to download, accessibility checks on every change; help pictures from the Desk
 

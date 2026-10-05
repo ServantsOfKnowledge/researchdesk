@@ -460,7 +460,7 @@ html[data-rd-colours="sepia"] body, html[data-rd-colours="sepia"] .navbar, html[
 /* WCAG 2.2 AA, found by scripts/a11y_check.py (axe-core): links inside text are underlined, not
    told apart by colour alone (1.4.1); links in lists have room to tap (2.5.8); Frappe's
    "Built on Frappe" footer line had too little contrast (1.4.3) */
-.rd p a:not(.rd-btn), .rd-prose a, .rd-help__body li a, .rd-help__body td a, .rd-about p a:not(.rd-btn) { text-decoration: underline; }
+.rd p a:not(.rd-btn), .rd .rd-muted a:not(.rd-btn), .rd-prose a, .rd-help__body li a, .rd-help__body td a, .rd-about p a:not(.rd-btn) { text-decoration: underline; }
 .rd-help__toc a, .rd-help__nav li a { display: inline-block; min-height: 24px; padding: 2px 0; }
 .footer-powered, .footer-powered a, .footer-powered .text-muted { color: var(--text-color, #333) !important; }
 .footer-powered a { text-decoration: underline; }

@@ -133,7 +133,7 @@
 					<button class="rd-btn" type="button" id="rd-proof-btn" hidden>{{ _("Proofread") }}</button>
 				</div>
 				<div class="rd-pages__body">
-					<figure class="rd-pages__image" id="rd-pages-image"></figure>
+					<figure class="rd-pages__image" id="rd-pages-image" tabindex="0" aria-label="{{ _('Page image') }}"></figure>
 					<div class="rd-pages__text" id="rd-pages-text"{% if lang_tag(item.language) %} lang="{{ lang_tag(item.language) }}"{% endif %} tabindex="0" aria-label="{{ _('Page text') }}"></div>
 				</div>
 				<section class="rd-notes" id="rd-notes" aria-live="polite"></section>
