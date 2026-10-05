@@ -11,10 +11,12 @@ from sok_resdesk import features
 
 class TestFeatures(IntegrationTestCase):
 	def setUp(self):
+		self.preset = frappe.db.get_single_value("RD Settings", "resource_preset")
 		self.addCleanup(self._all_on)
 
 	def _all_on(self):
 		s = frappe.get_single("RD Settings")
+		s.resource_preset = self.preset
 		for key in features.PROFILES:
 			s.set(f"profile_{key}", 0)
 		for key in features.FEATURES:
@@ -91,3 +93,16 @@ class TestFeatures(IntegrationTestCase):
 		features.switch_on("reader_accounts")
 		self.assertTrue(features.on("reader_accounts"))
 		self.assertNotIn("reader_accounts", {h["feature"] for h in features.suggestions()})
+
+	def test_the_installers_answers(self):
+		s = frappe.get_single("RD Settings")
+		features.install_choices(s, "portal, archive,unknown", "60000")
+		s.save(ignore_permissions=True)
+		s.reload()
+		self.assertEqual((s.profile_portal, s.profile_archive, s.profile_small), (1, 1, 0))
+		self.assertTrue(features.on("preservation") and features.on("notes"))
+		self.assertFalse(features.on("reader_accounts"))
+		self.assertEqual(s.resource_preset, "server")  # a big catalogue, whatever the profiles say
+		s = frappe.get_single("RD Settings")
+		features.install_choices(s, "", None)  # no answer: nothing changes
+		self.assertEqual(s.resource_preset, "server")

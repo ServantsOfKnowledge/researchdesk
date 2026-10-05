@@ -47,7 +47,8 @@ elif [ -f /etc/debian_version ]; then
   $SUDO env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
     git curl ca-certificates build-essential pkg-config libmariadb-dev mariadb-server mariadb-client \
     redis-server xvfb libfontconfig1 cron tesseract-ocr poppler-utils \
-    tesseract-ocr-all >/dev/null   # every OCR language model, so any book's language can be read
+    $(if [ "${OCR_LANGS:-all}" = all ]; then echo tesseract-ocr-all; else for l in $OCR_LANGS; do echo "tesseract-ocr-$l"; done; fi) \
+    >/dev/null   # OCR models: every language (OCR_LANGS=all), or the books' languages
   MYSQL_CNF_DIR=/etc/mysql/mariadb.conf.d
   if ! have meilisearch; then
     ARCH="$(uname -m)"; case "$ARCH" in x86_64) M=amd64;; aarch64|arm64) M=aarch64;; *) die "Unsupported CPU $ARCH";; esac
@@ -164,6 +165,8 @@ bench --site "$SITE" set-config resdesk_meili_url "http://127.0.0.1:$MEILI_PORT"
 bench --site "$SITE" set-config resdesk_meili_key "$MEILI_MASTER_KEY" >/dev/null
 bench --site "$SITE" set-config resdesk_portal_title "${PORTAL_TITLE:-SOK Research Desk}" >/dev/null
 bench --site "$SITE" set-config resdesk_contact "${CONTACT_EMAIL:-}" >/dev/null
+bench --site "$SITE" set-config resdesk_profiles "${RESDESK_PROFILES:-}" >/dev/null
+bench --site "$SITE" set-config resdesk_books "${RESDESK_BOOKS:-0}" >/dev/null
 bench --site "$SITE" set-config resdesk_repository_id "$SITE" >/dev/null
 mkdir -p "$LIBRARY_DIR"
 # Profiles keep using /library-source; natively it points at LIBRARY_DIR.

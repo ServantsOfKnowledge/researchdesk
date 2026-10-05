@@ -31,6 +31,8 @@ else
   bench --site "${SITE_NAME}" set-config resdesk_meili_key "${MEILI_MASTER_KEY}"
   bench --site "${SITE_NAME}" set-config resdesk_portal_title "${PORTAL_TITLE:-SOK Research Desk}"
   bench --site "${SITE_NAME}" set-config resdesk_contact "${CONTACT_EMAIL:-}"
+  bench --site "${SITE_NAME}" set-config resdesk_profiles "${RESDESK_PROFILES:-}"
+  bench --site "${SITE_NAME}" set-config resdesk_books "${RESDESK_BOOKS:-0}"
   bench --site "${SITE_NAME}" set-config resdesk_repository_id "${SITE_NAME}"
   echo ">> Installing Research Desk"
   bench --site "${SITE_NAME}" install-app sok_resdesk

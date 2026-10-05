@@ -71,7 +71,20 @@ multi-architecture.
 ./install.sh --yes      # accept all defaults (for scripts/CI)
 ./install.sh --sample   # also ingest 20 sample books
 ./install.sh --domain library.example.org   # a server with a DNS name: HTTPS from Let's Encrypt
+./install.sh --profile portal,archive --languages "kan hin" --books 20000   # what this library is
 ```
+
+**What kind of institution, which languages, how many books.** The installer asks three
+questions (or takes `--profile`, `--languages`, `--books`):
+
+| Question | Answers | What it sets |
+|---|---|---|
+| Kinds of institution (they combine) | `1` small library or school, `2` public research portal, `3` members-only institution, `4` archive keeping its own copies, `5` university or repository front, `6` language-technology partner (numbers or names, e.g. `2,4` or `portal,archive`); empty: every feature on | the features that start on and the resource preset ([Features and your institution](staff-guide.md#features-and-your-institution)) |
+| Languages of the books | Tesseract codes such as `kan hin` (English is added), or `all` | `OCR_LANGS`: the OCR models in the image |
+| About how many books | a number | from 50,000 books the *server* resource preset |
+
+All three can be changed later: Settings → Features for the first, `.env` and an upgrade for the
+languages.
 
 The installer writes `.env` with random passwords (keep it private). You can re-run
 `./install.sh` safely at any time. It keeps `.env` and your data, rebuilds if needed and
@@ -91,6 +104,7 @@ Settings you can change in `.env` before (re)running the installer:
 | `QUEUE_WORKERS` | 2 | parallel ingest workers; 4 to 6 for large collections (see [Scaling](scaling.md)) |
 | `DEV_MODE` | 0 | `1` runs the code from this folder live (see below) |
 | `OCR_LANGS` | all | Tesseract language models built into the image for OCR: `all` (every model, Debian's `tesseract-ocr-all`), or a list to make the image smaller (codes as in Debian's `tesseract-ocr-<code>` packages, e.g. `kan hin eng`). Change it and upgrade: only that layer is rebuilt. Applies to locally built images; prebuilt images carry every model. Server → Requirements says which models the catalogue's languages need |
+| `RESDESK_PROFILES`, `RESDESK_BOOKS` | (empty), 1000 | the installer's answers, applied once when the site is made; afterwards Settings → Features is where they change |
 | `RESDESK_IMAGE`, `RESDESK_TAG` | (build locally) | use a prebuilt image instead of building |
 
 ### Using a prebuilt image (skip the 15-minute build)

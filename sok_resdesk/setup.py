@@ -256,6 +256,9 @@ def apply_default_settings():
 	s.admin_email = (
 		conf.get("resdesk_contact") if "@" in (conf.get("resdesk_contact") or "") else s.admin_email
 	)
+	from sok_resdesk import features
+
+	features.install_choices(s, conf.get("resdesk_profiles"), conf.get("resdesk_books"))
 	s.flags.ignore_mandatory = True
 	s.save(ignore_permissions=True)
 

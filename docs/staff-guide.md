@@ -243,7 +243,7 @@ Most libraries change only a few settings. Start from the row closest to yours:
 Not every library uses everything. **Settings → Features** says what this library is and what it
 uses.
 
-**Your institution**: tick every kind that fits: *Small library or school*, *Public research
+**Your institution** (the installer asks it first; [Installation](installation.md#docker-one-command)): tick every kind that fits: *Small library or school*, *Public research
 portal*, *Members-only institution*, *Archive keeping its own copies*, *University or repository
 front*, *Language-technology partner*. They combine: a library can be a public research portal and
 an archive at once. Ticking or unticking one sets the features to what the ticked kinds need, and

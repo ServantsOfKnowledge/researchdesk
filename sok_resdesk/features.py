@@ -288,12 +288,34 @@ def from_profiles(keys) -> tuple[set[str], str]:
 	return features, preset
 
 
-def apply_profiles(doc) -> None:
+BIG_LIBRARY = 50_000  # books: from here the server preset, whatever the profiles say
+
+
+def install_choices(doc, profiles: str | None, books=None) -> None:
+	"""The installer's answers (./install.sh, site_config resdesk_profiles / resdesk_books): the
+	kinds of institution, ticked on the new site's settings (the save switches their features on),
+	and a bigger resource preset for a big catalogue."""
+	keys = [k.strip() for k in (profiles or "").replace(" ", ",").split(",") if k.strip() in PROFILES]
+	for key in keys:
+		doc.set(f"profile_{key}", 1)  # the save switches their features on (apply_profiles)
+	try:
+		books = int(books or 0)
+	except (TypeError, ValueError):
+		books = 0
+	if books >= BIG_LIBRARY:
+		doc.flags.min_preset = "server"
+		if doc.meta.has_field("resource_preset"):
+			doc.resource_preset = "server"
+
+
+def apply_profiles(doc, force: bool = False) -> None:
 	"""RD Settings.validate: ticking or unticking a profile resets the features to its set."""
 	keys = [k for k in PROFILES if doc.get(f"profile_{k}")]
-	if not any(doc.has_value_changed(f"profile_{k}") for k in PROFILES) or not keys:
+	if not keys or not (force or any(doc.has_value_changed(f"profile_{k}") for k in PROFILES)):
 		return
 	features, preset = from_profiles(keys)
+	if doc.flags.get("min_preset"):
+		preset = max(preset, doc.flags.min_preset, key=PRESETS.index)
 	for key in FEATURES:
 		doc.set(field_of(key), 1 if key in features else 0)
 	if doc.meta.has_field("resource_preset"):

@@ -148,6 +148,9 @@ services:
       MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
       PORTAL_TITLE: ${PORTAL_TITLE:-SOK Research Desk}
       CONTACT_EMAIL: ${CONTACT_EMAIL:-}
+      # the installer's answers: kinds of institution and about how many books (Settings → Features)
+      RESDESK_PROFILES: ${RESDESK_PROFILES:-}
+      RESDESK_BOOKS: ${RESDESK_BOOKS:-}
       BASE_URL: ${BASE_URL:-}
       FORCE_MIGRATE: ${FORCE_MIGRATE:-0}
       TIMEZONE: ${TIMEZONE:-Asia/Kolkata}

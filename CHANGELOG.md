@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.46.0 (2026-10-26): The institution's profile at install
+
+- `./install.sh` asks **what kind of institution** this is (numbers that combine, e.g. `2,4`), the
+  **books' languages** for OCR and **about how many books**, or takes `--profile`, `--languages`
+  and `--books`. The new site starts with those profiles' features on, the image carries only the
+  OCR models the books need (English is always added; `all` for every one), and a catalogue of
+  50,000 books or more gets the *server* resource preset. With no answer every feature starts on,
+  as before
+- Docs: [Installation → Docker: one command](docs/installation.md#docker-one-command)
+
 ## 0.45.0 (2026-10-25): Features and institution profiles
 
 - **Settings → Features**: say what kind of institution the library is (small library or school,
