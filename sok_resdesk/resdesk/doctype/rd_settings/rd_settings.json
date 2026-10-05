@@ -131,6 +131,7 @@
   "doi_shoulder",
   "ground_truth_section",
   "ground_truth_licence",
+  "ground_truth_require_release",
   "column_break_gt",
   "ground_truth_attribution",
   "ground_truth_names",
@@ -956,6 +957,13 @@
    "label": "Licence for Ground Truth",
    "options": "\nCC0-1.0\nCC-BY-4.0\nCC-BY-SA-4.0",
    "description": "Under which licence the library shares its corrected texts. Until one is chosen, sets are made for the library's own use only and none can be put on the portal. CC0: no conditions; CC-BY: credit; CC-BY-SA: credit and share alike."
+  },
+  {
+   "fieldname": "ground_truth_require_release",
+   "fieldtype": "Check",
+   "label": "Only Pages Their Proofreaders Released",
+   "default": "1",
+   "description": "Put a page in a set only when everyone who proofread or validated it released their corrections under an open licence (Research Desk → My Release for Ground Truth) that the set's licence can carry. Untick only for libraries whose proofreaders have agreed in writing."
   },
   {
    "fieldname": "column_break_gt",

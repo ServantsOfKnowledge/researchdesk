@@ -57,6 +57,7 @@ STRUCTURE: list = [
 			("Notes", D, "RD Annotation"),
 			("Page Text Versions", D, "RD Page Text"),
 			("Ground Truth", D, "RD Ground Truth"),
+			("My Release for Ground Truth", D, "RD Contributor Release"),
 		],
 	),
 	(

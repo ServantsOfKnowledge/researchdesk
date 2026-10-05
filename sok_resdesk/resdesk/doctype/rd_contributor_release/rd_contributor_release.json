@@ -1,0 +1,99 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-11-06 10:00:00.000000",
+ "modified": "2026-11-06 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Contributor Release",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "autoname": "field:user",
+ "title_field": "licence",
+ "links": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "track_changes": 1,
+ "field_order": [
+  "user",
+  "licence",
+  "agreed_on",
+  "name_ok",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "Research Desk User",
+   "options": "User",
+   "reqd": 1,
+   "unique": 1,
+   "read_only": 1,
+   "set_only_once": 1,
+   "description": "Whose release this is. Everyone releases their own corrections; nobody can release another person's."
+  },
+  {
+   "fieldname": "licence",
+   "fieldtype": "Select",
+   "label": "Licence for My Corrections",
+   "options": "CC0-1.0\nCC-BY-4.0\nCC-BY-SA-4.0",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "The open licence under which the pages you proofread or validated may be shared as OCR ground truth. CC0: no conditions; CC-BY: credit; CC-BY-SA: credit and share alike. A set can carry your pages only under a licence at least as strict as yours."
+  },
+  {
+   "fieldname": "agreed_on",
+   "fieldtype": "Datetime",
+   "label": "Agreed On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "name_ok",
+   "fieldtype": "Check",
+   "label": "You May Name Me",
+   "default": "0",
+   "description": "Put my full name (never my email) in the sets my pages are in, as credit."
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note",
+   "description": "Optional: anything you want the library to know about this release."
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1
+  },
+  {
+   "role": "ResDesk Proofreader",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1
+  }
+ ]
+}

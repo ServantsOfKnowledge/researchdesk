@@ -24,6 +24,9 @@
   "published",
   "licence",
   "made_on",
+  "reviewed_by",
+  "reviewed_on",
+  "left_out",
   "page_count",
   "zone_count",
   "book_count",
@@ -126,6 +129,26 @@
    "fieldtype": "Datetime",
    "label": "Made On",
    "read_only": 1
+  },
+  {
+   "fieldname": "reviewed_by",
+   "fieldtype": "Data",
+   "label": "Reviewed By",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reviewed_on",
+   "fieldtype": "Datetime",
+   "label": "Reviewed On",
+   "read_only": 1,
+   "description": "A set goes on the portal only after a person has looked through it. Making it again clears this."
+  },
+  {
+   "fieldname": "left_out",
+   "fieldtype": "Int",
+   "label": "Pages Left Out",
+   "read_only": 1,
+   "description": "Matching pages left out because a person who proofread or validated them has not released them under a licence this set can carry."
   },
   {
    "fieldname": "page_count",

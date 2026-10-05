@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.60.0 (2026-11-06): Ground truth released by the people who made it
+
+- Everyone who proofreads or validates is asked to **release their corrections under an open licence of
+  their choice** (CC0, CC BY or CC BY-SA), and whether they may be named: Research Desk → *My Release for
+  Ground Truth*, with an invitation on the proofreading page. Withdrawing is deleting the record
+- A ground-truth set now carries a page only if everyone who proofread or validated it has released it
+  under a licence the set can carry (CC0 allows any, CC BY allows BY and BY-SA, BY-SA allows only BY-SA).
+  The set's form says how many pages were left out and whom to ask. Settings → Ground Truth →
+  *Only Pages Their Proofreaders Released* (on) can be switched off for libraries with written agreement
+- **Review before release**: *Review the Set* shows a spread of the pages, the licence and the pages left
+  out; *Mark Reviewed* is needed before a set goes on the portal (making it again clears it)
+- Names in a set come from each person's own release, not from a library-wide switch
+
 ## 0.59.0 (2026-11-06): Photographs to Wikimedia Commons
 
 - **Actions → Send to Wikimedia Commons** on a photograph: uploads the original under the sender's own

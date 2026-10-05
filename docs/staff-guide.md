@@ -531,13 +531,25 @@ Truth*) makes them into sets to share:
    manifest (CSV and JSON Lines, with checksums), a Frictionless Data Package description, a
    README and the licence.
 
-**The licence comes first.** Settings → **Ground Truth** → *Licence for Ground Truth* (CC0, CC
-BY or CC BY-SA) is the library's decision, with its partners. Until one is chosen, sets are made
-for the library's own use (their README says so) and none can go on the portal. Once one is,
-make the set again and **Put on the Portal**: it is listed at `/library/ground-truth` for anyone
-to download, with its licence, the credit line from Settings and its checksum. Proofreaders are
-named in the manifest only if **Name the Proofreaders** is ticked (their full names, never their
-emails); ask them first.
+**People release their own corrections.** Everyone who proofreads or validates is asked to release
+what they correct under an open licence of their choice: Research Desk → **My Release for Ground
+Truth** (CC0, CC BY or CC BY-SA, and whether they may be named in the credits). The proofreading
+page shows the invitation until they answer. Withdrawing is deleting the record: sets made after
+that leave their pages out. A set carries a page only if everyone who proofread or validated it has
+released it under a licence the set can carry (CC0 allows any set licence; CC BY allows CC BY and
+CC BY-SA; CC BY-SA allows only CC BY-SA). The set's form says how many pages were left out and
+whom to ask; **Only Pages Their Proofreaders Released** (Settings → Ground Truth) switches the
+rule off for libraries whose proofreaders have agreed in writing.
+
+**The set's licence.** Settings → **Ground Truth** → *Licence for Ground Truth* (CC0, CC BY or CC
+BY-SA) is the library's decision. Until one is chosen, sets are made for the library's own use
+(their README says so) and none can go on the portal.
+
+**Look before it is released.** After **Make the Set**, **Review the Set** shows a spread of its
+pages with their text, the licence and the number left out. When you are content, **Mark
+Reviewed**, then **Put on the Portal**: it is listed at `/library/ground-truth` for anyone to
+download, with its licence, the credit line from Settings and its checksum. Making the set again
+clears the review. Contributors are named only when they allowed it in their own release.
 
 ## DOIs
 

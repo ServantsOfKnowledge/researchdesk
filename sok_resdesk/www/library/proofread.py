@@ -80,6 +80,7 @@ def get_context(context):
 		params,
 	)[0][0]
 	context.validated = frappe.db.count("RD Page Text", {"validated_by": frappe.session.user})
+	context.released = frappe.db.get_value("RD Contributor Release", frappe.session.user, "licence") or ""
 	context.waiting_validation = frappe.db.sql(
 		"""select t.item, t.leaf, t.page_label, i.title from `tabRD Page Text` t join `tabRD Item` i on i.name = t.item
 		where t.is_current = 1 and t.status = 'Proofread' and t.proofread_by != %(me)s order by t.creation limit 50""",

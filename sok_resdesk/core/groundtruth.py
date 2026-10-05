@@ -74,6 +74,18 @@ MANIFEST_COLUMNS = (
 )
 
 
+# strictness: a set may carry a page only under a licence at least as strict as its proofreaders'
+RANK = {"CC0-1.0": 0, "CC-BY-4.0": 1, "CC-BY-SA-4.0": 2}
+
+
+def allows(contributor: str | None, set_licence: str | None) -> bool:
+	"""Whether a person's release (their licence code) lets a set carry their pages under set_licence.
+	CC0 allows any set licence; CC-BY allows CC-BY and CC-BY-SA; CC-BY-SA allows only CC-BY-SA."""
+	if contributor not in RANK or set_licence not in RANK:
+		return False
+	return RANK[set_licence] >= RANK[contributor]
+
+
 def licence(code: str | None) -> dict | None:
 	"""{code, name, url, terms} of a licence, or None when none is chosen yet."""
 	if not code or code not in LICENCES:

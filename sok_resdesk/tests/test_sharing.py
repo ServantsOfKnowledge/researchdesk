@@ -15,6 +15,7 @@ MORE_SETTINGS = (
 	"ground_truth_licence",
 	"ground_truth_attribution",
 	"ground_truth_names",
+	"ground_truth_require_release",
 	"doi_enabled",
 	"datacite_test",
 	"doi_prefix",
@@ -65,7 +66,19 @@ class TestGroundTruth(SharingTestCase):
 			remove_file(frappe.get_doc("RD Ground Truth", name))
 			frappe.delete_doc("RD Ground Truth", name, force=True)
 		frappe.db.delete("RD Page Text", {"item": self.book})
+		frappe.db.delete("RD Contributor Release", {"user": "Administrator"})
 		frappe.db.commit()
+
+	def release(self, licence="CC0-1.0", name_ok=0):
+		frappe.db.delete("RD Contributor Release", {"user": "Administrator"})
+		frappe.get_doc(
+			{
+				"doctype": "RD Contributor Release",
+				"user": "Administrator",
+				"licence": licence,
+				"name_ok": name_ok,
+			}
+		).insert(ignore_permissions=True)
 
 	def make(self, **kw):
 		doc = frappe.get_doc({"doctype": "RD Ground Truth", "title": "rdtest set", "item": self.book, **kw})
@@ -93,8 +106,13 @@ class TestGroundTruth(SharingTestCase):
 		self.assertEqual(groundtruth.public_sets(), [])
 
 		frappe.db.set_single_value("RD Settings", "ground_truth_licence", "CC0-1.0")
+		self.release("CC0-1.0")
 		doc = self.build(doc.name)
 		self.assertEqual(doc.licence, "CC0-1.0")
+		with self.assertRaisesRegex(frappe.ValidationError, "Look through"):
+			groundtruth.publish(doc.name, 1)  # a person looks first
+		self.assertIn("sample", groundtruth.sample(doc.name))
+		groundtruth.mark_reviewed(doc.name)
 		groundtruth.publish(doc.name, 1)
 		self.assertIn(doc.name, [s.name for s in groundtruth.public_sets()])
 		frappe.delete_doc("RD Ground Truth", doc.name, force=True)
@@ -107,6 +125,42 @@ class TestGroundTruth(SharingTestCase):
 		frappe.db.set_value("RD Item", self.book, "visibility", "Login to read")
 		self.assertEqual(groundtruth.preview(self.make().name)["pages"], 0)  # members' books stay out
 		self.assertEqual(groundtruth.preview(self.make(public_books_only=0).name)["pages"], 1)
+
+	def test_only_pages_whose_proofreaders_released_them_go_in(self):
+		from sok_resdesk import groundtruth
+
+		frappe.db.set_single_value(
+			"RD Settings", {"ground_truth_licence": "CC-BY-4.0", "ground_truth_require_release": 1}
+		)
+		doc = self.make()
+		self.assertEqual(groundtruth.preview(doc.name)["pages"], 0)  # nobody has released anything
+		p = groundtruth.preview(doc.name)
+		self.assertEqual(
+			(p["left_out"], p["to_ask"][0]["pages"], p["to_ask"][0]["why"]), (1, 1, "not released")
+		)
+		self.release("CC-BY-SA-4.0")  # stricter than the set: cannot be carried
+		p = groundtruth.preview(doc.name)
+		self.assertEqual((p["pages"], p["left_out"]), (0, 1))
+		self.assertIn("stricter", p["to_ask"][0]["why"])
+		self.release("CC-BY-4.0")
+		self.assertEqual(groundtruth.preview(doc.name)["pages"], 1)
+		frappe.db.set_single_value("RD Settings", "ground_truth_licence", "CC-BY-SA-4.0")
+		self.assertEqual(groundtruth.preview(doc.name)["pages"], 1)  # BY allows BY-SA
+		self.release("CC0-1.0")
+		frappe.db.set_single_value("RD Settings", "ground_truth_require_release", 0)
+		frappe.db.delete("RD Contributor Release", {"user": "Administrator"})
+		self.assertEqual(groundtruth.preview(doc.name)["pages"], 1)  # the rule switched off
+
+	def test_a_person_is_named_only_if_they_allowed_it(self):
+		from sok_resdesk import groundtruth
+
+		frappe.db.set_single_value(
+			"RD Settings", {"ground_truth_require_release": 1, "ground_truth_names": 1}
+		)
+		self.release("CC0-1.0", name_ok=0)
+		self.assertEqual(groundtruth._who("Administrator", True, {}), "")
+		self.release("CC0-1.0", name_ok=1)
+		self.assertTrue(groundtruth._who("Administrator", True, {}))
 
 
 class TestNotesAsData(SharingTestCase):

@@ -467,6 +467,7 @@ Every setting:
 | Setting | What it does |
 |---|---|
 | Licence for Ground Truth | Under which licence the library shares its corrected texts. Until one is chosen, sets are made for the library's own use only and none can be put on the portal. CC0: no conditions; CC-BY: credit; CC-BY-SA: credit and share alike. Choices: *CC0-1.0*, *CC-BY-4.0*, *CC-BY-SA-4.0*. |
+| Only Pages Their Proofreaders Released | Put a page in a set only when everyone who proofread or validated it released their corrections under an open licence (Research Desk → My Release for Ground Truth) that the set's licence can carry. Untick only for libraries whose proofreaders have agreed in writing. |
 | Credit Line | How reusers should credit the set, e.g. <i>Servants of Knowledge and its volunteer proofreaders</i>. |
 | Name the Proofreaders | Put each page's proofreader and validator (their full names, never their emails) in the set's manifest. Ask them first. |
 

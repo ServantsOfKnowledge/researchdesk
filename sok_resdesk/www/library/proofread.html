@@ -11,6 +11,13 @@
 	{% else %}
 	<p class="rd-muted">{{ _("Open a page, press Proofread, correct the text against the image (draw zones and OCR them again where the columns are mixed up) and save. Thank you: every page you correct becomes searchable as it should be.") }}
 		<br>{{ _("You have proofread {0} pages and validated {1}.").format(mine, validated) }}</p>
+	{% if not released %}
+	<p class="rd-muted">{{ _("Would you share your corrections openly, to help train better OCR for these scripts? Choose a licence you are happy with:") }}
+		<a href="/app/rd-contributor-release">{{ _("release my corrections") }}</a>.</p>
+	{% else %}
+	<p class="rd-muted">{{ _("Your corrections are released under {0}.").format(released) }}
+		<a href="/app/rd-contributor-release">{{ _("Change or withdraw") }}</a></p>
+	{% endif %}
 	<form class="rd-mynotes__filters" method="get">
 		<select name="language" aria-label="{{ _('Language') }}" onchange="this.form.submit()">
 			<option value="">{{ _("Every language") }}</option>

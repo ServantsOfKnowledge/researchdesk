@@ -28,6 +28,7 @@ SCREEN_HELP = {
 	"RD Metadata Import": ("collections-and-metadata", "editing-many-books-with-a-spreadsheet"),
 	"RD Push Target": ("collections-and-metadata", "pushing-metadata-to-other-systems"),
 	"RD Deposit": ("deposit", "reviewing"),
+	"RD Contributor Release": ("staff-guide", "sharing-ground-truth"),
 	"RD Wikimedia Account": ("wikimedia", "connect-your-account"),
 	"RD Push Run": ("collections-and-metadata", "pushing-metadata-to-other-systems"),
 	"RD External Record": ("collections-and-metadata", "pushing-metadata-to-other-systems"),

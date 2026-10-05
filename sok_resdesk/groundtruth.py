@@ -33,6 +33,20 @@ def chosen_licence() -> str:
 	return (frappe.db.get_single_value("RD Settings", "ground_truth_licence") or "").strip()
 
 
+def require_release() -> bool:
+	v = frappe.db.get_single_value("RD Settings", "ground_truth_require_release")
+	return v is None or bool(cint(v))
+
+
+def releasing(licence: str) -> list[str]:
+	"""The people whose release lets a set under `licence` carry their pages."""
+	return [
+		r.user
+		for r in frappe.get_all("RD Contributor Release", fields=["user", "licence"])
+		if core.allows(r.licence, licence)
+	]
+
+
 def check_set(doc) -> None:
 	"""RD Ground Truth.validate: a set on the portal needs a licence and books anyone may read."""
 	doc.max_pages = max(1, min(cint(doc.max_pages) or 5000, 100_000))
@@ -41,9 +55,22 @@ def check_set(doc) -> None:
 		doc.published = 0
 
 
-def _pages_query(doc, count_only: bool = False):
+def _pages_query(doc, count_only: bool = False, released: bool | None = None):
+	"""Matching pages. With release required (and a licence chosen) only pages every one of whose
+	proofreaders and validators released under a licence the set can carry; released=False asks
+	for the pages left out for want of that instead."""
 	where = ["t.is_current = 1", "i.published = 1"]
 	params: dict = {}
+	lic = chosen_licence()
+	if released is not None or (lic and require_release()):
+		ok = tuple(releasing(lic) or [""]) if lic else ("",)
+		pre = (
+			"(t.proofread_by is not null and t.proofread_by != '' or t.validated_by is not null and t.validated_by != '')"
+			" and (ifnull(t.proofread_by, '') = '' or t.proofread_by in %(ok)s)"
+			" and (ifnull(t.validated_by, '') = '' or t.validated_by in %(ok)s)"
+		)
+		where.append(f"({pre})" if released is not False else f"not ({pre})")
+		params["ok"] = ok
 	if doc.pages_wanted == "Validated only":
 		where.append("t.status = 'Validated'")
 	else:
@@ -84,10 +111,43 @@ def preview(name: str) -> dict:
 	"""How many pages the set would hold now, and the licence it would carry."""
 	frappe.only_for(STAFF)
 	doc = frappe.get_doc(DT, name)
-	return {
+	lic = chosen_licence()
+	out = {
 		"pages": min(_pages_query(doc, count_only=True), cint(doc.max_pages) or 5000),
-		"licence": chosen_licence(),
+		"licence": lic,
+		"require_release": require_release(),
+		"left_out": 0,
+		"to_ask": [],
 	}
+	if lic and require_release():
+		out["left_out"] = _pages_query(doc, count_only=True, released=False)
+		out["to_ask"] = unreleased(doc)
+	return out
+
+
+def unreleased(doc, limit: int = 20) -> list[dict]:
+	"""Who to ask: people with matching pages that are left out because they have not released them
+	(or released under a licence stricter than the set's), with how many pages. Full names only."""
+	lic = chosen_licence()
+	ok = tuple(releasing(lic) or [""])
+	rows = _pages_query(doc, released=False)
+	count: dict[str, int] = {}
+	for r in rows:
+		for u in {r.proofread_by, r.validated_by}:
+			if u and u not in ok:
+				count[u] = count.get(u, 0) + 1
+	mine = {r.user: r.licence for r in frappe.get_all("RD Contributor Release", fields=["user", "licence"])}
+	out = [
+		{
+			"name": (get_fullname(u) if "@" not in (get_fullname(u) or "@") else "") or _("(a proofreader)"),
+			"pages": n,
+			"why": _("released under a stricter licence ({0})").format(mine[u])
+			if u in mine
+			else _("not released"),
+		}
+		for u, n in sorted(count.items(), key=lambda x: -x[1])[:limit]
+	]
+	return out
 
 
 @frappe.whitelist(methods=["POST"])
@@ -113,11 +173,15 @@ def build(name: str) -> dict:
 
 
 def _who(user: str | None, names: bool, cache: dict) -> str:
-	if not names or not user:
+	"""A person's full name (never an email) for the manifest: only when they allowed it in their
+	release (or, with releases not required, when the library's setting names everyone)."""
+	if not user:
 		return ""
 	if user not in cache:
-		full = get_fullname(user) or ""
-		cache[user] = "" if "@" in full else full  # a name, never an email
+		ok = frappe.db.get_value("RD Contributor Release", user, "name_ok")
+		allowed = cint(ok) if require_release() else (names or cint(ok))
+		full = get_fullname(user) or "" if allowed else ""
+		cache[user] = "" if "@" in full else full
 	return cache[user]
 
 
@@ -181,6 +245,11 @@ def build_job(name: str, user: str | None = None) -> None:
 				"licence": licence,
 				"published": doc.published if licence else 0,
 				"made_on": now_datetime(),
+				"reviewed_by": None,
+				"reviewed_on": None,
+				"left_out": _pages_query(doc, count_only=True, released=False)
+				if licence and require_release()
+				else 0,
 				"page_count": counts["pages"],
 				"zone_count": counts["zones"],
 				"book_count": counts["books"],
@@ -252,8 +321,49 @@ def publish(name: str, on: int = 1) -> dict:
 			frappe.throw(
 				_("A set on the portal can hold only books anyone may read: tick that and make it again.")
 			)
+		if not doc.reviewed_on:
+			frappe.throw(_("Look through the set first (Review the Set), then mark it reviewed."))
 	doc.db_set("published", on)
 	return {"published": on}
+
+
+@frappe.whitelist()
+def sample(name: str, count: int = 12) -> dict:
+	"""A spread of the set's pages for the person reviewing it, with who released them and how many
+	pages were left out. Reading this is the review: marking it reviewed is a separate step."""
+	frappe.only_for(MANAGERS)
+	doc = frappe.get_doc(DT, name)
+	rows = _pages_query(doc)
+	step = max(1, len(rows) // max(1, cint(count)))
+	picks = rows[::step][: cint(count)]
+	return {
+		"licence": chosen_licence(),
+		"pages": len(rows),
+		"left_out": doc.left_out,
+		"made_on": str(doc.made_on or ""),
+		"sample": [
+			{
+				"book": r.title,
+				"leaf": cint(r.leaf),
+				"label": r.page_label or str(cint(r.leaf) + 1),
+				"url": f"/library/item/{r.item}?page={cint(r.leaf)}&view=text",
+				"text": (r.text or "")[:400],
+				"status": r.status,
+			}
+			for r in picks
+		],
+	}
+
+
+@frappe.whitelist(methods=["POST"])
+def mark_reviewed(name: str) -> dict:
+	"""Record that a person looked through the set and is content for it to be shared."""
+	frappe.only_for(MANAGERS)
+	doc = frappe.get_doc(DT, name)
+	if doc.status != "Ready":
+		frappe.throw(_("Make the set first."))
+	doc.db_set({"reviewed_by": frappe.session.user, "reviewed_on": now_datetime()})
+	return {"reviewed_by": frappe.session.user}
 
 
 def public_sets() -> list[dict]:
