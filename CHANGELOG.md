@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.37.0 (2026-10-16): The cataloguer's review queue; Settings by use
+
+- **Desk → Review Queue**: books whose records need a person's eye, the most important questions
+  first: a year before printing or in the future, no year, no language or one that doesn't match
+  the title's script (a Kannada title catalogued as English), authors that aren't names
+  (*Unknown*, *Anon.*), titles that are file names or the identifier, no subjects, and possible
+  duplicates (same title, first author and year). Correct the title, year or language right on
+  the page (kept through re-ingest), answer **This is right**, or for a duplicate **Hide this
+  copy** / **Not a duplicate**. Every book is checked each night (**Scan now** at once); a record
+  corrected anywhere leaves the queue as soon as it is saved
+- **Settings in tabs** by who looks after them: Library & Portal, Readers & Access, Catalogue,
+  Search, Sharing & Identifiers, Preservation, Server; each says who it is for. The staff guide
+  has **Settings by kind of library** (a small library on a laptop, a public research portal, a
+  members-only collection, an archive keeping its own copies, a language-technology partner)
+- Architecture: **Integrations with external authorities and services**: what Research Desk
+  takes from and gives back to the Internet Archive, Wikidata, VIAF, LCSH, DataCite, ARK/N2T,
+  Koha, annotation tools, OCR research, reference managers, usage statistics and S3 storage
+- Fixed: amber and green text on our Desk pages has enough contrast
+
 ## 0.36.0 (2026-10-15): Authority control
 
 - **Desk → Authorities**: authors matched to people on **Wikidata** (and through them

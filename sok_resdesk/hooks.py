@@ -71,8 +71,13 @@ after_migrate = "sok_resdesk.setup.after_migrate"
 
 doc_events = {
 	"RD Item": {
-		"on_update": ["sok_resdesk.search.on_item_update", "sok_resdesk.outbound.on_item_change"],
-		"on_trash": "sok_resdesk.search.on_item_trash",
+		"on_update": [
+			"sok_resdesk.search.on_item_update",
+			"sok_resdesk.outbound.on_item_change",
+			# the review queue's questions answered (or asked) as soon as a person edits the book
+			"sok_resdesk.review.on_item_update",
+		],
+		"on_trash": ["sok_resdesk.search.on_item_trash", "sok_resdesk.review.on_item_trash"],
 	},
 	# portal sign-ups become readers, or wait for approval (RD Settings → Reader Accounts)
 	"User": {"after_insert": "sok_resdesk.access.on_user_insert"},
@@ -125,6 +130,8 @@ scheduler_events = {
 		"sok_resdesk.datacite.daily",
 		# authors and subjects matched to Wikidata / LCSH, when Settings → Authorities says so
 		"sok_resdesk.authority.nightly",
+		# records that need a cataloguer's eye (Desk → Review Queue)
+		"sok_resdesk.review.nightly",
 	],
 	"weekly": [
 		"sok_resdesk.ingest.run_scheduled_weekly",

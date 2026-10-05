@@ -151,6 +151,16 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Review Queue",
+   "link_count": 0,
+   "link_to": "resdesk-review",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Ingest",
    "link_count": 0,
    "link_type": "DocType",
@@ -355,7 +365,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-14 12:00:00.000000",
+ "modified": "2026-10-15 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "ResDesk",
  "name": "Research Desk",

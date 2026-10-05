@@ -66,6 +66,7 @@ cause. Details: [Server](server.md#how-the-updater-helper-works).
 | RD Item Creator | child table | creator → RD Creator, role, name_as_given |
 | RD Item Subject | child table | subject → RD Subject |
 | **RD Creator** | a person the books name | full_name, alt_name (romanised), sort name; matched on Desk → Authorities: Wikidata, VIAF, born, died, description, match (Proposed / Confirmed / No match), candidates |
+| **RD Review Flag** | a question about a record for a cataloguer (Desk → Review Queue) | book, check (no year, wrong-looking year, language, script, author, title, subjects, duplicate), detail, weight, status (Open / Fixed / Ignored), who answered and when |
 | **RD Subject** | keyword / heading | subject_name, scheme; matched to LCSH: lcsh_id, heading, match, candidates |
 | **RD Ingest Profile** | *what* to ingest | scope (collection / query / identifiers), filter, max items, full text, schedule, keeping in step with archive.org (new, changed, removed; `synced_on`), portal collection |
 | **RD Ingest Run** | one execution | status, counts, log |
@@ -155,6 +156,34 @@ replaced.
 - **DOIs** (`datacite.py`, `core/datacite.py`): DataCite REST API (JSON:API, schema 4.5), PUT to
   create or update, sent again only when the metadata fingerprint changes; test system first.
 
+## Integrations with external authorities and services
+
+Research Desk keeps its own catalogue and leans on the shared registries libraries already
+trust. Each integration is optional, works through an open standard or a documented API, and
+is switched on in Settings (or by a Push Target) by the library. Where a service takes
+contributions, Research Desk can give back what the library knows.
+
+| Authority or service | What Research Desk takes | What it gives back | How (code) | Switched on in |
+|---|---|---|---|---|
+| **Internet Archive** | books: metadata, page text, page images, PDFs | corrected metadata to the library's own items | scrape, metadata and search APIs; IA S3 metadata writes (`core/ia.py`, `core/push.py` IAWriter) | Ingest Profiles; Push Targets |
+| **Wikidata** | people for authors (names, dates, VIAF), things notes are about | book editions with their authors linked, names of people in the books' languages (0.38) | MediaWiki API: `wbsearchentities`, `wbgetentities`, `wbeditentity` (`core/authority.py`, `core/wikidata.py`, `core/push.py`) | Settings → Catalogue → Authorities; Push Targets (Wikidata) |
+| **VIAF** (OCLC) | authors' VIAF numbers, through Wikidata | the numbers in MARC `$0`, JSON-LD and DOIs, so other catalogues can link | read through Wikidata P214 | with Wikidata matching |
+| **Library of Congress Subject Headings** (id.loc.gov) | headings and identifiers for subjects | MARC 650 with `$0`; headings LCSH lacks, as proposals for SACO (0.38) | `suggest2` API (`core/authority.py`) | Settings → Catalogue → Authorities |
+| **DataCite** | DOIs for chosen collections | each book's metadata (schema 4.5), authors with VIAF and Wikidata identifiers | REST API, JSON:API (`core/datacite.py`) | Settings → Sharing → DOIs |
+| **ARK** (N2T / the library's NAAN) | the library's ARK prefix | permanent ARKs for every book and page, tombstones for withdrawn books | resolver at `/ark:/…` (`core/ark.py`, `identifiers.py`) | Settings → Sharing → Persistent Identifiers |
+| **Koha** and other library systems | | MARCXML records, collections as sets; records pushed into Koha | OAI-PMH 2.0 (`core/oai.py`), MARCXML (`core/marc.py`), Koha REST (`core/push.py`) | always on (OAI); Push Targets (Koha) |
+| **Annotation tools** (Hypothesis-style clients) | readers' notes | public notes as W3C Web Annotations | W3C Web Annotation Protocol (`annotation_protocol.py`) | always on |
+| **OCR research** | | proofread pages with their images as open ground truth | zip with a Frictionless Data Package (`core/groundtruth.py`) | Settings → Sharing → Ground Truth |
+| **Zotero, Google Scholar, reference managers** | | citation metadata on every book page | Highwire tags, COinS, JSON-LD, BibTeX/RIS/CSL (`core/citations.py`) | always on |
+| **Usage statistics** (PostHog, Plausible, Umami) | | page views without cookies | their scripts and APIs (`analytics.py`) | Settings → Readers & Access |
+| **Storage** (S3-compatible) | | the second preservation copy | S3 API (`core/replica.py`) | Settings → Preservation |
+
+Requests to outside services are made by background jobs or on a cataloguer's request, never
+while a reader waits (except Wikidata search when a reader picks what a note is about, cached a
+day). Each identifies itself (`SOK-ResearchDesk (+repository URL)`), keeps to the service's pace
+(a pause between requests, `maxlag` for Wikidata) and fails soft: a service that can't be
+reached leaves the catalogue as it was.
+
 ## Scaling path
 
 | Stage | Size | Setup |
@@ -174,7 +203,6 @@ Frappe makes it cheap to add the rest of an ILS alongside the digital library:
 - **Patrons & circulation**: members, loans, returns, fines (Frappe ships Contacts, Users,
   Web Forms, Payments)
 - **Acquisitions**: Frappe/ERPNext purchasing if needed
-- **Authority control**: VIAF/Wikidata reconciliation for RD Creator; LCSH/Sears for RD Subject
 
 Until then, Koha (or any ILS) can do those jobs, and Research Desk integrates through
 OAI-PMH and MARC (see [Koha](koha.md)).

@@ -292,6 +292,8 @@ Every setting:
 
 <!-- generated:settings -->
 <!-- made by scripts/gen_docs.py from the code: edit the code, then run ./resdesk.sh docs -->
+### Library & Portal
+
 **Portal**
 
 | Setting | What it does |
@@ -315,6 +317,62 @@ Every setting:
 | Icon (optional) | Square image (PNG/ICO/SVG, 64×64 or larger): the browser tab and the Research Desk icon in the Desk. Leave empty to use the logo. |
 | Home Page Background Image (optional) | A wide photo behind the search box on the home page, e.g. a manuscript or library shelf. |
 
+### Readers & Access
+
+**Access & Sign-up**
+
+| Setting | What it does |
+|---|---|
+| Visitors Who Are Not Logged In | Each item's setting: follow each book's “Who can see it”. Records only: visitors can search the catalogue and cite, but reading and search inside the text need a login. Login required: the whole portal is for logged-in readers (an internal library). Choices: *Each item's setting*, *Records only*, *Login required*. |
+| Default for New Books | Used when neither the ingest profile nor a rule below decides. Choices: *Public*, *Login to read*, *Login to find*. |
+| Reader Accounts | Admins add readers: no sign-up page; add people in User with the ResDesk Reader role, or ./resdesk.sh add-reader. Anyone can sign up: every account can read. Sign up, admin approves: new accounts wait in Reader Requests. Choices: *Admins add readers*, *Anyone can sign up*, *Sign up, admin approves*. |
+| OAI-PMH Shares | What harvesters such as Koha receive. “All published records” suits a library system on an internal network. Choices: *Records guests can find*, *All published records*, *Off*. |
+
+**Access Rules**
+
+| Setting | What it does |
+|---|---|
+| Rules | Give books a visibility by collection, subject, language, creator, source or profile. Press Apply Access Rules to use them on books already in the catalogue. |
+
+**Usage Statistics**
+
+| Setting | What it does |
+|---|---|
+| Statistics | <b>Built-in</b>: counted on this server (Frappe's page views), shown on the Research Desk dashboard; nothing leaves the server. <b>PostHog</b>, <b>Plausible</b> or <b>Umami</b>: sent to that service (cloud or your own), with its own dashboards. Choices: *Off*, *Built-in*, *PostHog*, *Plausible*, *Umami*. |
+| Service address | PostHog: https://us.i.posthog.com, https://eu.i.posthog.com or your own. Plausible: https://plausible.io or your own. Umami: your Umami server, or https://cloud.umami.is. |
+| Project key or site id | PostHog: the project API key (phc_…). Plausible: the site's domain as added there. Umami: the website id. |
+| Dashboard link | Optional: where staff open the statistics (shown on the Research Desk dashboard). |
+
+### Catalogue
+
+**Internet Archive**
+
+| Setting | What it does |
+|---|---|
+| Contact (sent in User-Agent) | An email or URL so IA can reach you if your harvesting causes problems. |
+| Delay Between Requests (seconds) | Pause between requests to archive.org. Raise it if archive.org asks you to slow down. |
+| Books per Background Batch | Large ingests are split into batches that run in parallel, one per queue worker. Add workers with QUEUE_WORKERS in .env. |
+| Keep a Local Copy of Page Text | Stores compressed OCR text on disk (about 20–60 KB per book) so re-indexing never needs to download from archive.org again. |
+| Pause Scheduled Ingests | Stops Hourly/Daily/Weekly profiles and the daily sync with archive.org from starting new runs. Manual runs still work. Also on the Background Jobs page. |
+| Pause All Background Work | Set from the Background Jobs page: runs are paused and queued jobs held until you press Resume All there. |
+
+**Collections from archive.org**
+
+| Setting | What it does |
+|---|---|
+| A Portal Collection for Every archive.org Collection | Every archive.org collection your books belong to (such as the Servants of Knowledge sub-collections) gets its own collection page on the portal, named after it, with its description, shown under the collection it belongs to. Off: only the collection of each ingest profile that asks for one. |
+| Smallest Collection to Show | Only make a page for archive.org collections with at least this many of your books. |
+| Skip These archive.org Collections | archive.org collection identifiers that should not get a page, one per line (for example a big general collection most of your books are also in). |
+
+**Authorities**
+
+| Setting | What it does |
+|---|---|
+| Find Authority Matches Nightly | Each night, look up 300 more authors on Wikidata and 300 subjects in the Library of Congress Subject Headings, and propose matches on Desk → Authorities (the names with most books first). |
+| Accept Near-Certain Matches | Accept a match without a person when it is near-certain: one person on Wikidata with the same name, dates that fit the books, and no other candidate close. Everything else waits for a cataloguer. |
+
+### Search
+
 **Search Engine (Meilisearch)**
 
 | Setting | What it does |
@@ -327,16 +385,62 @@ Every setting:
 | Max Characters per Page | Longer pages are cut to this length in the index, which keeps it smaller. |
 | Search Status | Filled in by Test Search Engine: whether it connected and how many books and pages the index holds. |
 
-**Internet Archive**
+### Sharing & Identifiers
+
+**Persistent Identifiers**
 
 | Setting | What it does |
 |---|---|
-| Contact (sent in User-Agent) | An email or URL so IA can reach you if your harvesting causes problems. |
-| Delay Between Requests (seconds) | Pause between requests to archive.org. Raise it if archive.org asks you to slow down. |
-| Books per Background Batch | Large ingests are split into batches that run in parallel, one per queue worker. Add workers with QUEUE_WORKERS in .env. |
-| Keep a Local Copy of Page Text | Stores compressed OCR text on disk (about 20–60 KB per book) so re-indexing never needs to download from archive.org again. |
-| Pause Scheduled Ingests | Stops Hourly/Daily/Weekly profiles and the daily sync with archive.org from starting new runs. Manual runs still work. Also on the Background Jobs page. |
-| Pause All Background Work | Set from the Background Jobs page: runs are paused and queued jobs held until you press Resume All there. |
+| Give Books ARKs | Switch on when the ARK Alliance has given the library its NAAN (free: arks.org → Request a NAAN). Every book then gets a permanent ARK (the ones already here in the background), shown as Permanent link and used in citations, exports and OAI-PMH; the portal answers <portal>/ark:/… itself. Once on, the NAAN and shoulder can't be changed. |
+| ARK NAAN | The number the ARK Alliance gave this library (five or more digits). Needed before Give Books ARKs can be switched on; 99999, the Alliance's test number, is not accepted. |
+| ARK Shoulder | The prefix of the books' ARK names: letters then one digit (b1 for books). Fixed once ARKs are switched on. |
+
+**DOIs (DataCite)**
+
+| Setting | What it does |
+|---|---|
+| Give DOIs | Register DOIs for the books of collections marked Give DOIs, every night and from a collection's form. |
+| DataCite Test System | Use DataCite's test system (api.test.datacite.org) while trying this out: its DOIs never resolve and never show in citations. Untick once the library's production account is ready. |
+| DOI Prefix | The prefix DataCite gave the library, e.g. <i>10.12345</i>. |
+| DataCite Repository ID | The repository's ID in DataCite Fabrica, e.g. <i>SOK.LIBRARY</i>. |
+| DataCite Repository Password | The repository's password in DataCite Fabrica. Kept encrypted. |
+| DOI Shoulder | Put before each book's identifier in its DOI: 10.12345/<b>rd.</b>kanakadasa1950. Never change it once DOIs are given. |
+
+**Ground Truth**
+
+| Setting | What it does |
+|---|---|
+| Licence for Ground Truth | Under which licence the library shares its corrected texts. Until one is chosen, sets are made for the library's own use only and none can be put on the portal. CC0: no conditions; CC-BY: credit; CC-BY-SA: credit and share alike. Choices: *CC0-1.0*, *CC-BY-4.0*, *CC-BY-SA-4.0*. |
+| Credit Line | How reusers should credit the set, e.g. <i>Servants of Knowledge and its volunteer proofreaders</i>. |
+| Name the Proofreaders | Put each page's proofreader and validator (their full names, never their emails) in the set's manifest. Ask them first. |
+
+### Preservation
+
+**Preservation**
+
+| Setting | What it does |
+|---|---|
+| Preservation Folder | Where the library's own copies of its books are kept (a disk or NAS folder the server can write to, e.g. /preservation in Docker). Empty: no copies are kept. Each book is stored as an OCFL object: plain files and a checksum inventory any future system can read. |
+| Preserve | Which books get a copy. Copies are made a few hundred a night (Background Jobs shows them); a book ingested again gets a new version only if a file changed. Choices: *Off*, *Books in collections marked Preserve*, *Every book*. |
+| Include Page Images | Also keep the original scans from archive.org, not only the PDF, OCR and metadata. Much larger (often 10-50 times), but the copy is then complete enough to make new OCR from. |
+| Space for Copies (GB) | The most the copies may take. 0: as much as the disk allows (the last 5% of the disk is never used). |
+| Check Every (days) | Every copy is checked against its checksums at least this often: each night a share of them is checked. A copy that fails is marked and alerts on the Server page. |
+
+**Second Copy**
+
+| Setting | What it does |
+|---|---|
+| Second Copy | <b>Folder</b>: another disk, a NAS or a partner's storage mounted on this server. <b>S3-compatible</b>: a bucket on Amazon S3, Wasabi, Backblaze B2, MinIO or similar. Choices: *Off*, *Folder*, *S3-compatible*. |
+| Second Copy Folder | On another disk or a mounted share, not inside the first copy's folder, e.g. <code>/mnt/nas/sok-copies</code>. |
+| S3 Endpoint | The service's address, e.g. <code>https://s3.eu-central-1.wasabisys.com</code>, <code>https://s3.us-west-004.backblazeb2.com</code> or a partner's MinIO. Empty for Amazon S3. |
+| S3 Region | The bucket's region, e.g. <code>eu-central-1</code> (some services need it, others ignore it). |
+| S3 Bucket | The bucket's name; make it first, on the service, and keep it private. |
+| Folder in the Bucket | Optional, e.g. <code>sok-library</code>. |
+| S3 Access Key | A key with read, write, list and delete rights on this bucket only. |
+| S3 Secret Key | Stored encrypted; never shown again after saving. |
+| Keep Dropped Books on the Portal | When archive.org stops serving a book we hold a copy of, keep it on the portal and serve its PDF from our copy instead of taking it down. archive.org often darkens books for rights reasons: leave this off to decide book by book (book form → <b>Serve From Our Copy</b>). |
+
+### Server
 
 **Machine Resources**
 
@@ -367,96 +471,6 @@ Every setting:
 | Also Email | More addresses for alerts, separated by commas. |
 | Alert Webhook URL | Also post alerts as JSON to this address, for example a Slack, Mattermost or Discord incoming webhook (the text is in "text"). |
 | Alert When Disk Is This Full (%) | Warn when the disk holding Research Desk's data is this full. |
-
-**Persistent Identifiers**
-
-| Setting | What it does |
-|---|---|
-| Give Books ARKs | Switch on when the ARK Alliance has given the library its NAAN (free: arks.org → Request a NAAN). Every book then gets a permanent ARK (the ones already here in the background), shown as Permanent link and used in citations, exports and OAI-PMH; the portal answers <portal>/ark:/… itself. Once on, the NAAN and shoulder can't be changed. |
-| ARK NAAN | The number the ARK Alliance gave this library (five or more digits). Needed before Give Books ARKs can be switched on; 99999, the Alliance's test number, is not accepted. |
-| ARK Shoulder | The prefix of the books' ARK names: letters then one digit (b1 for books). Fixed once ARKs are switched on. |
-
-**Preservation**
-
-| Setting | What it does |
-|---|---|
-| Preservation Folder | Where the library's own copies of its books are kept (a disk or NAS folder the server can write to, e.g. /preservation in Docker). Empty: no copies are kept. Each book is stored as an OCFL object: plain files and a checksum inventory any future system can read. |
-| Preserve | Which books get a copy. Copies are made a few hundred a night (Background Jobs shows them); a book ingested again gets a new version only if a file changed. Choices: *Off*, *Books in collections marked Preserve*, *Every book*. |
-| Include Page Images | Also keep the original scans from archive.org, not only the PDF, OCR and metadata. Much larger (often 10-50 times), but the copy is then complete enough to make new OCR from. |
-| Space for Copies (GB) | The most the copies may take. 0: as much as the disk allows (the last 5% of the disk is never used). |
-| Check Every (days) | Every copy is checked against its checksums at least this often: each night a share of them is checked. A copy that fails is marked and alerts on the Server page. |
-
-**Second Copy**
-
-| Setting | What it does |
-|---|---|
-| Second Copy | <b>Folder</b>: another disk, a NAS or a partner's storage mounted on this server. <b>S3-compatible</b>: a bucket on Amazon S3, Wasabi, Backblaze B2, MinIO or similar. Choices: *Off*, *Folder*, *S3-compatible*. |
-| Second Copy Folder | On another disk or a mounted share, not inside the first copy's folder, e.g. <code>/mnt/nas/sok-copies</code>. |
-| S3 Endpoint | The service's address, e.g. <code>https://s3.eu-central-1.wasabisys.com</code>, <code>https://s3.us-west-004.backblazeb2.com</code> or a partner's MinIO. Empty for Amazon S3. |
-| S3 Region | The bucket's region, e.g. <code>eu-central-1</code> (some services need it, others ignore it). |
-| S3 Bucket | The bucket's name; make it first, on the service, and keep it private. |
-| Folder in the Bucket | Optional, e.g. <code>sok-library</code>. |
-| S3 Access Key | A key with read, write, list and delete rights on this bucket only. |
-| S3 Secret Key | Stored encrypted; never shown again after saving. |
-| Keep Dropped Books on the Portal | When archive.org stops serving a book we hold a copy of, keep it on the portal and serve its PDF from our copy instead of taking it down. archive.org often darkens books for rights reasons: leave this off to decide book by book (book form → <b>Serve From Our Copy</b>). |
-
-**Collections from archive.org**
-
-| Setting | What it does |
-|---|---|
-| A Portal Collection for Every archive.org Collection | Every archive.org collection your books belong to (such as the Servants of Knowledge sub-collections) gets its own collection page on the portal, named after it, with its description, shown under the collection it belongs to. Off: only the collection of each ingest profile that asks for one. |
-| Smallest Collection to Show | Only make a page for archive.org collections with at least this many of your books. |
-| Skip These archive.org Collections | archive.org collection identifiers that should not get a page, one per line (for example a big general collection most of your books are also in). |
-
-**Ground Truth**
-
-| Setting | What it does |
-|---|---|
-| Licence for Ground Truth | Under which licence the library shares its corrected texts. Until one is chosen, sets are made for the library's own use only and none can be put on the portal. CC0: no conditions; CC-BY: credit; CC-BY-SA: credit and share alike. Choices: *CC0-1.0*, *CC-BY-4.0*, *CC-BY-SA-4.0*. |
-| Credit Line | How reusers should credit the set, e.g. <i>Servants of Knowledge and its volunteer proofreaders</i>. |
-| Name the Proofreaders | Put each page's proofreader and validator (their full names, never their emails) in the set's manifest. Ask them first. |
-
-**Authorities**
-
-| Setting | What it does |
-|---|---|
-| Find Authority Matches Nightly | Each night, look up 300 more authors on Wikidata and 300 subjects in the Library of Congress Subject Headings, and propose matches on Desk → Authorities (the names with most books first). |
-| Accept Near-Certain Matches | Accept a match without a person when it is near-certain: one person on Wikidata with the same name, dates that fit the books, and no other candidate close. Everything else waits for a cataloguer. |
-
-**DOIs (DataCite)**
-
-| Setting | What it does |
-|---|---|
-| Give DOIs | Register DOIs for the books of collections marked Give DOIs, every night and from a collection's form. |
-| DataCite Test System | Use DataCite's test system (api.test.datacite.org) while trying this out: its DOIs never resolve and never show in citations. Untick once the library's production account is ready. |
-| DOI Prefix | The prefix DataCite gave the library, e.g. <i>10.12345</i>. |
-| DataCite Repository ID | The repository's ID in DataCite Fabrica, e.g. <i>SOK.LIBRARY</i>. |
-| DataCite Repository Password | The repository's password in DataCite Fabrica. Kept encrypted. |
-| DOI Shoulder | Put before each book's identifier in its DOI: 10.12345/<b>rd.</b>kanakadasa1950. Never change it once DOIs are given. |
-
-**Usage Statistics**
-
-| Setting | What it does |
-|---|---|
-| Statistics | <b>Built-in</b>: counted on this server (Frappe's page views), shown on the Research Desk dashboard; nothing leaves the server. <b>PostHog</b>, <b>Plausible</b> or <b>Umami</b>: sent to that service (cloud or your own), with its own dashboards. Choices: *Off*, *Built-in*, *PostHog*, *Plausible*, *Umami*. |
-| Service address | PostHog: https://us.i.posthog.com, https://eu.i.posthog.com or your own. Plausible: https://plausible.io or your own. Umami: your Umami server, or https://cloud.umami.is. |
-| Project key or site id | PostHog: the project API key (phc_…). Plausible: the site's domain as added there. Umami: the website id. |
-| Dashboard link | Optional: where staff open the statistics (shown on the Research Desk dashboard). |
-
-**Access & Sign-up**
-
-| Setting | What it does |
-|---|---|
-| Visitors Who Are Not Logged In | Each item's setting: follow each book's “Who can see it”. Records only: visitors can search the catalogue and cite, but reading and search inside the text need a login. Login required: the whole portal is for logged-in readers (an internal library). Choices: *Each item's setting*, *Records only*, *Login required*. |
-| Default for New Books | Used when neither the ingest profile nor a rule below decides. Choices: *Public*, *Login to read*, *Login to find*. |
-| Reader Accounts | Admins add readers: no sign-up page; add people in User with the ResDesk Reader role, or ./resdesk.sh add-reader. Anyone can sign up: every account can read. Sign up, admin approves: new accounts wait in Reader Requests. Choices: *Admins add readers*, *Anyone can sign up*, *Sign up, admin approves*. |
-| OAI-PMH Shares | What harvesters such as Koha receive. “All published records” suits a library system on an internal network. Choices: *Records guests can find*, *All published records*, *Off*. |
-
-**Access Rules**
-
-| Setting | What it does |
-|---|---|
-| Rules | Give books a visibility by collection, subject, language, creator, source or profile. Press Apply Access Rules to use them on books already in the catalogue. |
 <!-- /generated:settings -->
 
 ## Users and roles

@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-14 12:00:00.000000",
+ "modified": "2026-10-15 12:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Settings",
@@ -10,6 +10,8 @@
  "owner": "Administrator",
  "modified_by": "Administrator",
  "field_order": [
+  "tab_library",
+  "tab_library_intro",
   "portal_section",
   "portal_title",
   "portal_tagline",
@@ -17,6 +19,9 @@
   "column_break_p",
   "repository_id",
   "admin_email",
+  "portal_languages",
+  "default_sort",
+  "relevance_when_searching",
   "branding_section",
   "portal_logo",
   "logo_on_home",
@@ -24,15 +29,24 @@
   "column_break_brand",
   "favicon",
   "home_banner",
-  "search_section",
-  "meili_url",
-  "meili_api_key",
-  "index_prefix",
-  "column_break_s",
-  "index_pages",
-  "search_romanised",
-  "max_page_chars",
-  "search_status",
+  "tab_readers",
+  "tab_readers_intro",
+  "access_section",
+  "guest_access",
+  "default_visibility",
+  "column_break_access",
+  "reader_signup",
+  "oai_scope",
+  "access_rules_section",
+  "access_rules",
+  "analytics_section",
+  "analytics_provider",
+  "analytics_host",
+  "column_break_analytics",
+  "analytics_key",
+  "analytics_dashboard",
+  "tab_catalogue",
+  "tab_catalogue_intro",
   "ia_section",
   "ia_contact",
   "ia_delay",
@@ -43,6 +57,67 @@
   "pause_background",
   "held_jobs",
   "hold_page_text",
+  "ia_collections_section",
+  "mirror_all_collections",
+  "mirror_min_books",
+  "column_break_iac",
+  "mirror_skip",
+  "authority_section",
+  "authority_nightly",
+  "authority_auto_accept",
+  "tab_search",
+  "tab_search_intro",
+  "search_section",
+  "meili_url",
+  "meili_api_key",
+  "index_prefix",
+  "column_break_s",
+  "index_pages",
+  "search_romanised",
+  "max_page_chars",
+  "search_status",
+  "tab_sharing",
+  "tab_sharing_intro",
+  "identifiers_section",
+  "ark_enabled",
+  "ark_naan",
+  "column_break_ids",
+  "ark_shoulder",
+  "doi_section",
+  "doi_enabled",
+  "datacite_test",
+  "doi_prefix",
+  "column_break_doi",
+  "datacite_repository",
+  "datacite_password",
+  "doi_shoulder",
+  "ground_truth_section",
+  "ground_truth_licence",
+  "column_break_gt",
+  "ground_truth_attribution",
+  "ground_truth_names",
+  "tab_preservation",
+  "tab_preservation_intro",
+  "preservation_section",
+  "preservation_root",
+  "preserve_books",
+  "preserve_page_images",
+  "column_break_pres",
+  "preservation_budget_gb",
+  "fixity_days",
+  "second_copy_heading",
+  "second_copy",
+  "second_folder",
+  "s3_endpoint",
+  "s3_region",
+  "s3_bucket",
+  "column_break_second",
+  "s3_prefix",
+  "s3_access_key",
+  "s3_secret_key",
+  "serve_from_copy",
+  "tab_server",
+  "tab_server_intro",
   "machine_section",
   "resource_preset",
   "queue_workers",
@@ -66,64 +141,19 @@
   "alert_email",
   "alert_emails",
   "alert_webhook_url",
-  "alert_disk_percent",
-  "identifiers_section",
-  "ark_enabled",
-  "ark_naan",
-  "column_break_ids",
-  "ark_shoulder",
-  "preservation_section",
-  "preservation_root",
-  "preserve_books",
-  "preserve_page_images",
-  "column_break_pres",
-  "preservation_budget_gb",
-  "fixity_days",
-  "second_copy_heading",
-  "second_copy",
-  "second_folder",
-  "s3_endpoint",
-  "s3_region",
-  "s3_bucket",
-  "column_break_second",
-  "s3_prefix",
-  "s3_access_key",
-  "s3_secret_key",
-  "serve_from_copy",
-  "ia_collections_section",
-  "mirror_all_collections",
-  "mirror_min_books",
-  "column_break_iac",
-  "mirror_skip",
-  "ground_truth_section",
-  "ground_truth_licence",
-  "column_break_gt",
-  "ground_truth_attribution",
-  "ground_truth_names",
-  "doi_section",
-  "doi_enabled",
-  "datacite_test",
-  "doi_prefix",
-  "column_break_doi",
-  "datacite_repository",
-  "datacite_password",
-  "doi_shoulder",
-  "analytics_section",
-  "analytics_provider",
-  "analytics_host",
-  "column_break_analytics",
-  "analytics_key",
-  "analytics_dashboard",
-  "access_section",
-  "guest_access",
-  "default_visibility",
-  "column_break_access",
-  "reader_signup",
-  "oai_scope",
-  "access_rules_section",
-  "access_rules"
+  "alert_disk_percent"
  ],
  "fields": [
+  {
+   "fieldname": "tab_library",
+   "fieldtype": "Tab Break",
+   "label": "Library & Portal"
+  },
+  {
+   "fieldname": "tab_library_intro",
+   "fieldtype": "HTML",
+   "options": "<p class=\"text-muted\" style=\"max-width:80ch;margin:4px 0 12px\">For whoever runs the library: its name and look, the languages and order of the portal, and its address. <a href=\"/app/resdesk-help/staff-guide#settings-by-kind-of-library\" style=\"text-decoration:underline\">Settings by kind of library</a></p>"
+  },
   {
    "fieldname": "portal_section",
    "fieldtype": "Section Break",
@@ -234,61 +264,121 @@
    "description": "A wide photo behind the search box on the home page, e.g. a manuscript or library shelf."
   },
   {
-   "fieldname": "search_section",
+   "fieldname": "tab_readers",
+   "fieldtype": "Tab Break",
+   "label": "Readers & Access"
+  },
+  {
+   "fieldname": "tab_readers_intro",
+   "fieldtype": "HTML",
+   "options": "<p class=\"text-muted\" style=\"max-width:80ch;margin:4px 0 12px\">Who can find and read what, how readers sign up, and how the portal's use is counted. <a href=\"/app/resdesk-help/staff-guide#settings-by-kind-of-library\" style=\"text-decoration:underline\">Settings by kind of library</a></p>"
+  },
+  {
+   "fieldname": "access_section",
    "fieldtype": "Section Break",
-   "label": "Search Engine (Meilisearch)"
+   "label": "Access & Sign-up",
+   "collapsible": 0,
+   "description": "Choose what visitors who are not logged in can do, and how people become readers. Logged-in readers and staff can always find and read every published book."
   },
   {
-   "fieldname": "meili_url",
-   "fieldtype": "Data",
-   "label": "Meilisearch URL",
-   "default": "http://meilisearch:7700",
-   "description": "Where the search engine runs. The installer sets this; change it only if you move Meilisearch."
+   "fieldname": "guest_access",
+   "fieldtype": "Select",
+   "label": "Visitors Who Are Not Logged In",
+   "options": "Each item's setting\nRecords only\nLogin required",
+   "default": "Each item's setting",
+   "description": "Each item's setting: follow each book's “Who can see it”. Records only: visitors can search the catalogue and cite, but reading and search inside the text need a login. Login required: the whole portal is for logged-in readers (an internal library)."
   },
   {
-   "fieldname": "meili_api_key",
-   "fieldtype": "Password",
-   "label": "Meilisearch API Key",
-   "description": "The key the installer created for the search engine. Keep it secret."
+   "fieldname": "default_visibility",
+   "fieldtype": "Select",
+   "label": "Default for New Books",
+   "options": "Public\nLogin to read\nLogin to find",
+   "default": "Public",
+   "description": "Used when neither the ingest profile nor a rule below decides."
   },
   {
-   "fieldname": "index_prefix",
-   "fieldtype": "Data",
-   "label": "Index Prefix",
-   "default": "rd",
-   "description": "Lets several sites share one Meilisearch."
-  },
-  {
-   "fieldname": "column_break_s",
+   "fieldname": "column_break_access",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "index_pages",
-   "fieldtype": "Check",
-   "label": "Index Page-Level Full Text",
-   "default": "1",
-   "description": "Enables deep search inside books. Uses more disk."
+   "fieldname": "reader_signup",
+   "fieldtype": "Select",
+   "label": "Reader Accounts",
+   "options": "Admins add readers\nAnyone can sign up\nSign up, admin approves",
+   "default": "Admins add readers",
+   "description": "Admins add readers: no sign-up page; add people in User with the ResDesk Reader role, or ./resdesk.sh add-reader. Anyone can sign up: every account can read. Sign up, admin approves: new accounts wait in Reader Requests."
   },
   {
-   "fieldname": "search_romanised",
-   "fieldtype": "Check",
-   "label": "Find Indic Spellings",
-   "default": "1",
-   "description": "A search typed in Latin letters (<i>vachana</i>, <i>kanakadasa</i>) also finds the words in the scripts of the catalogue's languages (ವಚನ, ಕನಕದಾಸ), using the spellings the catalogue really holds."
+   "fieldname": "oai_scope",
+   "fieldtype": "Select",
+   "label": "OAI-PMH Shares",
+   "options": "Records guests can find\nAll published records\nOff",
+   "default": "Records guests can find",
+   "description": "What harvesters such as Koha receive. “All published records” suits a library system on an internal network."
   },
   {
-   "fieldname": "max_page_chars",
-   "fieldtype": "Int",
-   "label": "Max Characters per Page",
-   "default": "6000",
-   "description": "Longer pages are cut to this length in the index, which keeps it smaller."
+   "fieldname": "access_rules_section",
+   "fieldtype": "Section Break",
+   "label": "Access Rules",
+   "description": "Set visibility of new books by collection, subject, language, author, source or ingest profile. The first matching rule wins; an ingest profile's own “Access for Its Books” comes first. Use “Apply Access Rules” to update books already in the catalogue."
   },
   {
-   "fieldname": "search_status",
-   "fieldtype": "Small Text",
-   "label": "Search Status",
-   "read_only": 1,
-   "description": "Filled in by Test Search Engine: whether it connected and how many books and pages the index holds."
+   "fieldname": "access_rules",
+   "fieldtype": "Table",
+   "label": "Rules",
+   "options": "RD Access Rule",
+   "description": "Give books a visibility by collection, subject, language, creator, source or profile. Press Apply Access Rules to use them on books already in the catalogue."
+  },
+  {
+   "fieldname": "analytics_section",
+   "fieldtype": "Section Break",
+   "label": "Usage Statistics",
+   "collapsible": 1,
+   "description": "How readers use the portal: pages seen, searches, books opened. Only the portal is counted, never the Desk; no cookies and no personal data are sent."
+  },
+  {
+   "fieldname": "analytics_provider",
+   "fieldtype": "Select",
+   "label": "Statistics",
+   "options": "Off\nBuilt-in\nPostHog\nPlausible\nUmami",
+   "default": "Off",
+   "description": "<b>Built-in</b>: counted on this server (Frappe's page views), shown on the Research Desk dashboard; nothing leaves the server. <b>PostHog</b>, <b>Plausible</b> or <b>Umami</b>: sent to that service (cloud or your own), with its own dashboards."
+  },
+  {
+   "fieldname": "analytics_host",
+   "fieldtype": "Data",
+   "label": "Service address",
+   "depends_on": "eval:['PostHog','Plausible','Umami'].includes(doc.analytics_provider)",
+   "description": "PostHog: https://us.i.posthog.com, https://eu.i.posthog.com or your own. Plausible: https://plausible.io or your own. Umami: your Umami server, or https://cloud.umami.is."
+  },
+  {
+   "fieldname": "column_break_analytics",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "analytics_key",
+   "fieldtype": "Data",
+   "label": "Project key or site id",
+   "depends_on": "eval:['PostHog','Plausible','Umami'].includes(doc.analytics_provider)",
+   "description": "PostHog: the project API key (phc_…). Plausible: the site's domain as added there. Umami: the website id."
+  },
+  {
+   "fieldname": "analytics_dashboard",
+   "fieldtype": "Data",
+   "label": "Dashboard link",
+   "options": "URL",
+   "depends_on": "eval:doc.analytics_provider && doc.analytics_provider != 'Off'",
+   "description": "Optional: where staff open the statistics (shown on the Research Desk dashboard)."
+  },
+  {
+   "fieldname": "tab_catalogue",
+   "fieldtype": "Tab Break",
+   "label": "Catalogue"
+  },
+  {
+   "fieldname": "tab_catalogue_intro",
+   "fieldtype": "HTML",
+   "options": "<p class=\"text-muted\" style=\"max-width:80ch;margin:4px 0 12px\">For cataloguers: bringing books in from archive.org, collections kept in step with it, and matching authors and subjects to authorities. <a href=\"/app/resdesk-help/staff-guide#settings-by-kind-of-library\" style=\"text-decoration:underline\">Settings by kind of library</a></p>"
   },
   {
    "fieldname": "ia_section",
@@ -355,6 +445,386 @@
    "default": "0",
    "hidden": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "ia_collections_section",
+   "fieldtype": "Section Break",
+   "label": "Collections from archive.org",
+   "collapsible": 1,
+   "description": "Portal collections that mirror archive.org: made and kept up to date by themselves as books come in, change or leave."
+  },
+  {
+   "fieldname": "mirror_all_collections",
+   "fieldtype": "Check",
+   "label": "A Portal Collection for Every archive.org Collection",
+   "default": "1",
+   "description": "Every archive.org collection your books belong to (such as the Servants of Knowledge sub-collections) gets its own collection page on the portal, named after it, with its description, shown under the collection it belongs to. Off: only the collection of each ingest profile that asks for one."
+  },
+  {
+   "fieldname": "mirror_min_books",
+   "fieldtype": "Int",
+   "label": "Smallest Collection to Show",
+   "default": "1",
+   "non_negative": 1,
+   "depends_on": "mirror_all_collections",
+   "description": "Only make a page for archive.org collections with at least this many of your books."
+  },
+  {
+   "fieldname": "column_break_iac",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mirror_skip",
+   "fieldtype": "Small Text",
+   "label": "Skip These archive.org Collections",
+   "depends_on": "mirror_all_collections",
+   "description": "archive.org collection identifiers that should not get a page, one per line (for example a big general collection most of your books are also in)."
+  },
+  {
+   "fieldname": "authority_section",
+   "fieldtype": "Section Break",
+   "label": "Authorities"
+  },
+  {
+   "fieldname": "authority_nightly",
+   "fieldtype": "Check",
+   "label": "Find Authority Matches Nightly",
+   "default": "0",
+   "description": "Each night, look up 300 more authors on Wikidata and 300 subjects in the Library of Congress Subject Headings, and propose matches on Desk → Authorities (the names with most books first)."
+  },
+  {
+   "fieldname": "authority_auto_accept",
+   "fieldtype": "Check",
+   "label": "Accept Near-Certain Matches",
+   "default": "0",
+   "description": "Accept a match without a person when it is near-certain: one person on Wikidata with the same name, dates that fit the books, and no other candidate close. Everything else waits for a cataloguer."
+  },
+  {
+   "fieldname": "tab_search",
+   "fieldtype": "Tab Break",
+   "label": "Search"
+  },
+  {
+   "fieldname": "tab_search_intro",
+   "fieldtype": "HTML",
+   "options": "<p class=\"text-muted\" style=\"max-width:80ch;margin:4px 0 12px\">The search engine: where it runs, what is indexed, and search in Latin letters for Indian scripts. <a href=\"/app/resdesk-help/staff-guide#settings-by-kind-of-library\" style=\"text-decoration:underline\">Settings by kind of library</a></p>"
+  },
+  {
+   "fieldname": "search_section",
+   "fieldtype": "Section Break",
+   "label": "Search Engine (Meilisearch)"
+  },
+  {
+   "fieldname": "meili_url",
+   "fieldtype": "Data",
+   "label": "Meilisearch URL",
+   "default": "http://meilisearch:7700",
+   "description": "Where the search engine runs. The installer sets this; change it only if you move Meilisearch."
+  },
+  {
+   "fieldname": "meili_api_key",
+   "fieldtype": "Password",
+   "label": "Meilisearch API Key",
+   "description": "The key the installer created for the search engine. Keep it secret."
+  },
+  {
+   "fieldname": "index_prefix",
+   "fieldtype": "Data",
+   "label": "Index Prefix",
+   "default": "rd",
+   "description": "Lets several sites share one Meilisearch."
+  },
+  {
+   "fieldname": "column_break_s",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "index_pages",
+   "fieldtype": "Check",
+   "label": "Index Page-Level Full Text",
+   "default": "1",
+   "description": "Enables deep search inside books. Uses more disk."
+  },
+  {
+   "fieldname": "search_romanised",
+   "fieldtype": "Check",
+   "label": "Find Indic Spellings",
+   "default": "1",
+   "description": "A search typed in Latin letters (<i>vachana</i>, <i>kanakadasa</i>) also finds the words in the scripts of the catalogue's languages (ವಚನ, ಕನಕದಾಸ), using the spellings the catalogue really holds."
+  },
+  {
+   "fieldname": "max_page_chars",
+   "fieldtype": "Int",
+   "label": "Max Characters per Page",
+   "default": "6000",
+   "description": "Longer pages are cut to this length in the index, which keeps it smaller."
+  },
+  {
+   "fieldname": "search_status",
+   "fieldtype": "Small Text",
+   "label": "Search Status",
+   "read_only": 1,
+   "description": "Filled in by Test Search Engine: whether it connected and how many books and pages the index holds."
+  },
+  {
+   "fieldname": "tab_sharing",
+   "fieldtype": "Tab Break",
+   "label": "Sharing & Identifiers"
+  },
+  {
+   "fieldname": "tab_sharing_intro",
+   "fieldtype": "HTML",
+   "options": "<p class=\"text-muted\" style=\"max-width:80ch;margin:4px 0 12px\">For partners and researchers: permanent ARKs, DOIs from DataCite, and the corrected pages shared as OCR ground truth. <a href=\"/app/resdesk-help/staff-guide#settings-by-kind-of-library\" style=\"text-decoration:underline\">Settings by kind of library</a></p>"
+  },
+  {
+   "fieldname": "identifiers_section",
+   "fieldtype": "Section Break",
+   "label": "Persistent Identifiers"
+  },
+  {
+   "fieldname": "ark_enabled",
+   "fieldtype": "Check",
+   "label": "Give Books ARKs",
+   "default": "0",
+   "description": "Switch on when the ARK Alliance has given the library its NAAN (free: arks.org → Request a NAAN). Every book then gets a permanent ARK (the ones already here in the background), shown as Permanent link and used in citations, exports and OAI-PMH; the portal answers <portal>/ark:/… itself. Once on, the NAAN and shoulder can't be changed."
+  },
+  {
+   "fieldname": "ark_naan",
+   "fieldtype": "Data",
+   "label": "ARK NAAN",
+   "description": "The number the ARK Alliance gave this library (five or more digits). Needed before Give Books ARKs can be switched on; 99999, the Alliance's test number, is not accepted."
+  },
+  {
+   "fieldname": "column_break_ids",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ark_shoulder",
+   "fieldtype": "Data",
+   "label": "ARK Shoulder",
+   "default": "b1",
+   "description": "The prefix of the books' ARK names: letters then one digit (b1 for books). Fixed once ARKs are switched on."
+  },
+  {
+   "fieldname": "doi_section",
+   "fieldtype": "Section Break",
+   "label": "DOIs (DataCite)",
+   "collapsible": 1,
+   "description": "For libraries that are DataCite members (directly or through a consortium): the books of collections marked <b>Give DOIs</b> get a DOI pointing at their page on the portal."
+  },
+  {
+   "fieldname": "doi_enabled",
+   "fieldtype": "Check",
+   "label": "Give DOIs",
+   "default": "0",
+   "description": "Register DOIs for the books of collections marked Give DOIs, every night and from a collection's form."
+  },
+  {
+   "fieldname": "datacite_test",
+   "fieldtype": "Check",
+   "label": "DataCite Test System",
+   "default": "1",
+   "description": "Use DataCite's test system (api.test.datacite.org) while trying this out: its DOIs never resolve and never show in citations. Untick once the library's production account is ready."
+  },
+  {
+   "fieldname": "doi_prefix",
+   "fieldtype": "Data",
+   "label": "DOI Prefix",
+   "description": "The prefix DataCite gave the library, e.g. <i>10.12345</i>."
+  },
+  {
+   "fieldname": "column_break_doi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "datacite_repository",
+   "fieldtype": "Data",
+   "label": "DataCite Repository ID",
+   "description": "The repository's ID in DataCite Fabrica, e.g. <i>SOK.LIBRARY</i>."
+  },
+  {
+   "fieldname": "datacite_password",
+   "fieldtype": "Password",
+   "label": "DataCite Repository Password",
+   "description": "The repository's password in DataCite Fabrica. Kept encrypted."
+  },
+  {
+   "fieldname": "doi_shoulder",
+   "fieldtype": "Data",
+   "label": "DOI Shoulder",
+   "default": "rd.",
+   "description": "Put before each book's identifier in its DOI: 10.12345/<b>rd.</b>kanakadasa1950. Never change it once DOIs are given."
+  },
+  {
+   "fieldname": "ground_truth_section",
+   "fieldtype": "Section Break",
+   "label": "Ground Truth",
+   "collapsible": 1,
+   "description": "Proofread pages with their images, shared as an open set for training and testing OCR (Ground Truth in the Desk)."
+  },
+  {
+   "fieldname": "ground_truth_licence",
+   "fieldtype": "Select",
+   "label": "Licence for Ground Truth",
+   "options": "\nCC0-1.0\nCC-BY-4.0\nCC-BY-SA-4.0",
+   "description": "Under which licence the library shares its corrected texts. Until one is chosen, sets are made for the library's own use only and none can be put on the portal. CC0: no conditions; CC-BY: credit; CC-BY-SA: credit and share alike."
+  },
+  {
+   "fieldname": "column_break_gt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ground_truth_attribution",
+   "fieldtype": "Data",
+   "label": "Credit Line",
+   "description": "How reusers should credit the set, e.g. <i>Servants of Knowledge and its volunteer proofreaders</i>."
+  },
+  {
+   "fieldname": "ground_truth_names",
+   "fieldtype": "Check",
+   "label": "Name the Proofreaders",
+   "default": "0",
+   "description": "Put each page's proofreader and validator (their full names, never their emails) in the set's manifest. Ask them first."
+  },
+  {
+   "fieldname": "tab_preservation",
+   "fieldtype": "Tab Break",
+   "label": "Preservation"
+  },
+  {
+   "fieldname": "tab_preservation_intro",
+   "fieldtype": "HTML",
+   "options": "<p class=\"text-muted\" style=\"max-width:80ch;margin:4px 0 12px\">For archivists: the library's own checked copies of the books, and a second copy elsewhere. <a href=\"/app/resdesk-help/staff-guide#settings-by-kind-of-library\" style=\"text-decoration:underline\">Settings by kind of library</a></p>"
+  },
+  {
+   "fieldname": "preservation_section",
+   "fieldtype": "Section Break",
+   "label": "Preservation"
+  },
+  {
+   "fieldname": "preservation_root",
+   "fieldtype": "Data",
+   "label": "Preservation Folder",
+   "description": "Where the library's own copies of its books are kept (a disk or NAS folder the server can write to, e.g. /preservation in Docker). Empty: no copies are kept. Each book is stored as an OCFL object: plain files and a checksum inventory any future system can read."
+  },
+  {
+   "fieldname": "preserve_books",
+   "fieldtype": "Select",
+   "label": "Preserve",
+   "options": "Off\nBooks in collections marked Preserve\nEvery book",
+   "default": "Off",
+   "description": "Which books get a copy. Copies are made a few hundred a night (Background Jobs shows them); a book ingested again gets a new version only if a file changed."
+  },
+  {
+   "fieldname": "preserve_page_images",
+   "fieldtype": "Check",
+   "label": "Include Page Images",
+   "default": "0",
+   "description": "Also keep the original scans from archive.org, not only the PDF, OCR and metadata. Much larger (often 10-50 times), but the copy is then complete enough to make new OCR from."
+  },
+  {
+   "fieldname": "column_break_pres",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "preservation_budget_gb",
+   "fieldtype": "Int",
+   "label": "Space for Copies (GB)",
+   "non_negative": 1,
+   "description": "The most the copies may take. 0: as much as the disk allows (the last 5% of the disk is never used)."
+  },
+  {
+   "fieldname": "fixity_days",
+   "fieldtype": "Int",
+   "label": "Check Every (days)",
+   "default": "30",
+   "non_negative": 1,
+   "description": "Every copy is checked against its checksums at least this often: each night a share of them is checked. A copy that fails is marked and alerts on the Server page."
+  },
+  {
+   "fieldname": "second_copy_heading",
+   "fieldtype": "Section Break",
+   "label": "Second Copy",
+   "collapsible": 0,
+   "description": "A second copy of every preserved book, somewhere else: another disk, a NAS, a partner's storage mounted on this server, or an S3-compatible bucket. Each copy is checked on the same schedule; when one fails its check and the other is good, the bad one is rebuilt from the good one."
+  },
+  {
+   "fieldname": "second_copy",
+   "fieldtype": "Select",
+   "label": "Second Copy",
+   "options": "Off\nFolder\nS3-compatible",
+   "default": "Off",
+   "description": "<b>Folder</b>: another disk, a NAS or a partner's storage mounted on this server. <b>S3-compatible</b>: a bucket on Amazon S3, Wasabi, Backblaze B2, MinIO or similar."
+  },
+  {
+   "fieldname": "second_folder",
+   "fieldtype": "Data",
+   "label": "Second Copy Folder",
+   "depends_on": "eval:doc.second_copy=='Folder'",
+   "description": "On another disk or a mounted share, not inside the first copy's folder, e.g. <code>/mnt/nas/sok-copies</code>."
+  },
+  {
+   "fieldname": "s3_endpoint",
+   "fieldtype": "Data",
+   "label": "S3 Endpoint",
+   "depends_on": "eval:doc.second_copy=='S3-compatible'",
+   "description": "The service's address, e.g. <code>https://s3.eu-central-1.wasabisys.com</code>, <code>https://s3.us-west-004.backblazeb2.com</code> or a partner's MinIO. Empty for Amazon S3."
+  },
+  {
+   "fieldname": "s3_region",
+   "fieldtype": "Data",
+   "label": "S3 Region",
+   "depends_on": "eval:doc.second_copy=='S3-compatible'",
+   "description": "The bucket's region, e.g. <code>eu-central-1</code> (some services need it, others ignore it)."
+  },
+  {
+   "fieldname": "s3_bucket",
+   "fieldtype": "Data",
+   "label": "S3 Bucket",
+   "depends_on": "eval:doc.second_copy=='S3-compatible'",
+   "description": "The bucket's name; make it first, on the service, and keep it private."
+  },
+  {
+   "fieldname": "column_break_second",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "s3_prefix",
+   "fieldtype": "Data",
+   "label": "Folder in the Bucket",
+   "depends_on": "eval:doc.second_copy=='S3-compatible'",
+   "description": "Optional, e.g. <code>sok-library</code>."
+  },
+  {
+   "fieldname": "s3_access_key",
+   "fieldtype": "Data",
+   "label": "S3 Access Key",
+   "depends_on": "eval:doc.second_copy=='S3-compatible'",
+   "description": "A key with read, write, list and delete rights on this bucket only."
+  },
+  {
+   "fieldname": "s3_secret_key",
+   "fieldtype": "Password",
+   "label": "S3 Secret Key",
+   "depends_on": "eval:doc.second_copy=='S3-compatible'",
+   "description": "Stored encrypted; never shown again after saving."
+  },
+  {
+   "fieldname": "serve_from_copy",
+   "fieldtype": "Check",
+   "label": "Keep Dropped Books on the Portal",
+   "default": "0",
+   "description": "When archive.org stops serving a book we hold a copy of, keep it on the portal and serve its PDF from our copy instead of taking it down. archive.org often darkens books for rights reasons: leave this off to decide book by book (book form → <b>Serve From Our Copy</b>)."
+  },
+  {
+   "fieldname": "tab_server",
+   "fieldtype": "Tab Break",
+   "label": "Server"
+  },
+  {
+   "fieldname": "tab_server_intro",
+   "fieldtype": "HTML",
+   "options": "<p class=\"text-muted\" style=\"max-width:80ch;margin:4px 0 12px\">For whoever runs the machine: workers and other resources, quiet hours, updates, backups and alerts. <a href=\"/app/resdesk-help/staff-guide#settings-by-kind-of-library\" style=\"text-decoration:underline\">Settings by kind of library</a></p>"
   },
   {
    "fieldname": "machine_section",
@@ -521,386 +991,6 @@
    "default": "90",
    "non_negative": 1,
    "description": "Warn when the disk holding Research Desk's data is this full."
-  },
-  {
-   "fieldname": "identifiers_section",
-   "fieldtype": "Section Break",
-   "label": "Persistent Identifiers"
-  },
-  {
-   "fieldname": "ark_enabled",
-   "fieldtype": "Check",
-   "label": "Give Books ARKs",
-   "default": "0",
-   "description": "Switch on when the ARK Alliance has given the library its NAAN (free: arks.org → Request a NAAN). Every book then gets a permanent ARK (the ones already here in the background), shown as Permanent link and used in citations, exports and OAI-PMH; the portal answers <portal>/ark:/… itself. Once on, the NAAN and shoulder can't be changed."
-  },
-  {
-   "fieldname": "ark_naan",
-   "fieldtype": "Data",
-   "label": "ARK NAAN",
-   "description": "The number the ARK Alliance gave this library (five or more digits). Needed before Give Books ARKs can be switched on; 99999, the Alliance's test number, is not accepted."
-  },
-  {
-   "fieldname": "column_break_ids",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "ark_shoulder",
-   "fieldtype": "Data",
-   "label": "ARK Shoulder",
-   "default": "b1",
-   "description": "The prefix of the books' ARK names: letters then one digit (b1 for books). Fixed once ARKs are switched on."
-  },
-  {
-   "fieldname": "preservation_section",
-   "fieldtype": "Section Break",
-   "label": "Preservation"
-  },
-  {
-   "fieldname": "preservation_root",
-   "fieldtype": "Data",
-   "label": "Preservation Folder",
-   "description": "Where the library's own copies of its books are kept (a disk or NAS folder the server can write to, e.g. /preservation in Docker). Empty: no copies are kept. Each book is stored as an OCFL object: plain files and a checksum inventory any future system can read."
-  },
-  {
-   "fieldname": "preserve_books",
-   "fieldtype": "Select",
-   "label": "Preserve",
-   "options": "Off\nBooks in collections marked Preserve\nEvery book",
-   "default": "Off",
-   "description": "Which books get a copy. Copies are made a few hundred a night (Background Jobs shows them); a book ingested again gets a new version only if a file changed."
-  },
-  {
-   "fieldname": "preserve_page_images",
-   "fieldtype": "Check",
-   "label": "Include Page Images",
-   "default": "0",
-   "description": "Also keep the original scans from archive.org, not only the PDF, OCR and metadata. Much larger (often 10-50 times), but the copy is then complete enough to make new OCR from."
-  },
-  {
-   "fieldname": "column_break_pres",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "preservation_budget_gb",
-   "fieldtype": "Int",
-   "label": "Space for Copies (GB)",
-   "non_negative": 1,
-   "description": "The most the copies may take. 0: as much as the disk allows (the last 5% of the disk is never used)."
-  },
-  {
-   "fieldname": "fixity_days",
-   "fieldtype": "Int",
-   "label": "Check Every (days)",
-   "default": "30",
-   "non_negative": 1,
-   "description": "Every copy is checked against its checksums at least this often: each night a share of them is checked. A copy that fails is marked and alerts on the Server page."
-  },
-  {
-   "fieldname": "second_copy_heading",
-   "fieldtype": "Section Break",
-   "label": "Second Copy",
-   "collapsible": 0,
-   "description": "A second copy of every preserved book, somewhere else: another disk, a NAS, a partner's storage mounted on this server, or an S3-compatible bucket. Each copy is checked on the same schedule; when one fails its check and the other is good, the bad one is rebuilt from the good one."
-  },
-  {
-   "fieldname": "second_copy",
-   "fieldtype": "Select",
-   "label": "Second Copy",
-   "options": "Off\nFolder\nS3-compatible",
-   "default": "Off",
-   "description": "<b>Folder</b>: another disk, a NAS or a partner's storage mounted on this server. <b>S3-compatible</b>: a bucket on Amazon S3, Wasabi, Backblaze B2, MinIO or similar."
-  },
-  {
-   "fieldname": "second_folder",
-   "fieldtype": "Data",
-   "label": "Second Copy Folder",
-   "depends_on": "eval:doc.second_copy=='Folder'",
-   "description": "On another disk or a mounted share, not inside the first copy's folder, e.g. <code>/mnt/nas/sok-copies</code>."
-  },
-  {
-   "fieldname": "s3_endpoint",
-   "fieldtype": "Data",
-   "label": "S3 Endpoint",
-   "depends_on": "eval:doc.second_copy=='S3-compatible'",
-   "description": "The service's address, e.g. <code>https://s3.eu-central-1.wasabisys.com</code>, <code>https://s3.us-west-004.backblazeb2.com</code> or a partner's MinIO. Empty for Amazon S3."
-  },
-  {
-   "fieldname": "s3_region",
-   "fieldtype": "Data",
-   "label": "S3 Region",
-   "depends_on": "eval:doc.second_copy=='S3-compatible'",
-   "description": "The bucket's region, e.g. <code>eu-central-1</code> (some services need it, others ignore it)."
-  },
-  {
-   "fieldname": "s3_bucket",
-   "fieldtype": "Data",
-   "label": "S3 Bucket",
-   "depends_on": "eval:doc.second_copy=='S3-compatible'",
-   "description": "The bucket's name; make it first, on the service, and keep it private."
-  },
-  {
-   "fieldname": "column_break_second",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "s3_prefix",
-   "fieldtype": "Data",
-   "label": "Folder in the Bucket",
-   "depends_on": "eval:doc.second_copy=='S3-compatible'",
-   "description": "Optional, e.g. <code>sok-library</code>."
-  },
-  {
-   "fieldname": "s3_access_key",
-   "fieldtype": "Data",
-   "label": "S3 Access Key",
-   "depends_on": "eval:doc.second_copy=='S3-compatible'",
-   "description": "A key with read, write, list and delete rights on this bucket only."
-  },
-  {
-   "fieldname": "s3_secret_key",
-   "fieldtype": "Password",
-   "label": "S3 Secret Key",
-   "depends_on": "eval:doc.second_copy=='S3-compatible'",
-   "description": "Stored encrypted; never shown again after saving."
-  },
-  {
-   "fieldname": "serve_from_copy",
-   "fieldtype": "Check",
-   "label": "Keep Dropped Books on the Portal",
-   "default": "0",
-   "description": "When archive.org stops serving a book we hold a copy of, keep it on the portal and serve its PDF from our copy instead of taking it down. archive.org often darkens books for rights reasons: leave this off to decide book by book (book form → <b>Serve From Our Copy</b>)."
-  },
-  {
-   "fieldname": "ia_collections_section",
-   "fieldtype": "Section Break",
-   "label": "Collections from archive.org",
-   "collapsible": 1,
-   "description": "Portal collections that mirror archive.org: made and kept up to date by themselves as books come in, change or leave."
-  },
-  {
-   "fieldname": "mirror_all_collections",
-   "fieldtype": "Check",
-   "label": "A Portal Collection for Every archive.org Collection",
-   "default": "1",
-   "description": "Every archive.org collection your books belong to (such as the Servants of Knowledge sub-collections) gets its own collection page on the portal, named after it, with its description, shown under the collection it belongs to. Off: only the collection of each ingest profile that asks for one."
-  },
-  {
-   "fieldname": "mirror_min_books",
-   "fieldtype": "Int",
-   "label": "Smallest Collection to Show",
-   "default": "1",
-   "non_negative": 1,
-   "depends_on": "mirror_all_collections",
-   "description": "Only make a page for archive.org collections with at least this many of your books."
-  },
-  {
-   "fieldname": "column_break_iac",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "mirror_skip",
-   "fieldtype": "Small Text",
-   "label": "Skip These archive.org Collections",
-   "depends_on": "mirror_all_collections",
-   "description": "archive.org collection identifiers that should not get a page, one per line (for example a big general collection most of your books are also in)."
-  },
-  {
-   "fieldname": "ground_truth_section",
-   "fieldtype": "Section Break",
-   "label": "Ground Truth",
-   "collapsible": 1,
-   "description": "Proofread pages with their images, shared as an open set for training and testing OCR (Ground Truth in the Desk)."
-  },
-  {
-   "fieldname": "ground_truth_licence",
-   "fieldtype": "Select",
-   "label": "Licence for Ground Truth",
-   "options": "\nCC0-1.0\nCC-BY-4.0\nCC-BY-SA-4.0",
-   "description": "Under which licence the library shares its corrected texts. Until one is chosen, sets are made for the library's own use only and none can be put on the portal. CC0: no conditions; CC-BY: credit; CC-BY-SA: credit and share alike."
-  },
-  {
-   "fieldname": "column_break_gt",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "ground_truth_attribution",
-   "fieldtype": "Data",
-   "label": "Credit Line",
-   "description": "How reusers should credit the set, e.g. <i>Servants of Knowledge and its volunteer proofreaders</i>."
-  },
-  {
-   "fieldname": "ground_truth_names",
-   "fieldtype": "Check",
-   "label": "Name the Proofreaders",
-   "default": "0",
-   "description": "Put each page's proofreader and validator (their full names, never their emails) in the set's manifest. Ask them first."
-  },
-  {
-   "fieldname": "authority_section",
-   "fieldtype": "Section Break",
-   "label": "Authorities"
-  },
-  {
-   "fieldname": "authority_nightly",
-   "fieldtype": "Check",
-   "label": "Find Authority Matches Nightly",
-   "default": "0",
-   "description": "Each night, look up 300 more authors on Wikidata and 300 subjects in the Library of Congress Subject Headings, and propose matches on Desk → Authorities (the names with most books first)."
-  },
-  {
-   "fieldname": "authority_auto_accept",
-   "fieldtype": "Check",
-   "label": "Accept Near-Certain Matches",
-   "default": "0",
-   "description": "Accept a match without a person when it is near-certain: one person on Wikidata with the same name, dates that fit the books, and no other candidate close. Everything else waits for a cataloguer."
-  },
-  {
-   "fieldname": "doi_section",
-   "fieldtype": "Section Break",
-   "label": "DOIs (DataCite)",
-   "collapsible": 1,
-   "description": "For libraries that are DataCite members (directly or through a consortium): the books of collections marked <b>Give DOIs</b> get a DOI pointing at their page on the portal."
-  },
-  {
-   "fieldname": "doi_enabled",
-   "fieldtype": "Check",
-   "label": "Give DOIs",
-   "default": "0",
-   "description": "Register DOIs for the books of collections marked Give DOIs, every night and from a collection's form."
-  },
-  {
-   "fieldname": "datacite_test",
-   "fieldtype": "Check",
-   "label": "DataCite Test System",
-   "default": "1",
-   "description": "Use DataCite's test system (api.test.datacite.org) while trying this out: its DOIs never resolve and never show in citations. Untick once the library's production account is ready."
-  },
-  {
-   "fieldname": "doi_prefix",
-   "fieldtype": "Data",
-   "label": "DOI Prefix",
-   "description": "The prefix DataCite gave the library, e.g. <i>10.12345</i>."
-  },
-  {
-   "fieldname": "column_break_doi",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "datacite_repository",
-   "fieldtype": "Data",
-   "label": "DataCite Repository ID",
-   "description": "The repository's ID in DataCite Fabrica, e.g. <i>SOK.LIBRARY</i>."
-  },
-  {
-   "fieldname": "datacite_password",
-   "fieldtype": "Password",
-   "label": "DataCite Repository Password",
-   "description": "The repository's password in DataCite Fabrica. Kept encrypted."
-  },
-  {
-   "fieldname": "doi_shoulder",
-   "fieldtype": "Data",
-   "label": "DOI Shoulder",
-   "default": "rd.",
-   "description": "Put before each book's identifier in its DOI: 10.12345/<b>rd.</b>kanakadasa1950. Never change it once DOIs are given."
-  },
-  {
-   "fieldname": "analytics_section",
-   "fieldtype": "Section Break",
-   "label": "Usage Statistics",
-   "collapsible": 1,
-   "description": "How readers use the portal: pages seen, searches, books opened. Only the portal is counted, never the Desk; no cookies and no personal data are sent."
-  },
-  {
-   "fieldname": "analytics_provider",
-   "fieldtype": "Select",
-   "label": "Statistics",
-   "options": "Off\nBuilt-in\nPostHog\nPlausible\nUmami",
-   "default": "Off",
-   "description": "<b>Built-in</b>: counted on this server (Frappe's page views), shown on the Research Desk dashboard; nothing leaves the server. <b>PostHog</b>, <b>Plausible</b> or <b>Umami</b>: sent to that service (cloud or your own), with its own dashboards."
-  },
-  {
-   "fieldname": "analytics_host",
-   "fieldtype": "Data",
-   "label": "Service address",
-   "depends_on": "eval:['PostHog','Plausible','Umami'].includes(doc.analytics_provider)",
-   "description": "PostHog: https://us.i.posthog.com, https://eu.i.posthog.com or your own. Plausible: https://plausible.io or your own. Umami: your Umami server, or https://cloud.umami.is."
-  },
-  {
-   "fieldname": "column_break_analytics",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "analytics_key",
-   "fieldtype": "Data",
-   "label": "Project key or site id",
-   "depends_on": "eval:['PostHog','Plausible','Umami'].includes(doc.analytics_provider)",
-   "description": "PostHog: the project API key (phc_…). Plausible: the site's domain as added there. Umami: the website id."
-  },
-  {
-   "fieldname": "analytics_dashboard",
-   "fieldtype": "Data",
-   "label": "Dashboard link",
-   "options": "URL",
-   "depends_on": "eval:doc.analytics_provider && doc.analytics_provider != 'Off'",
-   "description": "Optional: where staff open the statistics (shown on the Research Desk dashboard)."
-  },
-  {
-   "fieldname": "access_section",
-   "fieldtype": "Section Break",
-   "label": "Access & Sign-up",
-   "collapsible": 0,
-   "description": "Choose what visitors who are not logged in can do, and how people become readers. Logged-in readers and staff can always find and read every published book."
-  },
-  {
-   "fieldname": "guest_access",
-   "fieldtype": "Select",
-   "label": "Visitors Who Are Not Logged In",
-   "options": "Each item's setting\nRecords only\nLogin required",
-   "default": "Each item's setting",
-   "description": "Each item's setting: follow each book's “Who can see it”. Records only: visitors can search the catalogue and cite, but reading and search inside the text need a login. Login required: the whole portal is for logged-in readers (an internal library)."
-  },
-  {
-   "fieldname": "default_visibility",
-   "fieldtype": "Select",
-   "label": "Default for New Books",
-   "options": "Public\nLogin to read\nLogin to find",
-   "default": "Public",
-   "description": "Used when neither the ingest profile nor a rule below decides."
-  },
-  {
-   "fieldname": "column_break_access",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "reader_signup",
-   "fieldtype": "Select",
-   "label": "Reader Accounts",
-   "options": "Admins add readers\nAnyone can sign up\nSign up, admin approves",
-   "default": "Admins add readers",
-   "description": "Admins add readers: no sign-up page; add people in User with the ResDesk Reader role, or ./resdesk.sh add-reader. Anyone can sign up: every account can read. Sign up, admin approves: new accounts wait in Reader Requests."
-  },
-  {
-   "fieldname": "oai_scope",
-   "fieldtype": "Select",
-   "label": "OAI-PMH Shares",
-   "options": "Records guests can find\nAll published records\nOff",
-   "default": "Records guests can find",
-   "description": "What harvesters such as Koha receive. “All published records” suits a library system on an internal network."
-  },
-  {
-   "fieldname": "access_rules_section",
-   "fieldtype": "Section Break",
-   "label": "Access Rules",
-   "description": "Set visibility of new books by collection, subject, language, author, source or ingest profile. The first matching rule wins; an ingest profile's own “Access for Its Books” comes first. Use “Apply Access Rules” to update books already in the catalogue."
-  },
-  {
-   "fieldname": "access_rules",
-   "fieldtype": "Table",
-   "label": "Rules",
-   "options": "RD Access Rule",
-   "description": "Give books a visibility by collection, subject, language, creator, source or profile. Press Apply Access Rules to use them on books already in the catalogue."
   }
  ],
  "links": [],

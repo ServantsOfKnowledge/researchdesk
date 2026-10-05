@@ -172,21 +172,56 @@ See [Collections, metadata & pushing](collections-and-metadata.md) and [Koha](ko
 
 ## Settings
 
-**Settings** (RD Settings) holds everything that applies to the whole library:
+**Settings** (RD Settings) holds everything that applies to the whole library, in tabs by who
+looks after it:
 
-| Section | What you set there |
-|---|---|
-| Portal | the library's name, tagline, public web address, OAI identifier and admin email |
-| Logo & Branding | logo (portal, login page, Desk), a square icon (browser tab and the Desk's Research Desk icon) and a picture for the home page |
-| Search Engine | the Meilisearch address and whether page text is indexed; **Rebuild Search Index** |
-| Internet Archive | contact sent with requests, delay between requests, books per batch, page-text cache, pausing schedules |
-| Machine Resources | the resource preset (light, standard, server), the book limit (how many books this machine may hold), and quiet hours that pause background work at set times ([more](operations.md#resources-how-much-of-the-machine-research-desk-may-use)) |
-| Server & Updates | update checks, automatic backups, where alerts go, and whether upgrades may be started from the Desk ([more](server.md)) |
-| Access & Sign-up | what visitors can do, the default for new books, reader accounts, what OAI-PMH shares, access rules |
+| Tab | For | What you set there |
+|---|---|---|
+| Library & Portal | whoever runs the library | the name, tagline, public web address, OAI identifier and admin email; the portal's languages, the order books are listed in; logo, icon and home-page picture |
+| Readers & Access | the library's managers | what visitors can do, the default for new books, reader accounts, what OAI-PMH shares, access rules; usage statistics |
+| Catalogue | cataloguers | archive.org (contact, pace, batches, pausing), collections kept in step with archive.org, matching authors and subjects to authorities |
+| Search | whoever runs the machine | the search engine's address, whether page text is indexed, search in Latin letters; **Rebuild Search Index** |
+| Sharing & Identifiers | partners and researchers | permanent ARKs, DOIs from DataCite, corrected pages shared as OCR ground truth |
+| Preservation | archivists | the library's own checked copies, and a second copy in another folder or bucket |
+| Server | whoever runs the machine | workers and other resources, the book limit, quiet hours, updates, backups and alerts ([more](server.md)) |
 
 ![Settings](../sok_resdesk/public/images/guide/desk-settings.png)
 
-Take the tour on the Settings form for the fields most libraries change first.
+Take the tour on the Settings form for the fields most libraries change first. Every setting
+is described in [Operations → Changing settings](operations.md#changing-settings).
+
+### Settings by kind of library
+
+Most libraries change only a few settings. Start from the row closest to yours:
+
+| Kind of library | Look at first |
+|---|---|
+| **A small library on a laptop or desktop** | *Library & Portal*: name, logo, languages. *Server*: the **light** preset and quiet hours, so the machine stays usable. Leave *Preservation* and *Sharing* off until needed |
+| **A public research portal** (like Servants of Knowledge) | *Library & Portal*: portal languages, **Default Order**. *Search*: search in Latin letters. *Catalogue*: **Find Authority Matches Nightly**. *Sharing*: ARKs (once the NAAN is assigned), DOIs for chosen collections. *Readers & Access*: usage statistics |
+| **A members-only or institutional collection** | *Readers & Access*: what visitors can do (records only, or nothing), **sign-up with approval**, access rules for collections or languages, what OAI-PMH shares |
+| **An archive keeping its own copies** | *Preservation*: keep books (and page images), fixity checks, a **second copy** (S3 or another disk), serve from our copy when archive.org drops a book. *Sharing*: ARKs |
+| **A language-technology partner** (OCR, Indic NLP) | *Sharing*: the ground-truth licence and attribution. *Catalogue*: authorities. The [review queue](#the-review-queue) and [proofreading](#proofreading-and-re-ocr) for better text |
+
+## The review queue
+
+**Review Queue** (Research Desk → Catalogue, or `/app/resdesk-review`) lists the books whose
+records need a person's eye, the most important questions first:
+
+| Question | What it means |
+|---|---|
+| Year looks wrong · Language doesn't match the title's script · Title looks wrong · Possible duplicate | most likely wrong: a year before printing or in the future; a Kannada-script title catalogued as English; a title that is the identifier, a file name or all capitals; the same title, first author and year as another book |
+| No year · Language unknown · Author looks wrong | missing or doubtful (*Unknown*, *Anon.*, a number) |
+| No author · No subjects | worth filling in when you can |
+
+Each night every published book is checked again (**Scan now** checks at once). For each book:
+
+- correct the **title**, **year** or **language** right on the page and **Save** (kept through
+  re-ingest, as edits on the book's form are), or open the book for anything else;
+- **This is right** answers the question for good (a book that really has no author);
+- for a possible duplicate, **Hide this copy** takes it off the portal (it stays in the Desk), or
+  **Not a duplicate** keeps both.
+
+A corrected record leaves the queue as soon as it is saved, wherever it was corrected.
 
 ## The About page
 

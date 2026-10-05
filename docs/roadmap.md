@@ -53,7 +53,7 @@
 - [x] Big ingests that don't stall or do work twice; failed books retried by themselves
 - [x] Worker priority from the Desk; the portal's book count kept up with the catalogue
 
-## v0.20 – v0.36: a research library (done)
+## v0.20 – v0.37: a research library (done)
 
 - [x] Permanent links: ARKs for every book and page (switched on once the NAAN is assigned), tombstones
 - [x] Preservation: OCFL copies with SHA-256 fixity checks and PREMIS-style events; a second copy
@@ -94,6 +94,10 @@
 - [x] Authority control: authors matched to Wikidata and VIAF, subjects to LCSH, on Desk →
       Authorities; the identifiers in MARC, JSON-LD and DOIs; a page for each person with their
       books (Sears has no open service to match against)
+- [x] A cataloguer's review queue (no year or an impossible one, no language or one that doesn't
+      match the title's script, authors and titles that look wrong, possible duplicates), with
+      quick corrections kept through re-ingest; Settings in tabs by who looks after them, with
+      a guide by kind of library
 
 ## Next
 
@@ -103,7 +107,9 @@
       52(1)(zb)
 - [ ] Machine drafts for Portal Translations (e.g. IndicTrans2 or a translation service), checked
       by a person before they show
-- [ ] Cataloguer review queue for flagged records (no year, unknown language, duplicate titles)
+- [ ] **Giving back to the authorities** (v0.38): Wikidata book items with their authors linked
+      (P50), people's names in the books' languages added to Wikidata, as QuickStatements to
+      review or sent directly; subjects LCSH lacks, gathered for SACO proposals
 - [ ] More sources: Wikisource, DSpace/OAI-PMH repositories, bare PDFs with no OCR (OCR on ingest)
 - [ ] Offline collections (Kiwix packages) for schools and places with poor connections
 

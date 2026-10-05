@@ -34,7 +34,9 @@ def settings_block() -> str:
 	d = json.loads(SETTINGS_JSON.read_text())
 	out = []
 	for f in d["fields"]:
-		if f["fieldtype"] == "Section Break":
+		if f["fieldtype"] == "Tab Break":
+			out += ["", f"### {f.get('label')}"]
+		elif f["fieldtype"] == "Section Break":
 			out += ["", f"**{f.get('label') or 'General'}**", "", "| Setting | What it does |", "|---|---|"]
 		elif f["fieldtype"] not in LAYOUT and not f.get("hidden"):
 			desc = f.get("description") or ""

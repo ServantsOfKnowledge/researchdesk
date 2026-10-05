@@ -5,6 +5,8 @@
 #page-resdesk-help .rdh-body li a { text-decoration: underline; }
 /* Frappe's red is too light on white for small text (1.4.3) */
 [id^="page-resdesk-"] .text-danger { color: #b42318 !important; }
+[id^="page-resdesk-"] .text-warning { color: #8a4b00 !important; }
+[id^="page-resdesk-"] .text-success { color: #1a6d32 !important; }
 [id^="page-resdesk-"] .btn-danger { background-color: #b42318 !important; border-color: #b42318 !important; color: #fff !important; }
 /* room to tap the help's page list (2.5.8) */
 #page-resdesk-help .rdh-nav li a { display: inline-block; min-height: 24px; padding: 2px 0; }

@@ -82,7 +82,7 @@ def test_every_setting_explains_itself():
 	missing = [
 		f["fieldname"]
 		for f in fields
-		if f["fieldtype"] not in ("Section Break", "Column Break", "Tab Break")
+		if f["fieldtype"] not in ("Section Break", "Column Break", "Tab Break", "HTML")
 		and not f.get("hidden")
 		and not f.get("description")
 	]

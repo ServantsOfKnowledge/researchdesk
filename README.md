@@ -16,7 +16,10 @@ Choose a collection, a search or a list of items on archive.org, and Research De
 - **stay in step with archive.org** by itself: every day, books added to a collection come in,
   changed ones are refreshed and removed ones are unpublished, and every archive.org collection
   the books belong to (sub-collections too) gets a portal page that keeps itself up to date
-- **catalogue** the books, cleaning up messy metadata (languages, dates, authors, subjects)
+- **catalogue** the books, cleaning up messy metadata (languages, dates, authors, subjects), with a
+  **review queue** of records that need a cataloguer's eye (no year, a language that doesn't
+  match the title's script, possible duplicates…) and **authority control**: authors matched to
+  Wikidata and VIAF, subjects to Library of Congress Subject Headings
 - **index the full OCR text page by page**, so people can search *inside* 88,000+ books,
   in Kannada, Hindi, Konkani, Tamil, English and more, typing in the script or **in Latin
   letters** (`kanakadasa` finds ಕನಕದಾಸ), with "phrases", `OR` and `-words`
@@ -191,6 +194,8 @@ day, changed ones are refreshed, removed ones are unpublished
   Readers ◀── /        (search, read, cite) ◀── Frappe web + API ◀─────┘
   Koha, VuFind, aggregators ◀── OAI-PMH / MARCXML / exports (MODS, Dublin Core, JSON-LD)
   archive.org, Koha, Wikidata, webhooks ◀── push targets
+  Wikidata, VIAF, LCSH ⇄ Desk → Authorities (matches in; names and links given back)
+  Cataloguers ◀── Desk → Review Queue ◀── nightly checks of every record
   daily: new / changed / removed books from archive.org ──▶ Ingest jobs ──▶ mirrored collections
   Desk → Server ◀── health, backups, alerts ──▶ updater helper (optional): upgrade, restart
   Zotero, Google Scholar ◀── citation_* meta tags, JSON-LD, COinS
