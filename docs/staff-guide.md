@@ -265,6 +265,7 @@ afterwards.
 | Preservation | the library's own checked copies, fixity, a second copy, BagIt |
 | Permanent identifiers | ARKs, DOIs, tombstones |
 | Books from folders and servers | IA-style folders and loose PDFs |
+| Repository deposit | people [deposit their own work](deposit.md) for review, with licence and embargo |
 | Books from a Calibre library | a [Calibre library](calibre.md) read in place: details, covers, PDF text, other formats to download |
 | Books from repositories | DSpace, EPrints, any OAI-PMH repository, and [Wikisource](wikisource.md) |
 | Giving back to Wikimedia | each person connects their own [Wikimedia account](wikimedia.md); gifts to Wikidata go under it |

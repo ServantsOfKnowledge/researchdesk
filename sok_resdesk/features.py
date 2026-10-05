@@ -117,6 +117,13 @@ FEATURES: dict[str, Feature] = {
 			doctypes=("RD Library System", "RD Library Record"),
 		),
 		Feature(
+			"deposit",
+			"Repository deposit",
+			"people deposit their own work (files, licence, embargo) for a reviewer to accept",
+			"the deposit pages and the review screen",
+			doctypes=("RD Deposit",),
+		),
+		Feature(
 			"sharing",
 			"Sharing metadata",
 			"the OAI-PMH provider, IIIF manifests, pushes to Koha, Wikidata, archive.org and webhooks",
@@ -197,6 +204,8 @@ PROFILES: dict[str, Profile] = {
 					"identifiers",
 					"sharing",
 					"library_systems",
+					"deposit",
+					"review",
 				}
 			),
 			"standard",

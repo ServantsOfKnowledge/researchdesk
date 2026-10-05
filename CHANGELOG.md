@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.53.0 (2026-11-01): Repository deposit
+
+- **People can deposit their own work** on the portal (`/library/deposit`): details, licence (CC0,
+  CC-BY, CC-BY-SA, CC-BY-NC or all rights reserved), who may read the files, an optional
+  **embargo date**, the files (a SHA-256 taken of each on arrival) and a declaration that they may
+  share the work. New role **ResDesk Depositor**; staff can deposit on someone's behalf
+- **Review in the Desk** (Research Desk → Deposits): checks for files already deposited and books
+  with the same title, then *Accept*, *Ask for Changes* or *Reject*, with the depositor mailed.
+  Nobody reviews their own deposit (a System Manager can, for a one-person library)
+- An accepted deposit becomes a book in the catalogue like any book in a folder (a PDF's text
+  searchable, other formats downloadable, listed in the chosen collection, details locked, access as
+  chosen); an embargo keeps the files for logged-in readers until its date and then lifts itself
+- A new feature, **Repository deposit** (fifteen now), in Settings → Features and in the
+  *University or repository front* profile; see [Repository deposit](docs/deposit.md)
+
 ## 0.52.0 (2026-10-31): A small Calibre collection to take away
 
 - **Export → Calibre library (zip)**: any set of books the Export screen can choose (a

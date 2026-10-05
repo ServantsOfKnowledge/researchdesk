@@ -350,6 +350,7 @@ Every setting:
 | Books from folders and servers | IA-style book folders and loose PDFs on disk, a NAS or a web server. Off saves the folder scans. |
 | Books from repositories | DSpace, EPrints and any OAI-PMH repository. Off saves the harvests. |
 | Library systems | A Koha or other library catalogue matched to the books here, links sent back. Off saves the imports and matching. |
+| Repository deposit | People deposit their own work (files, licence, embargo) for a reviewer to accept. Off saves the deposit pages and the review screen. |
 | Sharing metadata | The OAI-PMH provider, pushes to Koha, Wikidata, archive.org and webhooks. Off saves the push jobs and the OAI-PMH endpoint. |
 | Reader accounts | Readers signing up, sign-up requests, members-only reading. Off saves the sign-up pages. |
 | Usage statistics | How readers use the portal (built-in, PostHog, Plausible or Umami). Off saves the page-view log. |

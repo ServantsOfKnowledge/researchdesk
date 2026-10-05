@@ -1,0 +1,261 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-31 10:00:00.000000",
+ "modified": "2026-10-31 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Deposit",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "autoname": "format:DEP-{#####}",
+ "title_field": "title",
+ "search_fields": "title,depositor",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1,
+ "field_order": [
+  "title",
+  "depositor",
+  "status",
+  "column_break_a",
+  "item_type",
+  "year",
+  "language",
+  "collection",
+  "section_about",
+  "creators",
+  "abstract",
+  "subjects",
+  "section_terms",
+  "licence",
+  "access",
+  "column_break_t",
+  "embargo_until",
+  "declaration",
+  "section_files",
+  "files",
+  "section_review",
+  "reviewer",
+  "review_notes",
+  "warnings",
+  "column_break_r",
+  "item",
+  "submitted_on",
+  "decided_on",
+  "embargo_lifted"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "depositor",
+   "fieldtype": "Link",
+   "label": "Depositor",
+   "options": "User",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nSubmitted\nNeeds Changes\nAccepted\nRejected\nWithdrawn",
+   "default": "Draft",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_a",
+   "fieldtype": "Column Break",
+   "label": ""
+  },
+  {
+   "fieldname": "item_type",
+   "fieldtype": "Select",
+   "label": "Kind of Work",
+   "options": "Book\nPeriodical\nArticle\nThesis\nReport\nManuscript\nMap\nOther",
+   "default": "Article"
+  },
+  {
+   "fieldname": "year",
+   "fieldtype": "Int",
+   "label": "Year"
+  },
+  {
+   "fieldname": "language",
+   "fieldtype": "Data",
+   "label": "Language Code",
+   "description": "ISO 639 code: kan, eng, san, hin…"
+  },
+  {
+   "fieldname": "collection",
+   "fieldtype": "Link",
+   "label": "Collection",
+   "options": "RD Collection",
+   "description": "Where the work is listed once accepted (a reviewer may change it)."
+  },
+  {
+   "fieldname": "section_about",
+   "fieldtype": "Section Break",
+   "label": "About the work"
+  },
+  {
+   "fieldname": "creators",
+   "fieldtype": "Small Text",
+   "label": "Authors",
+   "description": "One per line, as “Surname, Given names”.",
+   "reqd": 1
+  },
+  {
+   "fieldname": "abstract",
+   "fieldtype": "Text",
+   "label": "Abstract"
+  },
+  {
+   "fieldname": "subjects",
+   "fieldtype": "Small Text",
+   "label": "Subjects",
+   "description": "One per line."
+  },
+  {
+   "fieldname": "section_terms",
+   "fieldtype": "Section Break",
+   "label": "Rights and access"
+  },
+  {
+   "fieldname": "licence",
+   "fieldtype": "Select",
+   "label": "Licence",
+   "options": "CC0-1.0\nCC-BY-4.0\nCC-BY-SA-4.0\nCC-BY-NC-4.0\nAll rights reserved",
+   "default": "CC-BY-4.0",
+   "reqd": 1
+  },
+  {
+   "fieldname": "access",
+   "fieldtype": "Select",
+   "label": "Who May Read the Files",
+   "options": "Public\nLogin to read",
+   "default": "Public"
+  },
+  {
+   "fieldname": "column_break_t",
+   "fieldtype": "Column Break",
+   "label": ""
+  },
+  {
+   "fieldname": "embargo_until",
+   "fieldtype": "Date",
+   "label": "Embargo Until",
+   "description": "Until then only logged-in readers can read the files; the details stay visible. Leave empty for none."
+  },
+  {
+   "fieldname": "declaration",
+   "fieldtype": "Check",
+   "label": "I have the right to deposit this work, and it may be shared on the terms above",
+   "reqd": 0
+  },
+  {
+   "fieldname": "section_files",
+   "fieldtype": "Section Break",
+   "label": "Files"
+  },
+  {
+   "fieldname": "files",
+   "fieldtype": "Table",
+   "label": "Files",
+   "options": "RD Deposit File"
+  },
+  {
+   "fieldname": "section_review",
+   "fieldtype": "Section Break",
+   "label": "Review"
+  },
+  {
+   "fieldname": "reviewer",
+   "fieldtype": "Link",
+   "label": "Reviewer",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "review_notes",
+   "fieldtype": "Text",
+   "label": "Notes to the Depositor"
+  },
+  {
+   "fieldname": "warnings",
+   "fieldtype": "Small Text",
+   "label": "Checks Made on Submission",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_r",
+   "fieldtype": "Column Break",
+   "label": ""
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Catalogue Record",
+   "options": "RD Item",
+   "read_only": 1
+  },
+  {
+   "fieldname": "submitted_on",
+   "fieldtype": "Datetime",
+   "label": "Submitted",
+   "read_only": 1
+  },
+  {
+   "fieldname": "decided_on",
+   "fieldtype": "Datetime",
+   "label": "Decided",
+   "read_only": 1
+  },
+  {
+   "fieldname": "embargo_lifted",
+   "fieldtype": "Check",
+   "label": "Embargo Lifted",
+   "read_only": 1,
+   "hidden": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "write": 1,
+   "create": 1
+  },
+  {
+   "role": "ResDesk Depositor",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1
+  }
+ ]
+}

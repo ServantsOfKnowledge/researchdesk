@@ -137,6 +137,8 @@ scheduler_events = {
 	},
 	"hourly": ["sok_resdesk.ingest.run_scheduled_hourly"],
 	"daily": [
+		# deposits whose embargo has ended become readable (Settings → Features → Repository deposit)
+		"sok_resdesk.deposit.release_embargoes",
 		"sok_resdesk.ingest.run_scheduled_daily",
 		# profiles set to Manual but kept in step with archive.org
 		"sok_resdesk.ia_sync.run_daily",

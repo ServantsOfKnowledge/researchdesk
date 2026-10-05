@@ -16,6 +16,7 @@ import requests
 
 from sok_resdesk.catalogue import item_to_record, upsert_item
 from sok_resdesk.core import calibre
+from sok_resdesk.core.deposit import DepositStore
 from sok_resdesk.core.folder import FolderStore, HttpStore, ItemStore, StoreError, open_store
 from sok_resdesk.core.normalize import normalize_ia_item
 
@@ -28,11 +29,16 @@ def library_dir() -> str:
 	return frappe.conf.get("resdesk_library_dir") or DEFAULT_ROOT
 
 
+def deposits_root() -> str:
+	"""Where deposited works live: writable, unlike the library folder (docs/deposit.md)."""
+	return frappe.get_site_path("private", "deposits")
+
+
 def library_roots() -> list[str]:
 	roots = frappe.conf.get("resdesk_library_roots") or []
 	if isinstance(roots, str):
 		roots = [roots]
-	return [os.path.realpath(r) for r in [library_dir(), *roots]]
+	return [os.path.realpath(r) for r in [library_dir(), deposits_root(), *roots]]
 
 
 def resolve_location(path: str) -> str:
@@ -66,6 +72,8 @@ def open_profile_store(profile) -> ItemStore:
 
 def folder_store(path: str) -> ItemStore:
 	"""A folder as a store: a Calibre library (it has a metadata.db) or IA-style item folders."""
+	if os.path.realpath(path) == os.path.realpath(deposits_root()):
+		return DepositStore(path)
 	return calibre.CalibreStore(path) if calibre.is_library(path) else FolderStore(path)
 
 

@@ -249,6 +249,16 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Deposits",
+   "link_count": 0,
+   "link_to": "RD Deposit",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "My Wikimedia Account",
    "link_count": 0,
    "link_to": "RD Wikimedia Account",

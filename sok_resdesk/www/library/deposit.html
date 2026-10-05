@@ -1,0 +1,157 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="rd rd-deposit">
+	<nav class="rd-crumbs"><a href="{{ library_url() }}">← {{ portal_title }}</a></nav>
+	<h1 class="rd-page-title">{{ _("Deposit your work") }}</h1>
+	{% if not allowed %}
+	<p class="rd-muted">{{ _("Depositing is for people the library has given a depositor account. Ask the library to add the Depositor role to your account.") }}</p>
+	{% else %}
+	<p class="rd-muted">{{ _("Give the library your own work: describe it, choose a licence, add the files and submit. A librarian reviews it and may ask you for changes before it appears here.") }}</p>
+	<section aria-labelledby="rd-dep-mine">
+		<h2 id="rd-dep-mine">{{ _("My deposits") }}</h2>
+		<div id="rd-dep-list"><p class="rd-muted">{{ _("Loading…") }}</p></div>
+	</section>
+	<section aria-labelledby="rd-dep-form-h">
+		<h2 id="rd-dep-form-h" data-new="{{ _('New deposit') }}" data-edit="{{ _('Change this deposit') }}">{{ _("New deposit") }}</h2>
+		<form id="rd-dep-form" class="rd-form" autocomplete="off">
+			<p><label>{{ _("Title") }} <input name="title" required style="width:100%"></label></p>
+			<p><label>{{ _("Authors") }} <span class="rd-muted" id="rd-dep-h-creators"></span>
+				<textarea name="creators" rows="3" required style="width:100%"></textarea></label></p>
+			<p><label>{{ _("Abstract") }} <textarea name="abstract" rows="5" style="width:100%"></textarea></label></p>
+			<p><label>{{ _("Subjects") }} <span class="rd-muted" id="rd-dep-h-subjects"></span>
+				<textarea name="subjects" rows="2" style="width:100%"></textarea></label></p>
+			<p>
+				<label>{{ _("Kind of work") }} <select name="item_type"></select></label>
+				<label>{{ _("Year") }} <input name="year" type="number" min="1000" style="width:6em"></label>
+				<label>{{ _("Language code") }} <input name="language" size="5" placeholder="kan"></label>
+			</p>
+			<p><label>{{ _("List in collection") }} <select name="collection"></select></label></p>
+			<p><label>{{ _("Licence") }} <select name="licence"></select></label>
+				<label>{{ _("Who may read the files") }} <select name="access"><option value="Public">{{ _("Anyone") }}</option><option value="Login to read">{{ _("Logged-in readers") }}</option></select></label></p>
+			<p><label>{{ _("Embargo until") }} <input name="embargo_until" type="date"></label>
+				<span class="rd-muted" id="rd-dep-h-embargo_until"></span></p>
+			<fieldset>
+				<legend>{{ _("Files") }}</legend>
+				<p class="rd-muted" id="rd-dep-allowed"></p>
+				<ul id="rd-dep-files"></ul>
+				<input type="file" id="rd-dep-file" multiple aria-label="{{ _('Choose files') }}">
+			</fieldset>
+			<p><label><input type="checkbox" name="declaration" value="1"> {{ _("I have the right to deposit this work, and it may be shared on the terms above") }}</label></p>
+			<p class="rd-actions">
+				<button class="rd-btn" type="button" id="rd-dep-save">{{ _("Save draft") }}</button>
+				<button class="rd-btn rd-btn--primary" type="button" id="rd-dep-submit">{{ _("Submit for review") }}</button>
+				<button class="rd-btn rd-btn--plain" type="button" id="rd-dep-new">{{ _("Start a new one") }}</button>
+			</p>
+			<p id="rd-dep-msg" role="status" class="rd-muted"></p>
+		</form>
+	</section>
+	{% endif %}
+</div>
+{% endblock %}
+
+{% block script %}
+{% if allowed %}
+<script>
+(function () {
+	const T = {{ {
+		"saved": _("Saved."), "submitted": _("Submitted: the library will review it."), "none": _("You have no deposits yet."),
+		"edit": _("Change"), "withdraw": _("Withdraw"), "remove": _("Remove"), "open": _("Open"), "uploading": _("Uploading…"),
+		"mb": _("MB"), "nofile": _("Choose a file first.")
+	} | tojson }};
+	const $ = (s) => document.querySelector(s);
+	const form = $("#rd-dep-form"), msg = $("#rd-dep-msg");
+	const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+	const csrf = () => (window.frappe && frappe.csrf_token) || "";
+	let name = "";
+	async function call(method, args, post) {
+		const opt = post
+			? { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json", "X-Frappe-CSRF-Token": csrf() }, body: JSON.stringify(args || {}) }
+			: { headers: { Accept: "application/json" } };
+		const url = `/api/method/sok_resdesk.deposit.${method}` + (post || !args ? "" : "?" + new URLSearchParams(args));
+		const r = await fetch(url, opt);
+		const j = await r.json();
+		if (!r.ok) {
+			let m = j.exception || j._error_message || "Error";
+			try { m = JSON.parse(JSON.parse(j._server_messages)[0]).message; } catch (e) {}
+			throw new Error(String(m).replace(/<[^>]+>/g, ""));
+		}
+		return j.message;
+	}
+	const say = (t, bad) => { msg.textContent = t; msg.style.color = bad ? "#b00020" : ""; };
+	const values = () => {
+		const v = {};
+		new FormData(form).forEach((x, k) => { v[k] = x; });
+		v.declaration = form.declaration.checked ? 1 : 0;
+		return v;
+	};
+	async function ensure() {
+		name = await call("save", { values: values(), name }, true);
+		return name;
+	}
+	function files(list) {
+		$("#rd-dep-files").innerHTML = (list || []).map((f) => `<li>${esc(f.file_name)} <span class="rd-muted">${esc(f.format)} · ${(f.size / 1048576).toFixed(1)} ${T.mb}</span>
+			<button type="button" class="rd-btn rd-btn--plain" data-rm="${f.idx}">${T.remove}</button></li>`).join("");
+	}
+	async function load(n) {
+		const d = await call("get", { name: n });
+		name = d.name;
+		for (const k of ["title", "creators", "abstract", "subjects", "year", "language", "item_type", "collection", "licence", "access", "embargo_until"]) if (form[k]) form[k].value = d[k] || "";
+		form.declaration.checked = !!d.declaration;
+		files(d.files);
+		$("#rd-dep-form-h").textContent = $("#rd-dep-form-h").dataset.edit;
+		form.scrollIntoView();
+	}
+	async function list() {
+		const rows = await call("mine");
+		$("#rd-dep-list").innerHTML = rows.length ? `<ul>${rows.map((r) => `<li><b>${esc(r.title)}</b> · ${esc(r.status)}
+			${r.review_notes ? `<br><span class="rd-muted">${esc(r.review_notes)}</span>` : ""}
+			${["Draft", "Needs Changes"].includes(r.status) ? `<button type="button" class="rd-btn rd-btn--plain" data-edit="${esc(r.name)}">${T.edit}</button>` : ""}
+			${["Draft", "Submitted", "Needs Changes"].includes(r.status) ? `<button type="button" class="rd-btn rd-btn--plain" data-wd="${esc(r.name)}">${T.withdraw}</button>` : ""}
+			${r.url ? `<a href="${esc(r.url)}">${T.open}</a>` : ""}</li>`).join("")}</ul>` : `<p class="rd-muted">${T.none}</p>`;
+	}
+	document.addEventListener("click", async (e) => {
+		const b = e.target.closest("button"); if (!b) return;
+		try {
+			if (b.dataset.edit) await load(b.dataset.edit);
+			if (b.dataset.wd) { await call("withdraw", { name: b.dataset.wd }, true); await list(); }
+			if (b.dataset.rm) { await call("remove_file", { name, idx: b.dataset.rm }, true); files((await call("get", { name })).files); }
+		} catch (err) { say(err.message, true); }
+	});
+	$("#rd-dep-save").onclick = async () => { try { await ensure(); say(T.saved); await list(); } catch (e) { say(e.message, true); } };
+	$("#rd-dep-submit").onclick = async () => {
+		try { await ensure(); await call("submit", { name }, true); say(T.submitted); form.reset(); name = ""; files([]); await list(); }
+		catch (e) { say(e.message, true); }
+	};
+	$("#rd-dep-new").onclick = () => { form.reset(); name = ""; files([]); say(""); $("#rd-dep-form-h").textContent = $("#rd-dep-form-h").dataset.new; };
+	$("#rd-dep-file").onchange = async (e) => {
+		try {
+			await ensure();
+			for (const f of e.target.files) {
+				say(T.uploading + " " + f.name);
+				const fd = new FormData();
+				fd.append("file", f, f.name); fd.append("is_private", "1"); fd.append("doctype", "RD Deposit"); fd.append("docname", name);
+				const up = await fetch("/api/method/upload_file", { method: "POST", headers: { "X-Frappe-CSRF-Token": csrf(), Accept: "application/json" }, body: fd });
+				const uj = await up.json();
+				if (!up.ok) throw new Error((uj.exception || "Upload failed").replace(/<[^>]+>/g, ""));
+				await call("attach_file", { name, file_url: uj.message.file_url }, true);
+			}
+			say(""); files((await call("get", { name })).files); e.target.value = "";
+		} catch (err) { say(err.message, true); }
+	};
+	call("options").then((o) => {
+		const fill = (sel, items, blank) => { sel.innerHTML = (blank ? '<option value=""></option>' : "") + items.map((i) => `<option value="${esc(i.value)}">${esc(i.label)}</option>`).join(""); };
+		fill(form.item_type, o.kinds.map((k) => ({ value: k, label: k })));
+		fill(form.licence, o.licences.map((k) => ({ value: k, label: k })));
+		fill(form.collection, o.collections.map((c) => ({ value: c.name, label: c.title })), true);
+		form.licence.value = "CC-BY-4.0";
+		$("#rd-dep-allowed").textContent = `${o.allowed.join(", ")} · ≤ ${o.max_mb} ${T.mb}`;
+		for (const k of ["creators", "subjects", "embargo_until"]) $("#rd-dep-h-" + k).textContent = o.fields[k];
+	});
+	list().catch((e) => say(e.message, true));
+})();
+</script>
+{% endif %}
+{% endblock %}
