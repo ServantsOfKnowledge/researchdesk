@@ -5,6 +5,7 @@
 - **Retake help pictures** works for a members-only portal: when visitors are sent to the login
   page, the portal pictures are taken as a temporary reader account (*Help Pictures Reader*,
   switched off afterwards) instead of showing the login page
+- A picture of **Settings → Features** in the staff guide
 - The temporary accounts are switched back on correctly on the second retake (the first retake
   made them; later ones failed on setting the new password)
 

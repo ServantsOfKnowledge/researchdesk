@@ -50,6 +50,7 @@ SHOTS: dict[str, tuple[str, str, str]] = {
 	"desk-settings": ("staff", "/app/rd-settings", ""),
 	"desk-about": ("staff", "/app/rd-about-page", "scroll:[data-fieldname=section_steps]"),
 	"desk-library-system": ("staff", "/app/rd-library-system", "open-first"),
+	"desk-features": ("staff", "/app/rd-settings", "tab:Features"),
 }
 
 # The Desk pictures show what staff see. Administrator sees Frappe's own tools too (Settings → The
@@ -118,6 +119,9 @@ async def take(args) -> list[str]:
 					await page.wait_for_selector(action[6:], timeout=15000)
 					await page.click(action[6:])
 					await page.wait_for_timeout(3500)
+				elif action.startswith("tab:"):
+					await page.click(f".form-tabs .nav-link >> text={action[4:]}")
+					await page.wait_for_timeout(2500)
 				elif action == "open-first":
 					await page.wait_for_selector(".list-row-container a.ellipsis", timeout=15000)
 					await page.click(".list-row-container a.ellipsis")
