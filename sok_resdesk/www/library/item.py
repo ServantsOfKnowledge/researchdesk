@@ -5,7 +5,7 @@ from frappe.utils import cint
 
 from sok_resdesk import access
 from sok_resdesk.catalogue import base_url, get_record, settings
-from sok_resdesk.core import citations
+from sok_resdesk.core import citations, licence
 
 no_cache = 1
 
@@ -36,6 +36,7 @@ def get_context(context):
 		record["pdf_url"] = ""  # keep it out of the page and its citation meta tags
 		record["downloads"] = []
 	context.item = record
+	context.licence = licence.parse(record.get("licence_url"))
 	context.viewer = access.viewer()
 	names = record.get("curated_collections") or []
 	context.curated = (

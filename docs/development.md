@@ -106,6 +106,16 @@ Meilisearch's API from elsewhere, and the settings it needs live in Settings →
 engine means a client with the same methods (set up indexes, add and delete documents, search with
 facets, report its queue), a choice in Settings → Search, and tests that run the same cases on both.
 
+## The Desk's sidebar across Frappe releases
+
+The Research Desk sidebar is one list (`sok_resdesk/core/sidebar.py`). From Frappe 16.50 a module's
+sidebar is a `Sidebar` document an app ships as a file and no longer edits on a site, so
+`python scripts/make_sidebar_json.py` writes `resdesk/sidebar/research_desk/research_desk.json` from
+the list (a unit test fails if they differ); before 16.50 `sidebar.refresh()` rewrites the Workspace
+Sidebar. Switched-off features' screens are taken out of what the Desk is sent (`features.trim_boot`),
+and the Desk-only scope trims it too (`deskscope.trim_boot`); both handle either payload. When Frappe
+changes how the Desk is built, CI (which installs the newest Frappe 16) is where it shows first.
+
 ## Workflow
 
 **Easiest: Docker developer mode.** `./resdesk.sh dev on` runs the code from your checkout

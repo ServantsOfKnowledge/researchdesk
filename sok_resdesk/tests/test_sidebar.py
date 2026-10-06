@@ -9,9 +9,18 @@ from sok_resdesk import features, sidebar
 EMAIL = "rdtest-sidebar@example.org"
 
 
+def sidebar_of(boot) -> dict:
+	"""Our sidebar in the boot data: keyed by lower-case title before Frappe 16.50, by name from it."""
+	sidebars = boot.get("module_sidebars") or boot.get("workspace_sidebar_item") or {}
+	for key, value in sidebars.items():
+		if key.lower() == sidebar.TITLE.lower():
+			return value
+	raise AssertionError(f"no {sidebar.TITLE} sidebar in {sorted(sidebars)}")
+
+
 class TestSidebar(IntegrationTestCase):
 	def labels(self, boot):
-		return [i["label"] for i in boot.workspace_sidebar_item[sidebar.TITLE.lower()]["items"]]
+		return [i["label"] for i in sidebar_of(boot)["items"]]
 
 	def test_the_shipped_sidebar_has_every_screen_in_sections(self):
 		items = sidebar.items()
@@ -52,19 +61,21 @@ class TestSidebar(IntegrationTestCase):
 		self.assertNotIn("Keeping", labels)  # nothing left in it
 		self.assertIn("Items", labels)
 
-	def test_it_is_kept_in_the_database_and_follows_the_features(self):
+	def test_it_follows_the_features(self):
+		from frappe.boot import get_bootinfo
+
+		def targets():
+			frappe.clear_cache()
+			return [i.get("link_to") for i in sidebar_of(get_bootinfo())["items"]]
+
 		sidebar.refresh()
-		doc = frappe.get_doc("Workspace Sidebar", sidebar.TITLE)
-		self.assertEqual((doc.module, doc.standard), ("ResDesk", 0))
-		self.assertIn("RD Deposit", [i.link_to for i in doc.items])
+		self.assertIn("RD Deposit", targets())
 		frappe.db.set_single_value("RD Settings", "feature_deposit", 0)
 		self.addCleanup(
 			lambda: (frappe.db.set_single_value("RD Settings", "feature_deposit", 1), features.apply())
 		)
 		features.apply()
-		self.assertNotIn(
-			"RD Deposit", [i.link_to for i in frappe.get_doc("Workspace Sidebar", sidebar.TITLE).items]
-		)
+		self.assertNotIn("RD Deposit", targets())
 
 	def test_only_a_system_manager_is_shown_administration(self):
 		from frappe.boot import get_bootinfo

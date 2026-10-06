@@ -82,10 +82,11 @@ def trim_boot(bootinfo):
 	if not admin_too and frappe.db.get_value("User", user, "module_profile") != PROFILE:
 		return
 	bootinfo.resdesk_desk_only = True  # desk_only.js keeps the way back to Frappe's desktop closed
-	sidebars = bootinfo.get("workspace_sidebar_item") or {}
-	bootinfo.workspace_sidebar_item = {
-		k: v for k, v in sidebars.items() if not v.get("module") or v.get("module") in KEEP
-	}
+	for payload in ("workspace_sidebar_item", "module_sidebars"):  # before and after Frappe 16.50
+		sidebars = bootinfo.get(payload) or {}
+		bootinfo[payload] = {
+			k: v for k, v in sidebars.items() if not v.get("module") or v.get("module") in KEEP
+		}
 	icons = bootinfo.get("desktop_icons") or []
 	kept = {i.label for i in icons if i.get("app") == APP and not i.get("parent_icon")}
 	bootinfo.desktop_icons = [i for i in icons if i.label in kept or i.get("parent_icon") in kept]

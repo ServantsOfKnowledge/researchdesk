@@ -8,6 +8,15 @@
 - Portal Translations is in the Research Desk sidebar (it showed another sidebar before)
 - On a phone, a Research Desk page whose table is wider than the screen scrolls sideways instead of
   being cut off (the Server page's health list)
+- **Works with Frappe 16.50**: from 16.50 an app can no longer rewrite the Desk's sidebar on a site,
+  so the Research Desk sidebar is shipped as a `Sidebar` file (made from the same list by
+  `scripts/make_sidebar_json.py`), switched-off features' screens are taken out of what the Desk is
+  sent, a standard workspace keeps its shipped layout while its links follow the features, and the
+  Desk-only scope trims the new sidebar payload too. Earlier Frappe 16 keeps working as before
+- **Creative Commons licences show their badge**: a book's licence appears as the CC badge (BY, BY-SA,
+  BY-NC, BY-NC-SA, BY-ND, BY-NC-ND, CC0, Public Domain Mark) with its name, linked to the licence's
+  own page, instead of the bare address. The badges are served by the portal itself (no request to
+  another server); a licence that is not a Creative Commons one stays a plain link
 
 ## 0.66.1 (2026-11-06): Connections: every outside system, by kind, in one place
 

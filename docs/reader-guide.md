@@ -102,6 +102,10 @@ words you searched for marked.
 Scans are old books, and the text read from them by machine (OCR) has mistakes. If a search
 inside the book misses a word you can see on the page, try a shorter form of the word.
 
+**What you may do with a book.** The **Details** under a book show its licence. A Creative
+Commons licence appears as its badge (for example BY-SA) with its name; click the badge to read the
+licence itself. A book with no licence shown is not offered for reuse beyond reading and citing it.
+
 ## Notes on the pages
 
 Logged in, you can keep notes in **Page & text**:

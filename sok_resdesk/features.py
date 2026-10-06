@@ -485,12 +485,19 @@ def refresh_workspace() -> None:
 		shortcuts
 	) == len(ws.shortcuts):
 		return
+	original = ws.content
 	ws.set("links", rows)
 	ws.set("shortcuts", shortcuts)
 	ws.content = json.dumps(content)
 	ws.flags.ignore_permissions = True
 	ws.flags.ignore_links = True
-	ws.save()
+	try:
+		ws.save()
+	except frappe.ValidationError:
+		# Frappe 16.50 and later keep a shipped workspace's layout app-owned outside developer
+		# mode: the layout stays as shipped and only its links and shortcuts follow the features
+		ws.content = original
+		ws.save()
 
 
 def trim_boot(bootinfo) -> None:
@@ -502,12 +509,13 @@ def trim_boot(bootinfo) -> None:
 	hide = hidden_targets()
 	if not hide:
 		return
-	sidebars = bootinfo.get("workspace_sidebar_item") or {}
-	for key, sidebar in list(sidebars.items()):
-		items = sidebar.get("items") or []
-		kept = [i for i in items if i.get("link_to") not in hide]
-		if len(kept) != len(items):
-			sidebars[key] = {**sidebar, "items": kept}
+	for payload in ("workspace_sidebar_item", "module_sidebars"):  # before and after Frappe 16.50
+		sidebars = bootinfo.get(payload) or {}
+		for key, sidebar in list(sidebars.items()):
+			items = sidebar.get("items") or []
+			kept = [i for i in items if i.get("link_to") not in hide]
+			if len(kept) != len(items):
+				sidebars[key] = {**sidebar, "items": kept}
 
 
 def after_migrate() -> None:

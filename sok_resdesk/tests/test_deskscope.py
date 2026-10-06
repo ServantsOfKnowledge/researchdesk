@@ -74,8 +74,9 @@ class TestDeskScope(IntegrationTestCase):
 		frappe.clear_cache(user=EMAIL)
 		boot = get_bootinfo()
 		self.assertEqual([i.label for i in boot.desktop_icons], ["Research Desk"])
-		self.assertIn("research desk", boot.workspace_sidebar_item)
-		self.assertFalse({"build", "users", "website", "integrations"} & set(boot.workspace_sidebar_item))
+		keys = {k.lower() for k in (boot.get("module_sidebars") or boot.get("workspace_sidebar_item") or {})}
+		self.assertIn("research desk", keys)
+		self.assertFalse({"build", "users", "website", "integrations"} & keys)
 		frappe.set_user("Administrator")
 		frappe.clear_cache(user="Administrator")
 		self.assertIn("Build", [i.label for i in get_bootinfo().desktop_icons])
@@ -89,9 +90,8 @@ class TestDeskScope(IntegrationTestCase):
 		boot = get_bootinfo()
 		self.assertEqual([i.label for i in boot.desktop_icons], ["Research Desk"])
 		self.assertTrue(boot.get("resdesk_desk_only"))
-		self.assertFalse(
-			{"build", "users", "website", "integrations", "system"} & set(boot.workspace_sidebar_item)
-		)
+		keys = {k.lower() for k in (boot.get("module_sidebars") or boot.get("workspace_sidebar_item") or {})}
+		self.assertFalse({"build", "users", "website", "integrations", "system"} & keys)
 		# a library that keeps Administrator out of the scope still gets Frappe's desktop for it
 		self.set_scope(deskscope.EVERYONE)
 		frappe.clear_cache(user="Administrator")
