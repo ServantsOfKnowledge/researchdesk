@@ -14,3 +14,7 @@
 /* Research Desk is the whole Desk (js/desk_only.js): no home icon back to Frappe's desktop */
 .rd-desk-only .navbar-breadcrumbs li:first-child a[href="/desk"] { display: none; }
 .rd-desk-only .navbar-breadcrumbs li:first-child:has(a[href="/desk"]) { display: none; }
+
+/* Research Desk's own pages sit in from the sidebar and the window's edge, like Frappe's lists */
+[id^="page-resdesk-"] .layout-main-section { padding: 8px 24px 40px; }
+@media (max-width: 767px) { [id^="page-resdesk-"] .layout-main-section { padding: 8px 12px 32px; } }

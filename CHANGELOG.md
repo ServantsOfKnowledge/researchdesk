@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.66.2 (2026-11-06): Desk pages sit in from the sidebar
+
+- Research Desk's own Desk pages (Review Queue, Connections, Authorities, People & Roles, Background
+  Jobs, Server, Portal Translations, Help) had no margin and touched the sidebar; they now have the
+  same side margins as Frappe's lists, narrower on a phone
+
 ## 0.66.1 (2026-11-06): Connections: every outside system, by kind, in one place
 
 - **Research Desk → Exchange → Connections** lists everything the library shares with or takes from
