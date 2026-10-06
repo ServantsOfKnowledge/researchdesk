@@ -104,6 +104,7 @@ class ResDeskHelp {
 				.rdh-body h3 { font-size: 1.08rem; margin: 22px 0 8px; scroll-margin-top: 70px; }
 				.rdh-body table { margin: 12px 0; font-size: 13px; }
 				.rdh-body pre { background: var(--subtle-fg); padding: 12px; border-radius: 8px; overflow: auto; }
+				.rdh-body pre code { background: transparent; color: var(--text-color); padding: 0; }
 				.rdh-body img { max-width: 100%; height: auto; border: 1px solid var(--border-color); border-radius: 8px; margin: 8px 0; }
 				@media (max-width: 900px) { .rdh { grid-template-columns: 1fr; padding: 12px 16px 48px; } .rdh-nav { position: static; max-height: none; border-right: 0; border-bottom: 1px solid var(--border-color); } }
 			</style>
