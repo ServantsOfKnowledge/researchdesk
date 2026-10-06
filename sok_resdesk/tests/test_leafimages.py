@@ -123,7 +123,7 @@ class TestPhotographBooks(OpsTestCase):
 		frappe.db.set_value("RD Item", ID, {"published": 1, "visibility": "Public", "access_status": "Open"})
 		frappe.local.request = Request(EnvironBuilder(path="/").get_environ())
 		frappe.local.request_ip = "127.0.0.1"
-		frappe.set_user("Guest")
+		frappe.set_user("Administrator")  # page images are for members (staff are members)
 		try:
 			small = api.page_image(ID, 2, 600)
 			whole = api.page_image(ID, 2)

@@ -237,7 +237,7 @@ def page_image(item_id: str, leaf: int = 0, width: int = 0):
 	record = get_record(item_id)
 	if not record or not can_draw(record):
 		raise frappe.PageDoesNotExistError
-	if record.get("access_status") != "Open" or not access.can_read(record.get("visibility")):
+	if record.get("access_status") != "Open" or not access.can_use_text(record.get("visibility")):
 		raise frappe.PermissionError
 	try:
 		data = page_jpeg(record["item_id"], max(0, cint(leaf)), min(max(0, cint(width)), 4000))
@@ -317,8 +317,8 @@ def page(item_id: str, leaf: int = 0):
 	record = get_record(item_id)
 	if not record:
 		frappe.throw(_("Item not found"), frappe.DoesNotExistError)
-	if not access.can_read(record.get("visibility")):
-		return {"login_needed": True}
+	if not access.can_use_text(record.get("visibility")):
+		return {"login_needed": True, "members_only": True}
 	try:
 		pages = fetch_pages(item_id) if record.get("has_page_text") else []
 	except Exception:
@@ -410,8 +410,8 @@ def book_text(item_id: str, format: str = "epub"):
 	record = get_record(item_id)
 	if not record:
 		frappe.throw(_("Item not found"), frappe.DoesNotExistError)
-	if not access.can_read(record.get("visibility")):
-		frappe.throw(_("Log in to download this book's text."), frappe.PermissionError)
+	if not access.can_use_text(record.get("visibility")):
+		frappe.throw(_("Log in as a member to download this book's text."), frappe.PermissionError)
 	fmt = (format or "epub").lower()
 	if fmt not in ("epub", "txt"):
 		frappe.throw(_("Unknown format. Use epub or txt."))

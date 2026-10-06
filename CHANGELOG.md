@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.65.2 (2026-11-06): Page & text and the text downloads are for members
+
+- **Page & text**, its page images, notes and read aloud, and **The text, to read your way** (the
+  accessible EPUB and plain text) now need a login as a reader or staff, on every book, even a
+  Public one, to look after bandwidth and make scraping harder. Visitors who are not logged in
+  still see the details, citations and the book reader, with a note on the book page that says why
+  and a Log in button. The page, page image and text download addresses refuse them too
+
 ## 0.65.1 (2026-11-06): A super admin for Servants of Knowledge; footer; busy-database fixes
 
 - **SOK Super Admin**: a role for Servants of Knowledge to manage the installation as a whole.

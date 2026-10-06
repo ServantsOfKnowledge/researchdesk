@@ -117,7 +117,17 @@
 			</div>
 			{% endif %}
 			{% if not item.media %}
-			{% if page_reader %}
+			{% if members_note %}
+			<div class="rd-card rd-members-note">
+				<h2>{{ _("Page & text and the text downloads are for members") }}</h2>
+				<p>{{ _("Each page image beside its text, notes, read aloud and the text as an accessible EPUB or plain text are for the library's members, to keep the portal fast for everyone. The details and citations here are open to everyone.") }}</p>
+				<div class="rd-actions">
+					<a class="rd-btn rd-btn--primary" href="{{ login_url }}">{{ _("Log in") }}</a>
+					{% if viewer.signup %}<a class="rd-btn" href="/login#signup">{{ _("Create an account") }}</a>{% endif %}
+				</div>
+			</div>
+			{% endif %}
+			{% if text_reader %}
 			<div class="rd-views" role="tablist" aria-label="{{ _('Reader') }}">
 				<button type="button" role="tab" class="rd-view{% if start_view == 'book' %} is-active{% endif %}" data-view="book" aria-selected="{{ 'true' if start_view == 'book' else 'false' }}">{{ _("Book reader") }}</button>
 				<button type="button" role="tab" class="rd-view{% if start_view == 'text' %} is-active{% endif %}" data-view="text" aria-selected="{{ 'true' if start_view == 'text' else 'false' }}">{{ _("Page & text") }}</button>
@@ -138,13 +148,13 @@
 						{% if can_read and pdf_url %}<a class="rd-btn" href="{{ pdf_url }}" rel="noopener">{{ _("Open the PDF") }}</a>{% endif %}
 						{% if item.source_url %}<a class="rd-btn" href="{{ item.source_url }}" rel="noopener">{{ _("Its page at the source") }}</a>{% endif %}
 					</p>
-					{% if page_reader %}<p class="rd-muted">{{ _("Its text, page by page, is under Page & text.") }}</p>{% endif %}
+					{% if text_reader %}<p class="rd-muted">{{ _("Its text, page by page, is under Page & text.") }}</p>{% endif %}
 				</div>
 				{% else %}
 				<div class="rd-card rd-muted">{{ _("No readable copy is available online for this book.") }}</div>
 				{% endif %}
 			</div>
-			{% if page_reader %}
+			{% if text_reader %}
 			<div class="rd-view-pane rd-pages{% if item.item_type == 'Photograph' %} rd-photo{% endif %}{% if start_view != 'text' %} is-hidden{% endif %}" data-pane="text" id="rd-pages" data-start="{{ start_leaf }}">
 				<div class="rd-pages__bar">
 					<button class="rd-btn" type="button" data-step="-1" aria-label="{{ _('Previous page') }}">←</button>
@@ -214,7 +224,7 @@
 					<a class="rd-btn" href="/api/method/sok_resdesk.api.marcxml?item_ids={{ item.item_id | urlencode }}">MARCXML</a>
 					{% if iiif_url %}<a class="rd-btn" href="{{ iiif_url }}" title="{{ _('The book as a IIIF manifest, to open in Mirador, Universal Viewer and other IIIF viewers') }}">IIIF</a>{% endif %}
 				</div>
-				{% if can_read and item.has_page_text %}
+				{% if text_reader and item.has_page_text %}
 				<h3 class="rd-book-about__sub">{{ _("The text, to read your way") }}</h3>
 				<p class="rd-muted">{{ _("For screen readers, braille displays, large print and reading apps, with the printed page numbers.") }}</p>
 				<div class="rd-actions">
@@ -233,7 +243,7 @@
 		</form>
 		<div class="rd-tabs rd-cite-scope" role="tablist" aria-label="{{ _('What to cite') }}">
 			<button type="button" role="tab" class="rd-tab is-active" data-scope="book">{{ _("This book") }}</button>
-			{% if page_reader and can_read %}<button type="button" role="tab" class="rd-tab" data-scope="page" id="rd-cite-page-tab">{{ _("This page") }}</button>{% endif %}
+			{% if text_reader %}<button type="button" role="tab" class="rd-tab" data-scope="page" id="rd-cite-page-tab">{{ _("This page") }}</button>{% endif %}
 		</div>
 		<p class="rd-muted rd-cite-where" id="rd-cite-where"></p>
 		<div class="rd-tabs" role="tablist" aria-label="{{ _('Format') }}">

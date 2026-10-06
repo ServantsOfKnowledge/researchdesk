@@ -1184,7 +1184,7 @@ class TestPageReader(OpsTestCase):
 	def test_a_page_with_its_image_text_and_number(self):
 		from sok_resdesk import api
 
-		frappe.set_user("Guest")
+		frappe.set_user("Administrator")  # Page & text is for members (staff are members)
 		d = api.page(self.name, 5)
 		self.assertEqual((d["leaf"], d["label"], d["text"], d["last"]), (5, "2", "ಎರಡನೆಯ ಪುಟ", 11))
 		self.assertTrue(d["image"].endswith(f"/download/{self.name}/page/n5.jpg"))
@@ -1197,7 +1197,16 @@ class TestPageReader(OpsTestCase):
 
 		frappe.db.set_value("RD Item", self.name, "visibility", "Login to read")
 		frappe.set_user("Guest")
-		self.assertEqual(api.page(self.name, 5), {"login_needed": True})
+		self.assertEqual(api.page(self.name, 5), {"login_needed": True, "members_only": True})
+
+	def test_page_and_text_is_for_members_even_when_guests_may_read_the_book(self):
+		from sok_resdesk import api
+
+		frappe.db.set_value("RD Item", self.name, "visibility", "Public")
+		frappe.set_user("Guest")
+		self.assertEqual(api.page(self.name, 5), {"login_needed": True, "members_only": True})
+		frappe.set_user("Administrator")
+		self.assertEqual(api.page(self.name, 5)["leaf"], 5)
 
 	def test_cite_a_page(self):
 		from sok_resdesk import api

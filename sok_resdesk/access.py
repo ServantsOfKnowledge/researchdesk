@@ -75,6 +75,12 @@ def can_read(visibility: str | None, user: str | None = None) -> bool:
 	return core.can_read(visibility, guest_mode(), is_member(user))
 
 
+def can_use_text(visibility: str | None, user: str | None = None) -> bool:
+	"""Page & text, the page images behind it and the text downloads are for members: a logged-in
+	reader (or staff) who may read the book. They are what a scraper wants, and what costs bandwidth."""
+	return can_read(visibility, user) and is_member(user)
+
+
 def search_filter(kind: str) -> str | None:
 	return core.search_filter(kind, guest_mode(), is_member())
 

@@ -196,9 +196,10 @@ class TestPhotographs(PhotoBase):
 		frappe.db.set_single_value("RD Settings", "feature_sharing", 1)
 		frappe.local.request = Request(EnvironBuilder(path="/").get_environ())
 		frappe.local.request_ip = "127.0.0.1"
+		frappe.set_user("Administrator")  # Page & text is for members; IIIF below stays open to guests
+		got = api.page(PHOTO, 0)
 		frappe.set_user("Guest")
 		try:
-			got = api.page(PHOTO, 0)
 			self.assertIn("page_image", got["image"])
 			tile = iiif.image(PHOTO, "0", "100,100,200,100/100,/0/default.jpg")
 			tile.direct_passthrough = False

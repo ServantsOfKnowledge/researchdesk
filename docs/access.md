@@ -13,6 +13,13 @@ book.
 | **Login to read** | find it, see its details, **cite it** (BibTeX, RIS, …); reading, search inside and the PDF need a login | everything |
 | **Login to find** | nothing: it doesn't appear in search, and its page asks them to log in | everything |
 
+**Page & text, and the text downloads, are for members on every book**, even a Public one: the
+page images beside their text, notes, read aloud, and *The text, to read your way* (the accessible
+EPUB and plain text) need a login as a reader or staff. They are what a scraper wants and what costs
+bandwidth, so visitors who are not logged in get the book's details, the citations and the book
+reader (archive.org's, or the PDF where the book is open), and a note on the book page that says
+why. With open sign-up every logged-in account is a member.
+
 On the portal, members-only books carry a small 🔒 badge, and the book page shows a
 **Log in to read** button instead of the reader.
 

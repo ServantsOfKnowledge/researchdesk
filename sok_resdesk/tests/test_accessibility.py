@@ -42,6 +42,15 @@ class TestBookText(OpsTestCase):
 		frappe.set_user("Guest")
 		self.assertRaises(frappe.PermissionError, self._get, item, "epub")
 
+	def test_the_text_downloads_are_for_members_even_of_public_books(self):
+		item = _item(4)
+		frappe.db.set_value("RD Item", item, {"has_page_text": 1, "visibility": "Public"})
+		frappe.set_user("Guest")
+		self.assertRaises(frappe.PermissionError, self._get, item, "epub")
+		self.assertRaises(frappe.PermissionError, self._get, item, "txt")
+		frappe.set_user("Administrator")
+		self.assertEqual(self._get(item, "txt").status_code, 200)
+
 	def test_no_text_no_file(self):
 		item = _item(3)
 		frappe.db.set_value("RD Item", item, "has_page_text", 0)

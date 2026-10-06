@@ -86,7 +86,7 @@ address `/opds` (add it as a catalogue in KOReader, Thorium or similar).
 
 ### Page & text
 
-**Page & text** puts each page image next to the text read from it. Turn pages with the arrows
+**Page & text** (for logged-in members; visitors who are not logged in see a note asking them to log in) puts each page image next to the text read from it. Turn pages with the arrows
 (or the ← → keys), or type a page number. The printed page number, when the page has one, shows
 beside it (*p. 39*).
 
