@@ -13,6 +13,17 @@ def parse_version(value: str | None) -> tuple[int, int, int] | None:
 	return tuple(int(x) for x in m.groups()) if m else None
 
 
+def frappe_min(init_text: str | None) -> str | None:
+	"""The Frappe version a release asks for, from its sok_resdesk/__init__.py (None when it names none)."""
+	m = re.search(r'^__frappe_min__\s*=\s*"([^"]+)"', init_text or "", re.M)
+	return m.group(1) if m and parse_version(m.group(1)) else None
+
+
+def needs_frappe_update(required: str | None, installed: str | None) -> bool:
+	"""Whether the installed Frappe is older than a release asks for (so both must be updated together)."""
+	return is_newer(required, installed)
+
+
 def is_newer(candidate: str | None, current: str | None) -> bool:
 	a, b = parse_version(candidate), parse_version(current)
 	return bool(a and b and a > b)
