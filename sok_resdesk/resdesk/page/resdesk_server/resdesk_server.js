@@ -222,7 +222,16 @@ class ResDeskServer {
 					description: __("Choosing an older release goes back to it (only the code: restore a backup if its database changes are needed)."),
 				},
 				{ fieldname: "backup", fieldtype: "Check", label: __("Back up first (recommended)"), default: 1 },
-				{ fieldname: "frappe", fieldtype: "Check", label: __("Also update Frappe to its newest patch release"), default: 1 },
+				{
+					fieldname: "frappe",
+					fieldtype: "Check",
+					label: __("Also update Frappe to its newest patch release"),
+					default: 1,
+					read_only: u.frappe_needed_by_latest ? 1 : 0,
+					description: u.frappe_needed_by_latest
+						? __("The latest release needs Frappe {0} or newer (this server has {1}), so Frappe is updated with it.", [u.frappe_min, u.frappe])
+						: "",
+				},
 				{
 					fieldtype: "HTML",
 					options: `<p class="text-muted small">${__(

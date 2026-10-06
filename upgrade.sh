@@ -142,6 +142,28 @@ else
 fi
 ok "Now at v$(version_here) ($(git rev-parse --short HEAD))"
 
+# -- Frappe goes with the app when the release needs a newer one ------------------------------
+# Each release says which Frappe it needs (__frappe_min__ in sok_resdesk/__init__.py). When the
+# installed Frappe is older, Frappe is updated together with the app, whatever --no-frappe says.
+frappe_min() { sed -n 's/^__frappe_min__ = "\(.*\)"/\1/p' sok_resdesk/__init__.py; }
+frappe_have() {
+  if [ "$MODE" = native ]; then
+    sed -n 's/^__version__ = "\(.*\)"/\1/p' "${BENCH_DIR:-$HOME/researchdesk-bench}/apps/frappe/frappe/__init__.py" 2>/dev/null
+  else
+    docker run --rm --entrypoint cat "${RESDESK_IMAGE:-sok-resdesk}:${RESDESK_TAG:-local}" \
+      apps/frappe/frappe/__init__.py 2>/dev/null | sed -n 's/^__version__ = "\(.*\)"/\1/p'
+  fi
+}
+NEED_MIN="$(frappe_min || true)"
+if [ -n "$NEED_MIN" ]; then
+  HAVE_NOW="$(frappe_have || true)"
+  if [ -n "$HAVE_NOW" ] && [ "$(printf '%s\n%s\n' "$NEED_MIN" "$HAVE_NOW" | sort -V | head -1)" != "$NEED_MIN" ]; then
+    [ "$FRAPPE" = 0 ] && warn "Not keeping Frappe as it is: this release needs Frappe $NEED_MIN or newer"
+    FRAPPE=1
+    ok "This release needs Frappe $NEED_MIN or newer (here: $HAVE_NOW): Frappe is updated with it"
+  fi
+fi
+
 # -- 3–4. apply ------------------------------------------------------------------------------
 if [ "$MODE" = native ]; then
   BENCH_DIR="${BENCH_DIR:-$HOME/researchdesk-bench}"

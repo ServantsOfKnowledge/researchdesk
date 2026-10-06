@@ -232,6 +232,12 @@ The in-app help, tours and checklist:
 
 ## Releasing
 
+A release that needs a newer Frappe than earlier ones raises `__frappe_min__` in
+`sok_resdesk/__init__.py`. `upgrade.sh` (and so the Server page) then updates Frappe together with the
+app whenever the installed Frappe is older, even with `--no-frappe`, and the Server page's upgrade
+box says so.
+
+
 1. Write the `CHANGELOG.md` entry (`## X.Y.Z (date): what it brings`).
 2. `scripts/release.sh X.Y.Z` sets `__version__`, refreshes the generated docs, runs the doc and
    unit checks, commits and tags. It stops if the changelog has no entry for that version.

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.66.3 (2026-11-06): Frappe is updated with the app when a release needs it; the library's logo on Frappe 16.50
+
+- Each release names the Frappe it needs (`__frappe_min__`): an upgrade whose target needs a newer Frappe than the server has updates
+  Frappe too, even with `--no-frappe`, and the Server page's upgrade box ticks and locks "Also update
+  Frappe" and says why
+- **The library's own logo** shows on the Desk's app icon again on Frappe 16.50 and later (it took
+  the app's default icon there)
+
 ## 0.66.2 (2026-11-06): Desk pages sit in from the sidebar
 
 - Research Desk's own Desk pages (Review Queue, Connections, Authorities, People & Roles, Background

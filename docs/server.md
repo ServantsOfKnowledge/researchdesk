@@ -178,7 +178,7 @@ With the updater helper on and the System Manager role, press **Upgrade to vX.Y.
   if that release can't read the database as it is now, restore the backup made before the
   upgrade you are undoing.
 - **Back up first** (recommended) makes a backup into `site-backups/` on the server.
-- **Also update Frappe** brings Frappe to its newest v16 patch release. On Docker this rebuilds
+- **Also update Frappe** brings Frappe to its newest v16 patch release. When the release you are installing needs a newer Frappe than this server has (each release names the Frappe it needs), the box is ticked and locked, and Frappe is updated with it, because the two must move together. On Docker this rebuilds
   the Frappe part of the image when a newer patch is out, which takes 10 minutes or more.
 
 The upgrade is exactly `./upgrade.sh` ([Upgrading](operations.md#upgrading)), run on the server

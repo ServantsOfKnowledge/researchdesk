@@ -341,6 +341,10 @@ def check_updates(quiet: int = 0) -> dict:
 		if info["latest"] and upd.is_newer(info["latest"], __version__):
 			text = _get_json(f"https://raw.githubusercontent.com/{repo}/{info['latest']}/CHANGELOG.md")
 			info["notes"] = upd.changelog_sections(text if isinstance(text, str) else "", __version__)
+			init = _get_json(
+				f"https://raw.githubusercontent.com/{repo}/{info['latest']}/sok_resdesk/__init__.py"
+			)
+			info["latest_frappe_min"] = upd.frappe_min(init if isinstance(init, str) else "")
 	except Exception as e:
 		info["error"] = _("Could not reach GitHub: {0}").format(str(e)[:160])
 	try:
@@ -399,6 +403,12 @@ def updates_view() -> dict:
 		"needs_reindex": upd.needs_reindex(notes),
 		"frappe": frappe.__version__,
 		"frappe_latest": facts.get("frappe_latest") or info.get("frappe_latest"),
+		"frappe_needed_by_latest": bool(
+			latest
+			and upd.is_newer(latest, __version__)
+			and upd.needs_frappe_update(info.get("latest_frappe_min"), frappe.__version__)
+		),
+		"frappe_min": info.get("latest_frappe_min"),
 		"frappe_newer": upd.is_newer(
 			facts.get("frappe_latest") or info.get("frappe_latest"), frappe.__version__
 		),

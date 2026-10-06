@@ -103,3 +103,20 @@ class TestSidebar(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		frappe.clear_cache(user="Administrator")
 		self.assertIn("Administration", self.labels(get_bootinfo()))
+
+
+class TestBrandLogo(IntegrationTestCase):
+	def test_the_libraries_logo_is_on_the_desks_app_icon(self):
+		from frappe.boot import get_bootinfo
+
+		before = frappe.db.get_single_value("RD Settings", "portal_logo")
+		frappe.db.set_single_value("RD Settings", "portal_logo", "/files/rdtest-logo.png")
+		self.addCleanup(frappe.db.set_single_value, "RD Settings", "portal_logo", before)
+		frappe.clear_cache()
+		boot = get_bootinfo()
+		apps = [a for a in boot.get("app_data") or [] if a.get("app_name") == "sok_resdesk"]
+		if not apps:  # a Frappe before 16.50 keeps the logo on the Desktop Icon instead
+			self.skipTest("this Frappe has no apps list")
+		self.assertTrue(
+			apps[0]["app_logo_url"].endswith("rdtest-logo.png") or "favicon" in apps[0]["app_logo_url"]
+		)

@@ -110,3 +110,19 @@ def trim_boot(bootinfo) -> None:
 					kept.append(item)
 			if len(kept) != len(sidebar.get("items") or []):
 				sidebars[key] = {**sidebar, "items": kept}
+
+
+def brand_boot(bootinfo) -> None:
+	"""The library's own logo on the Desk's app icon (Frappe 16.50 and later take it from the app's
+	entry in the apps list, which the app's hooks fix to the default; the library's logo from
+	Settings → Portal replaces it, as it does the portal's)."""
+	if frappe.session.user == "Guest":
+		return
+	logo = frappe.db.get_single_value("RD Settings", "favicon") or frappe.db.get_single_value(
+		"RD Settings", "portal_logo"
+	)
+	if not logo:
+		return
+	for app in bootinfo.get("app_data") or []:
+		if app.get("app_name") == "sok_resdesk":
+			app["app_logo_url"] = logo

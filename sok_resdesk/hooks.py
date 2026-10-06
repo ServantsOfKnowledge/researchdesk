@@ -50,6 +50,8 @@ boot_session = [
 	"sok_resdesk.features.trim_boot",
 	# only a System Manager is shown the Administration section
 	"sok_resdesk.sidebar.trim_boot",
+	# the library's own logo on the Desk's app icon
+	"sok_resdesk.sidebar.brand_boot",
 ]
 # ?v=: browsers keep /assets for a year (Frappe's web server), so each release gets new addresses
 web_include_css = [f"/assets/sok_resdesk/css/resdesk.css?v={__version__}"]
