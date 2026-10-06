@@ -92,10 +92,7 @@ def main() -> int:
 	pages = [(name, path, None) for name, path in PORTAL]
 	book = first_book(base)
 	if book:
-		pages += [
-			("Book page", f"/library/item/{book}", None),
-			("Page & text", f"/library/item/{book}?view=text", None),
-		]
+		pages += [("Book page", f"/library/item/{book}", None)]
 	# the reading settings' colours (a11y.js), on the busiest pages
 	colours = [(mode, path) for mode in ("contrast", "dark", "sepia") for path in ("/", pages[-1][1])]
 	report, failed = [], False
@@ -132,6 +129,17 @@ def main() -> int:
 			if not resp.ok:
 				print("Could not log in to check the Desk pages", file=sys.stderr)
 				failed = True
+			if book:  # Page & text is for logged-in members: checked as one
+				page.goto(base + f"/library/item/{book}?view=text", wait_until="networkidle")
+				found = run_axe(page, axe, None)
+				report.append(
+					{
+						"page": "Page & text (logged in)",
+						"path": f"/library/item/{book}?view=text",
+						"width": 1280,
+						"violations": found,
+					}
+				)
 			for name, path, include in desk:
 				page.goto(base + path, wait_until="networkidle")
 				page.wait_for_selector(include, timeout=20000)
