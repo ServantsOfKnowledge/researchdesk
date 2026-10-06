@@ -145,7 +145,7 @@
 
 ## v1.0: library-grade
 
-- [ ] OpenSearch adapter for very large page indexes
+- [ ] A pluggable search backend: Meilisearch stays the default; an OpenSearch adapter (ICU analysers for Indic scripts, sharding) for very large page indexes, chosen in Settings, behind the same `search.py` interface
 - [x] Holdings, patrons and circulation stay with Koha: Research Desk works alongside it, by design ([Koha](koha.md#what-stays-in-the-library-system)) (0.65)
 - [x] SRU 1.2 target for older library systems; Z39.50-only clients through a gateway ([SRU](sru.md)) (0.65)
 - [x] Usage statistics in COUNTER form: the Title Master Report with investigations; requests are not recorded ([Usage reports](usage-reports.md)) (0.65)

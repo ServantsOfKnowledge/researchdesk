@@ -97,6 +97,15 @@ researchdesk/
                             test_integration.py, test_operations.py, test_server.py … (Frappe, in CI's Docker job)
 ```
 
+## Keeping the search engine pluggable
+
+Meilisearch is the default search engine, and OpenSearch is planned as a second one for very large
+page indexes. To keep that a small change later: code that searches or indexes goes through
+`search.py` (`MeiliClient`, `IndexBuffer`, `index_record`) and `search_queue.py`, never straight to
+Meilisearch's API from elsewhere, and the settings it needs live in Settings → Search. A new
+engine means a client with the same methods (set up indexes, add and delete documents, search with
+facets, report its queue), a choice in Settings → Search, and tests that run the same cases on both.
+
 ## Workflow
 
 **Easiest: Docker developer mode.** `./resdesk.sh dev on` runs the code from your checkout
