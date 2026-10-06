@@ -79,6 +79,16 @@ folders, and Research Desk will:
 - work with **Zotero, Google Scholar and reference managers** (embedded citation metadata)
 - work **alongside Koha** and other library systems (OAI-PMH harvesting and MARCXML import),
   or on its own
+- **give a book to archive.org** from the portal or the Desk, under the sender's own archive.org
+  account (always public, reviewed before it goes), and see every outside connection (Internet
+  Archive, Wikimedia, library systems, repositories, e-readers, open standards, imports and
+  exports) by kind, with its status and who may use it, on one **Connections** screen
+- answer **SRU** for Z39.50 gateways and older library systems, and give funders a **COUNTER**
+  style usage report; keep **Page & text** and the text downloads for logged-in members, to look
+  after bandwidth and make scraping harder
+- keep the installation safe in a librarian's hands: a **super admin** role for Servants of
+  Knowledge holds the installation's own settings, the Server page, security setup and
+  credentials, while librarians keep the manager role
 - let readers keep a **reading list**, export it as a bibliography, and share it as a link
 - keep some books (or everything) **for logged-in readers**: members-only books, a public
   catalogue with reading for members, or an internal library; readers sign up, are approved,
@@ -125,7 +135,7 @@ It's built to install with one command, for librarians, educators, archivists an
 anyone else who can open a terminal. It scales to tens of thousands of books on one server
 ([measured](docs/scaling.md)).
 
-> Status: **v0.64**, before 1.0. It works end to end and is tested against live Servants of
+> Status: **v0.66**, before 1.0. It works end to end and is tested against live Servants of
 > Knowledge data, but expect changes before 1.0. What changed: [CHANGELOG](CHANGELOG.md); what
 > comes next: [the roadmap](docs/roadmap.md).
 

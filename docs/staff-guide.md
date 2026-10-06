@@ -300,6 +300,8 @@ afterwards.
 | Books from a Calibre library | a [Calibre library](calibre.md) read in place: details, covers, PDF text, other formats to download |
 | Books from repositories | DSpace, EPrints, any OAI-PMH repository, and [Wikisource](wikisource.md) |
 | Giving back to Wikimedia | each person connects their own [Wikimedia account](wikimedia.md); gifts to Wikidata, corrected Wikisource pages and photographs for Commons go under it |
+| Connections | **Exchange → Connections** lists every outside system by kind (archive.org, Wikimedia, library systems, repositories, e-readers, open standards, imports and exports) with what is on or connected for you and who may use it: [Connections](connections.md) |
+| Giving a book to the Internet Archive | connect your own archive.org account, then **Actions → Send to the Internet Archive** on a book; always public: [Giving a book to the Internet Archive](archive-upload.md) |
 | Library systems | a Koha or other catalogue matched to the books here |
 | Sharing metadata | the OAI-PMH provider, [IIIF manifests](iiif.md), the [OPDS](opds.md) catalogue, and pushes to Koha, Wikidata, archive.org, webhooks |
 | Archival description | an archive's papers as [fonds, series, file and item](archival-description.md), on the portal and as EAD3 |

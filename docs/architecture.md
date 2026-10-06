@@ -95,7 +95,7 @@ cause. Details: [Server](server.md#how-the-updater-helper-works).
 
 | DocType | Purpose | Key fields |
 |---|---|---|
-| **RD Item** | one book/document | `item_id` (= IA identifier, the document name; for a repository's record, the profile's prefix and the record's own identifier), source (Internet Archive / Local / Repository / Wikisource / Library System), oai_identifier and remote_pdf (a repository's record and PDF), title, alt_title, creators (table), year, language (ISO 639-3), publisher, subjects (multi-select), collections (source), curated_collections, item_type (Book, Periodical, Article, Thesis, Report, Manuscript, Map, Audio, Video, Photograph, Other), lock_metadata ("Keep My Edits"), removed_from_source, licence, access, visibility (Public / Login to read / Login to find) and visibility_set_by, page_count, has_page_text, ark (archive.org's), persistent_id (this library's permanent ARK), ocr_quality and ocr_low_pages, ocr_languages (the languages to OCR it in), doi / doi_state (DataCite), details_pending (catalogued from its search record, full record and text still coming), reocr_state and pages_proofread (re-OCR and proofreading), page_order (page text matched to the page images by the scan data), preservation_status / preserved_on / preserved_version / preserved_bytes / fixity_checked_on, copies ("2 of 2 verified"), second_copy_status / second_copy_version / second_copy_on / second_copy_checked_on, served_from_copy, raw_metadata (JSON); for local material local_store, local_path, local_pdf, local_files, local_images (leaf images of a manuscript or photograph), local_thumb; manuscripts: ms_* (repository, shelfmark, material, script, leaves, dimensions, condition, scribe, date copied, contents, colophon, provenance) and leaf_labels; recordings: media_files, duration, leaf_times (the start and end seconds of each transcript segment); photographs: ph_* (taken on, place, event, people, depicts as Wikidata Q numbers, camera, GPS, dimensions, SHA-256 of the original) and commons_file / commons_sent_by / commons_sent_on; wiki_site and wiki_index (a Wikisource book); archival_unit (its place in the archival description) |
+| **RD Item** | one book/document | `item_id` (= IA identifier, the document name; for a repository's record, the profile's prefix and the record's own identifier), source (Internet Archive / Local / Repository / Wikisource / Library System), oai_identifier and remote_pdf (a repository's record and PDF), title, alt_title, creators (table), year, language (ISO 639-3), publisher, subjects (multi-select), collections (source), curated_collections, item_type (Book, Periodical, Article, Thesis, Report, Manuscript, Map, Audio, Video, Photograph, Other), lock_metadata ("Keep My Edits"), removed_from_source, licence, access, visibility (Public / Login to read / Login to find) and visibility_set_by, page_count, has_page_text, ark (archive.org's), persistent_id (this library's permanent ARK), ocr_quality and ocr_low_pages, ocr_languages (the languages to OCR it in), doi / doi_state (DataCite), details_pending (catalogued from its search record, full record and text still coming), reocr_state and pages_proofread (re-OCR and proofreading), page_order (page text matched to the page images by the scan data), preservation_status / preserved_on / preserved_version / preserved_bytes / fixity_checked_on, copies ("2 of 2 verified"), second_copy_status / second_copy_version / second_copy_on / second_copy_checked_on, served_from_copy, raw_metadata (JSON); for local material local_store, local_path, local_pdf, local_files, local_images (leaf images of a manuscript or photograph), local_thumb; manuscripts: ms_* (repository, shelfmark, material, script, leaves, dimensions, condition, scribe, date copied, contents, colophon, provenance) and leaf_labels; recordings: media_files, duration, leaf_times (the start and end seconds of each transcript segment); photographs: ph_* (taken on, place, event, people, depicts as Wikidata Q numbers, camera, GPS, dimensions, SHA-256 of the original) and commons_file / commons_sent_by / commons_sent_on; ia_sent_id / ia_sent_status (Queued, Uploading, On archive.org, Failed) / ia_sent_by / ia_sent_on / ia_sent_note (a book sent to archive.org); wiki_site and wiki_index (a Wikisource book); archival_unit (its place in the archival description) |
 | RD Item Creator | child table | creator → RD Creator, role, name_as_given |
 | RD Item Subject | child table | subject → RD Subject |
 | **RD Creator** | a person the books name | full_name, alt_name (romanised), sort name; matched on Desk → Authorities: Wikidata, VIAF, born, died, description, match (Proposed / Confirmed / No match), candidates |
@@ -185,6 +185,29 @@ and licence checks (`wikisource.py`), and contributes photographs to Wikimedia C
 licences only, duplicate and name checks, and *depicts* statements from the photograph's Wikidata
 items.
 
+## Giving a book to the Internet Archive
+
+A book whose files are held on this server can be uploaded to archive.org
+(`archive_upload.py`, `core/ia_upload.py`, `RD Archive Account`). The sender is library staff or a
+depositor sending their own accepted deposit, and uses their own archive.org S3-like keys, kept in
+an encrypted Password field that only that person's account can read; staff may instead send under
+a shared account kept on a Push Target. A plan (`plan`) shows the identifier, collection, account,
+licence and files and refuses what cannot go: a book that is not public here, has no licence, has
+no files on this server, or an identifier archive.org already holds. What is sent is always public
+(there is no dark or hidden option). `send` needs the sender's confirmation, then queues a
+background job (`run_upload`, long queue) that checks the keys, PUTs the first file with the
+`x-archive-meta…` headers (which makes the item) and then the rest, recording Queued, Uploading,
+On archive.org or Failed on the item; sending again after a failure resumes. Depositors use the
+collection in Settings (`ia_upload_collection`); staff choose their own.
+
+## The Connections screen
+
+`connections.py` and `core/connections.py` back **Desk → Exchange → Connections**: a catalogue of
+every outside system (Internet Archive, Wikimedia, library systems, repositories and deposit,
+e-books and offline, open standards, import and export, webhooks). Each card carries what it does,
+who may use it (by role), the feature it needs, its buttons, and the addresses others can use;
+`connections.overview` adds the live status for the signed-in person (connected as…, counts, off).
+
 ## Taking the library away
 
 - **Offline copy** (`offline_export.py`, `core/offline.py`): a collection as a folder of web pages
@@ -267,6 +290,12 @@ replaced.
 - **W3C Web Annotation Protocol** (`annotation_protocol.py`): one whitelisted endpoint whose path
   names the container (`…/annotations/<book>/`) or the note (`…/<book>/<note>`); GET/HEAD/OPTIONS,
   POST, PUT and DELETE with ETags; the same visibility rules as the page reader.
+- **SRU 1.2** (`sru.py`, `core/sru.py`): `/sru` answered before routing, like OPDS and IIIF; a CQL
+  parser and SQL builder over the same records OAI-PMH exposes, MARCXML or Dublin Core records,
+  errors as SRU diagnostics; Z39.50 clients reach it through a gateway.
+- **COUNTER Release 5 style report** (`counter.py`, `core/counter.py`): the Title Master Report
+  (investigations only; requests are not recorded and the report says so, exception 3040) from the
+  Web Page View log, JSON or tab-separated, for managers.
 - **DOIs** (`datacite.py`, `core/datacite.py`): DataCite REST API (JSON:API, schema 4.5), PUT to
   create or update, sent again only when the metadata fingerprint changes; test system first.
 
@@ -399,3 +428,16 @@ counts and OAI-PMH add the matching `WHERE` condition. Book and page documents c
 `visibility`, and bulk changes rewrite just that attribute with partial document updates,
 so switching thousands of books never re-indexes their text.
 
+### The installation's own settings, and members-only text
+
+Two roles can change the installation itself: System Manager and **SOK Super Admin**
+(`access.SUPER_ROLES`). A librarian holds *ResDesk Manager* only. RD Settings fields in the
+sections for profiles and features, access and security setup, search and its keys, identifiers
+and credentials, preservation and second copy, and the server are at permission level 1, which only
+the super roles may write; the Server page's actions, the requirements installer, the worker
+priority and `features.switch_on` check the same roles, and `people.py` stops anyone else from
+giving or taking the super roles. Page & text, the page images behind it, the page-text API and the
+text downloads need `access.can_use_text`: a book the person may read *and* a logged-in member
+(reader or staff), whatever the book's visibility, to look after bandwidth and make scraping harder.
+Database snapshot conflicts (MariaDB error 1020) are retried (`dbretry.py`) in the search queue
+and in page reordering instead of failing the job.

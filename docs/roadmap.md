@@ -142,6 +142,10 @@
 - [x] Offline copies of a collection, and ZIM files for Kiwix (0.62)
 - [x] Machine drafts of transcripts (speech to text, handwriting recognition) for a person to correct (0.63)
 - [x] Archival description: fonds to item (ISAD(G)), a hierarchy on the portal, EAD3 finding aids (0.64)
+- [x] A Servants of Knowledge super admin role for the installation's own settings; the footer credit; retries on database snapshot conflicts (0.65.1)
+- [x] Page & text, page images and text downloads for logged-in members, to look after bandwidth and make scraping harder (0.65.2)
+- [x] Giving a book to the Internet Archive from the portal or the Desk, under the sender's own account, always public (0.66)
+- [x] A Connections screen: every outside system by kind, with its status and who may use it (0.66.1)
 
 ## v1.0: library-grade
 
