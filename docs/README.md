@@ -36,5 +36,6 @@ The same pages are inside the app: **Help** on the portal (for readers) and **He
    - [Moving to another server](moving.md): one-file export and import, `move-to` over SSH, Docker ↔ native
 12. [Scaling to 50,000 books](scaling.md): measured numbers, server sizing, running a large ingest
 13. [Architecture](architecture.md): components, data model, scaling from a laptop to a national library
+    - [Technology map](technology.md): every piece of software, what it is configured for and which features need it
 14. [Development](development.md): code layout, tests, adding a new source
 15. [Roadmap](roadmap.md)

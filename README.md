@@ -205,7 +205,7 @@ day, changed ones are refreshed, removed ones are unpublished
 | Library managers | [Who can see what: members-only books & reader accounts](docs/access.md) · [Collections, metadata, exports & pushing](docs/collections-and-metadata.md) · [Permanent links, preservation & OCR quality](docs/preservation.md) · [Giving back to Wikimedia](docs/wikimedia.md) · [Offline copies & Kiwix](docs/offline.md) |
 | Library systems staff | [Koha & interoperability](docs/koha.md) · [IIIF](docs/iiif.md) · [OPDS](docs/opds.md) · [API](docs/api.md) |
 | System administrators | [Installation](docs/installation.md) · [Server: updates, health & backups](docs/server.md) · [Operations](docs/operations.md) · [Moving to another server](docs/moving.md) · [Scaling to 50k books](docs/scaling.md) |
-| Developers | [Architecture](docs/architecture.md) ([PDF](https://github.com/ServantsOfKnowledge/researchdesk/releases/latest) and the whole guide as an EPUB, with every release) · [Development](docs/development.md) · [Roadmap](docs/roadmap.md) |
+| Developers | [Architecture](docs/architecture.md) · [Technology map](docs/technology.md) ([PDF](https://github.com/ServantsOfKnowledge/researchdesk/releases/latest) and the whole guide as an EPUB, with every release) · [Development](docs/development.md) · [Roadmap](docs/roadmap.md) |
 
 ## How it fits together
 

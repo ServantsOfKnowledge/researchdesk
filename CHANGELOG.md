@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.64.2 (2026-11-06): Technology map
+
+- A new help page, **Technology map**: every runtime service, tool, library, outside service and
+  standard Research Desk uses, what each is configured for, where it is set, where its files live,
+  and which components each feature needs
+
 ## 0.64.1 (2026-11-06): Documentation brought up to date
 
 - The README, the architecture page (components diagram, data model, new sections on kinds of

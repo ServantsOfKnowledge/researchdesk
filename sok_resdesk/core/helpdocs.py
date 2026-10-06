@@ -146,6 +146,7 @@ PAGES = [
 	Page("scaling", "scaling.md", "Scaling to 50,000 books", "staff", "For administrators"),
 	Page("api", "api.md", "HTTP API", "staff", "Technical"),
 	Page("architecture", "architecture.md", "Architecture", "staff", "Technical"),
+	Page("technology", "technology.md", "Technology map", "staff", "Technical"),
 	Page("development", "development.md", "Development", "staff", "Technical"),
 	Page("roadmap", "roadmap.md", "Roadmap", "staff", "Technical"),
 ]

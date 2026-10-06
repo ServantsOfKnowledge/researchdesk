@@ -46,6 +46,8 @@ offline or sending to partners; `python3 scripts/docs_pdf.py` makes one from the
 
 ## Components
 
+The full list of software, what each part is configured for and which features need it is the [Technology map](technology.md).
+
 ```
 ┌──────────────── Docker Compose (or bench) ────────────────────────────────────────────┐
 │                                                                                       │
