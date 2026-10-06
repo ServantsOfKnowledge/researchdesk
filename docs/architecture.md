@@ -333,7 +333,7 @@ alongside the library system (circulation, acquisitions, patrons).
 | Preservation | Archivematica, Preservica, LOCKSS | **Replaces for small institutions** | Fixity, OCFL, BagIt, a second copy, ARKs. Not a full OAIS: no format migration |
 | Library system (ILS) | Koha, Evergreen, SOUL, e-Granthalaya | **Complements** | Links the catalogue to the digital copies and sends the links back ([Koha](koha.md)) |
 | Aggregators | NDLI, Europeana, DPLA, Wikidata, Wikimedia Commons, Wikisource, Internet Archive, e-reader apps | **Feeds** | OAI-PMH, OPDS, IIIF, Wikidata links, archive.org, and photographs and corrections given to Wikimedia under each person's own account |
-| Digitisation workflow | Goobi, Kitodo, Scribe | **Includes the essentials** (Servants of Knowledge) | TTScribe open scanning hardware and Repub (crop, deskew, dewarp, OCR, metadata, export) cover scanning and processing; the last module is in progress. Research Desk itself starts after scanning |
+| Digitisation workflow | Goobi, Kitodo, Scribe | **Includes the essentials** (Servants of Knowledge) | TTScribe open scanning hardware and Repub (crop, deskew, dewarp, OCR, metadata, export) cover scanning and processing; OpenScribe, the last module, is in progress. Research Desk itself starts after scanning |
 | Archival description | AtoM, ArchivesSpace | **Includes the essentials** | Fonds to item (ISAD(G)), a hierarchy on the portal, EAD3 export, digitised items attached to units. Not authority records for creators and repositories (ISAAR(CPF)), accessions, or finding-aid import |
 | Institutional repository | DSpace or EPrints for theses and papers | **Includes the essentials** | Deposit with review, licences and embargoes ([Deposit](deposit.md)); harvests DSpace and EPrints too. Not workflows with several reviewers, versioning of deposits or DOIs at deposit |
 
@@ -341,7 +341,7 @@ alongside the library system (circulation, acquisitions, patrons).
 cannot staff four systems; every install as a ready node for aggregators such as NDLI; a digital
 layer for Koha libraries with no migration; and proofread Indic text and OCR ground truth.
 
-**Gaps that would widen it**, in order: the last module of the digitisation workflow, in progress
+**Gaps that would widen it**, in order: OpenScribe, the last module of the digitisation workflow, in progress
 at Servants of Knowledge (TTScribe scanners and Repub already cover scanning and processing); archival authority records and accessions; a machine-draft
 engine bundled in the image (today the engines are installed by the library); and, at national
 scale, an OpenSearch adapter. Circulation, acquisitions and patrons stay with the library

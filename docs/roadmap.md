@@ -149,6 +149,6 @@
 - [ ] Holdings, patrons and circulation stay with Koha: Research Desk works alongside it
 - [ ] SRU/Z39.50 target for older ILS integrations
 - [ ] Usage statistics in COUNTER form, for libraries that report them
-- [ ] The last module of the digitisation workflow (in progress at Servants of Knowledge; TTScribe scanning and Repub processing are built)
+- [ ] OpenScribe, the last module of the digitisation workflow (in progress at Servants of Knowledge; TTScribe scanning and Repub processing are built)
 
 Ideas and priorities welcome: open an issue.
