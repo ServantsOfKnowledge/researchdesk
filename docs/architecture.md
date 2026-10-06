@@ -332,7 +332,7 @@ alongside the library system (circulation, acquisitions, patrons).
 | OCR and proofreading | Tesseract scripts, FromThePage, Wikisource-style projects | **Replaces** | OCR on ingest, re-OCR by zones, proofreading, ground truth. eScriptorium and Transkribus stay for training handwriting models |
 | Preservation | Archivematica, Preservica, LOCKSS | **Replaces for small institutions** | Fixity, OCFL, BagIt, a second copy, ARKs. Not a full OAIS: no format migration |
 | Library system (ILS) | Koha, Evergreen, SOUL, e-Granthalaya | **Complements** | Links the catalogue to the digital copies and sends the links back ([Koha](koha.md)) |
-| Aggregators | NDLI, Europeana, DPLA, Wikidata, Internet Archive | **Feeds** | OAI-PMH, Wikidata links, archive.org |
+| Aggregators | NDLI, Europeana, DPLA, Wikidata, Wikimedia Commons, Wikisource, Internet Archive, e-reader apps | **Feeds** | OAI-PMH, OPDS, IIIF, Wikidata links, archive.org, and photographs and corrections given to Wikimedia under each person's own account |
 | Digitisation workflow | Goobi, Kitodo, Scribe | Not covered | Starts after scanning |
 | Archival description | AtoM, ArchivesSpace | **Includes the essentials** | Fonds to item (ISAD(G)), a hierarchy on the portal, EAD3 export, digitised items attached to units. Not authority records for creators and repositories (ISAAR(CPF)), accessions, or finding-aid import |
 | Institutional repository | DSpace or EPrints for theses and papers | **Includes the essentials** | Deposit with review, licences and embargoes ([Deposit](deposit.md)); harvests DSpace and EPrints too. Not workflows with several reviewers, versioning of deposits or DOIs at deposit |
