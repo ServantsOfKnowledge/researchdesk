@@ -96,6 +96,25 @@ downloaded; scans stay on archive.org (or your server) and are shown from there.
 A big collection comes in fastest from a **metadata file** (an `ia search` or `ia metadata`
 export): see *Importing a metadata file* in [Choosing & ingesting books](ingesting.md).
 
+## Material that is not a book
+
+The same ingest profiles and the same Desk handle more than books; each has its own page:
+
+| Material | What the library gets | Read |
+|---|---|---|
+| Manuscripts and palm leaves | a description, leaf labels (1a, 1b, r/v), transcription from blank, deep zoom, a list of what needs transcribing | [Manuscripts](manuscripts.md) |
+| Photographs | EXIF read, who and where, tags (Wikidata), a checksum of the original, a zoom, and sending to Wikimedia Commons | [Photographs](photographs.md) |
+| Audio and video | a player, a time-coded transcript people can correct, captions, IIIF manifests; a machine draft of the transcript | [Audio and video](audio-video.md) |
+| A Calibre library | its books catalogued where they are, downloadable, EPUB text searchable | [Calibre](calibre.md) |
+| Wikisource books | their proofread text and images, and your corrections sent back | [Wikisource](wikisource.md) |
+| Deposits | people give their own work; a reviewer accepts it, with a licence and an embargo | [Repository deposit](deposit.md) |
+| An archive's papers | fonds, series, file and item (ISAD(G)), on the portal and as EAD3 | [Archival description](archival-description.md) |
+
+Which of these a library sees is chosen under [Features and your institution](#features-and-your-institution):
+a library that keeps no manuscripts never sees the manuscript fields. **Machine drafts** (speech to
+text, handwriting recognition) are set up under Settings → *Machine Drafts*; every draft is a
+version for a person to proofread, and none is ever shared as ground truth.
+
 ## The Server page
 
 **Server** shows whether every part of Research Desk is working, which version runs and whether
@@ -204,6 +223,12 @@ approval (requests wait under **Reader Requests**). Details: [Who can see what](
 - **Push Targets**: send details straight to the Internet Archive, Koha, Wikidata or another web
   service. Start with a dry run.
 - **OAI-PMH**: Koha and other systems can harvest the catalogue, or a single collection.
+- **IIIF** and **OPDS**: every item is a manifest for Mirador or Universal Viewer, and the library
+  is a catalogue for e-reader apps ([IIIF](iiif.md), [OPDS](opds.md)).
+- **Taking the library away**: an offline copy of a collection for USB sticks and Kiwix, a small
+  Calibre collection, and EAD3 finding aids ([Offline copies](offline.md), [Calibre](calibre.md),
+  [Archival description](archival-description.md)).
+- **Giving back to Wikimedia**, under your own account ([Wikimedia](wikimedia.md)).
 
 See [Collections, metadata & pushing](collections-and-metadata.md) and [Koha](koha.md).
 
@@ -219,7 +244,7 @@ looks after it:
 | Readers & Access | the library's managers | what visitors can do, the default for new books, reader accounts, what OAI-PMH shares, access rules; what staff see in the Desk; usage statistics |
 | Catalogue | cataloguers | archive.org (contact, pace, batches, pausing), collections kept in step with archive.org, matching authors and subjects to authorities |
 | Search | whoever runs the machine | the search engine's address, whether page text is indexed, search in Latin letters; **Rebuild Search Index** |
-| Sharing & Identifiers | partners and researchers | permanent ARKs, DOIs from DataCite, corrected pages shared as OCR ground truth |
+| Sharing & Identifiers | partners and researchers | permanent ARKs, DOIs from DataCite, corrected pages shared as OCR ground truth (the licence, the credit line, and whether proofreaders must have released their pages), and **Machine Drafts**: the speech model and the handwriting engine |
 | Preservation | archivists | the library's own checked copies, and a second copy in another folder or bucket |
 | Server | whoever runs the machine | workers and other resources, the book limit, quiet hours, updates, backups and alerts ([more](server.md)) |
 
@@ -237,7 +262,8 @@ Most libraries change only a few settings. Start from the row closest to yours:
 | **A small library on a laptop or desktop** | *Library & Portal*: name, logo, languages. *Server*: the **light** preset and quiet hours, so the machine stays usable. Leave *Preservation* and *Sharing* off until needed |
 | **A public research portal** (like Servants of Knowledge) | *Library & Portal*: portal languages, **Default Order**. *Search*: search in Latin letters. *Catalogue*: **Find Authority Matches Nightly**. *Sharing*: ARKs (once the NAAN is assigned), DOIs for chosen collections. *Readers & Access*: usage statistics |
 | **A members-only or institutional collection** | *Readers & Access*: what visitors can do (records only, or nothing), **sign-up with approval**, access rules for collections or languages, what OAI-PMH shares |
-| **An archive keeping its own copies** | *Preservation*: keep books (and page images), fixity checks, a **second copy** (S3 or another disk), serve from our copy when archive.org drops a book. *Sharing*: ARKs |
+| **An archive keeping its own copies** | *Preservation*: keep books (and page images), fixity checks, a **second copy** (S3 or another disk), serve from our copy when archive.org drops a book. *Sharing*: ARKs. The *Archival description* feature, to describe the papers as a hierarchy |
+| **A manuscript library or a photograph archive** | the matching kind under *Features*; [leaf labels and transcription](manuscripts.md) or [photographs](photographs.md); *Sharing*: ground-truth releases, so corrected leaves can train a recogniser; *Machine Drafts* if you install an engine |
 | **A language-technology partner** (OCR, Indic NLP) | *Sharing*: the ground-truth licence and attribution. *Catalogue*: authorities. The [review queue](#the-review-queue) and [proofreading](#proofreading-and-re-ocr) for better text |
 
 ## Features and your institution
@@ -273,9 +299,10 @@ afterwards.
 | Repository deposit | people [deposit their own work](deposit.md) for review, with licence and embargo |
 | Books from a Calibre library | a [Calibre library](calibre.md) read in place: details, covers, PDF text, other formats to download |
 | Books from repositories | DSpace, EPrints, any OAI-PMH repository, and [Wikisource](wikisource.md) |
-| Giving back to Wikimedia | each person connects their own [Wikimedia account](wikimedia.md); gifts to Wikidata go under it |
+| Giving back to Wikimedia | each person connects their own [Wikimedia account](wikimedia.md); gifts to Wikidata, corrected Wikisource pages and photographs for Commons go under it |
 | Library systems | a Koha or other catalogue matched to the books here |
-| Sharing metadata | the OAI-PMH provider, [IIIF manifests](iiif.md), and pushes to Koha, Wikidata, archive.org, webhooks |
+| Sharing metadata | the OAI-PMH provider, [IIIF manifests](iiif.md), the [OPDS](opds.md) catalogue, and pushes to Koha, Wikidata, archive.org, webhooks |
+| Archival description | an archive's papers as [fonds, series, file and item](archival-description.md), on the portal and as EAD3 |
 | Reader accounts | sign-up, sign-up requests, members-only reading |
 | Usage statistics | how readers use the portal |
 
@@ -510,7 +537,7 @@ see, search finds and citations quote. Re-ingesting a book never undoes a correc
   it scores clearly better than the page's text (5 points of OCR quality), and **pages people
   have proofread are never replaced**. The book's **Re-OCR** field says how it went.
 
-Page images come from archive.org, one request a page, so re-OCR applies to books there for now.
+Page images come from archive.org (one request a page), or are drawn here from the book's PDF or its leaf photographs, so re-OCR works for both. **Machine drafts** (speech to text, handwriting recognition) are separate: [Material that is not a book](#material-that-is-not-a-book).
 Re-OCR runs on the long queue and stops with **Pause All**. Each version records the engine and
 the zones it was read with.
 

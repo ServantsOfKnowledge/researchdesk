@@ -4,6 +4,12 @@ Three things that keep a digital library trustworthy over decades: every book ha
 never breaks, the library keeps its own checked copy of its books, and it knows which books have
 text too poor to search.
 
+> **Other kinds of material.** A photograph carries a SHA-256 of its original taken when it comes
+> in ([Photographs](photographs.md)), a deposit has a checksum for each file
+> ([Repository deposit](deposit.md)), and an offline copy lists what it holds
+> ([Offline copies](offline.md)). The library's own checked copies (below) apply to books and any
+> item with a PDF; a Calibre library or a folder is read where it is and is never changed.
+
 ## Permanent links (ARKs)
 
 Once switched on, every book has an **ARK** (Archival Resource Key), such as

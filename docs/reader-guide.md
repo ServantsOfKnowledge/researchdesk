@@ -67,6 +67,21 @@ Click a title to open its page. You'll find:
 
 The reader takes the whole width of the page, so the pages are as large as your screen allows.
 
+Not everything in the library is a book:
+
+- **Manuscripts and palm leaves** open leaf by leaf (1a, 1b…), with a zoom for the fine detail;
+- **photographs** show the picture, who and where, and a zoom;
+- **recordings** (audio and video) have a player with the **transcript** beside it: click a line
+  to jump there, and search finds words by the minute they are spoken. The captions can be
+  turned on in the player;
+- an **archive's papers** are browsed at **Archives** (`/library/archive`) as a tree, from the
+  collection down to the single item, and a digitised item says where it sits ("Part of");
+- text that a machine drafted and nobody has checked yet is marked as such: it helps you find
+  things, and people correct it over time.
+
+Reading apps on a phone or an e-ink reader can browse and download from the library too: the
+address `/opds` (add it as a catalogue in KOReader, Thorium or similar).
+
 ![A book page: reader, search inside, details and citation](../sok_resdesk/public/images/guide/portal-book.png)
 
 ### Page & text

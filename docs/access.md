@@ -19,6 +19,14 @@ On the portal, members-only books carry a small 🔒 badge, and the book page sh
 *Unpublished* books (untick **Published on Portal** on the item) are hidden from everyone
 except staff, whatever their visibility.
 
+The same choices apply to everything else the library holds: photographs, manuscripts and
+recordings are items; **units of archival description** have their own *Who can see it* and show
+only if every unit above them is published too; a **deposit** is private until a reviewer accepts
+it, and then follows the visibility and embargo the depositor chose
+([Repository deposit](deposit.md)). The IIIF addresses, the OPDS catalogue and offline copies
+follow the same rules, and an offline copy contains the files and text only of books that are
+open to read and public.
+
 ## The site-wide setting
 
 Desk → Research Desk → **Settings** → *Access & Sign-up* → **Visitors Who Are Not Logged In**:

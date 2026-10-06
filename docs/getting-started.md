@@ -38,6 +38,9 @@ The installer asks:
 | Web address | On your own computer: leave it empty. On a server with a DNS name pointing at it: the name, e.g. `research.example.org`. The installer then gets an HTTPS certificate from Let's Encrypt, through the server's nginx if it has one ([step by step](installation.md#step-by-step-a-new-linux-server-that-already-runs-nginx)) |
 | Port | `8080` unless something else already uses it |
 | Internal site name | Keep the default |
+| Kind of institution | Every number that fits (they combine): `1` small library or school, `2` public research portal, `3` members-only institution, `4` archive, `5` university or repository front, `6` language-technology partner, `7` manuscript library or archive, `8` photograph archive. It decides which of the nineteen features start on ([Installation](installation.md#docker-one-command)). Leave it empty to start with everything on |
+| Languages of the books | Tesseract codes for OCR such as `kan hin` (English is added), or `all` |
+| About how many books | A number: from 50,000 books the installer chooses the server preset |
 
 Change the address later with `./resdesk.sh url https://new.address`
 ([Changing the portal's address](installation.md#changing-the-portals-address)).
@@ -52,7 +55,9 @@ take seconds. At the end, answer **Y** to load 20 sample Kannada books.
 - **Public portal:** <http://localhost:8080/>. Try searching `ವಿಜಯನಗರ` or `hampi`,
   then switch to **Inside the text** to search the OCR of every page.
 - **Admin (the Desk):** <http://localhost:8080/app/research-desk>. Log in as `Administrator`
-  with the password the installer printed (it's also in the `.env` file).
+  with the password the installer printed (it's also in the `.env` file). The Desk shows only
+  Research Desk, with every screen in the sidebar on the left, in sections; Administrators also
+  get an *Administration* section (users, roles, system settings, logs).
 
 ## 4. Add your logo
 
@@ -81,9 +86,13 @@ collection page named after it appears on the portal. Check Count also tells you
 profile matches more books than this machine has room for (the
 [book limit](server.md#book-limit)).
 
-Books in your own folders (scans not yet on archive.org, a NAS, another server)? See
-[Books from your own folders or servers](local-folders.md). From a DSpace, EPrints or other
-repository? See [Books from repositories](repositories.md).
+Material of your own? Books in folders or a NAS, loose PDFs: [Books from your own folders or
+servers](local-folders.md). A Calibre library: [Calibre](calibre.md). A DSpace, EPrints or other
+repository: [Books from repositories](repositories.md). Books transcribed on Wikisource:
+[Wikisource](wikisource.md). Manuscripts and palm leaves, photographs, audio and video:
+[Manuscripts](manuscripts.md), [Photographs](photographs.md), [Audio and video](audio-video.md).
+People giving the library their own papers: [Repository deposit](deposit.md). An archive's papers
+described as fonds, series, file and item: [Archival description](archival-description.md).
 
 ## 6. Cite a book
 

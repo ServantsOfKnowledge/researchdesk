@@ -6,7 +6,8 @@ An open research portal and digital library for the books digitised by
 [Servants of Knowledge](https://archive.org/details/ServantsOfKnowledge), and for any other
 Internet Archive collection. It is built on the [Frappe](https://frappe.io) framework.
 
-Choose a collection, a search or a list of items on archive.org, and Research Desk will:
+Choose a collection, a search or a list of items on archive.org, or point it at your own
+folders, and Research Desk will:
 
 - ingest from **archive.org** (a whole collection is listed on the portal within minutes, from
   archive.org's search records in bulk, or from a **metadata file** made with the `ia` tool;
@@ -15,6 +16,14 @@ Choose a collection, a search or a list of items on archive.org, and Research De
   server, with a drop folder that picks up new and changed books automatically, *or* from
   **institutional repositories** (DSpace, EPrints and any other that offers OAI-PMH), their
   PDFs' text read page by page
+- bring in **your own material**: books and loose PDFs from folders, **manuscripts and palm
+  leaves** (a folder of leaf photographs, with leaf labels such as 1a, 1b and transcription from
+  blank), **photographs** (EXIF, who and where, tagged with Wikidata, a checksum of the original),
+  **audio and video** (a player with a time-coded transcript), a **Calibre library** read in
+  place, **Wikisource** books with their proofread pages, and **deposits** that people make
+  themselves and a reviewer accepts (licence and embargo included)
+- **describe archives** as archivists do: fonds, series, file and item (ISAD(G)), browsable on
+  the portal, exported as **EAD3**, with digitised items placed in the hierarchy
 - **stay in step with archive.org** by itself: every day, books added to a collection come in,
   changed ones are refreshed and removed ones are unpublished, and every archive.org collection
   the books belong to (sub-collections too) gets a portal page that keeps itself up to date
@@ -37,8 +46,10 @@ Choose a collection, a search or a list of items on archive.org, and Research De
   beside the page image, validated by a second person, every version kept; **re-OCR** with
   Tesseract's Indic models, **several languages at once** (the book's languages and English, or a
   language of its own for a verse or footnote), a page part by part (columns, headings) or whole
-  books worst first; and share the corrected pages as **open OCR ground truth** under the
-  library's chosen licence
+  books worst first; **machine drafts** (speech to text for recordings, handwriting recognition
+  for manuscripts) for people to correct; and share the corrected pages as **open OCR ground
+  truth**, each page only if its proofreaders released it under an open licence of their own
+  choosing, after a person has reviewed the set
 - **link the library's own catalogue**: Koha's (or any library system's) records matched to the
   books here, and *Read online* links sent back into them
 - give books **DOIs** from DataCite for chosen collections (optional, for DataCite members)
@@ -48,6 +59,15 @@ Choose a collection, a search or a list of items on archive.org, and Research De
   events), a **second copy** in another folder or an S3-compatible bucket with **automatic
   repair** from the good one, books kept on the portal **from our copy** when archive.org drops
   them, and **BagIt** exports for handing books to another archive
+- show every book, photograph, manuscript and recording in any **IIIF** viewer (manifests and an
+  image service with deep zoom), and offer the library in **e-reader apps** over **OPDS**
+- **give back to Wikimedia** under each person's own account: names and author links to
+  Wikidata, corrected pages to Wikisource, photographs to Commons, each reviewed before it is sent
+- **take the library away**: an offline copy of a collection for USB sticks, phones and **Kiwix**
+  (ZIM), a small **Calibre** collection, and this documentation as one EPUB
+- fit the institution: tell the installer what kind it is (a small library, a research portal, an
+  archive, a manuscript library, a photograph archive…; they combine) and switch any of **nineteen
+  features** off, so what is off is not collected
 - work with **Zotero, Google Scholar and reference managers** (embedded citation metadata)
 - work **alongside Koha** and other library systems (OAI-PMH harvesting and MARCXML import),
   or on its own
@@ -97,7 +117,7 @@ It's built to install with one command, for librarians, educators, archivists an
 anyone else who can open a terminal. It scales to tens of thousands of books on one server
 ([measured](docs/scaling.md)).
 
-> Status: **v0.33**, before 1.0. It works end to end and is tested against live Servants of
+> Status: **v0.64**, before 1.0. It works end to end and is tested against live Servants of
 > Knowledge data, but expect changes before 1.0. What changed: [CHANGELOG](CHANGELOG.md); what
 > comes next: [the roadmap](docs/roadmap.md).
 
@@ -180,33 +200,42 @@ day, changed ones are refreshed, removed ones are unpublished
 |---|---|
 | Readers | [Using the library](docs/reader-guide.md) · [Searching](docs/searching.md) · [Citations & reading lists](docs/citations.md) |
 | Library staff | [Staff guide: a tour of the Desk](docs/staff-guide.md) |
-| Librarians & educators | [Getting started](docs/getting-started.md) · [Choosing & ingesting books](docs/ingesting.md) · [Your own folders & servers](docs/local-folders.md) · [Repositories (DSpace, EPrints)](docs/repositories.md) |
-| Library managers | [Who can see what: members-only books & reader accounts](docs/access.md) · [Collections, metadata, exports & pushing](docs/collections-and-metadata.md) · [Permanent links, preservation & OCR quality](docs/preservation.md) |
-| Library systems staff | [Koha & interoperability](docs/koha.md) · [API](docs/api.md) |
+| Librarians & educators | [Getting started](docs/getting-started.md) · [Choosing & ingesting books](docs/ingesting.md) · [Your own folders & servers](docs/local-folders.md) · [Repositories (DSpace, EPrints)](docs/repositories.md) · [Wikisource](docs/wikisource.md) · [Calibre](docs/calibre.md) |
+| Archives & special collections | [Archival description](docs/archival-description.md) · [Manuscripts & palm leaves](docs/manuscripts.md) · [Photographs](docs/photographs.md) · [Audio & video](docs/audio-video.md) · [Repository deposit](docs/deposit.md) |
+| Library managers | [Who can see what: members-only books & reader accounts](docs/access.md) · [Collections, metadata, exports & pushing](docs/collections-and-metadata.md) · [Permanent links, preservation & OCR quality](docs/preservation.md) · [Giving back to Wikimedia](docs/wikimedia.md) · [Offline copies & Kiwix](docs/offline.md) |
+| Library systems staff | [Koha & interoperability](docs/koha.md) · [IIIF](docs/iiif.md) · [OPDS](docs/opds.md) · [API](docs/api.md) |
 | System administrators | [Installation](docs/installation.md) · [Server: updates, health & backups](docs/server.md) · [Operations](docs/operations.md) · [Moving to another server](docs/moving.md) · [Scaling to 50k books](docs/scaling.md) |
-| Developers | [Architecture](docs/architecture.md) ([PDF](https://github.com/ServantsOfKnowledge/researchdesk/releases/latest), with every release) · [Development](docs/development.md) · [Roadmap](docs/roadmap.md) |
+| Developers | [Architecture](docs/architecture.md) ([PDF](https://github.com/ServantsOfKnowledge/researchdesk/releases/latest) and the whole guide as an EPUB, with every release) · [Development](docs/development.md) · [Roadmap](docs/roadmap.md) |
 
 ## How it fits together
 
 ```
- archive.org, folders, repositories ──(metadata+text)▶ Ingest jobs ──▶ Frappe / MariaDB  (catalogue,
-                                                        │                            notes, page texts)
+ archive.org · folders (books, leaf images, photographs, recordings) · a Calibre library ·
+ repositories (OAI-PMH) · Wikisource · deposits ──(metadata+text)▶ Ingest jobs ──▶ Frappe / MariaDB
+                                                        │                  (catalogue, notes, page texts,
+                                                        │                   archival units)
                                                         └──────▶ Meilisearch       (books + pages)
   Proofreaders ──▶ corrections, re-OCR (Tesseract) ──▶ page text versions ──▶ search, reader, citations
+  Machine drafts (Whisper, Kraken) ──▶ "Machine" versions ──▶ people proofread them
   Preservation ──▶ OCFL copies + fixity ──▶ second copy (folder or S3) ⇄ repair · BagIt exports
                                                                         │
-  Readers ◀── /        (search, read, cite) ◀── Frappe web + API ◀─────┘
-  Koha, VuFind, aggregators ◀── OAI-PMH / MARCXML / exports (MODS, Dublin Core, JSON-LD)
+  Readers ◀── /  (search, read, cite, browse the archive, deposit) ◀── Frappe web + API ◀──┘
+  IIIF viewers, e-reader apps ◀── /iiif (manifests, image service) · /opds
+  Koha, VuFind, aggregators ◀── OAI-PMH / MARCXML / exports (MODS, Dublin Core, JSON-LD, EAD3)
   archive.org, Koha, Wikidata, webhooks ◀── push targets
+  Wikidata, Wikisource, Commons ◀── each person's own Wikimedia account, after a review
   Wikidata, VIAF, LCSH ⇄ Desk → Authorities (matches in; names and links given back)
   Cataloguers ◀── Desk → Review Queue ◀── nightly checks of every record
   daily: new / changed / removed books from archive.org ──▶ Ingest jobs ──▶ mirrored collections
-  Desk → Server ◀── health, backups, alerts ──▶ updater helper (optional): upgrade, restart
+  Desk (one sidebar) → Server ◀── health, backups, alerts ──▶ updater helper (optional)
+  USB sticks, phones, Kiwix ◀── offline copy (zip, ZIM) · Calibre library · the guide as EPUB
   Zotero, Google Scholar ◀── citation_* meta tags, JSON-LD, COinS
 ```
 
-Books from your own folders or web server (`meta.xml` + OCR text + PDF) go through the same
-pipeline; their PDFs are streamed from your disk.
+Material from your own folders or web server (books with `meta.xml` + OCR text + PDF, loose
+PDFs, leaf images, photographs, recordings) or from a Calibre library goes through the same
+pipeline; its files are streamed from your disk and never copied unless you choose to preserve
+them.
 
 The search engine is sent only what changed (a re-ingested book with the same text, or an edit
 that changes nothing searchable, costs it nothing), and its share of the machine can be capped:

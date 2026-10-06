@@ -1,8 +1,11 @@
 # Choosing & ingesting books
 
 > Books in IA-style folders on your own disk, NAS or web server? See
-> [Books from your own folders or servers](local-folders.md). From a DSpace, EPrints or other
-> OAI-PMH repository? See [Books from repositories](repositories.md). This page covers archive.org.
+> [Books from your own folders or servers](local-folders.md) (which also covers manuscripts,
+> photographs and recordings in folders). A Calibre library? [Calibre](calibre.md). A DSpace,
+> EPrints or other OAI-PMH repository? [Books from repositories](repositories.md). Wikisource?
+> [Wikisource](wikisource.md). People depositing their own work? [Repository deposit](deposit.md).
+> This page covers archive.org.
 
 Research Desk never tries to copy "everything". You decide what comes in, using an
 **Ingest Profile**: a saved description of a set of items on archive.org. That keeps a

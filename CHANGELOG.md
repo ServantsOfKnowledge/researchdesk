@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.64.1 (2026-11-06): Documentation brought up to date
+
+- The README, the architecture page (components diagram, data model, new sections on kinds of
+  material, archival description, machine drafts, giving back to Wikimedia and taking the library
+  away, the integrations and fit tables), the staff guide, reader guide, getting started, ingesting,
+  access, searching and preservation pages now describe everything up to 0.64
+- The installer's three institution questions are in Getting started; re-OCR is described for books
+  with a PDF or leaf photographs too
+
 ## 0.64.0 (2026-11-06): Archival description
 
 - **Archival Description** (Desk, and the *Archival description* feature): papers described as a

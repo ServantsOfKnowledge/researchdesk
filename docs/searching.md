@@ -24,6 +24,10 @@ Searches the OCR text of **every page of every book**. Each result is a page, wi
 highlighted snippet. Clicking it opens the book at that page, with the same words searched
 inside the book.
 
+For a recording the "pages" are the **segments of its transcript**, and a hit says the minute
+where the words are spoken. For a manuscript they are its leaves (1a, 1b…). Text a machine has
+drafted and nobody has checked is searched too, and marked as a draft.
+
 On a book's page, **Search inside this book** lists every matching page. Click one to jump
 the reader there.
 
