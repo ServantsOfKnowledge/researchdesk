@@ -6,6 +6,14 @@ An open research portal and digital library for the books digitised by
 [Servants of Knowledge](https://archive.org/details/ServantsOfKnowledge), and for any other
 Internet Archive collection. It is built on the [Frappe](https://frappe.io) framework.
 
+Research Desk is one link in a chain Servants of Knowledge builds in the open, from scanner to
+reader: **TTScribe**, open book-scanning hardware; **Repub**, free software that crops,
+straightens, flattens and reads each scan and exports a searchable PDF, text and the images
+([github.com/servantsofknowledge/repub](https://github.com/servantsofknowledge/repub)); and
+Research Desk, which makes the books searchable to the page, citable, correctable and kept safe.
+Books can go to archive.org, to Research Desk, or to both. **OpenScribe**, the last module of
+the digitisation workflow, is in progress.
+
 Choose a collection, a search or a list of items on archive.org, or point it at your own
 folders, and Research Desk will:
 

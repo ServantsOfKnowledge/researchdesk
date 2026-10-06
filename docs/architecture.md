@@ -337,6 +337,16 @@ alongside the library system (circulation, acquisitions, patrons).
 | Archival description | AtoM, ArchivesSpace | **Includes the essentials** | Fonds to item (ISAD(G)), a hierarchy on the portal, EAD3 export, digitised items attached to units. Not authority records for creators and repositories (ISAAR(CPF)), accessions, or finding-aid import |
 | Institutional repository | DSpace or EPrints for theses and papers | **Includes the essentials** | Deposit with review, licences and embargoes ([Deposit](deposit.md)); harvests DSpace and EPrints too. Not workflows with several reviewers, versioning of deposits or DOIs at deposit |
 
+**From scanner to reader.** Servants of Knowledge builds the whole chain in the open. A scan
+agent photographs each book or manuscript on **TTScribe**, open book-scanning hardware, and gets a
+folder of raw images. **Repub** crops each page to its true boundary, straightens the angle,
+undoes the curve of the spine, reads the text with Tesseract, adds catalogue metadata and exports
+a searchable PDF, hOCR, plain text and a zip of the images (a command-line tool, or a web app with
+a review queue for pages that need cropping by hand, and an API for batches). The book then goes
+to archive.org, to Research Desk, or to both. Research Desk does the rest: search, reading,
+correction, preservation and sharing. **OpenScribe**, the last module of the workflow, is in
+progress.
+
 **Where the impact is largest:** small and mid-size libraries with Indic collections, which
 cannot staff four systems; every install as a ready node for aggregators such as NDLI; a digital
 layer for Koha libraries with no migration; and proofread Indic text and OCR ground truth.
