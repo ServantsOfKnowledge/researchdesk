@@ -52,6 +52,13 @@ that title. Then **Review**:
 Nobody reviews their own deposit (only a System Manager can, so a one-person library can still
 use it).
 
+## Sending an accepted deposit to the Internet Archive
+
+A depositor can give their accepted work to archive.org too: on the deposit page, **Send to the
+Internet Archive** beside it. They connect their own archive.org keys once, check the identifier,
+confirm the work is theirs to give, and it is uploaded in the background into the library's
+collection, public. See [Giving a book to the Internet Archive](archive-upload.md).
+
 ## What an accepted deposit is
 
 An ordinary book from a folder source: a PDF is searchable page by page and readable in the

@@ -146,6 +146,7 @@ def mine() -> list[dict]:
 	)
 	for r in rows:
 		r.url = f"/library/item/{r.item}" if r.item and r.status == "Accepted" else ""
+		r.ia_status = frappe.db.get_value("RD Item", r.item, "ia_sent_status") or "" if r.url else ""
 	return rows
 
 

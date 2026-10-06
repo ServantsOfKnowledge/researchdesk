@@ -1,0 +1,103 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-28 10:00:00.000000",
+ "modified": "2026-10-28 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Archive Account",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "autoname": "field:user",
+ "title_field": "ia_user",
+ "show_title_field_in_link": 1,
+ "search_fields": "ia_user",
+ "links": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "track_changes": 0,
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User",
+   "reqd": 1,
+   "unique": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "ia_user",
+   "fieldtype": "Data",
+   "label": "archive.org Account",
+   "read_only": 1,
+   "description": "The account the keys belong to, as archive.org reports it."
+  },
+  {
+   "fieldname": "connected_on",
+   "fieldtype": "Datetime",
+   "label": "Connected On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "access_key",
+   "fieldtype": "Data",
+   "label": "Access Key",
+   "read_only": 1
+  },
+  {
+   "fieldname": "secret_key",
+   "fieldtype": "Password",
+   "label": "Secret Key"
+  },
+  {
+   "fieldname": "last_used",
+   "fieldtype": "Datetime",
+   "label": "Last Used",
+   "read_only": 1
+  }
+ ],
+ "field_order": [
+  "user",
+  "ia_user",
+  "connected_on",
+  "access_key",
+  "secret_key",
+  "last_used"
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "delete": 1,
+   "report": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1
+  },
+  {
+   "role": "ResDesk Proofreader",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1
+  }
+ ]
+}

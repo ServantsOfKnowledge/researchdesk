@@ -49,6 +49,7 @@
 		</form>
 	</section>
 	{% endif %}
+	<section id="rd-ia" class="rd-card" hidden aria-live="polite" tabindex="-1"></section>
 </div>
 {% endblock %}
 
@@ -59,7 +60,15 @@
 	const T = {{ {
 		"saved": _("Saved."), "submitted": _("Submitted: the library will review it."), "none": _("You have no deposits yet."),
 		"edit": _("Change"), "withdraw": _("Withdraw"), "remove": _("Remove"), "open": _("Open"), "uploading": _("Uploading…"),
-		"mb": _("MB"), "nofile": _("Choose a file first.")
+		"mb": _("MB"), "nofile": _("Choose a file first."),
+		"ia_send": _("Send to the Internet Archive"), "ia_on": _("On archive.org"), "ia_state": _("archive.org"),
+		"ia_h": _("Send to the Internet Archive"), "ia_connect_h": _("Connect your archive.org account first"),
+		"ia_keys": _("Get your keys on archive.org"), "ia_access": _("Access key"), "ia_secret": _("Secret key"),
+		"ia_connect": _("Connect"), "ia_id": _("archive.org identifier"), "ia_public": _("It will be public at"),
+		"ia_files": _("Files"), "ia_confirm": _("This work is mine to give, and I accept that it will be public on archive.org."),
+		"ia_send_now": _("Send"), "ia_taken": _("archive.org already has an item with this identifier: choose another."),
+		"ia_queued": _("Queued: the upload runs in the background."), "ia_check": _("Check again"),
+		"ia_need": _("Confirm that the work is yours to give first.")
 	} | tojson }};
 	const $ = (s) => document.querySelector(s);
 	const form = $("#rd-dep-form"), msg = $("#rd-dep-msg");
@@ -110,11 +119,61 @@
 			${r.review_notes ? `<br><span class="rd-muted">${esc(r.review_notes)}</span>` : ""}
 			${["Draft", "Needs Changes"].includes(r.status) ? `<button type="button" class="rd-btn rd-btn--plain" data-edit="${esc(r.name)}">${T.edit}</button>` : ""}
 			${["Draft", "Submitted", "Needs Changes"].includes(r.status) ? `<button type="button" class="rd-btn rd-btn--plain" data-wd="${esc(r.name)}">${T.withdraw}</button>` : ""}
-			${r.url ? `<a href="${esc(r.url)}">${T.open}</a>` : ""}</li>`).join("")}</ul>` : `<p class="rd-muted">${T.none}</p>`;
+			${r.url ? `<a href="${esc(r.url)}">${T.open}</a>` : ""}
+			${r.ia_status ? `<span class="rd-muted">${T.ia_state}: ${esc(r.ia_status)}</span>` : (r.url ? `<button type="button" class="rd-btn rd-btn--plain" data-ia="${esc(r.item)}">${T.ia_send}</button>` : "")}</li>`).join("")}</ul>` : `<p class="rd-muted">${T.none}</p>`;
+	}
+	// Send an accepted deposit to the Internet Archive, under my own archive.org account
+	const ia = async (method, args, post) => {
+		const opt = post
+			? { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json", "X-Frappe-CSRF-Token": csrf() }, body: JSON.stringify(args || {}) }
+			: { headers: { Accept: "application/json" } };
+		const r = await fetch(`/api/method/sok_resdesk.archive_upload.${method}` + (post || !args ? "" : "?" + new URLSearchParams(args)), opt);
+		const j = await r.json();
+		if (!r.ok) {
+			let m = j.exception || j._error_message || "Error";
+			try { m = JSON.parse(JSON.parse(j._server_messages)[0]).message; } catch (e) {}
+			throw new Error(String(m).replace(/<[^>]+>/g, ""));
+		}
+		return j.message;
+	};
+	async function iaPanel(item, identifier) {
+		const box = $("#rd-ia"); box.hidden = false;
+		const st = await ia("status");
+		if (!st.connected) {
+			box.innerHTML = `<h2>${T.ia_connect_h}</h2><ol>${st.steps.map((t) => `<li>${esc(t)}</li>`).join("")}</ol>
+				<p><a href="${esc(st.keys_url)}" target="_blank" rel="noopener">${T.ia_keys} ↗</a></p>
+				<p><label>${T.ia_access} <input id="rd-ia-a" autocomplete="off"></label> <label>${T.ia_secret} <input id="rd-ia-s" type="password" autocomplete="off"></label></p>
+				<p><button type="button" class="rd-btn rd-btn--primary" id="rd-ia-connect">${T.ia_connect}</button> <span id="rd-ia-msg" class="rd-muted" role="status"></span></p>`;
+			$("#rd-ia-connect").onclick = async () => {
+				try { await ia("connect", { access: $("#rd-ia-a").value, secret: $("#rd-ia-s").value }, true); await iaPanel(item); }
+				catch (e) { $("#rd-ia-msg").textContent = e.message; $("#rd-ia-msg").style.color = "#b00020"; }
+			};
+			box.focus(); return;
+		}
+		const p = await ia("plan", { item, identifier: identifier || "" });
+		const warn = [p.problem, p.name_taken ? T.ia_taken : ""].filter(Boolean);
+		box.innerHTML = `<h2>${T.ia_h}</h2>
+			${warn.map((w) => `<p role="alert" style="color:#b00020">${esc(w)}</p>`).join("")}
+			<p><label>${T.ia_id} <input id="rd-ia-id" value="${esc(p.identifier)}" size="40"></label>
+			<button type="button" class="rd-btn rd-btn--plain" id="rd-ia-recheck">${T.ia_check}</button></p>
+			<p class="rd-muted">${T.ia_public} ${esc(p.url)} · ${esc(st.ia_user)}</p>
+			<p class="rd-muted">${T.ia_files}: ${p.files.map((f) => esc(f.name)).join(" · ") || "—"}</p>
+			${p.problem || p.name_taken ? "" : `<p><label><input type="checkbox" id="rd-ia-ok"> ${T.ia_confirm}</label></p>
+			<p><button type="button" class="rd-btn rd-btn--primary" id="rd-ia-go">${T.ia_send_now}</button> <span id="rd-ia-msg" class="rd-muted" role="status"></span></p>`}`;
+		$("#rd-ia-recheck").onclick = () => iaPanel(item, $("#rd-ia-id").value);
+		const go = $("#rd-ia-go");
+		if (go) go.onclick = async () => {
+			const m = $("#rd-ia-msg");
+			if (!$("#rd-ia-ok").checked) { m.textContent = T.ia_need; return; }
+			try { await ia("send", { item, identifier: $("#rd-ia-id").value, confirmed: 1 }, true); m.textContent = T.ia_queued; await list(); }
+			catch (e) { m.textContent = e.message; m.style.color = "#b00020"; }
+		};
+		box.focus();
 	}
 	document.addEventListener("click", async (e) => {
 		const b = e.target.closest("button"); if (!b) return;
 		try {
+			if (b.dataset.ia) await iaPanel(b.dataset.ia);
 			if (b.dataset.edit) await load(b.dataset.edit);
 			if (b.dataset.wd) { await call("withdraw", { name: b.dataset.wd }, true); await list(); }
 			if (b.dataset.rm) { await call("remove_file", { name, idx: b.dataset.rm }, true); files((await call("get", { name })).files); }

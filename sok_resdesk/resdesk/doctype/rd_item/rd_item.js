@@ -46,6 +46,12 @@ frappe.ui.form.on("RD Item", {
 		if (frm.doc.item_type === "Photograph" && !frm.doc.commons_file && frappe.user.has_role(["System Manager", "ResDesk Manager", "ResDesk Cataloguer", "ResDesk Proofreader"])) {
 			frm.add_custom_button(__("Send to Wikimedia Commons"), () => send_to_commons(frm), __("Actions"));
 		}
+		if (frm.doc.source === "Local" && !["Queued", "Uploading", "On archive.org"].includes(frm.doc.ia_sent_status) && frappe.user.has_role(["System Manager", "ResDesk Manager", "ResDesk Cataloguer"])) {
+			frm.add_custom_button(__("Send to the Internet Archive"), () => send_to_archive(frm), __("Actions"));
+		}
+		if (frm.doc.ia_sent_status) {
+			frm.dashboard.add_indicator(__("archive.org: {0}", [__(frm.doc.ia_sent_status)]), frm.doc.ia_sent_status === "Failed" ? "red" : frm.doc.ia_sent_status === "On archive.org" ? "green" : "orange");
+		}
 		if (frm.doc.media_files && frm.doc.source === "Local" && frappe.user.has_role(["System Manager", "ResDesk Manager", "ResDesk Cataloguer"])) {
 			frm.add_custom_button(__("Draft the Transcript (Speech to Text)"), () =>
 				frappe.call({ method: "sok_resdesk.drafts.draft_transcript", args: { item: frm.doc.name }, freeze: true }).then(() => frappe.msgprint(__("Drafting in the background. You get a notification when it is done; every draft is for a person to proofread.")))
@@ -345,6 +351,49 @@ function send_to_commons(frm) {
 					d.hide();
 					const x = res.message;
 					frappe.msgprint({ title: __("Sent"), message: `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.file)}</a>` + (x.depicts && x.depicts !== "added" ? `<p>${esc(x.depicts)}</p>` : "") });
+					frm.reload_doc();
+				});
+			},
+		});
+		show(d, p);
+		d.show();
+	});
+}
+
+// Give the book to the Internet Archive under my own (or a shared) account, after seeing what goes.
+function send_to_archive(frm) {
+	const esc = frappe.utils.escape_html;
+	const ask = (d) => ({ item: frm.doc.name, identifier: d ? d.get_value("identifier") : "", collection: d ? d.get_value("collection") : "", account: d ? d.get_value("account") : "me" });
+	const show = (d, p) => {
+		const warn = [];
+		if (p.problem) warn.push(esc(p.problem));
+		if (p.name_taken) warn.push(__("archive.org already has an item with this identifier: choose another."));
+		d.get_field("review").$wrapper.html(
+			(warn.length ? `<div class="alert alert-warning">${warn.map((w) => `<div>${w}</div>`).join("")}</div>` : "") +
+				`<p class="text-muted">${__("Public at")} <b>${esc(p.url)}</b> · ${__("Licence")}: <b>${esc(p.licence || "—")}</b></p>` +
+				`<p class="text-muted">${p.files.map((f) => `${esc(f.name)} (${Math.round(f.size / 1048576 * 10) / 10} MB)`).join(" · ") || "—"}</p>`
+		);
+		d.set_df_property("confirmed", "hidden", p.problem || p.name_taken ? 1 : 0);
+	};
+	frappe.call({ method: "sok_resdesk.archive_upload.plan", args: ask(null), freeze: true, freeze_message: __("Checking with archive.org…") }).then((r) => {
+		const p = r.message;
+		const d = new frappe.ui.Dialog({
+			title: __("Send to the Internet Archive"),
+			size: "large",
+			fields: [
+				{ fieldname: "identifier", fieldtype: "Data", label: __("archive.org identifier"), default: p.identifier, description: __("Its permanent address on archive.org.") },
+				{ fieldname: "collection", fieldtype: "Data", label: __("Collection"), default: p.collection, read_only: p.may_choose_collection ? 0 : 1, description: __("A collection your account may add to.") },
+				{ fieldname: "account", fieldtype: "Select", label: __("Send under"), options: p.accounts.map((a) => ({ value: a.value, label: a.label })), default: p.account },
+				{ fieldtype: "Button", fieldname: "check", label: __("Check again"), click: () => frappe.call({ method: "sok_resdesk.archive_upload.plan", args: ask(d), freeze: true }).then((x) => show(d, x.message)) },
+				{ fieldname: "review", fieldtype: "HTML" },
+				{ fieldname: "confirmed", fieldtype: "Check", label: __("This work is mine to give, or its owner agreed, and I accept that it will be public on archive.org.") },
+			],
+			primary_action_label: __("Send"),
+			primary_action() {
+				if (!d.get_value("confirmed")) return frappe.msgprint(__("Confirm that the work is yours to give first."));
+				frappe.call({ method: "sok_resdesk.archive_upload.send", args: { ...ask(d), confirmed: 1 }, freeze: true }).then((res) => {
+					d.hide();
+					frappe.msgprint({ title: __("Queued"), message: __("The upload runs in the background; this book shows its state. It will appear at {0}.", [esc(res.message.url)]) });
 					frm.reload_doc();
 				});
 			},

@@ -46,6 +46,7 @@ STRUCTURE: list = [
 			("Push Runs", D, "RD Push Run"),
 			("External Records", D, "RD External Record"),
 			("My Wikimedia Account", D, "RD Wikimedia Account"),
+			("My archive.org Account", D, "RD Archive Account"),
 		],
 	),
 	(

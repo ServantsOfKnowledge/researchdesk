@@ -86,6 +86,7 @@
   "ia_section",
   "ia_contact",
   "ia_delay",
+  "ia_upload_collection",
   "column_break_ia",
   "batch_size",
   "cache_page_text",
@@ -728,6 +729,13 @@
    "label": "Delay Between Requests (seconds)",
    "default": "0.5",
    "description": "Pause between requests to archive.org. Raise it if archive.org asks you to slow down."
+  },
+  {
+   "fieldname": "ia_upload_collection",
+   "fieldtype": "Data",
+   "label": "Collection for Uploads to archive.org",
+   "default": "opensource",
+   "description": "Where books sent to archive.org from here are filed. People who send their own work always use this one; staff can choose another collection they may add to when they send. Everything sent is public."
   },
   {
    "fieldname": "column_break_ia",

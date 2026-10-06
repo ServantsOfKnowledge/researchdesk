@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.66.0 (2026-11-06): Give a book to the Internet Archive
+
+- **Send to the Internet Archive** from Research Desk. A person with an archive.org account
+  connects its keys once (Desk → My archive.org Account, or the box on the deposit page), then
+  sends a book: Actions → Send to the Internet Archive. A review shows the identifier, collection,
+  account, licence and files; nothing goes without it, and the sender confirms the work is theirs to
+  give. The upload runs in the background and the book records Queued, Uploading, On archive.org or
+  Failed (send again to resume)
+- **Always public.** Only a book that is public here, has a licence and has its files on this server
+  can go; Research Desk never makes a dark or hidden item
+- **Who:** depositors send their own accepted deposit (from the deposit page), under their own
+  account, into the library's collection (Settings → Catalogue → Internet Archive). Library staff
+  send any such book, choose the collection, and may send under a shared account kept on a Push
+  Target (Internet Archive). Keys are never shown, to administrators or in the browser
+- [Giving a book to the Internet Archive](docs/archive-upload.md)
+- The accessibility check opens Page & text logged in, since it is for members
+
 ## 0.65.2 (2026-11-06): Page & text and the text downloads are for members
 
 - **Page & text**, its page images, notes and read aloud, and **The text, to read your way** (the

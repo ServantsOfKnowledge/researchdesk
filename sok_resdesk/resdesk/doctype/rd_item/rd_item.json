@@ -79,6 +79,11 @@
   "commons_file",
   "commons_sent_by",
   "commons_sent_on",
+  "ia_sent_id",
+  "ia_sent_status",
+  "ia_sent_by",
+  "ia_sent_on",
+  "ia_sent_note",
   "section_rights",
   "licence_url",
   "rights",
@@ -1036,6 +1041,37 @@
    "fieldname": "commons_sent_on",
    "fieldtype": "Datetime",
    "label": "Sent to Commons On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ia_sent_id",
+   "fieldtype": "Data",
+   "label": "Sent to archive.org As",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ia_sent_status",
+   "fieldtype": "Select",
+   "label": "archive.org Upload",
+   "read_only": 1,
+   "options": "\nQueued\nUploading\nOn archive.org\nFailed"
+  },
+  {
+   "fieldname": "ia_sent_by",
+   "fieldtype": "Data",
+   "label": "Sent to archive.org By",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ia_sent_on",
+   "fieldtype": "Datetime",
+   "label": "Sent to archive.org On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ia_sent_note",
+   "fieldtype": "Small Text",
+   "label": "archive.org Upload Note",
    "read_only": 1
   }
  ],

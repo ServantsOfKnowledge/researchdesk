@@ -92,6 +92,13 @@ PAGES = [
 		"For library staff",
 	),
 	Page(
+		"archive-upload",
+		"archive-upload.md",
+		"Giving a book to the Internet Archive",
+		"staff",
+		"For library staff",
+	),
+	Page(
 		"sru",
 		"sru.md",
 		"SRU: the catalogue for older library systems",

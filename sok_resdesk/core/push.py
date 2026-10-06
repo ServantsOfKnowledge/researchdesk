@@ -86,6 +86,7 @@ def ia_patch(current: dict, desired: dict, fields=IA_FIELDS) -> list[dict]:
 
 class IAWriter:
 	METADATA = "https://archive.org/metadata/{id}"
+	S3 = "https://s3.us.archive.org/{id}/{name}"
 	CHECK = "https://s3.us.archive.org/?check_auth=1"
 
 	def __init__(self, access: str, secret: str, session=None):
@@ -106,6 +107,24 @@ class IAWriter:
 		if r.status_code != 200 or not r.json().get("metadata"):
 			raise PushError(f"{identifier}: not found on archive.org ({r.status_code})")
 		return r.json()["metadata"]
+
+	def exists(self, identifier: str) -> bool:
+		"""Whether archive.org already has an item by this name (taken, by anyone)."""
+		r = self.session.get(self.METADATA.format(id=identifier), timeout=60)
+		return r.status_code == 200 and bool(r.json())
+
+	def upload(self, identifier: str, name: str, fileobj, headers: dict | None = None) -> None:
+		"""PUT one file into an item (the first one, with the metadata headers, makes the item)."""
+		from urllib.parse import quote
+
+		r = self.session.put(
+			self.S3.format(id=identifier, name=quote(name)),
+			data=fileobj,
+			headers={"Authorization": self.auth, **(headers or {})},
+			timeout=(30, 3600),
+		)
+		if r.status_code >= 300:
+			raise PushError(f"{identifier}/{name}: archive.org answered {r.status_code}: {r.text[:300]}")
 
 	def write(self, identifier: str, patch: list[dict]) -> dict:
 		r = self.session.post(
