@@ -40,6 +40,7 @@ SCREEN_HELP = {
 	"resdesk-jobs": ("operations", "background-jobs-see-pause-and-stop-what-is-running"),
 	"resdesk-server": ("server", "the-server-page"),
 	"resdesk-people": ("staff-guide", "people-and-roles"),
+	"resdesk-connections": ("connections", "the-kinds"),
 	"resdesk-translations": ("staff-guide", "the-portal-in-other-languages"),
 	"resdesk-authorities": ("staff-guide", "authors-and-subjects"),
 	"resdesk-review": ("staff-guide", "the-review-queue"),

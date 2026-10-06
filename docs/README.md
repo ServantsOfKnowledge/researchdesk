@@ -19,6 +19,7 @@ The same pages are inside the app: **Help** on the portal (for readers) and **He
    - [Books from a Calibre library](calibre.md): a whole Calibre library, with its details, covers and files, read without changing it
    - [Books from repositories](repositories.md): DSpace, EPrints and any OAI-PMH repository; their PDFs' text page by page; kept in step
    - [Books from Wikisource](wikisource.md): scanned books transcribed and proofread on any language's Wikisource, with their page text and page images
+   - [Connections](connections.md): every outside system by kind, what is on or connected for you, who may use it
    - [Giving a book to the Internet Archive](archive-upload.md): connect your own archive.org account and send a book, always public
    - [Giving back to Wikimedia](wikimedia.md): connect your own Wikimedia account; what you send to Wikidata is sent as you
 4. [Searching](searching.md): books vs. inside-the-text search, filters, Kannada and other scripts

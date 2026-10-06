@@ -92,6 +92,13 @@ PAGES = [
 		"For library staff",
 	),
 	Page(
+		"connections",
+		"connections.md",
+		"Connections: everything shared with other systems",
+		"staff",
+		"For library staff",
+	),
+	Page(
 		"archive-upload",
 		"archive-upload.md",
 		"Giving a book to the Internet Archive",

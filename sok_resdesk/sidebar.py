@@ -38,6 +38,7 @@ STRUCTURE: list = [
 		"Exchange",
 		"arrow-left-right",
 		[
+			("Connections", P, "resdesk-connections"),
 			("Exports", D, "RD Export"),
 			("Metadata Imports", D, "RD Metadata Import"),
 			("Library Systems", D, "RD Library System"),

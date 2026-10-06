@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.66.1 (2026-11-06): Connections: every outside system, by kind, in one place
+
+- **Research Desk → Exchange → Connections** lists everything the library shares with or takes from
+  other systems, by kind: Internet Archive, Wikimedia, library systems, repositories and deposit,
+  e-books and offline, open standards for others to reach the library, import and export, and
+  webhooks. Each card says what it does, whether it is on or connected for you, who may use it, and
+  has the buttons that open the right screen (with the addresses to copy for OAI-PMH, SRU, OPDS,
+  IIIF and the COUNTER report). A connection your role does not use is shown greyed out, not hidden
+- [Connections](docs/connections.md)
+
 ## 0.66.0 (2026-11-06): Give a book to the Internet Archive
 
 - **Send to the Internet Archive** from Research Desk. A person with an archive.org account

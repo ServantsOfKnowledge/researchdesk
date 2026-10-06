@@ -1,0 +1,36 @@
+{
+ "content": null,
+ "creation": "2026-10-14 12:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "link",
+ "idx": 0,
+ "modified": "2026-10-14 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "ResDesk",
+ "name": "resdesk-connections",
+ "owner": "Administrator",
+ "page_name": "resdesk-connections",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "SOK Super Admin"
+  },
+  {
+   "role": "ResDesk Manager"
+  },
+  {
+   "role": "ResDesk Cataloguer"
+  },
+  {
+   "role": "ResDesk Proofreader"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Connections"
+}
