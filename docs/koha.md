@@ -139,6 +139,13 @@ Everything a reader needs (discovery, faceted search, full text, reading, citati
 without any other system. The Frappe data model can be extended with holdings, patrons and
 loans for a complete library system. See [Architecture](architecture.md#towards-a-full-library-system).
 
+## What stays in the library system
+
+Circulation, acquisitions, holdings and patrons stay in Koha (or whichever system the library
+uses), by design: Research Desk does not copy them. It links the catalogue to the digital copies
+and sends the links back (options above), and answers [SRU](sru.md) and OAI-PMH so the library
+system can also fetch records from here.
+
 ## Other standards
 
 | Need | Use |

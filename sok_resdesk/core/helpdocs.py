@@ -92,6 +92,20 @@ PAGES = [
 		"For library staff",
 	),
 	Page(
+		"sru",
+		"sru.md",
+		"SRU: the catalogue for older library systems",
+		"staff",
+		"For library staff",
+	),
+	Page(
+		"usage-reports",
+		"usage-reports.md",
+		"Usage reports in COUNTER form",
+		"staff",
+		"For library staff",
+	),
+	Page(
 		"calibre",
 		"calibre.md",
 		"Books from a Calibre library",

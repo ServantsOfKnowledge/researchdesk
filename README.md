@@ -211,7 +211,7 @@ day, changed ones are refreshed, removed ones are unpublished
 | Librarians & educators | [Getting started](docs/getting-started.md) · [Choosing & ingesting books](docs/ingesting.md) · [Your own folders & servers](docs/local-folders.md) · [Repositories (DSpace, EPrints)](docs/repositories.md) · [Wikisource](docs/wikisource.md) · [Calibre](docs/calibre.md) |
 | Archives & special collections | [Archival description](docs/archival-description.md) · [Manuscripts & palm leaves](docs/manuscripts.md) · [Photographs](docs/photographs.md) · [Audio & video](docs/audio-video.md) · [Repository deposit](docs/deposit.md) |
 | Library managers | [Who can see what: members-only books & reader accounts](docs/access.md) · [Collections, metadata, exports & pushing](docs/collections-and-metadata.md) · [Permanent links, preservation & OCR quality](docs/preservation.md) · [Giving back to Wikimedia](docs/wikimedia.md) · [Offline copies & Kiwix](docs/offline.md) |
-| Library systems staff | [Koha & interoperability](docs/koha.md) · [IIIF](docs/iiif.md) · [OPDS](docs/opds.md) · [API](docs/api.md) |
+| Library systems staff | [Koha & interoperability](docs/koha.md) · [IIIF](docs/iiif.md) · [OPDS](docs/opds.md) · [SRU](docs/sru.md) · [Usage reports](docs/usage-reports.md) · [API](docs/api.md) |
 | System administrators | [Installation](docs/installation.md) · [Server: updates, health & backups](docs/server.md) · [Operations](docs/operations.md) · [Moving to another server](docs/moving.md) · [Scaling to 50k books](docs/scaling.md) |
 | Developers | [Architecture](docs/architecture.md) · [Technology map](docs/technology.md) ([PDF](https://github.com/ServantsOfKnowledge/researchdesk/releases/latest) and the whole guide as an EPUB, with every release) · [Development](docs/development.md) · [Roadmap](docs/roadmap.md) |
 
@@ -229,6 +229,7 @@ day, changed ones are refreshed, removed ones are unpublished
                                                                         │
   Readers ◀── /  (search, read, cite, browse the archive, deposit) ◀── Frappe web + API ◀──┘
   IIIF viewers, e-reader apps ◀── /iiif (manifests, image service) · /opds
+  Older library systems ◀── /sru (SRU 1.2, MARCXML or Dublin Core)
   Koha, VuFind, aggregators ◀── OAI-PMH / MARCXML / exports (MODS, Dublin Core, JSON-LD, EAD3)
   archive.org, Koha, Wikidata, webhooks ◀── push targets
   Wikidata, Wikisource, Commons ◀── each person's own Wikimedia account, after a review

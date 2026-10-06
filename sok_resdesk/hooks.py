@@ -82,6 +82,8 @@ before_request = [
 	"sok_resdesk.iiif.before_request",
 	# /opds: the library as an e-reader catalogue (OPDS 1.2)
 	"sok_resdesk.opds.before_request",
+	# /sru: the catalogue for older library systems and Z39.50 gateways (SRU 1.2)
+	"sok_resdesk.sru.before_request",
 	"sok_resdesk.portal.home_is_library",
 	# portal pages in the language chosen on the portal; the Desk in the account's own
 	"sok_resdesk.translations.portal_language",

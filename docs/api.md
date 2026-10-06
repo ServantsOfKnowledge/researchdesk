@@ -192,6 +192,8 @@ only; 10 a minute.
 | `sok_resdesk.requirements.report` (`refresh`) · `install` (`part`=`python`/`ocr`) | admins: every tool Research Desk uses, found or missing, with what it is for and how to fix it; install Python packages or Tesseract with its models through the updater helper (native installs) |
 | `sok_resdesk.dashboard.numbers` (`refresh`) | managers: the workspace numbers (cached five minutes) |
 | `sok_resdesk.analytics.config` | the usage statistics service portal pages load (public) |
+| `sok_resdesk.counter.reports` · `report` (`report_id`=`TR`, `begin_date`, `end_date`, `format`=`json`/`tsv`) | managers: the COUNTER style Title Master Report from the built-in page views ([Usage reports](usage-reports.md)) |
+| `GET /sru` (`operation`, `query`, `startRecord`, `maximumRecords`, `recordSchema`) | SRU 1.2: no arguments gives the explain record; `searchRetrieve` takes CQL and returns MARCXML or Dublin Core ([SRU](sru.md)) |
 | `GET /ark:/<naan>/<name>[/n<leaf>]` | a permanent ARK: redirects to the book (with a leaf: that page in the page reader); `?info` returns its who/what/when/where record as text; a deleted book's ARK leads to its tombstone |
 | `sok_resdesk.capacity.get_status` | the book limit: books and pages in the catalogue, the limit, room left, and what the machine's CPUs, memory and disk can each hold |
 | `sok_resdesk.server.status` | everything on the Server page: versions, updates, health, backups, helper, recent tasks |

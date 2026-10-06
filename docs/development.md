@@ -47,6 +47,8 @@ researchdesk/
     ├── datacite.py         DOIs from DataCite for chosen collections
     ├── dashboard.py        the numbers on the Research Desk workspace
     ├── analytics.py        usage statistics (built-in, PostHog, Plausible, Umami)
+    ├── counter.py          COUNTER style usage reports from the built-in page views (core/counter.py has the format)
+    ├── sru.py              SRU 1.2 at /sru for older library systems (core/sru.py has CQL and the XML)
     ├── curation.py         curated collections: membership, rules, counts
     ├── transfer.py         metadata exports and spreadsheet imports
     ├── outbound.py         push runs to other systems, automatic pushes

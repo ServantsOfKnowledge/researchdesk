@@ -146,9 +146,9 @@
 ## v1.0: library-grade
 
 - [ ] OpenSearch adapter for very large page indexes
-- [ ] Holdings, patrons and circulation stay with Koha: Research Desk works alongside it
-- [ ] SRU/Z39.50 target for older ILS integrations
-- [ ] Usage statistics in COUNTER form, for libraries that report them
+- [x] Holdings, patrons and circulation stay with Koha: Research Desk works alongside it, by design ([Koha](koha.md#what-stays-in-the-library-system)) (0.65)
+- [x] SRU 1.2 target for older library systems; Z39.50-only clients through a gateway ([SRU](sru.md)) (0.65)
+- [x] Usage statistics in COUNTER form: the Title Master Report with investigations; requests are not recorded ([Usage reports](usage-reports.md)) (0.65)
 - [ ] OpenScribe, the last module of the digitisation workflow (in progress at Servants of Knowledge; TTScribe scanning and Repub processing are built)
 
 Ideas and priorities welcome: open an issue.

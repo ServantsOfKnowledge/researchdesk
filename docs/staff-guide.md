@@ -485,6 +485,9 @@ text, with how many results), *Search inside a book*, *Reader opened*, *Citation
 page, format), *Note added* (kind, visibility) and *Page proofread*. A visitor's browser asks for
 the choice once per visit, so a change shows to new visits.
 
+With **Built-in**, a manager can also download a COUNTER style report of each book's views by
+month for a funder or consortium: see [Usage reports](usage-reports.md).
+
 ## Readers' notes
 
 Readers keep notes on the pages of books in **Page & text** (see the reader guide). In the Desk:

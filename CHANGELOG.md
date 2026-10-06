@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.65.0 (2026-11-06): SRU and COUNTER style usage reports
+
+- **SRU 1.2** at `/sru`: older library systems, union catalogues and Z39.50 gateways can search the
+  catalogue with CQL (title, author, subject, identifier, date, language; and, or, not; brackets)
+  and get MARCXML or Dublin Core records, for the records OAI-PMH shares. No arguments gives the
+  explain record. Mistakes come back as SRU diagnostics. Switched off with the *Sharing metadata*
+  feature
+- **Usage reports in COUNTER form**: managers download the Title Master Report (Release 5 style)
+  as JSON or a spreadsheet table, by month, from the built-in page views: total and unique item
+  investigations. Requests are not recorded, and the report says so (exception 3040)
+- Holdings, patrons and circulation staying in Koha is now stated in the Koha page as a design
+  decision, and the roadmap items for these three are closed
+
 ## 0.64.2 (2026-11-06): Technology map
 
 - A new help page, **Technology map**: every runtime service, tool, library, outside service and

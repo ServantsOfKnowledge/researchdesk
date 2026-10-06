@@ -30,6 +30,8 @@ The same pages are inside the app: **Help** on the portal (for readers) and **He
    - [Archival description](archival-description.md): fonds, series, file and item (ISAD(G)), a hierarchy on the portal, EAD3 finding aids
    - [Offline copies and Kiwix](offline.md): a collection as a folder of web pages for USB sticks, phones and Kiwix (ZIM)
    - [OPDS](opds.md): the library as a catalogue for e-reader apps: newest books, collections, search and downloads
+   - [SRU](sru.md): the catalogue for older library systems and Z39.50 gateways, searched with CQL
+   - [Usage reports](usage-reports.md): the Title Master Report in COUNTER form, for funders and consortia
 9. [API](api.md): public HTTP endpoints
 10. [Server: updates, health & backups](server.md): the Server page in the Desk: new releases, health of every part, the book limit, backups, logs, alerts; upgrading and restarting from the Desk with the updater helper
 11. [Operations](operations.md): upgrading and rolling back, backups, workers, background jobs (see, pause, resume and stop), resources (presets, quiet hours), re-indexing, logo & branding, troubleshooting
