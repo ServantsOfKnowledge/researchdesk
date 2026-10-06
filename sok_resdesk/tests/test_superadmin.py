@@ -31,6 +31,9 @@ class TestSuperAdmin(IntegrationTestCase):
 		_user(LIBRARIAN, ["ResDesk Manager"])
 		_user(SUPER, ["SOK Super Admin"])
 		_user(OTHER, ["ResDesk Cataloguer"])
+		self._saved = {
+			f: frappe.db.get_single_value("RD Settings", f) for f in ("guest_access", "portal_title")
+		}
 		s = frappe.get_single("RD Settings")
 		s.guest_access = "Records only"
 		s.portal_title = "Rdtest Library"
@@ -39,6 +42,7 @@ class TestSuperAdmin(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
+		frappe.db.set_single_value("RD Settings", self._saved)
 		for email in (LIBRARIAN, SUPER, OTHER):
 			frappe.delete_doc("User", email, force=True, ignore_permissions=True)
 		frappe.db.commit()
