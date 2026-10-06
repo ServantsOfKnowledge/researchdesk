@@ -87,6 +87,8 @@ def trim_boot(bootinfo):
 		bootinfo[payload] = {
 			k: v for k, v in sidebars.items() if not v.get("module") or v.get("module") in KEEP
 		}
+	if bootinfo.get("app_data"):  # the apps screen of Frappe 16.50 and later, when no icon grid is used
+		bootinfo.app_data = [a for a in bootinfo.app_data if a.get("app_name") == APP]
 	icons = bootinfo.get("desktop_icons") or []
 	kept = {i.label for i in icons if i.get("app") == APP and not i.get("parent_icon")}
 	bootinfo.desktop_icons = [i for i in icons if i.label in kept or i.get("parent_icon") in kept]

@@ -8,6 +8,14 @@ from sok_resdesk import deskscope
 EMAIL = "rdtest-deskscope@example.org"
 
 
+def shown(boot) -> list[str]:
+	"""What the apps screen offers: the icon grid's labels, or (a site on Frappe 16.50 and later that
+	shows the Apps screen) the apps' names."""
+	if boot.get("desktop_icons"):
+		return [i.label for i in boot.desktop_icons]
+	return [a.get("app_title") or a.get("app_name") for a in boot.get("app_data") or []]
+
+
 class TestDeskScope(IntegrationTestCase):
 	def setUp(self):
 		self.was = deskscope.scope()
@@ -73,13 +81,14 @@ class TestDeskScope(IntegrationTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.clear_cache(user=EMAIL)
 		boot = get_bootinfo()
-		self.assertEqual([i.label for i in boot.desktop_icons], ["Research Desk"])
+		self.assertEqual(shown(boot), ["Research Desk"])
 		keys = {k.lower() for k in (boot.get("module_sidebars") or boot.get("workspace_sidebar_item") or {})}
 		self.assertIn("research desk", keys)
 		self.assertFalse({"build", "users", "website", "integrations"} & keys)
 		frappe.set_user("Administrator")
 		frappe.clear_cache(user="Administrator")
-		self.assertIn("Build", [i.label for i in get_bootinfo().desktop_icons])
+		everything = shown(get_bootinfo())
+		self.assertTrue(len(everything) > 1 and "Research Desk" in everything, everything)
 
 	def test_everyone_includes_administrator_and_closes_frappes_desktop(self):
 		from frappe.boot import get_bootinfo
@@ -88,7 +97,7 @@ class TestDeskScope(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		frappe.clear_cache(user="Administrator")
 		boot = get_bootinfo()
-		self.assertEqual([i.label for i in boot.desktop_icons], ["Research Desk"])
+		self.assertEqual(shown(boot), ["Research Desk"])
 		self.assertTrue(boot.get("resdesk_desk_only"))
 		keys = {k.lower() for k in (boot.get("module_sidebars") or boot.get("workspace_sidebar_item") or {})}
 		self.assertFalse({"build", "users", "website", "integrations", "system"} & keys)
@@ -97,4 +106,5 @@ class TestDeskScope(IntegrationTestCase):
 		frappe.clear_cache(user="Administrator")
 		boot = get_bootinfo()
 		self.assertFalse(boot.get("resdesk_desk_only"))
-		self.assertIn("Framework", [i.label for i in boot.desktop_icons])
+		everything = shown(boot)
+		self.assertTrue(len(everything) > 1 and "Research Desk" in everything, everything)
