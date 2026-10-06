@@ -406,13 +406,35 @@ to it follows; set *Home Page* back to `library` to return.
 
 | Role | Can |
 |---|---|
-| ResDesk Manager | everything in the library: settings, ingests, background jobs, access, pushes, readers; the Server page and backups |
-| System Manager | also upgrades, restarts and downloading backups on the Server page |
+| SOK Super Admin | Servants of Knowledge's role for the installation as a whole: features and profiles, the Server page (upgrades, restarts, resources), security and access setup, integrations and credentials. Holds ResDesk Manager too |
+| ResDesk Manager | everything in the library: the portal's name, logo and catalogue settings, ingests, background jobs, pushes, readers, backups; the locked areas below are read-only |
+| System Manager | the same as the super admin (Frappe's own administrator role). Give it only to Servants of Knowledge staff |
 | ResDesk Cataloguer | edit books, authors, subjects and collections; exports and spreadsheet imports; read ingest runs |
 | ResDesk Reader | the portal only: read members-only books |
 | ResDesk Proofreader | the portal only: correct and validate page text, and read pages again with OCR |
 
 Give and take roles on **People & Roles** (below).
+
+### What only the super admin can change
+
+After installation a library's librarians hold **ResDesk Manager**: they run the library, but these
+are the installation's, and Settings shows them read-only to a manager:
+
+* **Features** (the whole tab: your institution and the switches) and the resource preset
+* **Server** (Settings tab and the Server page: upgrades, rollbacks, restarts, resources,
+  installing missing tools, worker priority, deleting backups)
+* **Readers & Access**: who can find and read, default visibility, sign-up, OAI-PMH scope, access
+  rules, what staff see in the Desk, and the usage statistics service and its key
+* **Credentials and storage**: the search engine's address and key, ARKs, DOIs and DataCite, Machine
+  Drafts engines, preservation folders and the second copy (folder or S3)
+
+Only a super admin, a System Manager or the Administrator account can change them, give or take
+the super admin and System Manager roles, or change the account of someone who holds them.
+Everything else stays with the manager. Give the role from **People & Roles**, or on the server:
+
+    bench --site your.site add-to-roles someone@example.org "SOK Super Admin"
+
+Do not give librarians System Manager: it is Frappe's full administrator role and lifts these limits.
 
 ### Only Research Desk in the Desk
 
@@ -461,7 +483,7 @@ that profile by hand, it is rebuilt after every upgrade so Frappe's new modules 
   send a welcome email. Existing accounts just get the roles.
 - **Sign-ups waiting for approval** show at the top, with **Approve** and **Reject**.
 
-Only a System Manager gives or takes the System Manager role. Nobody can take a manager role
+Only a super admin (or System Manager) gives or takes the System Manager and super admin roles. Nobody can take a manager role
 from themselves or switch themselves off, so a library can't lock itself out. The full Frappe
 account screen stays one click away (**⋯ → All accounts**).
 

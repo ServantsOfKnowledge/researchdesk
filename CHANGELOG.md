@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.65.1 (2026-11-06): A super admin for Servants of Knowledge; footer; busy-database fixes
+
+- **SOK Super Admin**: a role for Servants of Knowledge to manage the installation as a whole.
+  Librarians with the manager role still run the library, but Settings shows the Features tab,
+  the Server tab, access and sign-up setup, the usage statistics service, search engine
+  address and key, ARKs, DOIs, machine draft engines, preservation and second-copy storage
+  read-only to them; the Server page's upgrades, restarts, resources and tool installs, the
+  worker priority and the features' Turn On button are the super admin's. Only a super admin
+  (or System Manager) gives the super admin and System Manager roles or changes such an account.
+  A super admin is also a manager
+- The portal footer reads **Built on Frappe by ServantsOfKnowledge**
+- Fixed errors in the background: sending page text to search (`send_pending`) and reindexing a
+  book (`reindex_book`) failed with *Record has changed since last read* (1020) when something
+  else changed the book meanwhile; they now read again from a fresh snapshot (up to three
+  tries) instead of failing
+
 ## 0.65.0 (2026-11-06): SRU and COUNTER style usage reports
 
 - **SRU 1.2** at `/sru`: older library systems, union catalogues and Z39.50 gateways can search the

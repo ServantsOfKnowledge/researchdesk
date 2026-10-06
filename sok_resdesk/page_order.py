@@ -106,14 +106,18 @@ def _move_notes(item_id: str, moves: dict[int, int]) -> None:
 
 def reindex_book(item_id: str) -> None:
 	"""Send the book and its pages to search again (its old page documents are replaced)."""
+	from sok_resdesk import dbretry
 	from sok_resdesk.catalogue import item_to_record
 	from sok_resdesk.ingest import fetch_pages
 	from sok_resdesk.search import index_record
 
-	doc = frappe.get_doc("RD Item", item_id)
-	if not doc.published:
-		return
-	index_record(item_to_record(doc), fetch_pages(item_id), replace_pages=True)
+	def work():
+		doc = frappe.get_doc("RD Item", item_id)
+		if not doc.published:
+			return
+		index_record(item_to_record(doc), fetch_pages(item_id), replace_pages=True)
+
+	dbretry.run(work)  # a book changed meanwhile (error 1020) is read again, not lost
 
 
 def waiting(limit: int = 0) -> list[str]:

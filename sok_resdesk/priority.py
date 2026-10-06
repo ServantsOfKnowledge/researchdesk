@@ -21,7 +21,9 @@ import frappe
 from frappe import _
 from frappe.utils import cint
 
-MANAGERS = ("System Manager", "ResDesk Manager")
+from sok_resdesk import access
+
+MANAGERS = access.SUPER_ROLES  # the worker priority is part of the machine setup
 SEEN_KEY = "resdesk:worker-priority"
 LEVELS = (  # (nice, name) as the Desk offers them
 	(19, "Lowest: only what the portal leaves over"),

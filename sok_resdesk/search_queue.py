@@ -282,6 +282,7 @@ def _queue_send() -> None:
 def send_pending(limit: int = 2000) -> int:
 	"""Send the page text of books marked *pages pending*, oldest first, a few books at a time and
 	only while the engine has room (search.wait_for_room). Every 10 minutes too (hooks)."""
+	from sok_resdesk import dbretry
 	from sok_resdesk.catalogue import item_to_record
 	from sok_resdesk.ingest import fetch_pages
 	from sok_resdesk.search import IndexBuffer, pages_held
@@ -299,20 +300,24 @@ def send_pending(limit: int = 2000) -> int:
 		)
 		if not names:
 			break
-		buffer = IndexBuffer(flush_books=SEND_BATCH)
-		for name in names:
-			doc = frappe.get_doc("RD Item", name)
-			try:
-				pages = fetch_pages(doc.item_id) if doc.has_page_text else []
-			except Exception as e:  # one unreadable book doesn't stop the rest
-				frappe.log_error("Research Desk: page text not sent", f"{name}: {e}")
-				pages = []
-			if not pages:
-				frappe.db.set_value("RD Item", name, "pages_pending", 0, update_modified=False)
-				continue
-			buffer.add(item_to_record(doc), pages, replace_pages=True)
-		buffer.flush()  # waits for room first; clears pages_pending for what it sent
-		frappe.db.commit()
+
+		def send_batch(names=names):
+			buffer = IndexBuffer(flush_books=SEND_BATCH)
+			for name in names:
+				doc = frappe.get_doc("RD Item", name)
+				try:
+					pages = fetch_pages(doc.item_id) if doc.has_page_text else []
+				except Exception as e:  # one unreadable book doesn't stop the rest
+					frappe.log_error("Research Desk: page text not sent", f"{name}: {e}")
+					pages = []
+				if not pages:
+					frappe.db.set_value("RD Item", name, "pages_pending", 0, update_modified=False)
+					continue
+				buffer.add(item_to_record(doc), pages, replace_pages=True)
+			buffer.flush()  # waits for room first; clears pages_pending for what it sent
+
+		# a book changed meanwhile (error 1020) or a deadlock: read again from a fresh snapshot
+		dbretry.run(send_batch)
 		sent += len(names)
 	return sent
 

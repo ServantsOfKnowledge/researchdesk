@@ -19,9 +19,10 @@ import frappe
 from frappe import _
 from frappe.utils import cint
 
+from sok_resdesk import access
 from sok_resdesk.core import equipment as eq
 
-ADMINS = ("System Manager", "ResDesk Manager")
+ADMINS = access.SUPER_ROLES
 INSTALLABLE = ("python", "ocr")
 CACHE_KEY = "resdesk:requirements"
 GB = 1024**3

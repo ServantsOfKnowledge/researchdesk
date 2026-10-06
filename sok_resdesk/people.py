@@ -22,8 +22,21 @@ SYSTEM = "System Manager"
 PROTECTED = ("Administrator", "Guest")
 
 
+def _is_super() -> bool:
+	from sok_resdesk import access
+
+	return access.is_super_admin()
+
+
+def _privileged() -> tuple[str, ...]:
+	from sok_resdesk import access
+
+	return access.SUPER_ROLES
+
+
 def managed_roles() -> list[str]:
-	return [*ROLES, SYSTEM]
+	"""The roles this person may give: the installation's own roles only if they hold one."""
+	return [r for r in [*ROLES, SYSTEM] if r == SYSTEM or r not in _privileged() or _is_super()]
 
 
 def _check_manager() -> None:
@@ -31,12 +44,13 @@ def _check_manager() -> None:
 
 
 def _check_role(role: str) -> None:
+	if role in _privileged() and not _is_super():
+		frappe.throw(
+			_("Only Servants of Knowledge's super admin can give or take the {0} role.").format(role),
+			frappe.PermissionError,
+		)
 	if role not in managed_roles():
 		frappe.throw(_("Research Desk doesn't manage the role {0} here.").format(role))
-	if role == SYSTEM and SYSTEM not in frappe.get_roles():
-		frappe.throw(
-			_("Only a System Manager can give or take the System Manager role."), frappe.PermissionError
-		)
 
 
 def _check_user(user: str) -> None:
@@ -44,6 +58,11 @@ def _check_user(user: str) -> None:
 		frappe.throw(_("The {0} account can't be changed here.").format(user))
 	if not frappe.db.exists("User", user):
 		frappe.throw(_("No account {0}").format(user), frappe.DoesNotExistError)
+	if set(frappe.get_roles(user)) & set(_privileged()) and not _is_super():
+		frappe.throw(
+			_("This account belongs to Servants of Knowledge's super admins, so only they can change it."),
+			frappe.PermissionError,
+		)
 
 
 def _holders(role: str) -> list[str]:
@@ -152,8 +171,11 @@ def set_enabled(user: str, enabled: int = 1) -> dict:
 	_check_user(user)
 	if user == frappe.session.user:
 		frappe.throw(_("You can't switch off your own account."))
-	if SYSTEM in frappe.get_roles(user) and SYSTEM not in frappe.get_roles():
-		frappe.throw(_("Only a System Manager can switch a System Manager off."), frappe.PermissionError)
+	if set(frappe.get_roles(user)) & set(_privileged()) and not _is_super():
+		frappe.throw(
+			_("Only Servants of Knowledge's super admin can switch this account off."),
+			frappe.PermissionError,
+		)
 	frappe.db.set_value("User", user, "enabled", 1 if cint(enabled) else 0)
 	frappe.clear_cache(user=user)
 	return _person(user)

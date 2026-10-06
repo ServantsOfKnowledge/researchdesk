@@ -16,8 +16,12 @@ from sok_resdesk.core.access import LOGIN_TO_FIND, LOGIN_TO_READ, PUBLIC, VISIBI
 from sok_resdesk.holding import hold_when_paused
 
 READER_ROLE = "ResDesk Reader"
-STAFF_ROLES = ("System Manager", "ResDesk Manager", "ResDesk Cataloguer")
+STAFF_ROLES = ("System Manager", "SOK Super Admin", "ResDesk Manager", "ResDesk Cataloguer")
 MANAGER_ROLES = ("System Manager", "ResDesk Manager")
+# Servants of Knowledge manage the installation as a whole: features and profiles, the Server page,
+# security and access setup, integrations and credentials. Librarians hold ResDesk Manager.
+SUPER_ROLE = "SOK Super Admin"
+SUPER_ROLES = ("System Manager", SUPER_ROLE)
 BACKGROUND_OVER = 200  # bulk changes bigger than this run in a queue worker
 
 
@@ -26,6 +30,18 @@ BACKGROUND_OVER = 200  # bulk changes bigger than this run in a queue worker
 
 def _roles(user: str | None = None) -> set[str]:
 	return set(frappe.get_roles(user or frappe.session.user))
+
+
+def super_admin_is_manager(doc, method=None) -> None:
+	"""User hook: whoever holds the super admin role also holds ResDesk Manager."""
+	held = {r.role for r in doc.get("roles") or []}
+	if SUPER_ROLE in held and "ResDesk Manager" not in held:
+		doc.append("roles", {"role": "ResDesk Manager"})
+
+
+def is_super_admin(user: str | None = None) -> bool:
+	user = user or frappe.session.user
+	return user == "Administrator" or bool(_roles(user) & set(SUPER_ROLES))
 
 
 def is_staff(user: str | None = None) -> bool:

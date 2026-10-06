@@ -58,6 +58,14 @@ class RDSettings(Document):
 DEFAULT_LOGO = "/assets/sok_resdesk/images/resdesk-logo.svg"
 
 
+def footer_powered() -> str:
+	"""The portal footer's last line: Frappe's 'Built on Frappe', with who built this on it."""
+	return frappe._("Built on {0} by {1}").format(
+		'<a href="https://frappeframework.com?source=website_footer" target="_blank" class="text-muted">Frappe</a>',
+		'<a href="https://archive.org/details/ServantsOfKnowledge" target="_blank" class="text-muted">ServantsOfKnowledge</a>',
+	)
+
+
 def apply_branding(settings=None):
 	"""Push the portal name and logo to Frappe's website navbar, favicon and Desk logo."""
 	s = settings or frappe.get_single("RD Settings")
@@ -77,6 +85,7 @@ def apply_branding(settings=None):
 		ws.brand_html = escape_html(title)
 		ws.app_logo = None
 	ws.favicon = s.favicon or logo or ws.favicon
+	ws.footer_powered = footer_powered()
 	ws.flags.ignore_permissions = True
 	ws.save()
 

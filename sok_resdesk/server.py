@@ -22,10 +22,11 @@ from frappe import _
 from frappe.rate_limiter import rate_limit
 from frappe.utils import add_to_date, cint, get_datetime, now_datetime
 
+from sok_resdesk import access
 from sok_resdesk.core import updates as upd
 
 MANAGERS = ("System Manager", "ResDesk Manager")
-ADMINS = ("System Manager",)  # upgrades, restarts and resources change the installation
+ADMINS = access.SUPER_ROLES  # upgrades, restarts and resources change the installation
 TASK = "RD Server Task"
 REPO = "ServantsOfKnowledge/researchdesk"
 AGENT_CACHE = "resdesk_agent_facts"
@@ -63,7 +64,7 @@ def _settings() -> dict:
 
 
 def _is_admin() -> bool:
-	return "System Manager" in frappe.get_roles()
+	return access.is_super_admin()
 
 
 # -- the updater helper -------------------------------------------------------------------------

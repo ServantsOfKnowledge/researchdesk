@@ -4,6 +4,7 @@ import frappe
 from frappe import _
 
 ROLES = {
+	"SOK Super Admin": "Servants of Knowledge: manages the installation as a whole (features, server, security, integrations).",
 	"ResDesk Manager": "Configures the portal, runs ingests, manages the catalogue.",
 	"ResDesk Cataloguer": "Edits catalogue records.",
 	"ResDesk Reader": "Logged-in reader: can find and read members-only books on the portal.",
@@ -11,7 +12,7 @@ ROLES = {
 	"ResDesk Proofreader": "Corrects the page text of books on the portal (Page & text → Proofread), and runs OCR on parts of a page.",
 }
 # roles that work in the Desk; readers only use the portal
-DESK_ROLES = ("ResDesk Manager", "ResDesk Cataloguer")
+DESK_ROLES = ("SOK Super Admin", "ResDesk Manager", "ResDesk Cataloguer")
 
 SAMPLE_PROFILES = [
 	{

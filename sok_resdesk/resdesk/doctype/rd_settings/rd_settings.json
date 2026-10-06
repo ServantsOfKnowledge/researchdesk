@@ -316,220 +316,253 @@
    "fieldname": "profiles_section",
    "fieldtype": "Section Break",
    "label": "Your Institution",
-   "description": "Tick every kind of institution this library is; they combine. Ticking or unticking one sets the features below to what the ticked ones need, and the resource preset to the largest of theirs. You can still change each feature afterwards."
+   "description": "Tick every kind of institution this library is; they combine. Ticking or unticking one sets the features below to what the ticked ones need, and the resource preset to the largest of theirs. You can still change each feature afterwards.",
+   "permlevel": 1
   },
   {
    "fieldname": "profile_small",
    "fieldtype": "Check",
    "label": "Small library or school",
    "default": "0",
-   "description": "Switches on: OCR, books from folders and servers, manuscripts and palm leaves, photographs. Resources: light."
+   "description": "Switches on: OCR, books from folders and servers, manuscripts and palm leaves, photographs. Resources: light.",
+   "permlevel": 1
   },
   {
    "fieldname": "profile_portal",
    "fieldtype": "Check",
    "label": "Public research portal",
    "default": "0",
-   "description": "Switches on: page-level full-text search, OCR, proofreading and ground truth, readers' notes, authority control, review queue, permanent identifiers, sharing metadata, usage statistics, audio and video, manuscripts and palm leaves, photographs. Resources: standard."
+   "description": "Switches on: page-level full-text search, OCR, proofreading and ground truth, readers' notes, authority control, review queue, permanent identifiers, sharing metadata, usage statistics, audio and video, manuscripts and palm leaves, photographs. Resources: standard.",
+   "permlevel": 1
   },
   {
    "fieldname": "profile_members",
    "fieldtype": "Check",
    "label": "Members-only institution",
    "default": "0",
-   "description": "Switches on: page-level full-text search, reader accounts, library systems, review queue, sharing metadata, manuscripts and palm leaves, photographs. Resources: standard."
+   "description": "Switches on: page-level full-text search, reader accounts, library systems, review queue, sharing metadata, manuscripts and palm leaves, photographs. Resources: standard.",
+   "permlevel": 1
   },
   {
    "fieldname": "column_break_profiles",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "permlevel": 1
   },
   {
    "fieldname": "profile_archive",
    "fieldtype": "Check",
    "label": "Archive keeping its own copies",
    "default": "0",
-   "description": "Switches on: preservation, permanent identifiers, books from folders and servers, review queue, audio and video, manuscripts and palm leaves, photographs. Resources: standard."
+   "description": "Switches on: preservation, permanent identifiers, books from folders and servers, review queue, audio and video, manuscripts and palm leaves, photographs. Resources: standard.",
+   "permlevel": 1
   },
   {
    "fieldname": "profile_repository",
    "fieldtype": "Check",
    "label": "University or repository front",
    "default": "0",
-   "description": "Switches on: page-level full-text search, OCR, books from repositories, books from folders and servers, permanent identifiers, sharing metadata, library systems, repository deposit, review queue, manuscripts and palm leaves, photographs. Resources: standard."
+   "description": "Switches on: page-level full-text search, OCR, books from repositories, books from folders and servers, permanent identifiers, sharing metadata, library systems, repository deposit, review queue, manuscripts and palm leaves, photographs. Resources: standard.",
+   "permlevel": 1
   },
   {
    "fieldname": "profile_langtech",
    "fieldtype": "Check",
    "label": "Language-technology partner",
    "default": "0",
-   "description": "Switches on: page-level full-text search, OCR, proofreading and ground truth, sharing metadata. Resources: server."
+   "description": "Switches on: page-level full-text search, OCR, proofreading and ground truth, sharing metadata. Resources: server.",
+   "permlevel": 1
   },
   {
    "fieldname": "profile_manuscripts",
    "fieldtype": "Check",
    "label": "Manuscript library or archive",
    "default": "0",
-   "description": "For libraries and archives that hold manuscripts, palm leaves and photographs. Switches on: page-level full-text search, proofreading and ground truth, manuscripts and palm leaves, photographs, books from folders and servers, audio and video, preservation, permanent identifiers, review queue, sharing metadata. Resources: standard."
+   "description": "For libraries and archives that hold manuscripts, palm leaves and photographs. Switches on: page-level full-text search, proofreading and ground truth, manuscripts and palm leaves, photographs, books from folders and servers, audio and video, preservation, permanent identifiers, review queue, sharing metadata. Resources: standard.",
+   "permlevel": 1
   },
   {
    "fieldname": "profile_photos",
    "fieldtype": "Check",
    "label": "Photograph archive",
    "default": "0",
-   "description": "Switches on: photographs, books from folders and servers, preservation, permanent identifiers, review queue, sharing metadata. Resources: standard."
+   "description": "Switches on: photographs, books from folders and servers, preservation, permanent identifiers, review queue, sharing metadata. Resources: standard.",
+   "permlevel": 1
   },
   {
    "fieldname": "suggestions_section",
    "fieldtype": "Section Break",
-   "label": ""
+   "label": "",
+   "permlevel": 1
   },
   {
    "fieldname": "feature_suggestions",
    "fieldtype": "HTML",
-   "label": "Suggestions"
+   "label": "Suggestions",
+   "permlevel": 1
   },
   {
    "fieldname": "features_section",
    "fieldtype": "Section Break",
    "label": "Features",
-   "description": "A feature that is off is not collected: its scheduled work stops, its Desk screens go and nothing new of its kind is made. What exists stays, and who sees it is still decided by access (roles and each book's visibility). The catalogue, archive.org, book search, the reader, collections, citations and the Server page are always on."
+   "description": "A feature that is off is not collected: its scheduled work stops, its Desk screens go and nothing new of its kind is made. What exists stays, and who sees it is still decided by access (roles and each book's visibility). The catalogue, archive.org, book search, the reader, collections, citations and the Server page are always on.",
+   "permlevel": 1
   },
   {
    "fieldname": "feature_page_search",
    "fieldtype": "Check",
    "label": "Page-level full-text search",
    "default": "1",
-   "description": "Search inside the text of every page, page hits, search inside a book. Off saves most of the search engine's disk, memory and CPU."
+   "description": "Search inside the text of every page, page hits, search inside a book. Off saves most of the search engine's disk, memory and CPU.",
+   "permlevel": 1
   },
   {
    "fieldname": "feature_ocr",
    "fieldtype": "Check",
    "label": "OCR",
    "default": "1",
-   "description": "Reading scans with OCR, re-OCR of pages and books. Off saves CPU (OCR is the heaviest work Research Desk does)."
+   "description": "Reading scans with OCR, re-OCR of pages and books. Off saves CPU (OCR is the heaviest work Research Desk does).",
+   "permlevel": 1
   },
   {
    "fieldname": "feature_proofreading",
    "fieldtype": "Check",
    "label": "Proofreading and ground truth",
    "default": "1",
-   "description": "Correcting and validating page text, sharing corrected pages as OCR ground truth. Off saves worker time and a portal section."
+   "description": "Correcting and validating page text, sharing corrected pages as OCR ground truth. Off saves worker time and a portal section.",
+   "permlevel": 1
   },
   {
    "fieldname": "feature_notes",
    "fieldtype": "Check",
    "label": "Readers' notes",
    "default": "1",
-   "description": "Highlights, comments, tags and OCR error reports; research groups. Off saves review work for managers."
+   "description": "Highlights, comments, tags and OCR error reports; research groups. Off saves review work for managers.",
+   "permlevel": 1
   },
   {
    "fieldname": "feature_authorities",
    "fieldtype": "Check",
    "label": "Authority control",
    "default": "1",
-   "description": "Authors and subjects matched to Wikidata, VIAF and LCSH, and giving back to them. Off saves nightly jobs and calls to outside services."
+   "description": "Authors and subjects matched to Wikidata, VIAF and LCSH, and giving back to them. Off saves nightly jobs and calls to outside services.",
+   "permlevel": 1
   },
   {
    "fieldname": "feature_review",
    "fieldtype": "Check",
    "label": "Review queue",
    "default": "1",
-   "description": "Records checked for what needs a cataloguer (no year, wrong language, duplicates). Off saves nightly checks."
+   "description": "Records checked for what needs a cataloguer (no year, wrong language, duplicates). Off saves nightly checks.",
+   "permlevel": 1
   },
   {
    "fieldname": "feature_preservation",
    "fieldtype": "Check",
    "label": "Preservation",
    "default": "1",
-   "description": "The library's own checked copies (OCFL), fixity, a second copy, BagIt exports. Off saves disk (often as much as the collection itself) and nightly audits."
+   "description": "The library's own checked copies (OCFL), fixity, a second copy, BagIt exports. Off saves disk (often as much as the collection itself) and nightly audits.",
+   "permlevel": 1
   },
   {
    "fieldname": "column_break_features",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "permlevel": 1
   },
   {
    "fieldname": "feature_identifiers",
    "fieldtype": "Check",
    "label": "Permanent identifiers",
    "default": "1",
-   "description": "ARKs for books and pages, DOIs from DataCite, tombstones. Off saves little; its screens and the DataCite calls."
+   "description": "ARKs for books and pages, DOIs from DataCite, tombstones. Off saves little; its screens and the DataCite calls.",
+   "permlevel": 1
   },
   {
    "fieldname": "feature_folders",
    "fieldtype": "Check",
    "label": "Books from folders and servers",
    "default": "1",
-   "description": "IA-style book folders and loose PDFs on disk, a NAS or a web server. Off saves the folder scans."
+   "description": "IA-style book folders and loose PDFs on disk, a NAS or a web server. Off saves the folder scans.",
+   "permlevel": 1
   },
   {
    "fieldname": "feature_repositories",
    "fieldtype": "Check",
    "label": "Books from repositories",
    "default": "1",
-   "description": "DSpace, EPrints and any OAI-PMH repository. Off saves the harvests."
+   "description": "DSpace, EPrints and any OAI-PMH repository. Off saves the harvests.",
+   "permlevel": 1
   },
   {
    "fieldname": "feature_library_systems",
    "fieldtype": "Check",
    "label": "Library systems",
    "default": "1",
-   "description": "A Koha or other library catalogue matched to the books here, links sent back. Off saves the imports and matching."
+   "description": "A Koha or other library catalogue matched to the books here, links sent back. Off saves the imports and matching.",
+   "permlevel": 1
   },
   {
    "fieldname": "feature_manuscripts",
    "fieldtype": "Check",
    "label": "Manuscripts and palm leaves",
    "default": "1",
-   "description": "Describing manuscripts, labelling their leaves (1a, 1b…), folders of leaf photographs, and the transcription list. Off saves them for libraries that keep none."
+   "description": "Describing manuscripts, labelling their leaves (1a, 1b…), folders of leaf photographs, and the transcription list. Off saves them for libraries that keep none.",
+   "permlevel": 1
   },
   {
    "fieldname": "feature_photographs",
    "fieldtype": "Check",
    "label": "Photographs",
    "default": "1",
-   "description": "Photographs as items: their EXIF, who and where, a SHA-256 of the original, a zoom viewer. Off saves them for libraries that keep none."
+   "description": "Photographs as items: their EXIF, who and where, a SHA-256 of the original, a zoom viewer. Off saves them for libraries that keep none.",
+   "permlevel": 1
   },
   {
    "fieldname": "feature_archival",
    "fieldtype": "Check",
    "label": "Archival description",
    "default": "1",
-   "description": "Describing papers as fonds, series, file and item (ISAD(G)), a browsable hierarchy on the portal and EAD3 finding aids. Off saves it for libraries that describe no archives."
+   "description": "Describing papers as fonds, series, file and item (ISAD(G)), a browsable hierarchy on the portal and EAD3 finding aids. Off saves it for libraries that describe no archives.",
+   "permlevel": 1
   },
   {
    "fieldname": "feature_media",
    "fieldtype": "Check",
    "label": "Audio and video",
    "default": "1",
-   "description": "Recordings with a player and a time-coded transcript, in folders and from archive.org. Off saves the player pages and the transcripts."
+   "description": "Recordings with a player and a time-coded transcript, in folders and from archive.org. Off saves the player pages and the transcripts.",
+   "permlevel": 1
   },
   {
    "fieldname": "feature_deposit",
    "fieldtype": "Check",
    "label": "Repository deposit",
    "default": "1",
-   "description": "People deposit their own work (files, licence, embargo) for a reviewer to accept. Off saves the deposit pages and the review screen."
+   "description": "People deposit their own work (files, licence, embargo) for a reviewer to accept. Off saves the deposit pages and the review screen.",
+   "permlevel": 1
   },
   {
    "fieldname": "feature_sharing",
    "fieldtype": "Check",
    "label": "Sharing metadata",
    "default": "1",
-   "description": "The OAI-PMH provider, pushes to Koha, Wikidata, archive.org and webhooks. Off saves the push jobs and the OAI-PMH endpoint."
+   "description": "The OAI-PMH provider, pushes to Koha, Wikidata, archive.org and webhooks. Off saves the push jobs and the OAI-PMH endpoint.",
+   "permlevel": 1
   },
   {
    "fieldname": "feature_reader_accounts",
    "fieldtype": "Check",
    "label": "Reader accounts",
    "default": "1",
-   "description": "Readers signing up, sign-up requests, members-only reading. Off saves the sign-up pages."
+   "description": "Readers signing up, sign-up requests, members-only reading. Off saves the sign-up pages.",
+   "permlevel": 1
   },
   {
    "fieldname": "feature_statistics",
    "fieldtype": "Check",
    "label": "Usage statistics",
    "default": "1",
-   "description": "How readers use the portal (built-in, PostHog, Plausible or Umami). Off saves the page-view log."
+   "description": "How readers use the portal (built-in, PostHog, Plausible or Umami). Off saves the page-view log.",
+   "permlevel": 1
   },
   {
    "fieldname": "tab_readers",
@@ -546,7 +579,8 @@
    "fieldtype": "Section Break",
    "label": "Access & Sign-up",
    "collapsible": 0,
-   "description": "Choose what visitors who are not logged in can do, and how people become readers. Logged-in readers and staff can always find and read every published book."
+   "description": "Choose what visitors who are not logged in can do, and how people become readers. Logged-in readers and staff can always find and read every published book.",
+   "permlevel": 1
   },
   {
    "fieldname": "guest_access",
@@ -554,7 +588,8 @@
    "label": "Visitors Who Are Not Logged In",
    "options": "Each item's setting\nRecords only\nLogin required",
    "default": "Each item's setting",
-   "description": "Each item's setting: follow each book's “Who can see it”. Records only: visitors can search the catalogue and cite, but reading and search inside the text need a login. Login required: the whole portal is for logged-in readers (an internal library)."
+   "description": "Each item's setting: follow each book's “Who can see it”. Records only: visitors can search the catalogue and cite, but reading and search inside the text need a login. Login required: the whole portal is for logged-in readers (an internal library).",
+   "permlevel": 1
   },
   {
    "fieldname": "default_visibility",
@@ -562,11 +597,13 @@
    "label": "Default for New Books",
    "options": "Public\nLogin to read\nLogin to find",
    "default": "Public",
-   "description": "Used when neither the ingest profile nor a rule below decides."
+   "description": "Used when neither the ingest profile nor a rule below decides.",
+   "permlevel": 1
   },
   {
    "fieldname": "column_break_access",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "permlevel": 1
   },
   {
    "fieldname": "reader_signup",
@@ -574,7 +611,8 @@
    "label": "Reader Accounts",
    "options": "Admins add readers\nAnyone can sign up\nSign up, admin approves",
    "default": "Admins add readers",
-   "description": "Admins add readers: no sign-up page; add people in User with the ResDesk Reader role, or ./resdesk.sh add-reader. Anyone can sign up: every account can read. Sign up, admin approves: new accounts wait in Reader Requests."
+   "description": "Admins add readers: no sign-up page; add people in User with the ResDesk Reader role, or ./resdesk.sh add-reader. Anyone can sign up: every account can read. Sign up, admin approves: new accounts wait in Reader Requests.",
+   "permlevel": 1
   },
   {
    "fieldname": "oai_scope",
@@ -582,26 +620,30 @@
    "label": "OAI-PMH Shares",
    "options": "Records guests can find\nAll published records\nOff",
    "default": "Records guests can find",
-   "description": "What harvesters such as Koha receive. “All published records” suits a library system on an internal network."
+   "description": "What harvesters such as Koha receive. “All published records” suits a library system on an internal network.",
+   "permlevel": 1
   },
   {
    "fieldname": "access_rules_section",
    "fieldtype": "Section Break",
    "label": "Access Rules",
-   "description": "Set visibility of new books by collection, subject, language, author, source or ingest profile. The first matching rule wins; an ingest profile's own “Access for Its Books” comes first. Use “Apply Access Rules” to update books already in the catalogue."
+   "description": "Set visibility of new books by collection, subject, language, author, source or ingest profile. The first matching rule wins; an ingest profile's own “Access for Its Books” comes first. Use “Apply Access Rules” to update books already in the catalogue.",
+   "permlevel": 1
   },
   {
    "fieldname": "access_rules",
    "fieldtype": "Table",
    "label": "Rules",
    "options": "RD Access Rule",
-   "description": "Give books a visibility by collection, subject, language, creator, source or profile. Press Apply Access Rules to use them on books already in the catalogue."
+   "description": "Give books a visibility by collection, subject, language, creator, source or profile. Press Apply Access Rules to use them on books already in the catalogue.",
+   "permlevel": 1
   },
   {
    "fieldname": "desk_section",
    "fieldtype": "Section Break",
    "label": "The Desk",
-   "description": "Staff work in Research Desk; Frappe's own tools (Build, Users, Website, Integrations…) are hidden from the Desk's sidebar, app screen and search. Roles still decide what each person may open. The Administrator account always sees everything."
+   "description": "Staff work in Research Desk; Frappe's own tools (Build, Users, Website, Integrations…) are hidden from the Desk's sidebar, app screen and search. Roles still decide what each person may open. The Administrator account always sees everything.",
+   "permlevel": 1
   },
   {
    "fieldname": "desk_scope",
@@ -609,14 +651,16 @@
    "label": "What Staff See in the Desk",
    "options": "Research Desk only, for everyone (Frappe's tools are under Administration)\nResearch Desk only, except Administrator\nResearch Desk only for staff; System Managers see everything\nEverything (Frappe's own tools too)",
    "default": "Research Desk only, for everyone (Frappe's tools are under Administration)",
-   "description": "Research Desk's sidebar holds every screen an administrator needs, Frappe's users, roles, system settings and logs included (under Administration), and the way to Frappe's own desktop is closed. The other choices give Administrator, or System Managers, Frappe's desktop back. Changing it updates every account straight away."
+   "description": "Research Desk's sidebar holds every screen an administrator needs, Frappe's users, roles, system settings and logs included (under Administration), and the way to Frappe's own desktop is closed. The other choices give Administrator, or System Managers, Frappe's desktop back. Changing it updates every account straight away.",
+   "permlevel": 1
   },
   {
    "fieldname": "analytics_section",
    "fieldtype": "Section Break",
    "label": "Usage Statistics",
    "collapsible": 1,
-   "description": "How readers use the portal: pages seen, searches, books opened. Only the portal is counted, never the Desk; no cookies and no personal data are sent."
+   "description": "How readers use the portal: pages seen, searches, books opened. Only the portal is counted, never the Desk; no cookies and no personal data are sent.",
+   "permlevel": 1
   },
   {
    "fieldname": "analytics_provider",
@@ -624,25 +668,29 @@
    "label": "Statistics",
    "options": "Off\nBuilt-in\nPostHog\nPlausible\nUmami",
    "default": "Off",
-   "description": "<b>Built-in</b>: counted on this server (Frappe's page views), shown on the Research Desk dashboard; nothing leaves the server. <b>PostHog</b>, <b>Plausible</b> or <b>Umami</b>: sent to that service (cloud or your own), with its own dashboards."
+   "description": "<b>Built-in</b>: counted on this server (Frappe's page views), shown on the Research Desk dashboard; nothing leaves the server. <b>PostHog</b>, <b>Plausible</b> or <b>Umami</b>: sent to that service (cloud or your own), with its own dashboards.",
+   "permlevel": 1
   },
   {
    "fieldname": "analytics_host",
    "fieldtype": "Data",
    "label": "Service address",
    "depends_on": "eval:['PostHog','Plausible','Umami'].includes(doc.analytics_provider)",
-   "description": "PostHog: https://us.i.posthog.com, https://eu.i.posthog.com or your own. Plausible: https://plausible.io or your own. Umami: your Umami server, or https://cloud.umami.is."
+   "description": "PostHog: https://us.i.posthog.com, https://eu.i.posthog.com or your own. Plausible: https://plausible.io or your own. Umami: your Umami server, or https://cloud.umami.is.",
+   "permlevel": 1
   },
   {
    "fieldname": "column_break_analytics",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "permlevel": 1
   },
   {
    "fieldname": "analytics_key",
    "fieldtype": "Data",
    "label": "Project key or site id",
    "depends_on": "eval:['PostHog','Plausible','Umami'].includes(doc.analytics_provider)",
-   "description": "PostHog: the project API key (phc_…). Plausible: the site's domain as added there. Umami: the website id."
+   "description": "PostHog: the project API key (phc_…). Plausible: the site's domain as added there. Umami: the website id.",
+   "permlevel": 1
   },
   {
    "fieldname": "analytics_dashboard",
@@ -650,7 +698,8 @@
    "label": "Dashboard link",
    "options": "URL",
    "depends_on": "eval:doc.analytics_provider && doc.analytics_provider != 'Off'",
-   "description": "Optional: where staff open the statistics (shown on the Research Desk dashboard)."
+   "description": "Optional: where staff open the statistics (shown on the Research Desk dashboard).",
+   "permlevel": 1
   },
   {
    "fieldname": "tab_catalogue",
@@ -813,59 +862,68 @@
   {
    "fieldname": "search_section",
    "fieldtype": "Section Break",
-   "label": "Search Engine (Meilisearch)"
+   "label": "Search Engine (Meilisearch)",
+   "permlevel": 1
   },
   {
    "fieldname": "meili_url",
    "fieldtype": "Data",
    "label": "Meilisearch URL",
    "default": "http://meilisearch:7700",
-   "description": "Where the search engine runs. The installer sets this; change it only if you move Meilisearch."
+   "description": "Where the search engine runs. The installer sets this; change it only if you move Meilisearch.",
+   "permlevel": 1
   },
   {
    "fieldname": "meili_api_key",
    "fieldtype": "Password",
    "label": "Meilisearch API Key",
-   "description": "The key the installer created for the search engine. Keep it secret."
+   "description": "The key the installer created for the search engine. Keep it secret.",
+   "permlevel": 1
   },
   {
    "fieldname": "index_prefix",
    "fieldtype": "Data",
    "label": "Index Prefix",
    "default": "rd",
-   "description": "Lets several sites share one Meilisearch."
+   "description": "Lets several sites share one Meilisearch.",
+   "permlevel": 1
   },
   {
    "fieldname": "column_break_s",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "permlevel": 1
   },
   {
    "fieldname": "index_pages",
    "fieldtype": "Check",
    "label": "Index Page-Level Full Text",
    "default": "1",
-   "description": "Enables deep search inside books. Uses more disk."
+   "description": "Enables deep search inside books. Uses more disk.",
+   "permlevel": 1
   },
   {
    "fieldname": "search_romanised",
    "fieldtype": "Check",
    "label": "Find Indic Spellings",
    "default": "1",
-   "description": "A search typed in Latin letters (<i>vachana</i>, <i>kanakadasa</i>) also finds the words in the scripts of the catalogue's languages (ವಚನ, ಕನಕದಾಸ), using the spellings the catalogue really holds."
+   "description": "A search typed in Latin letters (<i>vachana</i>, <i>kanakadasa</i>) also finds the words in the scripts of the catalogue's languages (ವಚನ, ಕನಕದಾಸ), using the spellings the catalogue really holds.",
+   "permlevel": 1
   },
   {
    "fieldname": "max_page_chars",
    "fieldtype": "Int",
    "label": "Max Characters per Page",
    "default": "6000",
-   "description": "Longer pages are cut to this length in the index, which keeps it smaller."
+   "description": "Longer pages are cut to this length in the index, which keeps it smaller.",
+   "permlevel": 1
   },
   {
    "fieldname": "search_status",
    "fieldtype": "Small Text",
    "label": "Search Status",
    "read_only": 1,
-   "description": "Filled in by Test Search Engine: whether it connected and how many books and pages the index holds."
+   "description": "Filled in by Test Search Engine: whether it connected and how many books and pages the index holds.",
+   "permlevel": 1
   },
   {
    "fieldname": "tab_sharing",
@@ -880,81 +938,94 @@
   {
    "fieldname": "identifiers_section",
    "fieldtype": "Section Break",
-   "label": "Persistent Identifiers"
+   "label": "Persistent Identifiers",
+   "permlevel": 1
   },
   {
    "fieldname": "ark_enabled",
    "fieldtype": "Check",
    "label": "Give Books ARKs",
    "default": "0",
-   "description": "Switch on when the ARK Alliance has given the library its NAAN (free: arks.org → Request a NAAN). Every book then gets a permanent ARK (the ones already here in the background), shown as Permanent link and used in citations, exports and OAI-PMH; the portal answers the portal address followed by /ark:/… itself. Once on, the NAAN and shoulder can't be changed."
+   "description": "Switch on when the ARK Alliance has given the library its NAAN (free: arks.org → Request a NAAN). Every book then gets a permanent ARK (the ones already here in the background), shown as Permanent link and used in citations, exports and OAI-PMH; the portal answers the portal address followed by /ark:/… itself. Once on, the NAAN and shoulder can't be changed.",
+   "permlevel": 1
   },
   {
    "fieldname": "ark_naan",
    "fieldtype": "Data",
    "label": "ARK NAAN",
-   "description": "The number the ARK Alliance gave this library (five or more digits). Needed before Give Books ARKs can be switched on; 99999, the Alliance's test number, is not accepted."
+   "description": "The number the ARK Alliance gave this library (five or more digits). Needed before Give Books ARKs can be switched on; 99999, the Alliance's test number, is not accepted.",
+   "permlevel": 1
   },
   {
    "fieldname": "column_break_ids",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "permlevel": 1
   },
   {
    "fieldname": "ark_shoulder",
    "fieldtype": "Data",
    "label": "ARK Shoulder",
    "default": "b1",
-   "description": "The prefix of the books' ARK names: letters then one digit (b1 for books). Fixed once ARKs are switched on."
+   "description": "The prefix of the books' ARK names: letters then one digit (b1 for books). Fixed once ARKs are switched on.",
+   "permlevel": 1
   },
   {
    "fieldname": "doi_section",
    "fieldtype": "Section Break",
    "label": "DOIs (DataCite)",
    "collapsible": 1,
-   "description": "For libraries that are DataCite members (directly or through a consortium): the books of collections marked <b>Give DOIs</b> get a DOI pointing at their page on the portal."
+   "description": "For libraries that are DataCite members (directly or through a consortium): the books of collections marked <b>Give DOIs</b> get a DOI pointing at their page on the portal.",
+   "permlevel": 1
   },
   {
    "fieldname": "doi_enabled",
    "fieldtype": "Check",
    "label": "Give DOIs",
    "default": "0",
-   "description": "Register DOIs for the books of collections marked Give DOIs, every night and from a collection's form."
+   "description": "Register DOIs for the books of collections marked Give DOIs, every night and from a collection's form.",
+   "permlevel": 1
   },
   {
    "fieldname": "datacite_test",
    "fieldtype": "Check",
    "label": "DataCite Test System",
    "default": "1",
-   "description": "Use DataCite's test system (api.test.datacite.org) while trying this out: its DOIs never resolve and never show in citations. Untick once the library's production account is ready."
+   "description": "Use DataCite's test system (api.test.datacite.org) while trying this out: its DOIs never resolve and never show in citations. Untick once the library's production account is ready.",
+   "permlevel": 1
   },
   {
    "fieldname": "doi_prefix",
    "fieldtype": "Data",
    "label": "DOI Prefix",
-   "description": "The prefix DataCite gave the library, e.g. <i>10.12345</i>."
+   "description": "The prefix DataCite gave the library, e.g. <i>10.12345</i>.",
+   "permlevel": 1
   },
   {
    "fieldname": "column_break_doi",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "permlevel": 1
   },
   {
    "fieldname": "datacite_repository",
    "fieldtype": "Data",
    "label": "DataCite Repository ID",
-   "description": "The repository's ID in DataCite Fabrica, e.g. <i>SOK.LIBRARY</i>."
+   "description": "The repository's ID in DataCite Fabrica, e.g. <i>SOK.LIBRARY</i>.",
+   "permlevel": 1
   },
   {
    "fieldname": "datacite_password",
    "fieldtype": "Password",
    "label": "DataCite Repository Password",
-   "description": "The repository's password in DataCite Fabrica. Kept encrypted."
+   "description": "The repository's password in DataCite Fabrica. Kept encrypted.",
+   "permlevel": 1
   },
   {
    "fieldname": "doi_shoulder",
    "fieldtype": "Data",
    "label": "DOI Shoulder",
    "default": "rd.",
-   "description": "Put before each book's identifier in its DOI: 10.12345/<b>rd.</b>kanakadasa1950. Never change it once DOIs are given."
+   "description": "Put before each book's identifier in its DOI: 10.12345/<b>rd.</b>kanakadasa1950. Never change it once DOIs are given.",
+   "permlevel": 1
   },
   {
    "fieldname": "ground_truth_section",
@@ -999,14 +1070,16 @@
    "fieldtype": "Section Break",
    "label": "Machine Drafts",
    "collapsible": 1,
-   "description": "Drafts of transcripts made by machine on this server: speech to text for recordings, handwriting recognition for manuscript leaves. A person corrects every draft; drafts never replace a person's work and are never shared as ground truth. The engines are optional (the Server page shows what is installed)."
+   "description": "Drafts of transcripts made by machine on this server: speech to text for recordings, handwriting recognition for manuscript leaves. A person corrects every draft; drafts never replace a person's work and are never shared as ground truth. The engines are optional (the Server page shows what is installed).",
+   "permlevel": 1
   },
   {
    "fieldname": "draft_asr_model",
    "fieldtype": "Data",
    "label": "Speech Model",
    "default": "small",
-   "description": "The Whisper model size for speech to text: tiny, base, small, medium or large-v3. Bigger is better and slower."
+   "description": "The Whisper model size for speech to text: tiny, base, small, medium or large-v3. Bigger is better and slower.",
+   "permlevel": 1
   },
   {
    "fieldname": "draft_htr_engine",
@@ -1014,13 +1087,15 @@
    "label": "Handwriting Engine",
    "options": "Tesseract\nKraken",
    "default": "Tesseract",
-   "description": "Tesseract reads with the OCR models installed here; Kraken needs a recognition model trained for the script."
+   "description": "Tesseract reads with the OCR models installed here; Kraken needs a recognition model trained for the script.",
+   "permlevel": 1
   },
   {
    "fieldname": "draft_htr_model",
    "fieldtype": "Data",
    "label": "Kraken Model File",
-   "description": "The full path of a Kraken recognition model (.mlmodel) on the server, for handwriting."
+   "description": "The full path of a Kraken recognition model (.mlmodel) on the server, for handwriting.",
+   "permlevel": 1
   },
   {
    "fieldname": "tab_preservation",
@@ -1035,13 +1110,15 @@
   {
    "fieldname": "preservation_section",
    "fieldtype": "Section Break",
-   "label": "Preservation"
+   "label": "Preservation",
+   "permlevel": 1
   },
   {
    "fieldname": "preservation_root",
    "fieldtype": "Data",
    "label": "Preservation Folder",
-   "description": "Where the library's own copies of its books are kept (a disk or NAS folder the server can write to, e.g. /preservation in Docker). Empty: no copies are kept. Each book is stored as an OCFL object: plain files and a checksum inventory any future system can read."
+   "description": "Where the library's own copies of its books are kept (a disk or NAS folder the server can write to, e.g. /preservation in Docker). Empty: no copies are kept. Each book is stored as an OCFL object: plain files and a checksum inventory any future system can read.",
+   "permlevel": 1
   },
   {
    "fieldname": "preserve_books",
@@ -1049,25 +1126,29 @@
    "label": "Preserve",
    "options": "Off\nBooks in collections marked Preserve\nEvery book",
    "default": "Off",
-   "description": "Which books get a copy. Copies are made a few hundred a night (Background Jobs shows them); a book ingested again gets a new version only if a file changed."
+   "description": "Which books get a copy. Copies are made a few hundred a night (Background Jobs shows them); a book ingested again gets a new version only if a file changed.",
+   "permlevel": 1
   },
   {
    "fieldname": "preserve_page_images",
    "fieldtype": "Check",
    "label": "Include Page Images",
    "default": "0",
-   "description": "Also keep the original scans from archive.org, not only the PDF, OCR and metadata. Much larger (often 10-50 times), but the copy is then complete enough to make new OCR from."
+   "description": "Also keep the original scans from archive.org, not only the PDF, OCR and metadata. Much larger (often 10-50 times), but the copy is then complete enough to make new OCR from.",
+   "permlevel": 1
   },
   {
    "fieldname": "column_break_pres",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "permlevel": 1
   },
   {
    "fieldname": "preservation_budget_gb",
    "fieldtype": "Int",
    "label": "Space for Copies (GB)",
    "non_negative": 1,
-   "description": "The most the copies may take. 0: as much as the disk allows (the last 5% of the disk is never used)."
+   "description": "The most the copies may take. 0: as much as the disk allows (the last 5% of the disk is never used).",
+   "permlevel": 1
   },
   {
    "fieldname": "fixity_days",
@@ -1075,14 +1156,16 @@
    "label": "Check Every (days)",
    "default": "30",
    "non_negative": 1,
-   "description": "Every copy is checked against its checksums at least this often: each night a share of them is checked. A copy that fails is marked and alerts on the Server page."
+   "description": "Every copy is checked against its checksums at least this often: each night a share of them is checked. A copy that fails is marked and alerts on the Server page.",
+   "permlevel": 1
   },
   {
    "fieldname": "second_copy_heading",
    "fieldtype": "Section Break",
    "label": "Second Copy",
    "collapsible": 0,
-   "description": "A second copy of every preserved book, somewhere else: another disk, a NAS, a partner's storage mounted on this server, or an S3-compatible bucket. Each copy is checked on the same schedule; when one fails its check and the other is good, the bad one is rebuilt from the good one."
+   "description": "A second copy of every preserved book, somewhere else: another disk, a NAS, a partner's storage mounted on this server, or an S3-compatible bucket. Each copy is checked on the same schedule; when one fails its check and the other is good, the bad one is rebuilt from the good one.",
+   "permlevel": 1
   },
   {
    "fieldname": "second_copy",
@@ -1090,67 +1173,77 @@
    "label": "Second Copy",
    "options": "Off\nFolder\nS3-compatible",
    "default": "Off",
-   "description": "<b>Folder</b>: another disk, a NAS or a partner's storage mounted on this server. <b>S3-compatible</b>: a bucket on Amazon S3, Wasabi, Backblaze B2, MinIO or similar."
+   "description": "<b>Folder</b>: another disk, a NAS or a partner's storage mounted on this server. <b>S3-compatible</b>: a bucket on Amazon S3, Wasabi, Backblaze B2, MinIO or similar.",
+   "permlevel": 1
   },
   {
    "fieldname": "second_folder",
    "fieldtype": "Data",
    "label": "Second Copy Folder",
    "depends_on": "eval:doc.second_copy=='Folder'",
-   "description": "On another disk or a mounted share, not inside the first copy's folder, e.g. <code>/mnt/nas/sok-copies</code>."
+   "description": "On another disk or a mounted share, not inside the first copy's folder, e.g. <code>/mnt/nas/sok-copies</code>.",
+   "permlevel": 1
   },
   {
    "fieldname": "s3_endpoint",
    "fieldtype": "Data",
    "label": "S3 Endpoint",
    "depends_on": "eval:doc.second_copy=='S3-compatible'",
-   "description": "The service's address, e.g. <code>https://s3.eu-central-1.wasabisys.com</code>, <code>https://s3.us-west-004.backblazeb2.com</code> or a partner's MinIO. Empty for Amazon S3."
+   "description": "The service's address, e.g. <code>https://s3.eu-central-1.wasabisys.com</code>, <code>https://s3.us-west-004.backblazeb2.com</code> or a partner's MinIO. Empty for Amazon S3.",
+   "permlevel": 1
   },
   {
    "fieldname": "s3_region",
    "fieldtype": "Data",
    "label": "S3 Region",
    "depends_on": "eval:doc.second_copy=='S3-compatible'",
-   "description": "The bucket's region, e.g. <code>eu-central-1</code> (some services need it, others ignore it)."
+   "description": "The bucket's region, e.g. <code>eu-central-1</code> (some services need it, others ignore it).",
+   "permlevel": 1
   },
   {
    "fieldname": "s3_bucket",
    "fieldtype": "Data",
    "label": "S3 Bucket",
    "depends_on": "eval:doc.second_copy=='S3-compatible'",
-   "description": "The bucket's name; make it first, on the service, and keep it private."
+   "description": "The bucket's name; make it first, on the service, and keep it private.",
+   "permlevel": 1
   },
   {
    "fieldname": "column_break_second",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "permlevel": 1
   },
   {
    "fieldname": "s3_prefix",
    "fieldtype": "Data",
    "label": "Folder in the Bucket",
    "depends_on": "eval:doc.second_copy=='S3-compatible'",
-   "description": "Optional, e.g. <code>sok-library</code>."
+   "description": "Optional, e.g. <code>sok-library</code>.",
+   "permlevel": 1
   },
   {
    "fieldname": "s3_access_key",
    "fieldtype": "Data",
    "label": "S3 Access Key",
    "depends_on": "eval:doc.second_copy=='S3-compatible'",
-   "description": "A key with read, write, list and delete rights on this bucket only."
+   "description": "A key with read, write, list and delete rights on this bucket only.",
+   "permlevel": 1
   },
   {
    "fieldname": "s3_secret_key",
    "fieldtype": "Password",
    "label": "S3 Secret Key",
    "depends_on": "eval:doc.second_copy=='S3-compatible'",
-   "description": "Stored encrypted; never shown again after saving."
+   "description": "Stored encrypted; never shown again after saving.",
+   "permlevel": 1
   },
   {
    "fieldname": "serve_from_copy",
    "fieldtype": "Check",
    "label": "Keep Dropped Books on the Portal",
    "default": "0",
-   "description": "When archive.org stops serving a book we hold a copy of, keep it on the portal and serve its PDF from our copy instead of taking it down. archive.org often darkens books for rights reasons: leave this off to decide book by book (book form → <b>Serve From Our Copy</b>)."
+   "description": "When archive.org stops serving a book we hold a copy of, keep it on the portal and serve its PDF from our copy instead of taking it down. archive.org often darkens books for rights reasons: leave this off to decide book by book (book form → <b>Serve From Our Copy</b>).",
+   "permlevel": 1
   },
   {
    "fieldname": "tab_server",
@@ -1165,21 +1258,24 @@
   {
    "fieldname": "machine_section",
    "fieldtype": "Section Break",
-   "label": "Machine Resources"
+   "label": "Machine Resources",
+   "permlevel": 1
   },
   {
    "fieldname": "resource_preset",
    "fieldtype": "Select",
    "label": "Resource Preset",
    "options": "\nlight\nstandard\nserver",
-   "description": "How much of the machine Research Desk may use: light (a laptop), standard, or server (a dedicated machine). Docker's limits can only be changed outside the app, so after choosing, run ./resdesk.sh resources apply on the server."
+   "description": "How much of the machine Research Desk may use: light (a laptop), standard, or server (a dedicated machine). Docker's limits can only be changed outside the app, so after choosing, run ./resdesk.sh resources apply on the server.",
+   "permlevel": 1
   },
   {
    "fieldname": "queue_workers",
    "fieldtype": "Int",
    "label": "Parallel Workers",
    "non_negative": 1,
-   "description": "How many background jobs run at once: ingest batches and first-pass parts, so how many books come in together (1 to 16; 4 to 6 stay polite to archive.org when page text is fetched). Saving applies it through the updater helper; without the helper, the Desk shows the command to run. Empty: as set on the server."
+   "description": "How many background jobs run at once: ingest batches and first-pass parts, so how many books come in together (1 to 16; 4 to 6 stay polite to archive.org when page text is fetched). Saving applies it through the updater helper; without the helper, the Desk shows the command to run. Empty: as set on the server.",
+   "permlevel": 1
   },
   {
    "fieldname": "max_upload_mb",
@@ -1187,21 +1283,24 @@
    "label": "Largest Upload (MB)",
    "default": "100",
    "non_negative": 1,
-   "description": "The largest file people can upload in the Desk: metadata files for ingest, spreadsheets, attachments (1 to 1000)."
+   "description": "The largest file people can upload in the Desk: metadata files for ingest, spreadsheets, attachments (1 to 1000).",
+   "permlevel": 1
   },
   {
    "fieldname": "worker_nice",
    "fieldtype": "Select",
    "label": "Worker Priority",
    "options": "\n19\n10\n5\n0\n-5",
-   "description": "How much CPU the background workers get compared with the portal, search and database: 19 is the lowest (they only use what the others leave), 0 the same as the others, -5 ahead of them. Empty: as the workers were started (WORKER_NICE). Changed live from Background Jobs → Machine too: each worker takes it on when it starts its next book."
+   "description": "How much CPU the background workers get compared with the portal, search and database: 19 is the lowest (they only use what the others leave), 0 the same as the others, -5 ahead of them. Empty: as the workers were started (WORKER_NICE). Changed live from Background Jobs → Machine too: each worker takes it on when it starts its next book.",
+   "permlevel": 1
   },
   {
    "fieldname": "auto_books_first",
    "fieldtype": "Check",
    "label": "Books First Automatically",
    "default": "1",
-   "description": "When a new book has waited more than 15 minutes in the search engine behind page text, do what Background Jobs → Search queue → Books first does: the waiting page text is cancelled and sent again later, so new books reach the portal first. At most every 30 minutes."
+   "description": "When a new book has waited more than 15 minutes in the search engine behind page text, do what Background Jobs → Search queue → Books first does: the waiting page text is cancelled and sent again later, so new books reach the portal first. At most every 30 minutes.",
+   "permlevel": 1
   },
   {
    "fieldname": "book_limit",
@@ -1209,7 +1308,8 @@
    "label": "Book Limit",
    "options": "Automatic\nA number I choose\nNo limit",
    "default": "Automatic",
-   "description": "How many books the catalogue may hold. Automatic: what this machine's CPUs, memory and disk can take (the Server page shows the numbers). At the limit, ingests keep updating books already here but add no new ones. Books with many pages count for more."
+   "description": "How many books the catalogue may hold. Automatic: what this machine's CPUs, memory and disk can take (the Server page shows the numbers). At the limit, ingests keep updating books already here but add no new ones. Books with many pages count for more.",
+   "permlevel": 1
   },
   {
    "fieldname": "book_limit_number",
@@ -1217,32 +1317,37 @@
    "label": "Books at Most",
    "non_negative": 1,
    "depends_on": "eval:doc.book_limit=='A number I choose'",
-   "description": "The limit in books of this library's average size (more than the machine can take is allowed, at your own risk)."
+   "description": "The limit in books of this library's average size (more than the machine can take is allowed, at your own risk).",
+   "permlevel": 1
   },
   {
    "fieldname": "column_break_machine",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "permlevel": 1
   },
   {
    "fieldname": "quiet_hours",
    "fieldtype": "Check",
    "label": "Quiet Hours",
    "default": "0",
-   "description": "Pause all background work between these times every day (e.g. office hours), and carry on afterwards. Ingests, pushes and re-indexing wait; the portal and Desk work as usual."
+   "description": "Pause all background work between these times every day (e.g. office hours), and carry on afterwards. Ingests, pushes and re-indexing wait; the portal and Desk work as usual.",
+   "permlevel": 1
   },
   {
    "fieldname": "quiet_from",
    "fieldtype": "Time",
    "label": "Quiet From",
    "depends_on": "quiet_hours",
-   "description": "Start of the quiet time, in the site's time zone."
+   "description": "Start of the quiet time, in the site's time zone.",
+   "permlevel": 1
   },
   {
    "fieldname": "quiet_to",
    "fieldtype": "Time",
    "label": "Quiet Until",
    "depends_on": "quiet_hours",
-   "description": "End of the quiet time. Earlier than Quiet From means overnight (e.g. 22:00 to 06:00)."
+   "description": "End of the quiet time. Earlier than Quiet From means overnight (e.g. 22:00 to 06:00).",
+   "permlevel": 1
   },
   {
    "fieldname": "quiet_weekdays_only",
@@ -1250,28 +1355,32 @@
    "label": "Weekdays Only",
    "default": "0",
    "depends_on": "quiet_hours",
-   "description": "Monday to Friday only; weekends run freely."
+   "description": "Monday to Friday only; weekends run freely.",
+   "permlevel": 1
   },
   {
    "fieldname": "server_section",
    "fieldtype": "Section Break",
    "label": "Server & Updates",
    "collapsible": 1,
-   "description": "Updates, backups and alerts. The Server page (Research Desk → Server) shows the state of each part and, with the updater helper turned on, upgrades and restarts from the Desk."
+   "description": "Updates, backups and alerts. The Server page (Research Desk → Server) shows the state of each part and, with the updater helper turned on, upgrades and restarts from the Desk.",
+   "permlevel": 1
   },
   {
    "fieldname": "check_updates",
    "fieldtype": "Check",
    "label": "Check for New Releases",
    "default": "1",
-   "description": "Once a day, look on GitHub for a newer Research Desk release and Frappe patch, and tell managers when there is one."
+   "description": "Once a day, look on GitHub for a newer Research Desk release and Frappe patch, and tell managers when there is one.",
+   "permlevel": 1
   },
   {
    "fieldname": "allow_desk_upgrades",
    "fieldtype": "Check",
    "label": "Allow Upgrades and Restarts from the Desk",
    "default": "1",
-   "description": "Only matters when the updater helper is turned on (./resdesk.sh updater on). Untick to allow them on the server only; the Server page still shows everything."
+   "description": "Only matters when the updater helper is turned on (./resdesk.sh updater on). Untick to allow them on the server only; the Server page still shows everything.",
+   "permlevel": 1
   },
   {
    "fieldname": "backup_schedule",
@@ -1279,14 +1388,16 @@
    "label": "Automatic Backups",
    "options": "Off\nDaily\nWeekly",
    "default": "Daily",
-   "description": "Back up the database every night (Weekly: on Sunday night). Backups are kept on the server; download them from the Server page and keep copies elsewhere."
+   "description": "Back up the database every night (Weekly: on Sunday night). Backups are kept on the server; download them from the Server page and keep copies elsewhere.",
+   "permlevel": 1
   },
   {
    "fieldname": "backup_with_files",
    "fieldtype": "Check",
    "label": "Include Uploaded Files",
    "default": "0",
-   "description": "Also back up uploaded files (logos, pictures, attachments). Books themselves are never in backups: they stay on archive.org or in your folders."
+   "description": "Also back up uploaded files (logos, pictures, attachments). Books themselves are never in backups: they stay on archive.org or in your folders.",
+   "permlevel": 1
   },
   {
    "fieldname": "backup_keep",
@@ -1294,31 +1405,36 @@
    "label": "Backups to Keep",
    "default": "7",
    "non_negative": 1,
-   "description": "Older backups are deleted after each new one."
+   "description": "Older backups are deleted after each new one.",
+   "permlevel": 1
   },
   {
    "fieldname": "column_break_server",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "permlevel": 1
   },
   {
    "fieldname": "alert_email",
    "fieldtype": "Check",
    "label": "Email Alerts to Managers",
    "default": "1",
-   "description": "When a part stops working, the disk is nearly full, a backup or upgrade fails, or a new release is out. Needs an outgoing email account (Desk → Email Account). Alerts always appear in the Desk's notifications too."
+   "description": "When a part stops working, the disk is nearly full, a backup or upgrade fails, or a new release is out. Needs an outgoing email account (Desk → Email Account). Alerts always appear in the Desk's notifications too.",
+   "permlevel": 1
   },
   {
    "fieldname": "alert_emails",
    "fieldtype": "Small Text",
    "label": "Also Email",
-   "description": "More addresses for alerts, separated by commas."
+   "description": "More addresses for alerts, separated by commas.",
+   "permlevel": 1
   },
   {
    "fieldname": "alert_webhook_url",
    "fieldtype": "Data",
    "label": "Alert Webhook URL",
    "options": "URL",
-   "description": "Also post alerts as JSON to this address, for example a Slack, Mattermost or Discord incoming webhook (the text is in \"text\")."
+   "description": "Also post alerts as JSON to this address, for example a Slack, Mattermost or Discord incoming webhook (the text is in \"text\").",
+   "permlevel": 1
   },
   {
    "fieldname": "alert_disk_percent",
@@ -1326,7 +1442,8 @@
    "label": "Alert When Disk Is This Full (%)",
    "default": "90",
    "non_negative": 1,
-   "description": "Warn when the disk holding Research Desk's data is this full."
+   "description": "Warn when the disk holding Research Desk's data is this full.",
+   "permlevel": 1
   }
  ],
  "links": [],
@@ -1346,6 +1463,15 @@
    "share": 1
   },
   {
+   "role": "SOK Super Admin",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
    "role": "ResDesk Manager",
    "read": 1,
    "write": 1,
@@ -1353,6 +1479,23 @@
    "print": 1,
    "email": 1,
    "share": 1
+  },
+  {
+   "role": "System Manager",
+   "permlevel": 1,
+   "read": 1,
+   "write": 1
+  },
+  {
+   "role": "SOK Super Admin",
+   "permlevel": 1,
+   "read": 1,
+   "write": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "permlevel": 1,
+   "read": 1
   }
  ]
 }

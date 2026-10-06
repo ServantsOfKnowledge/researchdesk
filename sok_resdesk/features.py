@@ -618,6 +618,7 @@ def suggestions() -> list[dict]:
 # -- whitelisted -------------------------------------------------------------------------------
 
 MANAGERS = ("System Manager", "ResDesk Manager")
+SUPER_ROLES = ("System Manager", "SOK Super Admin")  # the installation as a whole (see access.py)
 
 
 @frappe.whitelist()
@@ -639,8 +640,8 @@ def overview() -> dict:
 
 @frappe.whitelist(methods=["POST"])
 def switch_on(feature: str) -> dict:
-	"""A suggestion's Turn On button."""
-	frappe.only_for(MANAGERS)
+	"""A suggestion's Turn On button (features are the installation's, so the super admin's)."""
+	frappe.only_for(SUPER_ROLES)
 	if feature not in FEATURES:
 		frappe.throw(_("No feature called {0}.").format(feature))
 	s = frappe.get_single("RD Settings")

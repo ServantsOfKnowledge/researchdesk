@@ -110,7 +110,11 @@ doc_events = {
 	"User": {
 		"after_insert": "sok_resdesk.access.on_user_insert",
 		# staff see Research Desk, not Frappe's own workspaces (Settings → The Desk)
-		"before_validate": "sok_resdesk.deskscope.before_validate",
+		"before_validate": [
+			"sok_resdesk.deskscope.before_validate",
+			# a super admin is also a manager, so every screen and permission a manager has is theirs
+			"sok_resdesk.access.super_admin_is_manager",
+		],
 	},
 	"RD Collection": {"on_trash": "sok_resdesk.curation.on_collection_trash"},
 	# a public note's tags and Wikidata item are searched with its book
