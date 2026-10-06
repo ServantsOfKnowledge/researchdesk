@@ -33,7 +33,9 @@ class TestSru(OpsTestCase):
 
 	def titles(self, root):
 		return sorted(
-			t.text for t in root.iter("{http://www.loc.gov/MARC21/slim}subfield") if t.get("code") == "a"
+			t.text
+			for t in root.iter("{http://www.loc.gov/MARC21/slim}subfield")
+			if t.get("code") == "a" and t.text
 		)
 
 	def test_no_arguments_gives_the_explain_record(self):
