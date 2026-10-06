@@ -42,6 +42,8 @@ class TestSuperAdmin(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
+		# the portal title is required to save the settings: never put a blank one back
+		self._saved["portal_title"] = self._saved["portal_title"] or "SOK Research Desk"
 		frappe.db.set_single_value("RD Settings", self._saved)
 		for email in (LIBRARIAN, SUPER, OTHER):
 			frappe.delete_doc("User", email, force=True, ignore_permissions=True)

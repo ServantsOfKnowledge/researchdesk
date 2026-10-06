@@ -83,6 +83,7 @@ STRUCTURE: list = [
 			("Settings", D, "RD Settings"),
 			("About Page", D, "RD About Page"),
 			("People & Roles", P, "resdesk-people"),
+			("Portal Translations", P, "resdesk-translations"),
 			("Help", P, "resdesk-help"),
 		],
 	),

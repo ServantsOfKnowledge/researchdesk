@@ -17,4 +17,8 @@
 
 /* Research Desk's own pages sit in from the sidebar and the window's edge, like Frappe's lists */
 [id^="page-resdesk-"] .layout-main-section { padding: 8px 24px 40px; }
-@media (max-width: 767px) { [id^="page-resdesk-"] .layout-main-section { padding: 8px 12px 32px; } }
+@media (max-width: 767px) {
+	[id^="page-resdesk-"] .layout-main-section { padding: 8px 12px 32px; min-width: 0; max-width: 100vw; overflow-x: auto; }
+	/* a wide table scrolls sideways on a phone instead of running off the edge */
+	[id^="page-resdesk-"] .layout-main-section table { display: block; max-width: 100%; overflow-x: auto; }
+}
