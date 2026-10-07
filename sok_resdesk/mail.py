@@ -87,6 +87,21 @@ def save(
 	if problem:
 		frappe.throw(_(problem))
 	port, tls, ssl = cint(smtp_port), security == "tls", security == "ssl"
+	try:
+		doc = _save_account(email_id, smtp_server, port, login_id, password, tls, ssl)
+	except frappe.ValidationError:
+		raise
+	except Exception as e:
+		frappe.db.rollback()
+		frappe.log_error(title="Research Desk: outgoing email could not be saved")
+		frappe.throw(
+			_("Could not save the email settings: {0}").format(core.plain_error(str(e)) or type(e).__name__)
+		)
+	frappe.db.commit()
+	return {"saved": True, "account": doc.name}
+
+
+def _save_account(email_id, smtp_server, port, login_id, password, tls, ssl):
 	existing = frappe.db.exists("Email Account", ACCOUNT)
 	doc = frappe.get_doc("Email Account", ACCOUNT) if existing else frappe.new_doc("Email Account")
 	doc.update(
@@ -111,11 +126,17 @@ def save(
 		doc.password = password
 	elif not existing:
 		frappe.throw(_("Enter the password (or app password) for this mailbox."))
+	# Frappe re-saves (and so re-validates, with a live SMTP login) every other default account
+	# when this one becomes the default: one old account with a bad setting would then fail the
+	# whole save. Take the default off the others quietly first.
+	for other in frappe.get_all(
+		"Email Account", filters={"default_outgoing": 1, "name": ("!=", ACCOUNT)}, pluck="name"
+	):
+		frappe.db.set_value("Email Account", other, "default_outgoing", 0, update_modified=False)
 	doc.flags.ignore_permissions = True
 	doc.flags.ignore_validate = True  # we test the real thing ourselves, with a clear message
 	doc.save() if existing else doc.insert()
-	frappe.db.commit()
-	return {"saved": True, "account": doc.name}
+	return doc
 
 
 @frappe.whitelist()
@@ -137,7 +158,8 @@ def test(to: str = "") -> dict:
 			now=True,
 		)
 	except Exception as e:
-		return {"ok": False, "message": core.plain_error(str(e)) or _("The mail server refused the message.")}
+		frappe.log_error(title="Research Desk: test email failed")
+		return {"ok": False, "message": core.plain_error(str(e)) or type(e).__name__}
 	return {"ok": True, "message": _("Sent to {0}. Check that inbox (and its spam folder).").format(to)}
 
 

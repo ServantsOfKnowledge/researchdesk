@@ -18,6 +18,25 @@ class TestMail(IntegrationTestCase):
 		self.assertEqual(int(doc.smtp_port), 465)
 		self.assertTrue(doc.use_ssl_for_outgoing and not doc.use_tls)
 
+	def test_another_default_account_is_set_aside_not_resaved(self):
+		other = frappe.get_doc(
+			{
+				"doctype": "Email Account",
+				"email_account_name": "Old Default",
+				"email_id": "old@example.org",
+				"smtp_server": "smtp.example.org",
+				"smtp_port": "587",
+				"enable_outgoing": 1,
+				"default_outgoing": 1,
+				"password": "x",
+			}
+		)
+		other.flags.ignore_validate = True
+		other.insert(ignore_permissions=True)
+		mail.save("library@example.org", "smtp.example.org", 587, "", "secret-pass", "tls")
+		self.assertEqual(frappe.db.get_value("Email Account", "Old Default", "default_outgoing"), 0)
+		self.assertEqual(mail.outgoing_account(), "Research Desk")
+
 	def test_a_bad_form_is_refused(self):
 		with self.assertRaises(frappe.ValidationError):
 			mail.save("not-an-address", "smtp.example.org", 587, "", "x", "tls")

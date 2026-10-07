@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.68.3 (2026-11-07): Saving the email settings no longer fails with a server error
+
+- Making Research Desk's mail account the default made Frappe re-save, and live-test, every other default mail account:
+  one older account with a wrong setting turned the whole save into a "500". The others now just lose the default, and any
+  other failure is shown in plain words (and logged in the Error Log) instead of a server error
+
 ## 0.68.2 (2026-11-07): Connections: links to lists open (Library Systems, Ingest Profiles and the rest)
 
 - The Connections screen encoded the address of each list twice, so *Library systems*, *Ingest profiles*, *Push targets* and
