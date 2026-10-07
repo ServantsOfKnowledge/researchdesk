@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.68.5 (2026-11-07): Changing mail provider: the old failed emails no longer look like the new error
+
+- After a change of provider (Resend to Gmail, say) the Outgoing email box kept showing the previous provider's error for the
+  emails that had failed. It now says plainly that it is the earlier try, resends the failed emails once the new test works
+  (saying how many still fail, and why), and has **Forget the failed emails** for ones you do not want sent
+
 ## 0.68.4 (2026-11-07): Retaking the help pictures works with Frappe 16.50's login page
 
 - `scripts/screenshots.py` waited for a login button class that Frappe 16.50 no longer uses ("Timeout waiting for

@@ -165,15 +165,40 @@ def test(to: str = "") -> dict:
 
 @frappe.whitelist()
 def retry_failed() -> dict:
-	"""Put failed emails back in the queue and send them now."""
+	"""Put failed emails back in the queue, under the current mail account, and send them now."""
 	frappe.only_for(MANAGERS)
-	frappe.db.sql("update `tabEmail Queue` set status = 'Not Sent' where status = 'Error'")
+	account = outgoing_account()
+	if not account:
+		frappe.throw(_("Set up outgoing email first."))
+	sender = frappe.db.get_value("Email Account", account, "email_id")
+	frappe.db.sql(
+		"update `tabEmail Queue` set status = 'Not Sent', error = null, email_account = %s, sender = %s"
+		" where status = 'Error'",
+		(account, sender),
+	)
 	frappe.db.commit()
 	try:
 		from frappe.email.queue import flush
 
 		flush()
 	except Exception as e:
-		return {"message": core.plain_error(str(e))}
+		frappe.log_error(title="Research Desk: resending failed emails")
+		return {"message": core.plain_error(str(e)) or type(e).__name__, **stuck()}
 	left = stuck()
-	return {"message": _("{0} emails still waiting or failed.").format(left["waiting"] + left["failed"])}
+	if left["failed"]:
+		msg = _("{0} emails still fail: {1}").format(left["failed"], left["last_error"])
+	elif left["waiting"]:
+		msg = _("{0} emails are waiting to go out; they leave within a minute.").format(left["waiting"])
+	else:
+		msg = _("Every waiting email was sent.")
+	return {"message": msg, **left}
+
+
+@frappe.whitelist()
+def clear_failed() -> dict:
+	"""Forget the emails that failed (they will not be sent). Use after a change of mail provider."""
+	frappe.only_for(MANAGERS)
+	n = frappe.db.count("Email Queue", {"status": "Error"})
+	frappe.db.delete("Email Queue", {"status": "Error"})
+	frappe.db.commit()
+	return {"message": _("{0} failed emails forgotten.").format(n)}

@@ -75,7 +75,7 @@ class ResDeskConnections {
 			const d = new frappe.ui.Dialog({
 				title: __("Outgoing email"),
 				fields: [
-					{ fieldtype: "HTML", options: `<p class="text-muted small">${__("The mailbox Research Desk sends sign-in, sign-up and password emails from. Gmail and Microsoft need an app password, not your normal one.")}${m.failed ? `<br><b>${__("{0} emails failed.", [m.failed])}</b> ${frappe.utils.escape_html(m.last_error || "")}` : ""}</p>` },
+					{ fieldtype: "HTML", options: `<p class="text-muted small">${__("The mailbox Research Desk sends sign-in, sign-up and password emails from. Gmail and Microsoft need an app password, not your normal one.")}</p>${m.failed ? `<div class="alert alert-warning small"><b>${__("{0} earlier emails failed to send.", [m.failed])}</b> ${frappe.utils.escape_html(m.last_error || "")}<br>${__("This is the error from the earlier try, not from your new settings. Save and send the test: once it works the failed emails are sent again.")}</div>` : ""}` },
 					{ fieldname: "preset", label: __("Mail provider"), fieldtype: "Select", options: (m.presets || []).map((p) => p.label).join("\n"),
 						change: () => { const p = (m.presets || []).find((x) => x.label === d.get_value("preset")); if (p) { d.set_value("smtp_server", p.server); d.set_value("smtp_port", p.port); d.set_value("security", p.security); if (p.login) d.set_value("login_id", p.login); } } },
 					{ fieldname: "email_id", label: __("Send from (address)"), fieldtype: "Data", reqd: 1, default: cur.email_id },
@@ -84,6 +84,7 @@ class ResDeskConnections {
 					{ fieldname: "security", label: __("Security"), fieldtype: "Select", options: "tls\nssl\nnone", default: cur.use_ssl_for_outgoing ? "ssl" : cur.use_tls === 0 ? "none" : "tls", description: __("tls = STARTTLS (587), ssl = SSL (465)") },
 					{ fieldname: "login_id", label: __("Sign-in name (if not the address)"), fieldtype: "Data", default: cur.login_id },
 					{ fieldname: "password", label: __("Password or app password"), fieldtype: "Password", description: m.ready ? __("Leave empty to keep the saved one") : "" },
+					{ fieldname: "forget", label: __("Forget the failed emails"), fieldtype: "Button", hidden: m.failed ? 0 : 1, click: () => frappe.call("sok_resdesk.mail.clear_failed").then((r) => { frappe.show_alert({ message: r.message.message, indicator: "green" }); d.hide(); this.refresh(); }) },
 					{ fieldname: "to", label: __("Send a test to"), fieldtype: "Data", default: frappe.session.user_email },
 				],
 				primary_action_label: __("Save and send test"),
@@ -93,7 +94,7 @@ class ResDeskConnections {
 						.then((t) => {
 							const x = t.message || {};
 							frappe.msgprint({ title: x.ok ? __("Email works") : __("Email did not send"), message: frappe.utils.escape_html(x.message || ""), indicator: x.ok ? "green" : "red" });
-							if (x.ok) { d.hide(); this.refresh(); if (m.failed) frappe.call("sok_resdesk.mail.retry_failed"); }
+							if (x.ok) { d.hide(); this.refresh(); if (m.failed) frappe.call("sok_resdesk.mail.retry_failed").then((q) => frappe.msgprint({ title: __("Failed emails"), message: frappe.utils.escape_html((q.message || {}).message || ""), indicator: "blue" })); }
 						});
 				},
 			});
