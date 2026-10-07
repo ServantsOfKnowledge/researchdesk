@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.71.5 (2026-11-07): Background Jobs says what each worker is doing
+
+- A line above the parts list on Background Jobs → Machine: how many workers are busy, what each is doing, for how long, and how many wait for work. One busy worker and seven waiting is normal while a single job (sending page text, scoring) runs; the docs say so.
+
 ## 0.71.4 (2026-11-07): Score now and Worst first work again
 
 - **Score now** (Background Jobs → Machine → OCR quality) clears a scoring job that was on record but not running (left by a restart or a killed worker, which made every later press do nothing), then starts one. It says when nothing can start (Pause All, or everything was just stopped) and when there is nothing left to score.

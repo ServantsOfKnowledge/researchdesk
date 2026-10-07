@@ -233,7 +233,8 @@ on every migrate), and **Log QA** (`core/known_errors.py`) matches each Error Lo
 that fixed it, so entries can be cleared safely. **Gentle upgrades** (`upgrade.sh --gentle`,
 `scripts/upgrade-plan.sh`) read what a release changed and restart only the web part, or roll the
 queue workers one at a time with a long stop grace so running jobs finish, instead of restarting
-everything. In the search queue (`search_queue.py`), a stopped sender's damaged job record is
+everything. The Machine tab reads the job queue to say what each worker is doing
+(`jobs._workers_doing`, words from `core/jobnames.py`). In the search queue (`search_queue.py`), a stopped sender's damaged job record is
 cleared (`forget_job`) when *Send now* runs, and `pending_why` says in words why page text waits.
 
 ## Taking the library away

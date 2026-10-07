@@ -517,6 +517,13 @@ class ResDeskJobs {
 			: m.native
 			? ""
 			: `<p class="text-muted small">${__("For CPU and memory per part, run on the server:")} <code>./resdesk.sh resources monitor on</code></p>`;
+		// what each worker is doing: "1 of 8 workers busy: sending page text (42 min) · 7 waiting for work"
+		const W = m.workers_doing;
+		const doing = W && W.total
+			? `<p class="small" style="margin:8px 0">${__("Workers")}: <b>${W.busy.length}</b> ${__("of")} ${W.total} ${__("busy")}${
+					W.busy.length ? ": " + W.busy.map((b) => `${esc(b.what)}${b.minutes ? ` (${__("{0} min", [b.minutes])})` : ""}`).join(" · ") : ""
+				}${W.idle ? ` · ${__("{0} waiting for work", [W.idle])}` : ""}</p>`
+			: "";
 		const preset = L.preset || (m.native ? "" : "standard");
 		const P = m.priority || {};
 		const started = L.worker_nice != null && L.worker_nice !== "" ? L.worker_nice : null;
@@ -547,7 +554,7 @@ class ResDeskJobs {
 							: __("Quiet hours are off.")
 					} <a href="/app/rd-settings">${__("Settings → Machine Resources")}</a></p>
 				</div>
-				<div>${limits}${rows}</div>
+				<div>${limits}${doing}${rows}</div>
 			</div>`;
 
 		const schedules = d.schedules.length

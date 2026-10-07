@@ -608,6 +608,14 @@ login. Readers can also sign up themselves, or be added with
 
 Errors from background jobs also appear in Desk → *Error Log*.
 
+### What each worker is doing
+
+**Background Jobs → Machine** has a line above the list of parts: *Workers: 1 of 8 busy: sending
+page text to the search engine (42 min) · 7 waiting for work*. Workers all take any job, so only
+as many are busy as there are jobs in the queue. A big ingest or a bulk re-OCR is cut into batches
+and keeps every worker busy; page text sending, scoring OCR quality and one book's re-OCR are single
+jobs, so one busy worker and seven waiting is normal while those run.
+
 ### The search queue
 
 The card also shows **Task history**: how many tasks the engine has finished (*done*), how many are

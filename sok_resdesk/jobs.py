@@ -1081,6 +1081,43 @@ def score_ocr_now() -> dict:
 	return {"message": _("{0} books are being scored in the background.").format(n)}
 
 
+def _workers_doing() -> dict | None:
+	"""What each background worker is doing now: {total, idle, busy: [{what, minutes}]}, or None when
+	the job queue cannot be read. One entry per busy worker, longest-running first."""
+	try:
+		from datetime import UTC, datetime
+
+		from frappe.utils.background_jobs import get_redis_conn
+		from rq import Worker
+
+		from sok_resdesk.core.jobnames import label
+
+		now = datetime.now(UTC)
+		busy, total = [], 0
+		for w in Worker.all(connection=get_redis_conn()):
+			beat = w.last_heartbeat
+			if beat and (now - beat.replace(tzinfo=UTC)).total_seconds() > 600:
+				continue  # gone: not a worker any more
+			total += 1
+			job = w.get_current_job()
+			if not job:
+				continue
+			kw = job.kwargs or {}
+			started = job.started_at
+			busy.append(
+				{
+					"what": _(label(kw.get("job_name") or kw.get("method") or job.func_name)),
+					"minutes": max(0, int((now - started.replace(tzinfo=UTC)).total_seconds() // 60))
+					if started
+					else 0,
+				}
+			)
+		busy.sort(key=lambda b: -b["minutes"])
+		return {"total": total, "idle": total - len(busy), "busy": busy}
+	except Exception:
+		return None
+
+
 def machine() -> dict:
 	from sok_resdesk import priority
 
@@ -1088,6 +1125,7 @@ def machine() -> dict:
 		"priority": priority.status(),
 		"ocr": _ocr_progress(),
 		"indexing": _indexing(),
+		"workers_doing": _workers_doing(),
 		"host": _host(),
 		"limits": _limits(),
 		"containers": _containers(),
