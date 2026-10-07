@@ -19,6 +19,7 @@ class ResDeskServer {
 		this.data = null;
 		this.watching = null; // the task whose log is shown live
 		this.log_view = { source: "errors" };
+		this.collapsed = this.load_collapsed();
 
 		page.set_primary_action(__("Check for Updates"), () => this.check_updates(), "refresh");
 		page.set_secondary_action(__("Refresh"), () => this.refresh(), "refresh");
@@ -47,6 +48,17 @@ class ResDeskServer {
 		on("[data-watch]", ($b) => this.watch($b.data("watch")));
 		on("[data-cancel-task]", ($b) => this.call("cancel_task", { name: $b.data("cancel-task") }));
 		on("[data-log-source]", ($b) => this.load_logs($b.data("log-source")));
+		on("[data-collapse]", ($b) => this.toggle_card($b.data("collapse")));
+		on("[data-collapse-all]", () => this.set_all_cards(true));
+		on("[data-expand-all]", () => this.set_all_cards(false));
+		on("[data-clear-resolved]", () =>
+			frappe.confirm(__("Clear the log entries a release has fixed, and the notes of things repaired by themselves? Nothing else is touched."), () =>
+				frappe.call({ method: "sok_resdesk.server.clear_resolved_errors", freeze: true, callback: (r) => {
+					frappe.show_alert({ message: r.message.message, indicator: "green" });
+					this.load_logs("qa");
+				} })
+			)
+		);
 		on("[data-retry-job]", ($b) =>
 			frappe.call({
 				method: "sok_resdesk.jobs.retry_failed_jobs",
@@ -273,6 +285,59 @@ class ResDeskServer {
 		d.show();
 	}
 
+	// ---- sections that fold away: what is open is remembered in this browser -------------
+	load_collapsed() {
+		try {
+			return JSON.parse(localStorage.getItem("rds-collapsed") || "{}") || {};
+		} catch (e) {
+			return {};
+		}
+	}
+
+	save_collapsed() {
+		try {
+			localStorage.setItem("rds-collapsed", JSON.stringify(this.collapsed));
+		} catch (e) {
+			/* private window: it just is not remembered */
+		}
+	}
+
+	is_collapsed(key) {
+		if (key in this.collapsed) return !!this.collapsed[key];
+		return ["requirements", "limit", "services", "tasks", "backups", "resources", "alerts", "helper"].includes(key);
+	}
+
+	card(key, title, body, extra) {
+		if (key === "requirements" && location.hash === "#requirements" && !this.hash_opened) {
+			this.hash_opened = true; // a link to #requirements (from Health) opens the section
+			this.collapsed.requirements = false;
+		}
+		const closed = this.is_collapsed(key);
+		return `<div class="rds-card" data-card="${key}" ${key === "requirements" ? 'id="requirements"' : ""}><h4><button type="button" class="rds-toggle" data-collapse="${key}" aria-expanded="${closed ? "false" : "true"}" aria-controls="rds-b-${key}"><span class="rds-caret" aria-hidden="true">${closed ? "▸" : "▾"}</span> ${title}</button>${extra || ""}</h4><div class="rds-cbody" id="rds-b-${key}" ${closed ? "hidden" : ""}>${body}</div></div>`;
+	}
+
+	apply_card(key) {
+		const closed = this.is_collapsed(key);
+		const $c = this.$body.find(`[data-card="${key}"]`);
+		$c.find(".rds-toggle").attr("aria-expanded", closed ? "false" : "true").find(".rds-caret").text(closed ? "▸" : "▾");
+		$c.find(".rds-cbody").prop("hidden", closed);
+	}
+
+	toggle_card(key) {
+		this.collapsed[key] = !this.is_collapsed(key);
+		this.save_collapsed();
+		this.apply_card(key);
+	}
+
+	set_all_cards(closed) {
+		this.$body.find("[data-collapse]").each((i, el) => {
+			const key = $(el).data("collapse");
+			this.collapsed[key] = closed;
+			this.apply_card(key);
+		});
+		this.save_collapsed();
+	}
+
 	load_logs(source, name) {
 		this.log_view = { source, name: name || "" };
 		frappe.call({
@@ -291,14 +356,29 @@ class ResDeskServer {
 		const v = this.log_view;
 		const r = this.log_data || {};
 		const tab = (key, label) => `<button class="btn btn-xs ${v.source === key ? "btn-primary" : "btn-default"}" data-log-source="${key}">${label}</button>`;
+		const VERDICT = {
+			resolved: ["green", (k) => __("Fixed in {0}: safe to ignore", [k.fixed_in])],
+			upgrade: ["orange", (k) => __("Fixed in {0}: upgrade to get it", [k.fixed_in])],
+			unsure: ["gray", (k) => __("Fixed in {0}: no record of when you upgraded", [k.fixed_in])],
+			recurring: ["red", (k) => __("Logged after {0} was installed: needs a look", [k.fixed_in])],
+			info: ["blue", () => __("Repaired by itself")],
+		};
+		const verdict_pill = (k) => (k && VERDICT[k.verdict] ? `<div><span class="indicator-pill ${VERDICT[k.verdict][0]}">${esc(VERDICT[k.verdict][1](k))}</span></div>` : "");
 		let body = "";
 		if (!this.log_data) body = `<p class="text-muted small">${__("Loading…")}</p>`;
 		else if (v.source === "errors")
 			body = r.rows.length
 				? `<table class="table table-sm small"><tbody>${r.rows
-						.map((e) => `<tr><td class="text-muted" style="white-space:nowrap">${esc(String(e.creation).slice(0, 16))}</td><td><a href="/app/error-log/${e.name}">${esc(e.method || e.name)}</a><div class="text-muted">${esc(e.error)}</div></td></tr>`)
+						.map((e) => `<tr><td class="text-muted" style="white-space:nowrap">${esc(String(e.creation).slice(0, 16))}</td><td><a href="/app/error-log/${e.name}">${esc(e.method || e.name)}</a>${verdict_pill(e.known)}<div class="text-muted">${esc(e.error)}</div></td></tr>`)
 						.join("")}</tbody></table>`
 				: `<p class="text-muted">${__("No errors logged.")}</p>`;
+		else if (v.source === "qa")
+			body = `<p class="text-muted small">${__("You run {0}. Each entry in the Error Log is matched to the release that fixed it: green is safe to ignore (it happened before the fix was installed), red happened after and needs a look.", [esc(r.installed || "")])}</p>
+				${(r.groups || []).length ? `<table class="table table-sm small"><tbody>${r.groups
+					.map((g) => `<tr><td>${verdict_pill({ verdict: g.verdict, fixed_in: g.fixed_in })}</td><td><b>${esc(g.title)}</b><div class="text-muted">${esc(g.note)}</div></td><td style="white-space:nowrap">${g.count} ${__("entries")}<div class="text-muted">${__("latest")} ${esc(g.latest)}</div></td></tr>`)
+					.join("")}</tbody></table>` : ""}
+				${r.unknown && r.unknown.count ? `<div class="alert alert-warning small"><b>${__("{0} entries are not recognised", [r.unknown.count])}</b> (${__("latest")} ${esc(r.unknown.latest)}): ${__("these need a look.")}<br>${r.unknown.examples.map((x) => `<a href="/app/error-log/${esc(x.name)}">${esc(x.method)}</a>`).join(" · ")}</div>` : `<p class="text-muted small">${__("Every entry is a known one.")}</p>`}
+				${r.clearable ? `<button class="btn btn-xs btn-primary" data-clear-resolved>${__("Clear the {0} resolved entries", [r.clearable])}</button>` : ""}`;
 		else if (v.source === "failed_jobs")
 			body = r.rows.length
 				? `<table class="table table-sm small"><tbody>${r.rows
@@ -315,7 +395,7 @@ class ResDeskServer {
 					${(r.files || []).map((f) => `<option value="${esc(f.name)}" ${f.name === v.name ? "selected" : ""}>${esc(f.name)} (${Math.ceil(f.size / 1024)} KB, ${esc(f.modified)})</option>`).join("")}
 				</select>${r.text ? `<pre class="rds-log">${esc(r.text)}</pre>` : ""}`;
 		$box.html(`<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
-			${tab("errors", __("Errors"))}${tab("failed_jobs", __("Failed jobs"))}${tab("files", __("Log files"))}
+			${tab("errors", __("Errors"))}${tab("qa", __("Log QA"))}${tab("failed_jobs", __("Failed jobs"))}${tab("files", __("Log files"))}
 		</div>${body}`);
 		const pre = $box.find(".rds-log")[0];
 		if (pre) pre.scrollTop = pre.scrollHeight;
@@ -538,6 +618,9 @@ class ResDeskServer {
 				.rds-grid { display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap:16px; }
 				@media (max-width: 1000px) { .rds-grid { grid-template-columns: 1fr; } }
 				.rds-card { border:1px solid var(--border-color); border-radius:8px; padding:14px 16px; margin-bottom:16px; background:var(--card-bg); }
+				.rds-bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:0 0 12px; }
+				.rds-toggle { background:none; border:0; padding:0; font:inherit; font-weight:600; color:inherit; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
+				.rds-caret { width:1em; display:inline-block; }
 				.rds-card h4 { margin:0 0 10px; font-size:14px; font-weight:600; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
 				.rds-table td, .rds-table th { vertical-align: middle; }
 				.rds-log { max-height: 360px; overflow:auto; font-size:12px; background: var(--subtle-fg, #f7f7f7); padding:10px; border-radius:6px; white-space: pre-wrap; }
@@ -548,23 +631,26 @@ class ResDeskServer {
 			</style>
 			${summary}
 			<div class="rds-task"></div>
+			<div class="rds-bar">
+				<button class="btn btn-xs btn-default" data-collapse-all>${__("Fold all sections")}</button>
+				<button class="btn btn-xs btn-default" data-expand-all>${__("Open all sections")}</button>
+				<span class="text-muted small">${__("Health, Updates and Logs are open to begin with; the rest fold away. Your choice is remembered.")}</span>
+			</div>
 			<div class="rds-grid">
 				<div>
-					<div class="rds-card"><h4>${__("Health")}</h4>${health}</div>
-					<div class="rds-card" id="requirements"><h4>${__("Requirements")}
-						<button class="btn btn-xs btn-default" data-req-refresh style="margin-left:auto">${__("Check again")}</button></h4>
-						<div class="rds-req">${this.req ? "" : `<p class="text-muted small">${__("Checking…")}</p>`}</div></div>
-					<div class="rds-card"><h4>${__("Book limit")}</h4>${capacity}</div>
-					<div class="rds-card"><h4>${__("Updates")}</h4>${updates}</div>
-					<div class="rds-card"><h4>${__("Services")}</h4>${services}</div>
-					<div class="rds-card"><h4>${__("Recent server tasks")}</h4>${tasks}</div>
+					${this.card("health", __("Health"), health)}
+					${this.card("requirements", __("Requirements"), `<div class="rds-req">${this.req ? "" : `<p class="text-muted small">${__("Checking…")}</p>`}</div>`, `<button class="btn btn-xs btn-default" data-req-refresh style="margin-left:auto">${__("Check again")}</button>`)}
+					${this.card("limit", __("Book limit"), capacity)}
+					${this.card("updates", __("Updates"), updates)}
+					${this.card("services", __("Services"), services)}
+					${this.card("tasks", __("Recent server tasks"), tasks)}
 				</div>
 				<div>
-					<div class="rds-card"><h4>${__("Backups")}</h4>${backups}</div>
-					<div class="rds-card"><h4>${__("Logs")}</h4><div class="rds-logs"></div></div>
-					<div class="rds-card"><h4>${__("Resources")}</h4>${resources}</div>
-					<div class="rds-card"><h4>${__("Alerts")}</h4>${alerts}</div>
-					<div class="rds-card"><h4>${__("Updater helper")}</h4>${helper}</div>
+					${this.card("backups", __("Backups"), backups)}
+					${this.card("logs", __("Logs"), `<div class="rds-logs"></div>`)}
+					${this.card("resources", __("Resources"), resources)}
+					${this.card("alerts", __("Alerts"), alerts)}
+					${this.card("helper", __("Updater helper"), helper)}
 				</div>
 			</div>
 			<p class="text-muted small">${__("Updated")} ${esc(d.now)} · ${__("refreshes every 15 seconds")}</p>

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.68.7 (2026-11-07): Server page: Log QA, and sections that fold away
+
+- **Server → Logs → Log QA**: the Error Log matched to the releases that fixed its errors. Green: fixed in a release you run, and
+  logged before it was installed, so safe to ignore. Orange: fixed in a release you have not installed yet. Red: logged *after* the
+  fix was installed, so the fix did not stop it and it needs a look. Entries it does not recognise are listed to look at, and
+  **Clear the resolved entries** forgets the green ones (and the notes of things repaired by itself); nothing else is touched.
+  Each upgrade records when a version became the installed one, which is how it tells before from after
+- The Errors tab marks the same entries with the same verdict
+- **Every section of the Server page folds away.** Health, Updates and Logs are open to begin with and the rest are folded; a
+  button on each section's title opens or folds it, **Fold all sections / Open all sections** do it all at once, and the choice is
+  remembered in this browser. A link to Requirements from Health opens it
+
 ## 0.68.6 (2026-11-07): "Send now" no longer fails on a page-text sender that was stopped half-way
 
 - A page-text sender whose worker died (a restart, running out of memory) left a half-written record in Redis, and *Send now*

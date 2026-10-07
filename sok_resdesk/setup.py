@@ -161,6 +161,12 @@ def apply_machine(doc) -> None:
 def after_migrate():
 	create_roles()
 	try:
+		from sok_resdesk import server
+
+		server.record_version()  # when each version became the installed one (Server → Log QA)
+	except Exception:
+		frappe.log_error("Research Desk: could not record the installed version")
+	try:
 		allow_large_uploads()
 	except Exception:
 		frappe.log_error("Research Desk: could not raise the upload size limit")

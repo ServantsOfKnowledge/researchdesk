@@ -325,3 +325,23 @@ cause replaces the helper itself.
 | "The site refused the token" in its log | `./resdesk.sh updater on` (makes a new token for both sides) |
 | An upgrade says there are local code changes | someone edited files in the Research Desk folder: `git status`, then commit or `git stash` them |
 | A task stays *Running* | the helper stopped reporting; after three hours the task is marked failed. Its log is in `logs/upgrade-<date>.log` on the server |
+
+
+## Log QA and folding sections
+
+**Server → Logs → Log QA** matches every Error Log entry to the release that fixed it (the list is
+`sok_resdesk/core/known_errors.py`, one entry per fixed error, with the release):
+
+| Verdict | Meaning |
+|---|---|
+| Fixed in X: safe to ignore (green) | the entry was logged before X was installed; it can be cleared |
+| Fixed in X: upgrade to get it (orange) | you have not installed X yet |
+| Logged after X was installed: needs a look (red) | the fix did not stop it |
+| No record of when you upgraded (grey) | the fix is installed, but this install did not record when |
+| Repaired by itself (blue) | a note of something repaired automatically, not a fault |
+
+Entries it does not recognise are listed to look at. **Clear the resolved entries** forgets the green
+ones and the blue notes. Each `migrate` records when a version became the installed one.
+
+Every section of the page folds away with the button on its title (**Fold all sections** and **Open all
+sections** at the top); Health, Updates and Logs start open, and the choice is kept in your browser.

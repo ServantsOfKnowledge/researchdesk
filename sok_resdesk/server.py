@@ -837,15 +837,29 @@ def logs(source: str = "errors", name: str = "", lines: int = 200) -> dict:
 	frappe.only_for(MANAGERS)
 	lines = max(20, min(cint(lines) or 200, 2000))
 	if source == "errors":
+		from sok_resdesk import __version__
+		from sok_resdesk.core import known_errors
+
 		rows = frappe.get_all(
 			"Error Log",
 			fields=["name", "method", "creation", "error"],
 			order_by="creation desc",
 			limit=50,
 		)
+		history = _version_history()
 		for r in rows:
-			r["error"] = (r.get("error") or "").strip().splitlines()[-1:][0][:300] if r.get("error") else ""
+			full = r.get("error") or ""
+			known = known_errors.match(r.get("method"), full)
+			r["error"] = full.strip().splitlines()[-1][:300] if full.strip() else ""
+			if known:
+				r["known"] = {
+					"title": known.title,
+					"fixed_in": known.fixed_in,
+					"verdict": known_errors.verdict(known, __version__, str(r["creation"]), history),
+				}
 		return {"rows": rows}
+	if source == "qa":
+		return log_qa()
 	if source == "failed_jobs":
 		return {"rows": _failed_jobs()}
 	if source == "files":
@@ -869,6 +883,101 @@ def logs(source: str = "errors", name: str = "", lines: int = 200) -> dict:
 			text = _tail(d / name, lines)
 		return {"files": files, "text": text}
 	frappe.throw(_("Unknown log source."))
+
+
+HISTORY_KEY = "resdesk_version_history"
+
+
+def _version_history() -> list[tuple[str, str]]:
+	"""[(version, when it became the installed one)], oldest first."""
+	import json
+
+	try:
+		return [(v, ts) for v, ts in json.loads(frappe.db.get_default(HISTORY_KEY) or "[]")]
+	except Exception:
+		return []
+
+
+def record_version() -> None:
+	"""after_migrate: remember when each version became the installed one, so the log QA can tell an
+	error logged before a fix was installed from one logged after it."""
+	import json
+
+	from sok_resdesk import __version__
+
+	history = _version_history()
+	if history and history[-1][0] == __version__:
+		return
+	history.append((__version__, str(frappe.utils.now())))
+	frappe.db.set_default(HISTORY_KEY, json.dumps(history[-50:]))
+
+
+def _qa_rows() -> list[dict]:
+	from sok_resdesk import __version__
+	from sok_resdesk.core import known_errors
+
+	history = _version_history()
+	out = []
+	for r in frappe.get_all(
+		"Error Log", fields=["name", "method", "creation", "error"], order_by="creation desc", limit=1000
+	):
+		known = known_errors.match(r.get("method"), r.get("error"))
+		r["known"] = known
+		r["verdict"] = (
+			known_errors.verdict(known, __version__, str(r["creation"]), history) if known else "unknown"
+		)
+		out.append(r)
+	return out
+
+
+@frappe.whitelist()
+def log_qa() -> dict:
+	"""Server → Logs → Log QA: the Error Log grouped by what it is and whether a release has fixed
+	it, so a manager can tell what is safe to ignore (and clear) from what needs a look."""
+	frappe.only_for(MANAGERS)
+	from sok_resdesk import __version__
+
+	groups: dict[tuple[str, str], dict] = {}
+	unknown = {"count": 0, "latest": "", "examples": []}
+	for r in _qa_rows():
+		known = r["known"]
+		if not known:
+			unknown["count"] += 1
+			unknown["latest"] = unknown["latest"] or str(r["creation"])[:16]
+			if len(unknown["examples"]) < 5:
+				unknown["examples"].append({"name": r["name"], "method": r["method"] or r["name"]})
+			continue
+		g = groups.setdefault(
+			(known.key, r["verdict"]),
+			{
+				"title": known.title,
+				"fixed_in": known.fixed_in,
+				"note": known.note,
+				"verdict": r["verdict"],
+				"count": 0,
+				"latest": str(r["creation"])[:16],
+			},
+		)
+		g["count"] += 1
+	order = {"recurring": 0, "upgrade": 1, "unsure": 2, "resolved": 3, "info": 4}
+	return {
+		"installed": __version__,
+		"groups": sorted(groups.values(), key=lambda g: (order.get(g["verdict"], 9), g["title"])),
+		"unknown": unknown,
+		"clearable": sum(g["count"] for g in groups.values() if g["verdict"] in ("resolved", "info")),
+	}
+
+
+@frappe.whitelist()
+def clear_resolved_errors() -> dict:
+	"""Forget the Error Log entries a release has fixed (logged before it was installed) and the
+	notes of things repaired by themselves. Nothing else is touched."""
+	frappe.only_for(MANAGERS)
+	names = [r["name"] for r in _qa_rows() if r["verdict"] in ("resolved", "info")]
+	for i in range(0, len(names), 200):
+		frappe.db.delete("Error Log", {"name": ("in", names[i : i + 200])})
+	frappe.db.commit()
+	return {"cleared": len(names), "message": _("{0} resolved log entries cleared.").format(len(names))}
 
 
 def _tail(path: Path, lines: int) -> str:
