@@ -32,6 +32,9 @@ The message is the provider's, put into words. Common ones:
 - *The mailbox name or password was refused*: use an app password, and check the login.
 - *550 … domain is not verified*: the sender address is not on a domain you verified with the
   provider (Resend), or you changed provider and the address is still the old one.
+- *The mail server hung up as soon as we connected* (Connection unexpectedly closed): the security
+  choice does not match the port. Port 465 needs **SSL**, port 587 needs **STARTTLS**. Picking a
+  port now picks the matching choice, and saving corrects a mismatch and says so.
 - *The server did not answer / name not found*: check the server name and port, and the security
   choice (STARTTLS on 587, SSL on 465).
 

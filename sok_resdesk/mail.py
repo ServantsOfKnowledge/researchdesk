@@ -87,6 +87,8 @@ def save(
 	if problem:
 		frappe.throw(_(problem))
 	login_id = core.login_for(smtp_server, login_id)
+	chosen = security
+	security = core.security_for(smtp_port, security)
 	port, tls, ssl = cint(smtp_port), security == "tls", security == "ssl"
 	try:
 		doc = _save_account(email_id, smtp_server, port, login_id, password, tls, ssl)
@@ -99,7 +101,12 @@ def save(
 			_("Could not save the email settings: {0}").format(core.plain_error(str(e)) or type(e).__name__)
 		)
 	frappe.db.commit()
-	return {"saved": True, "account": doc.name}
+	note = ""
+	if security != chosen:
+		note = _("Port {0} needs {1}, so it was saved that way.").format(
+			port, "SSL" if security == "ssl" else "STARTTLS"
+		)
+	return {"saved": True, "account": doc.name, "note": note}
 
 
 def _save_account(email_id, smtp_server, port, login_id, password, tls, ssl):

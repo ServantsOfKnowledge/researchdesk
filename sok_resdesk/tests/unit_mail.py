@@ -36,3 +36,15 @@ def test_resends_login_name_does_not_follow_you_to_another_provider():
 	assert m.login_for("smtp.gmail.com", "resend") == ""  # left over from the Resend set-up
 	assert m.login_for("smtp.gmail.com", " me@gmail.com ") == "me@gmail.com"
 	assert m.login_for("smtp.gmail.com", "") == ""
+
+
+def test_the_security_choice_follows_the_port():
+	assert m.security_for(465, "tls") == "ssl"  # "Connection unexpectedly closed" otherwise
+	assert m.security_for("587", "ssl") == "tls"
+	assert m.security_for(2525, "none") == "none"
+	assert m.security_for("x", "tls") == "tls"
+
+
+def test_a_server_that_hangs_up_is_explained():
+	raw = "Invalid Outgoing Mail Server or Port: Connection unexpectedly closed"
+	assert "587" in m.plain_error(raw) and "465" in m.plain_error(raw)

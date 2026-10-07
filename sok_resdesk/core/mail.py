@@ -36,6 +36,15 @@ _ADDRESS = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 _KNOWN = (
 	(
+		"unexpectedly closed",
+		"The mail server hung up as soon as we connected. That is almost always the security choice not matching "
+		"the port: use STARTTLS with port 587, or SSL with port 465.",
+	),
+	(
+		"serverdisconnected",
+		"The mail server hung up as soon as we connected. Use STARTTLS with port 587, or SSL with port 465.",
+	),
+	(
 		"535",
 		"The mailbox name or password was refused. For Gmail and Microsoft use an app password, not the normal one.",
 	),
@@ -79,6 +88,20 @@ def problem(email_id: str, server: str, port, security: str) -> str:
 	if security not in SECURITY:
 		return "Choose STARTTLS, SSL or none."
 	return ""
+
+
+# the security choice each well-known port needs (587 STARTTLS, 465 implicit SSL)
+PORT_SECURITY = {465: "ssl", 587: "tls"}
+
+
+def security_for(port, security: str) -> str:
+	"""The security choice that works with this port. Port 465 speaks SSL from the first byte and 587
+	starts plain and upgrades: the wrong one makes the server hang up ("Connection unexpectedly
+	closed"). Other ports keep the choice that was made."""
+	try:
+		return PORT_SECURITY.get(int(port), security)
+	except (TypeError, ValueError):
+		return security
 
 
 def login_for(server: str, login: str) -> str:

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.71.7 (2026-11-07): Outgoing email: "Connection unexpectedly closed" explained and prevented
+
+- That error is the mail server hanging up because the security choice did not match the port (465 speaks SSL from the first byte; 587 starts plain and upgrades with STARTTLS). Choosing a port in the Outgoing email dialog now picks the matching security; saving corrects a mismatch and says so; and if the server hangs up anyway, the message says what to check in plain words.
+
 ## 0.71.6 (2026-11-07): Checks that run for you
 
 - `CLAUDE.md` with the project's rules; a push guard and a format hook for Claude Code (`.claude/`); `/release` and `/docs-page` skills; `scripts/prepush.sh`; an optional pre-commit configuration.

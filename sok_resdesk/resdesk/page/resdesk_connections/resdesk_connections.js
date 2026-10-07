@@ -81,7 +81,9 @@ class ResDeskConnections {
 						change: () => { const p = (m.presets || []).find((x) => x.label === d.get_value("preset")); if (p) { d.set_value("smtp_server", p.server); d.set_value("smtp_port", p.port); d.set_value("security", p.security); d.set_value("login_id", p.login || ""); } } },
 					{ fieldname: "email_id", label: __("Send from (address)"), fieldtype: "Data", reqd: 1, default: cur.email_id },
 					{ fieldname: "smtp_server", label: __("Mail server"), fieldtype: "Data", reqd: 1, default: cur.smtp_server },
-					{ fieldname: "smtp_port", label: __("Port"), fieldtype: "Int", default: cur.smtp_port || 587 },
+					{ fieldname: "smtp_port", label: __("Port"), fieldtype: "Int", default: cur.smtp_port || 587,
+						// 465 speaks SSL from the first byte, 587 upgrades with STARTTLS: the other pairing makes the server hang up
+						change: () => { const s = { 465: "ssl", 587: "tls" }[d.get_value("smtp_port")]; if (s) d.set_value("security", s); } },
 					{ fieldname: "security", label: __("Security"), fieldtype: "Select", options: "tls\nssl\nnone", default: cur.use_ssl_for_outgoing ? "ssl" : cur.use_tls === 0 ? "none" : "tls", description: __("tls = STARTTLS (587), ssl = SSL (465)") },
 					{ fieldname: "login_id", label: __("Sign-in name (if not the address)"), fieldtype: "Data", default: cur.login_id },
 					{ fieldname: "password", label: __("Password or app password"), fieldtype: "Password", description: m.ready ? __("Leave empty to keep the saved one") : "" },
@@ -106,9 +108,10 @@ class ResDeskConnections {
 					say(__("Saving…"), "info");
 					frappe.call({ method: "sok_resdesk.mail.save", type: "POST", silent: true,
 						args: { email_id: v.email_id, smtp_server: v.smtp_server, smtp_port: v.smtp_port, login_id: v.login_id || "", password: v.password || "", security: v.security },
-						callback: () => {
+						callback: (sr) => {
 							this.refresh();
 							say(__("Saved. Sending a test email…"), "info");
+							if (sr && sr.message && sr.message.note) frappe.show_alert({ message: sr.message.note, indicator: "blue" });
 							frappe.call({ method: "sok_resdesk.mail.test", type: "POST", silent: true, args: { to: v.to },
 								callback: (t) => {
 									const x = t.message || {};
