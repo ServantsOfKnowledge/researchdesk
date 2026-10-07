@@ -63,6 +63,18 @@ that gets in your way (see *Reporting a problem*).
 - Proofreading zones: **Add a zone**, then on the zone in the list the arrow keys move it and
   Shift with the arrow keys resizes it; each zone says where it is.
 
+**Signing in and telling the library what you need**
+
+- **About me** (`/library/profile`) is optional and short. Every box has a visible label, related
+  boxes are grouped with a heading, limits ("up to 600 characters") are said beside the box, and
+  the choices have large targets. Browsers can fill in the organisation, role, country and website
+  (the fields say what they are for), and the support boxes never are.
+- A problem when saving is read out at once and takes the focus; a success is announced politely.
+  Nothing can be typed while the saved answers are still arriving, so nothing is overwritten.
+- Readers can say, privately, that they are blind, have low vision, are deaf or hard of hearing,
+  have a motor difficulty or dyslexia, and what would help. Only the person and the library's
+  managers see it ([Signing in](signing-in.md)).
+
 **Out of the box from Frappe**: the page's language and direction (`<html lang>`, right-to-left
 for Urdu), a main landmark, an accessible menu button on phones, and the portal in other
 languages (Frappe translations: a language switch at the top of the portal, when the library
@@ -82,6 +94,34 @@ offers Kannada or another language).
   image PDF.
 - No testing yet **with disabled readers** themselves; automated checks find only part of the
   problems.
+
+## What we have done, release by release
+
+| Release | What changed for accessibility |
+|---|---|
+| 0.31 | the first audit: skip link, focus ring, labels, landmarks, the language of Indic text, notes and zones by keyboard |
+| 0.35 | reading settings (text size, spacing, colours), accessible EPUB 3 and plain text, axe-core in CI on every change, our Desk pages checked |
+| 0.57 | recordings: a transcript beside the player, timed to the audio, and captions |
+| 0.61 | the text of EPUB books, so they can be read, searched and downloaded as text |
+| 0.68 | **About me**: readers can say they are blind, low-vision, deaf or hard of hearing, or have a motor difficulty or dyslexia, and what would help; managers can offer support |
+| 0.70.1 | the review below: About me fixes, and the page joins the CI accessibility check |
+
+## Review of the About me page (October 2026, v0.70)
+
+A code-level review against WCAG 2.2 AA (no screen reader or browser run: that is still to do).
+Found and fixed in 0.70.1:
+
+| # | Finding | Criterion | Fix |
+|---|---|---|---|
+| 1 | The form carried `autocomplete="off"`, so browsers could not fill the organisation, role, country and website | 1.3.5 | each field says what it is for; the support boxes stay unfilled |
+| 2 | A failed save always said "Could not save" and the reason was dropped | 3.3.1 | the reason is shown, announced as an alert and takes the focus |
+| 3 | The boxes could be typed in before the saved answers arrived, then overwritten | 3.2.2 / 4.1.3 | the form is locked (and marked busy) until they arrive |
+| 4 | Character limits were not said | 3.3.2 | each limit is written beside its box and tied to it |
+| 5 | Radios and ticks had the browser's small size | 2.5.8 | 44 px rows with larger controls |
+| 6 | The examples in a box's grey hint vanish as you type | 3.3.2 | kept: the label carries the meaning, the hint is only an example |
+
+Not found: unlabelled controls, missing groups, colour contrast below 4.5:1, or keyboard traps.
+The page is now in `scripts/a11y_check.py`, so axe-core checks it on every change.
 
 ## Reporting a problem
 
@@ -118,6 +158,8 @@ way. Staff: problems with the software itself go to
    & text, at desktop and phone width) and on our Desk pages; a serious or critical problem
    stops the release. The findings are kept with each CI run (*a11y-report*). Run it on your own
    install the same way (see the script's first lines).
+
+5. **About me** reviewed in October 2026 (above), and checked in CI from 0.70.1.
 
 Not done yet: testing with NVDA and Kannada/Hindi voices, TalkBack on Android, and readers who use
 them every day.

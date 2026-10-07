@@ -141,6 +141,16 @@ def main() -> int:
 						"violations": found,
 					}
 				)
+			page.goto(base + "/library/profile", wait_until="networkidle")  # About me, for members
+			page.wait_for_function("document.getElementById('rd-pf').getAttribute('aria-busy') === 'false'")
+			report.append(
+				{
+					"page": "About me (logged in)",
+					"path": "/library/profile",
+					"width": 1280,
+					"violations": run_axe(page, axe, None),
+				}
+			)
 			for name, path, include in desk:
 				page.goto(base + path, wait_until="networkidle")
 				page.wait_for_selector(include, timeout=20000)

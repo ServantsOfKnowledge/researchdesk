@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.70.1 (2026-11-07): About me meets more of WCAG 2.2 AA
+
+- The About me page names its fields to browsers (autocomplete), says each character limit, shows and announces the reason when a save fails, locks the form until the saved answers arrive, and has larger tick boxes and radios.
+- The page joins the CI accessibility check (axe-core). The accessibility page lists what was found, what was fixed, and what has been done release by release.
+
 ## 0.70.0 (2026-11-07): Help for signing in, and the documentation brought up to date
 
 - New help pages: **Signing in, your account and About me** (readers, on the portal) and **Sign-in email and sign-ups** (administrators, in the Desk), linked from the About me page and the Outgoing email dialog; the Reader Request screen's Help opens the sign-up choices.

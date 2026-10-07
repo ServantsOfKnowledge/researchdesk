@@ -491,3 +491,10 @@ html[data-rd-colours="sepia"] body, html[data-rd-colours="sepia"] .navbar, html[
 .rd-photo .rd-pages__text, .rd-photo #rd-read-aloud, .rd-photo #rd-pages-book, .rd-photo #rd-pages-label { display: none; }
 .rd-photo .rd-pages__body { display: block; }
 .rd-photo .rd-pages__image img { max-width: 100%; height: auto; }
+
+/* About me and other forms: choices with room to tap (WCAG 2.5.8), problems that stand out */
+.rd-form .rd-choice { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; margin-right: 1rem; }
+.rd-form .rd-choice input { width: 1.25rem; height: 1.25rem; }
+.rd-form fieldset[disabled] { opacity: .6; }
+.rd-error:not(:empty) { color: #a4161a; border-left: 4px solid #a4161a; padding: 6px 10px; }
+html[data-rd-colours="dark"] .rd-error:not(:empty) { color: #ff9b9b; border-color: #ff9b9b; }
