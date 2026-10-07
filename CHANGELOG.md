@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.71.1 (2026-11-07): Reader guide: pictures with test records and broken thumbnails taken out
+
+- The portal home, search results and book page pictures in the reader guide were taken on a test library (broken cover images, "Test Author" records, an empty reader) and are removed until they can be retaken on a real library (roadmap).
+
 ## 0.71.0 (2026-11-07): Type in your own language; pick proofreading languages by code
 
 - **Type in…** on search boxes and the proofreading text (jquery.ime, vendored with the input methods of 23 languages): Kannada, Hindi, Tamil and more on any keyboard, following the portal's language, with the choice kept in the browser. It loads only when turned on.

@@ -12,8 +12,6 @@ other script, or in Latin letters as you would write the word: `kanakadasa` also
 "double quotes" to find them together, use `OR` for either word, and `-word` to leave a word
 out.
 
-![The library home page with the search box](../sok_resdesk/public/images/guide/portal-home.png)
-
 Two kinds of search sit under the box:
 
 - **Books** looks at titles, authors, subjects, publishers and descriptions. Each result is a
@@ -27,8 +25,6 @@ years. Pick several: *Kannada* and *1950s* gives Kannada books from the 1950s.
 
 Books are listed **oldest first** (books without a date at the end), and a search with words
 shows the best matches first. **Sort** changes that: relevance, oldest, newest or title A–Z.
-
-![Search results with filters](../sok_resdesk/public/images/guide/portal-results.png)
 
 The address in your browser always matches the search, so you can bookmark it or send it to
 someone. More on searching: [Searching](searching.md).
@@ -92,8 +88,6 @@ Not everything in the library is a book:
 
 Reading apps on a phone or an e-ink reader can browse and download from the library too: the
 address `/opds` (add it as a catalogue in KOReader, Thorium or similar).
-
-![A book page: reader, search inside, details and citation](../sok_resdesk/public/images/guide/portal-book.png)
 
 ### Page & text
 

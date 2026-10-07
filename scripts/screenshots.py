@@ -31,10 +31,7 @@ VIEWPORT = {"width": 1280, "height": 800}
 
 # name -> (who, what to open, what to do before the picture). "who" is guest or staff.
 SHOTS: dict[str, tuple[str, str, str]] = {
-	"portal-home": ("guest", "/?tips=1", ""),
-	"portal-results": ("guest", "/?q={query}", "results"),
 	"portal-collection": ("guest", "/library/collections", "click:.rd-coll-card"),
-	"portal-book": ("guest", "/?q={query}", "click:.rd-hit h3 a"),
 	"portal-mylist": ("guest", "/?q={query}", "mylist"),
 	"portal-help": ("guest", "/library/help", ""),
 	"portal-about": ("guest", "/about", ""),

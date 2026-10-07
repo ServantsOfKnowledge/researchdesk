@@ -125,6 +125,7 @@
 - [x] The installer asks the kind of institution, the books' languages and about how many
       books (0.46)
 - [ ] Help pictures for members-only libraries, taken as a reader account
+- [ ] Retake the portal home, search results and book page pictures on a real library (covers loaded, no test records) and put them back in the reader guide and `scripts/screenshots.py`
 - [x] IIIF: a manifest for every book, collections, page text as annotations, an image service for books drawn from PDFs (0.47)
 - [x] Books from Wikisource, with their proofread page text and images (0.48)
 - [x] Each person's own Wikimedia account (OAuth 2.0, encrypted, never shared): gifts to Wikidata under it (0.49)
