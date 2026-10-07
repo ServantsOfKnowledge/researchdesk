@@ -88,6 +88,16 @@ def overview(client: MeiliClient | None = None) -> dict:
 	}
 
 
+def _sender_running() -> bool:
+	"""The page-text sender (send_pending) is queued or working right now."""
+	try:
+		from frappe.utils.background_jobs import is_job_enqueued
+
+		return bool(is_job_enqueued("resdesk-send-pending-pages"))
+	except Exception:
+		return False
+
+
 def pending_why(waiting: int, per_minute: float) -> dict | None:
 	"""Why page text waiting to be sent is not moving: {"code", "message"}, or None when it is
 	on its way (the engine has room and the sender runs every ten minutes)."""
@@ -114,6 +124,15 @@ def pending_why(waiting: int, per_minute: float) -> dict | None:
 		return {
 			"code": "off",
 			"message": _("Page-level search is off (Settings), so page text is not sent."),
+		}
+	if _sender_running():
+		return {
+			"code": "sending",
+			"message": _(
+				"Page text is being sent: the search engine has {0} tasks waiting, and the sender adds "
+				"more as it works through them (it holds back above {1}). Nothing is stuck; the "
+				"engine's speed sets the pace."
+			).format(f"{waiting:,}", MAX_WAITING),
 		}
 	if waiting > MAX_WAITING // 2:  # the ten-minute turn starts a batch below this
 		return {

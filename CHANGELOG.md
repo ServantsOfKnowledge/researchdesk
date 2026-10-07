@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.66.4 (2026-11-07): Background Jobs says when page text is being sent, not "held back"
+
+- While the page-text sender is working, the Search queue now says so ("Page text is being sent ... Nothing is stuck;
+  the engine's speed sets the pace") instead of "held back ... goes when it has fewer than 150". The sender adds
+  more as the engine clears below 300; the 150 is only when a new sender starts
+
 ## 0.66.3 (2026-11-06): Frappe is updated with the app when a release needs it; the library's logo on Frappe 16.50
 
 - Each release names the Frappe it needs (`__frappe_min__`): an upgrade whose target needs a newer Frappe than the server has updates

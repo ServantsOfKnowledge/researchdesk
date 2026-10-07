@@ -46,6 +46,8 @@ class TestPendingPages(IntegrationTestCase):
 		self.assertEqual(self.why(), "off")
 		self.set(index_pages=1)
 		self.assertEqual(self.why(waiting=search_queue.MAX_WAITING // 2 + 1), "busy")
+		with mock.patch("sok_resdesk.search_queue._sender_running", return_value=True):
+			self.assertEqual(self.why(waiting=search_queue.MAX_WAITING // 2 + 1), "sending")
 		self.assertEqual(self.why(waiting=50, rate=0), "stalled")
 		self.assertEqual(self.why(waiting=50, rate=2), "waiting")
 		frappe.db.set_value("RD Item", "rdtestpend1", "pages_pending", 0)

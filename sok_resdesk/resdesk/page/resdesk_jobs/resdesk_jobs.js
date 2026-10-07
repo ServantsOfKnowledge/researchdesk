@@ -195,7 +195,7 @@ class ResDeskJobs {
 			<tr><td>${__("Page text waiting")}</td><td><b>${n(Q.waiting_pages)}</b>${Q.waiting_other ? ` · ${__("other")} ${n(Q.waiting_other)}` : ""}</td></tr>
 			<tr><td>${__("Getting through")}</td><td>${__("{0} tasks a minute", [Q.done_per_minute])}${Q.waiting && eta ? ` · ${__("{0} to go", [eta])}` : ""}${Q.failed_lately ? ` · <span class="text-danger">${__("{0} failed in the last half hour", [Q.failed_lately])}</span>` : ""}</td></tr>
 			<tr><td>${__("Page text held back")}</td><td>${Q.held ? `<b class="text-warning">${__("on hold")}</b> · ` : ""}${__("{0} books waiting to send", [n(Q.pages_pending)])}${
-				Q.pending_why ? `<br><span class="small ${Q.pending_why.code === "waiting" ? "text-muted" : "text-warning"}">${frappe.utils.escape_html(Q.pending_why.message)}</span>` : ""
+				Q.pending_why ? `<br><span class="small ${["waiting", "sending"].includes(Q.pending_why.code) ? "text-muted" : "text-warning"}">${frappe.utils.escape_html(Q.pending_why.message)}</span>` : ""
 			}</td></tr>
 			<tr><td>${__("Task history")}</td><td>${__("{0} finished tasks remembered", [n(Q.history)])}</td></tr>
 			<tr><td>${__("Books first")}</td><td>${Q.auto ? __("automatic: when a new book waits over 15 minutes behind page text") : __("by hand only")}${
