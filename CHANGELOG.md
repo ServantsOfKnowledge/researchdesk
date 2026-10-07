@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.68.2 (2026-11-07): Connections: links to lists open (Library Systems, Ingest Profiles and the rest)
+
+- The Connections screen encoded the address of each list twice, so *Library systems*, *Ingest profiles*, *Push targets* and
+  every other button that opens a list with a space in its name said "Page rd%20library%20system not found". They open now
+
 ## 0.68.1 (2026-11-07): Resend as a one-click mail provider
 
 - Connections → Outgoing email has a **Resend** choice: server `smtp.resend.com`, login `resend`, your Resend API key as the

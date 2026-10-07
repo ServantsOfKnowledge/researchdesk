@@ -104,7 +104,7 @@ class ResDeskConnections {
 	render(groups) {
 		const esc = frappe.utils.escape_html;
 		const jump = groups.map((g) => `<a href="#" data-jump="${esc(g.key)}">${esc(g.title)}</a>`).join("");
-		const route = (a) => encodeURI(a.target.map((t) => encodeURIComponent(t)).join("/"));
+		const route = (a) => a.target.map((t) => encodeURIComponent(t)).join("/");
 		const action = (a, can) => {
 			const cls = `btn btn-xs ${a.primary && can ? "btn-primary" : "btn-default"}`;
 			if (!can) return `<span class="btn btn-xs btn-default disabled" aria-disabled="true">${esc(a.label)}</span>`;
