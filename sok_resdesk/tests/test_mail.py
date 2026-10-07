@@ -15,7 +15,7 @@ class TestMail(IntegrationTestCase):
 		self.assertTrue(doc.enable_outgoing and doc.default_outgoing and doc.use_tls)
 		mail.save("library@example.org", "smtp.example.org", 465, "", "", "ssl")  # keeps the password
 		doc.reload()
-		self.assertEqual(doc.smtp_port, 465)
+		self.assertEqual(int(doc.smtp_port), 465)
 		self.assertTrue(doc.use_ssl_for_outgoing and not doc.use_tls)
 
 	def test_a_bad_form_is_refused(self):
