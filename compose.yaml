@@ -196,6 +196,9 @@ services:
       nice:
         soft: 40
         hard: 40
+    # a worker told to stop finishes its job first (a few minutes at most here; ./upgrade.sh
+    # --gentle waits longer, one worker at a time)
+    stop_grace_period: ${WORKER_STOP_GRACE:-2m}
     deploy:
       replicas: ${QUEUE_WORKERS:-2}
       <<: *limits-queue

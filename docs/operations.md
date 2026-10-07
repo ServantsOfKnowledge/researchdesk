@@ -229,6 +229,7 @@ and watch it happen; see [Server](server.md#upgrading-from-the-desk). On the ser
 ./upgrade.sh v0.4.0       # a specific release, forwards or backwards
 ./upgrade.sh --main       # follow the main branch instead of releases
 ./upgrade.sh --yes        # no questions, e.g. from cron
+./upgrade.sh --gentle     # Docker: restart only what the release needs (below)
 ```
 
 (`./resdesk.sh update` does the same.) Each upgrade:
@@ -243,6 +244,29 @@ and watch it happen; see [Server](server.md#upgrading-from-the-desk). On the ser
 4. runs **database migrations**, *only when the new code needs them*, and re-applies the
    search-index settings ([below](#database-migrations)),
 5. **restarts** and runs a **health check** (portal and search engine).
+
+### Gentle upgrades (Docker)
+
+By default an upgrade restarts the web part, the scheduler and the background workers, which
+interrupts the jobs the workers are running (the ten-minute watcher carries them on afterwards).
+The database, Redis and the search engine are only restarted when their image changes, so search
+indexing never stops for an ordinary release.
+
+`./upgrade.sh --gentle` (or `UPGRADE_GENTLE=1` in `.env`; on the Server page, *Gentle* in the
+upgrade box) looks at the files the release changes and restarts only what it needs:
+
+| The release changes | Restarted |
+|---|---|
+| only documents, screens, styles or data definitions | the web part; **the workers keep running** |
+| Python the workers run | the web part now, then **the workers one at a time**: each is told to stop, finishes the job it is on (up to `UPGRADE_WORKER_GRACE` seconds, 1200 by default), and is replaced by one running the new version; the others carry on meanwhile |
+| `compose.yaml`, the Dockerfile, `docker/`, `pyproject.toml`, or Frappe itself | everything, as without `--gentle` |
+
+The plan is printed before anything restarts. If a replacement worker cannot be started the script
+says so and carries on; `docker compose up -d queue` finishes the job. Workers also now get
+`WORKER_STOP_GRACE` (2 minutes by default) to finish their job whenever they are stopped, so even a
+full restart lets short jobs finish. `--gentle` is in the upgrade script a release brings, so it
+takes effect from the upgrade after the one that installs it; after that upgrade, restart the
+updater helper (`docker compose restart updater`) to use it from the Server page.
 
 The portal is offline for a few minutes. Everything is written to `logs/upgrade-<date>.log`. If
 a step fails, the script stops and prints the two commands that put you back where you were:

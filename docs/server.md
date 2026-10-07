@@ -304,7 +304,7 @@ back the output:
 
 | Task | Command |
 |---|---|
-| Upgrade | `./upgrade.sh --yes [vX.Y.Z] [--no-backup] [--no-frappe]` |
+| Upgrade | `./upgrade.sh --yes [vX.Y.Z] [--no-backup] [--no-frappe] [--gentle]` |
 | Restart | `docker compose restart …` (native: `./resdesk.sh restart`) |
 | Apply a preset | `./resdesk.sh resources light\|standard\|server` |
 | Server backup | `./resdesk.sh backup` |

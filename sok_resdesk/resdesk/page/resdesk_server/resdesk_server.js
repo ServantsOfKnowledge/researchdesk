@@ -245,6 +245,13 @@ class ResDeskServer {
 						: "",
 				},
 				{
+					fieldname: "gentle",
+					fieldtype: "Check",
+					label: __("Gentle: restart only what this release needs"),
+					default: 0,
+					description: __("The workers keep running (ingests and page-text sending carry on) when nothing they run has changed, and are otherwise restarted one at a time, each finishing its job first. Needs the server to run version 0.69 or newer already, so it takes effect from the upgrade after this one."),
+				},
+				{
 					fieldtype: "HTML",
 					options: `<p class="text-muted small">${__(
 						"The portal and the Desk are offline for a few minutes (longer when Frappe is rebuilt). Running ingests and pushes are interrupted and can be resumed afterwards. This page shows the progress and reconnects by itself."
@@ -254,7 +261,7 @@ class ResDeskServer {
 			primary_action_label: __("Upgrade"),
 			primary_action: (v) => {
 				d.hide();
-				this.task("upgrade", { target: v.target, backup: v.backup ? 1 : 0, frappe: v.frappe ? 1 : 0 });
+				this.task("upgrade", { target: v.target, backup: v.backup ? 1 : 0, frappe: v.frappe ? 1 : 0, gentle: v.gentle ? 1 : 0 });
 			},
 		});
 		d.show();

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.69.0 (2026-11-07): Gentle upgrades: restart only what a release needs
+
+- **`./upgrade.sh --gentle`** (Docker; `UPGRADE_GENTLE=1` in `.env`; *Gentle* in the Server page's upgrade box): looks at the files
+  the release changes and says what it will restart. A release of documents, screens, styles or data definitions restarts the web
+  part only and **leaves the workers running**, so ingests and page-text sending carry on. A release with Python the workers run
+  restarts the web part first and then **the workers one at a time**, each finishing its job first (`UPGRADE_WORKER_GRACE`,
+  20 minutes by default), while the others carry on. A change to the images, services or Frappe restarts everything, as before
+- Workers now get `WORKER_STOP_GRACE` (2 minutes by default) to finish their job when stopped, instead of being killed after 10 seconds
+- The database, Redis and the search engine are restarted by an upgrade only when their image changes (so indexing never stops
+  for an ordinary release): now written down in the operations guide
+- `--gentle` comes with the upgrade script of this release, so it works from the upgrade after the one that installs it
+  (restart the updater helper to use it from the Server page)
+
 ## 0.68.7 (2026-11-07): Server page: Log QA, and sections that fold away
 
 - **Server → Logs → Log QA**: the Error Log matched to the releases that fixed its errors. Green: fixed in a release you run, and

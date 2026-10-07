@@ -218,6 +218,7 @@ def command_for(action: str, args: dict, env: dict) -> list[str] | None:
 		cmd += [] if target == "latest" else ["--main"] if target == "main" else [target]
 		cmd += [] if args.get("backup", 1) else ["--no-backup"]
 		cmd += [] if args.get("frappe", 1) else ["--no-frappe"]
+		cmd += ["--gentle"] if args.get("gentle") else []
 		return cmd
 	if action == "restart":
 		part = args.get("service") or "all"

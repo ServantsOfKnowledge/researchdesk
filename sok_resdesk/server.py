@@ -194,6 +194,7 @@ def _check_args(action: str, args: dict) -> dict:
 			"target": target,
 			"backup": 1 if cint(args.get("backup", 1)) else 0,
 			"frappe": cint(args.get("frappe", 1)),
+			"gentle": 1 if cint(args.get("gentle", 0)) else 0,
 		}
 	if action == "restart":
 		service = args.get("service") or "all"
@@ -264,8 +265,10 @@ def request_task(action: str, args=None) -> str:
 
 def _describe(action: str, args: dict) -> str:
 	if action == "upgrade":
-		return _("Upgrade to {0}").format(args["target"]) + (
-			"" if args.get("frappe") else _(" (keep Frappe)")
+		return (
+			_("Upgrade to {0}").format(args["target"])
+			+ ("" if args.get("frappe") else _(" (keep Frappe)"))
+			+ (_(" (gentle)") if args.get("gentle") else "")
 		)
 	if action == "restart":
 		return _("Restart {0}").format(args["service"])

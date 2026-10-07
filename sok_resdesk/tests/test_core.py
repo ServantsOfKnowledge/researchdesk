@@ -552,6 +552,8 @@ def test_updater_helper_commands():
 		"--no-frappe",
 	]
 	assert agent.command_for("upgrade", {"target": "main"}, docker) == ["./upgrade.sh", "--yes", "--main"]
+	assert agent.command_for("upgrade", {"gentle": 1}, docker) == ["./upgrade.sh", "--yes", "--gentle"]
+	assert agent.command_for("upgrade", {"gentle": 0}, docker) == ["./upgrade.sh", "--yes"]
 	assert agent.command_for("upgrade", {"target": "v1; reboot"}, docker) is None
 	assert agent.command_for("restart", {"service": "workers"}, docker) == [
 		"docker",

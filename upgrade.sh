@@ -7,6 +7,9 @@
 #  ./upgrade.sh --main       upgrade to the newest code on the main branch
 #  ./upgrade.sh --check      only report whether an update is available
 #  options: --yes (don't ask)  --no-backup  --no-frappe (keep Frappe as it is)
+#           --gentle (Docker: restart only what the release needs, and the background
+#           workers one at a time, each finishing its job first; UPGRADE_GENTLE=1 in .env
+#           makes it the default)
 #
 #  What it does: backup → fetch new code → update Frappe (patch releases
 #  within v16) → rebuild → database migrations → search-index settings →
@@ -25,15 +28,16 @@ cd "$RESDESK_UPGRADE_DIR"
 case "$0" in */resdesk-upgrade.*) trap 'rm -f "$0"' EXIT ;; esac
 APP_DIR="$(pwd)"
 
-YES=0; CHECK=0; BACKUP=1; FRAPPE=1; TARGET=""; USE_MAIN=0
+YES=0; CHECK=0; BACKUP=1; FRAPPE=1; TARGET=""; USE_MAIN=0; GENTLE=0
 for arg in "$@"; do
   case "$arg" in
     -y|--yes) YES=1 ;;
     --check) CHECK=1 ;;
     --no-backup) BACKUP=0 ;;
     --no-frappe) FRAPPE=0 ;;
+    --gentle) GENTLE=1 ;;
     --main) USE_MAIN=1 ;;
-    -h|--help) sed -n '2,16p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,19p' "$0"; exit 0 ;;
     v*|[0-9]*) TARGET="$arg" ;;
     *) echo "Unknown option: $arg"; exit 1 ;;
   esac
@@ -47,6 +51,7 @@ die()  { printf "\n  \033[31m✗ %s\033[0m\n\n" "$*"; exit 1; }
 [ -f .env ] || die "No .env here. Run ./install.sh first."
 set -a; . ./.env; set +a
 MODE="${INSTALL_MODE:-docker}"
+[ "${UPGRADE_GENTLE:-0}" = 1 ] && GENTLE=1
 SITE="${SITE_NAME:-resdesk.localhost}"
 version_here() { sed -n 's/^__version__ = "\(.*\)"/\1/p' sok_resdesk/__init__.py; }
 
@@ -164,6 +169,24 @@ if [ -n "$NEED_MIN" ]; then
   fi
 fi
 
+# -- what needs restarting (--gentle, Docker) -----------------------------------------------------
+# The database, Redis and the search engine are never restarted by an upgrade unless their image
+# changes. --gentle also spares the background workers (running ingests and page-text sending)
+# when nothing they run has changed, and otherwise restarts them one at a time.
+PLAN=full
+if [ "$GENTLE" = 1 ]; then
+  if [ "$MODE" = native ]; then
+    warn "--gentle is for Docker installs; a native install is restarted as a whole"
+  elif [ -f scripts/upgrade-plan.sh ]; then
+    . scripts/upgrade-plan.sh
+    PLAN_LINE="$(git diff --name-only "$PREV_SHA" HEAD | upgrade_plan)"
+    PLAN="${PLAN_LINE%%:*}"
+    ok "Gentle upgrade, ${PLAN_LINE}"
+  else
+    warn "--gentle needs scripts/upgrade-plan.sh, which this release does not have: restarting everything"
+  fi
+fi
+
 # -- 3–4. apply ------------------------------------------------------------------------------
 if [ "$MODE" = native ]; then
   BENCH_DIR="${BENCH_DIR:-$HOME/researchdesk-bench}"
@@ -252,6 +275,7 @@ else
         if grep -q '^FRAPPE_COMMIT=' .env; then sed -i.bak "s#^FRAPPE_COMMIT=.*#FRAPPE_COMMIT=$LATEST#" .env && rm -f .env.bak
         else echo "FRAPPE_COMMIT=$LATEST" >> .env; fi
         export FRAPPE_COMMIT="$LATEST"
+        [ "$PLAN" = full ] || { PLAN=full; warn "Frappe is rebuilt, so everything is restarted"; }
         ok "Frappe ${HAVE:-?} → $LATEST: rebuilding Frappe (10 minutes or more, only for a new Frappe release)"
       fi
     else
@@ -271,7 +295,14 @@ else
   }
   # `docker compose up` waits for the one-shot configurator to succeed; if it keeps failing
   # (restart: on-failure) compose would wait forever, so watch it and give up with details.
-  docker compose up -d --remove-orphans &
+  UP_SERVICES=""
+  if [ "$PLAN" != full ]; then
+    # everything except the workers, which are dealt with after the web part answers
+    UP_SERVICES="$(docker compose config --services 2>/dev/null | grep -vx queue | tr '\n' ' ')"
+    ok "Restarting the web part only; the workers keep running for now"
+  fi
+  # shellcheck disable=SC2086
+  docker compose up -d --remove-orphans $UP_SERVICES &
   UP_PID=$!
   UP_OK=0
   for i in $(seq 1 120); do
@@ -325,6 +356,32 @@ for _ in $(seq 1 40); do curl -fs -o /dev/null "$BASE/library" && break; sleep 3
 curl -fs -o /dev/null "$BASE/library" && ok "Portal answers on http://localhost:$PORT/library" || { warn "Portal is not answering"; false; }
 STATS="$(curl -fs "$BASE/api/method/sok_resdesk.api.stats" || true)"
 echo "$STATS" | grep -q '"search":"ok"' && ok "Search engine OK" || warn "Search engine not answering yet: check ./resdesk.sh logs"
+# -- the workers (--gentle) -----------------------------------------------------------------------
+if [ "$MODE" != native ] && [ "$PLAN" = web ]; then
+  ok "Workers left running: nothing they run has changed"
+elif [ "$MODE" != native ] && [ "$PLAN" = roll ]; then
+  bold "Workers, one at a time"
+  GRACE="${UPGRADE_WORKER_GRACE:-1200}"   # seconds a worker may take to finish its job
+  trap - ERR; set +e
+  NQ="$(docker compose ps -q queue 2>/dev/null | wc -l | tr -d ' ')"
+  if [ "${NQ:-0}" -lt 1 ]; then
+    docker compose up -d --no-deps queue >/dev/null 2>&1 && ok "Workers started"
+  else
+    for CID in $(docker compose ps -q queue 2>/dev/null); do
+      WNAME="$(docker inspect -f '{{.Name}}' "$CID" 2>/dev/null | sed 's#^/##')"
+      echo "  stopping $WNAME (it finishes the job it is on, up to $((GRACE / 60)) minutes)"
+      docker stop -t "$GRACE" "$CID" >/dev/null 2>&1
+      docker rm "$CID" >/dev/null 2>&1
+      if docker compose up -d --no-deps --no-recreate --scale queue="$NQ" queue >/dev/null 2>&1; then
+        ok "$WNAME replaced by one running the new version"
+      else
+        warn "Could not start a replacement worker: run  docker compose up -d queue"
+        break
+      fi
+    done
+  fi
+  set -e; trap 'rollback_hint' ERR
+fi
 trap - ERR
 echo
 bold "Upgraded to v$(version_here) 🎉"
