@@ -119,8 +119,8 @@ give the **ResDesk Reader** role. Or from the terminal:
 ./resdesk.sh add-reader priya@example.org --name "Priya Rao"
 ```
 
-Frappe emails a welcome link to set a password (set up outgoing email in Desk → *Email
-Account*; without email, set the password in the User form and share it yourself, and use
+Frappe emails a welcome link to set a password. Set up outgoing email first, in **Connections →
+Outgoing email** ([Sign-in email and sign-ups](sign-in-email.md)); without email, set the password in the User form and share it yourself, and use
 `--no-email`).
 
 **Approving requests:** Desk → Research Desk → *Readers* → **Reader Requests**. Open a request

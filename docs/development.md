@@ -11,6 +11,7 @@ researchdesk/
 ├── compose.dev.yaml        developer mode: mounts this folder into the containers
 ├── docker/                 Dockerfile, entrypoint, gunicorn start, create-site
 ├── scripts/
+│   ├── upgrade-plan.sh     what a release changed → restart the web part, roll the workers, or everything (gentle upgrades)
 │   ├── install-native.sh   native install: packages, Python 3.14 (uv), Node 24 (nvm), bench, site
 │   ├── native-procfile.sh  Procfile for native runs (gunicorn, Meilisearch, extra workers)
 │   ├── dev-setup.sh        bench setup for developers
@@ -23,6 +24,7 @@ researchdesk/
 └── sok_resdesk/            the Frappe app
     ├── hooks.py            routes, doc events, scheduler, install hooks
     ├── core/               pure Python, no Frappe:  ia.py  folder.py  normalize.py  citations.py  marc.py  oai.py  access.py
+    │                                           mail.py (outgoing email presets, plain-words errors)  known_errors.py (Log QA: which release fixed which error)
     │                                           helpdocs.py (docs as help pages)  collections.py (rules, slugs)  metaio.py (export formats, spreadsheet)  push.py (IA, Koha, Wikidata, webhook clients)
     │                                           ark.py (ARKs, check character)  ocfl.py (preservation copies)  replica.py (second copy: folder, S3)  bagit.py (BagIt bags)
     │                                           ocrquality.py (OCR scores)  ocr_engine.py (Tesseract by zone, several languages)  zones.py (page zones)  scandata.py (OCR page ↔ page image)
@@ -94,7 +96,9 @@ researchdesk/
     │                       js/annotate.js (notes), js/proofread.js (proofreading, zones), js/analytics.js,
     │                       js/basket.js, js/tips.js, js/desk_help.js (help, checklist, numbers), images/guide/
     └── tests/              unit_*.py, test_core.py, test_push.py, test_docs.py (pytest, no Frappe);
-                            test_integration.py, test_operations.py, test_server.py … (Frappe, in CI's Docker job)
+                            test_integration.py, test_operations.py, test_server.py, test_mail.py, test_profile.py,
+                            test_log_qa.py … (Frappe, in CI's Docker job); unit_mail.py, unit_profile_clean.py,
+                            unit_known_errors.py, unit_upgrade_plan.py (pure)
 ```
 
 ## Keeping the search engine pluggable

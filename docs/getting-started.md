@@ -110,6 +110,9 @@ Desk → *Items*, tick them → **Actions → Set Who Can See Them**, or make th
 internal library in **Settings → Access & Sign-up**. Readers can sign up themselves or be added
 by you. See [Who can see what](access.md).
 
+Readers' sign-up and password emails need an outgoing mailbox: **Connections → People and sign-in →
+Outgoing email** (Resend, Gmail and others are listed). See [Sign-in email and sign-ups](sign-in-email.md).
+
 ## 8. Everyday commands
 
 ```bash

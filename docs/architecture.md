@@ -205,9 +205,36 @@ collection in Settings (`ia_upload_collection`); staff choose their own.
 
 `connections.py` and `core/connections.py` back **Desk → Exchange → Connections**: a catalogue of
 every outside system (Internet Archive, Wikimedia, library systems, repositories and deposit,
-e-books and offline, open standards, import and export, webhooks). Each card carries what it does,
+e-books and offline, open standards, import and export, webhooks) and, under *People and sign-in*,
+the outgoing email and the reader profiles. Each card carries what it does,
 who may use it (by role), the feature it needs, its buttons, and the addresses others can use;
 `connections.overview` adds the live status for the signed-in person (connected as…, counts, off).
+
+## Sign-in email and reader profiles
+
+Reader sign-up, welcome and password emails go through an outgoing Frappe **Email Account**.
+`mail.py` is the one place managers set it up (Connections → Outgoing email): it creates or reuses
+the account for the address (addresses are unique in Frappe), makes it the default without
+re-validating other accounts, sends a real test with the provider's error put into words
+(`core/mail.py`: presets for Resend, Gmail, Microsoft 365, Zoho, SES and Brevo; `plain_error`), and
+can resend or forget the failed Email Queue rows. The Server page health check reports when no
+outgoing account exists.
+
+`profile.py` backs the portal's **About me** page and the **RD Reader Profile** doctype (one per
+user): optional person-or-organisation details, volunteer ticks (reviewer, proofreader) that raise
+a Desk notice and give managers *Make a proofreader / reviewer* buttons, and private support needs
+that only the person and managers can read. `www/library/profile.*` is the page; `clean()` is the
+pure, unit-tested validator.
+
+## Server upkeep
+
+Beyond the updater helper (above), the Server page keeps a **version history** (`server.record_version`
+on every migrate), and **Log QA** (`core/known_errors.py`) matches each Error Log entry to the release
+that fixed it, so entries can be cleared safely. **Gentle upgrades** (`upgrade.sh --gentle`,
+`scripts/upgrade-plan.sh`) read what a release changed and restart only the web part, or roll the
+queue workers one at a time with a long stop grace so running jobs finish, instead of restarting
+everything. In the search queue (`search_queue.py`), a stopped sender's damaged job record is
+cleared (`forget_job`) when *Send now* runs, and `pending_why` says in words why page text waits.
 
 ## Taking the library away
 

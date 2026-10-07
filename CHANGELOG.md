@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.70.0 (2026-11-07): Help for signing in, and the documentation brought up to date
+
+- New help pages: **Signing in, your account and About me** (readers, on the portal) and **Sign-in email and sign-ups** (administrators, in the Desk), linked from the About me page and the Outgoing email dialog; the Reader Request screen's Help opens the sign-up choices.
+- Architecture, Connections, Operations, Server, Staff guide, Getting started, Access, Roadmap, Development and the README now cover outgoing email, About me and volunteers, Log QA, folding Server sections, gentle upgrades and the search queue's Task history and repair.
+
 ## 0.69.3 (2026-11-07): Saving the outgoing email account works when Frappe already has one for that address
 
 - Saving the outgoing email account no longer fails when Frappe already has an account for the same address (its addresses are unique, so a Gmail account made earlier in Frappe's own form blocked the save). That account is used and made the default. Gmail app passwords pasted with their spaces are cleaned up.

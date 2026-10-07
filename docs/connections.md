@@ -17,6 +17,7 @@ use is shown greyed out, so you know it exists and whom to ask.
 | **Open standards for others to reach this library** | OAI-PMH, SRU, IIIF, the COUNTER report, with each address to copy |
 | **Import and export** | spreadsheet and metadata-file imports; every export format; moving or backing up the library |
 | **Webhooks and your own tools** | signed notifications to your own systems |
+| **People and sign-in** | **Outgoing email**: the mailbox sign-in, sign-up and password emails are sent from, with a test and the failed emails; **Reader profiles**: what readers chose to tell the library, and who offers to help ([Sign-in email and sign-ups](sign-in-email.md)) |
 
 ## What the chips mean
 

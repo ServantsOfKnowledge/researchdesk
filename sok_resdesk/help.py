@@ -34,7 +34,7 @@ SCREEN_HELP = {
 	"RD Archive Account": ("archive-upload", "connect-your-account"),
 	"RD Push Run": ("collections-and-metadata", "pushing-metadata-to-other-systems"),
 	"RD External Record": ("collections-and-metadata", "pushing-metadata-to-other-systems"),
-	"RD Reader Request": ("access", "reader-accounts"),
+	"RD Reader Request": ("sign-in-email", "who-may-sign-up"),
 	"RD Reader Profile": ("staff-guide", "reader-profiles-and-volunteers"),
 	"RD Creator": ("staff-guide", "authors-and-subjects"),
 	"RD Subject": ("staff-guide", "authors-and-subjects"),

@@ -89,6 +89,11 @@ folders, and Research Desk will:
 - keep the installation safe in a librarian's hands: a **super admin** role for Servants of
   Knowledge holds the installation's own settings, the Server page, security setup and
   credentials, while librarians keep the manager role
+- **send sign-in and sign-up email** from a mailbox set on one screen (Resend, Gmail, Microsoft 365
+  and more, with a test), let readers fill in an optional **About me** (volunteer to review or
+  proofread; private support needs for blind, low-vision or other readers), and keep the server
+  tidy with **Log QA**, folding Server sections and **gentle upgrades** that restart only what a
+  release needs
 - let readers keep a **reading list**, export it as a bibliography, and share it as a link
 - keep some books (or everything) **for logged-in readers**: members-only books, a public
   catalogue with reading for members, or an internal library; readers sign up, are approved,
@@ -135,7 +140,7 @@ It's built to install with one command, for librarians, educators, archivists an
 anyone else who can open a terminal. It scales to tens of thousands of books on one server
 ([measured](docs/scaling.md)).
 
-> Status: **v0.66**, before 1.0. It works end to end and is tested against live Servants of
+> Status: **v0.70**, before 1.0. It works end to end and is tested against live Servants of
 > Knowledge data, but expect changes before 1.0. What changed: [CHANGELOG](CHANGELOG.md); what
 > comes next: [the roadmap](docs/roadmap.md).
 

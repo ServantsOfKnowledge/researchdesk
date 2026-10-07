@@ -610,6 +610,10 @@ Errors from background jobs also appear in Desk → *Error Log*.
 
 ### The search queue
 
+The card also shows **Task history**: how many tasks the engine has finished (*done*), how many are
+waiting, and what the last hour added and finished, so you can see it move. The number counts every
+task the engine remembers, so it changes only when tasks are added or cleared.
+
 The portal lists only what the search engine has taken in, and the engine works through its
 tasks strictly in order. **Background Jobs → Search queue** shows what waits (book records and
 page text separately), how many tasks a minute it gets through and how long it has to go, the
@@ -619,7 +623,7 @@ page text held back, and how many finished tasks it still remembers.
 |---|---|
 | **Books first** | cancels the page text waiting in the engine, so the book records behind it are next: new books reach the portal within minutes. The books whose page text was cancelled are marked *Page Text Pending* and their text is sent again in the background, from the text kept on this server, as fast as the engine keeps up. Nothing is lost |
 | **Hold page text** / **Resume page text** | while held, books are still catalogued and listed on the portal, and their page text waits (marked pending). Resume sends it. Useful during busy hours, or while the engine recovers |
-| **Send now** | starts sending the waiting page text at once, instead of at the next ten-minute turn. It still goes only as fast as the engine has room, and not while page text is on hold |
+| **Send now** | starts sending the waiting page text at once, instead of at the next ten-minute turn. It still goes only as fast as the engine has room, and not while page text is on hold. If a stopped sender left a damaged job record behind, Send now clears it and queues again |
 | **Clear finished tasks** | forgets the record of tasks finished more than a week ago (done every night by itself): on a big catalogue it grows to gigabytes |
 | **Cancel all waiting** | cancels everything waiting, book records too, keeping track of it: page text is sent again, and the book records count as not sent (*Send them* on the Machine card) |
 

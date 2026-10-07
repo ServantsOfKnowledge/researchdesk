@@ -213,7 +213,9 @@ A library can keep some books for its members:
 
 If the library allows it, **Create an account** on the login page. Some libraries approve new
 accounts first: until then you see what visitors see, and the library lets you know when you're
-approved. Ask the library if you're not sure how to join.
+approved. Ask the library if you're not sure how to join. If the email does not arrive, and for
+the optional **About me** page (volunteering, support needs), see
+[Signing in, your account and About me](signing-in.md).
 
 ## Help and tips
 

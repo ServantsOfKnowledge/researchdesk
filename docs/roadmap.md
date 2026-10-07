@@ -147,6 +147,15 @@
 - [x] Giving a book to the Internet Archive from the portal or the Desk, under the sender's own account, always public (0.66)
 - [x] A Connections screen: every outside system by kind, with its status and who may use it (0.66.1)
 
+- [x] Sign-in email that works: Connections → Outgoing email with presets (Resend, Gmail, Microsoft 365 and more), a real test, plain-words errors, and resend or forget failed emails (0.67–0.69)
+- [x] **About me**: readers may say who they are, offer to review or proofread, and (privately) what support they need; managers grant roles from the profile (0.68)
+- [x] Search queue care: a clear reason when page text waits, repair of a damaged job record, Task history that shows what moves (0.66.4, 0.68.6, 0.69.1)
+- [x] Server page: **Log QA** matches errors to the release that fixed them; sections fold away; a version history (0.68.7)
+- [x] **Gentle upgrades** (Docker): restart only what a release needs, workers one at a time (0.69)
+- [x] Help for readers and administrators on signing in and sign-up email ([Signing in](signing-in.md), [Sign-in email and sign-ups](sign-in-email.md))
+- [ ] **Self-healing**: a watchdog that clears ghost jobs of dead workers and damaged records, and retries failed emails, with every repair logged
+- [ ] A public contributors page, for people who chose to be named
+
 ## v1.0: library-grade
 
 - [ ] A pluggable search backend: Meilisearch stays the default; an OpenSearch adapter (ICU analysers for Indic scripts, sharding) for very large page indexes, chosen in Settings, behind the same `search.py` interface

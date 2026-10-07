@@ -124,7 +124,14 @@ Manager can also upgrade, restart and apply resource presets from here.
 
 ![The Server page](../sok_resdesk/public/images/guide/desk-server.png)
 
-Details: [Server: updates, health & backups](server.md).
+Details: [Server: updates, health & backups](server.md). Its sections fold away, and **Log QA**
+tells you which logged errors a later release already fixed.
+
+### Set up sign-in email first
+
+Sign-up, welcome and password emails need an outgoing mailbox: **Connections → People and sign-in →
+Outgoing email**. Until it is set, they go nowhere. See
+[Sign-in email and sign-ups](sign-in-email.md).
 
 ## The catalogue
 

@@ -4,6 +4,7 @@
 
 - [Using the library](reader-guide.md): for readers: finding, reading and citing books, My list, members-only books
 - [Accessibility](accessibility.md): keyboard, screen readers and Indian-language voices, read aloud; the standards followed and the plan
+- [Signing in, your account and About me](signing-in.md): creating an account, the email that does not arrive, the optional About me page (volunteering, private support needs)
 - [Staff guide: a tour of the Desk](staff-guide.md): for library staff: the workspace, help and tours, the getting-started checklist, every part of the Desk
 
 The same pages are inside the app: **Help** on the portal (for readers) and **Help** in the Desk (everything).
@@ -25,6 +26,7 @@ The same pages are inside the app: **Help** on the portal (for readers) and **He
 4. [Searching](searching.md): books vs. inside-the-text search, filters, Kannada and other scripts
 5. [Citations & reading lists](citations.md): formats, Zotero, sharing a bibliography
 6. [Who can see what](access.md): members-only books, public catalogue or internal library, reader sign-up and approval, bulk changes
+- [Sign-in email and sign-ups](sign-in-email.md): set up outgoing email (Resend, Gmail and others), test it, fix errors, sign-up choices, finding who tried to sign up, volunteers
 7. [Collections, metadata & pushing](collections-and-metadata.md): curated collections, editing details, exports (spreadsheet, MARCXML, MODS, Dublin Core, JSON-LD, IA), spreadsheet imports, pushing to Internet Archive, Koha, Wikidata or a webhook
    - [Permanent links, preservation & OCR quality](preservation.md): ARKs for every book and page, tombstones, the library's own checked copies (OCFL), a second copy (folder or S3) with automatic repair, serving books from our copy, BagIt exports, preservation events, OCR quality scores
 8. [Koha & interoperability](koha.md): OAI-PMH harvesting, MARCXML import, standalone mode
