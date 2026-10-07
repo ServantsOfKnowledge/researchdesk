@@ -60,6 +60,7 @@ a Procfile (`bench start`), with MariaDB, Redis and Meilisearch installed by Hom
 | **Kraken** (optional) | handwriting recognition with a recognition model file | installed by the library; Settings → Machine Drafts | draft leaves |
 | **zimwriterfs** (optional, `zim-tools`) | packaging an offline copy as a ZIM file for Kiwix | found on the server's path | offline copies |
 | **Meilisearch client** (`search.py`) | a small wrapper, so another engine can replace Meilisearch | Settings → Search | search |
+| **jquery.ime** (MIT or GPL, Wikimedia; vendored in `public/vendor/jquery.ime`, with the input methods of 23 languages) | typing Kannada, Hindi, Tamil and others on any keyboard in search boxes and the proofreading text; loaded only when a reader turns it on. `scripts/gen_ime.py` refreshes it | the reader's choice, kept in the browser (`ime.js`) | the portal |
 | **Portal front end** | Jinja templates with vanilla JavaScript and CSS (no framework, no build step): the readers, notes, proofreading, zoom viewer, media player | `public/js`, `public/css`, `www/library` | the portal |
 
 ## 3. Files and where they live

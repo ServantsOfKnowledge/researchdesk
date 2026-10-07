@@ -29,6 +29,7 @@ SCRIPTS = (
 	"a11y.js",
 	"annotate.js",
 	"basket.js",
+	"ime.js",
 	"item.js",
 	"library.js",
 	"proofread.js",

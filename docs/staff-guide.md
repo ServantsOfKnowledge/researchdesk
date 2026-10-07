@@ -577,7 +577,10 @@ see, search finds and citations quote. Re-ingesting a book never undoes a correc
   English, which most books carry somewhere. Set **OCR Languages** on a book's form (e.g.
   `kan, san, eng`; codes or names, the main one first) when it needs a different list. The
   **Re-OCR this book** window lets you tick the languages for that run, and in Proofread mode
-  each part of a page can have its own. (Before 0.29 a book catalogued as *multiple languages*
+  each part of a page can have its own. In Proofread mode the languages are small buttons with a
+  box to type a code (`kan`) or part of a name into, so the editor stays beside the page image
+  instead of showing every installed language; the text box has a **Type in…** button for typing
+  the book's language on any keyboard (jquery.ime). (Before 0.29 a book catalogued as *multiple languages*
   was read in English only.)
   For whole books, in the background: **Re-OCR this book** on a book's form, or Items → **Re-OCR
   the worst books** (the poorest OCR quality first). Choose the layout most pages have (*Whole

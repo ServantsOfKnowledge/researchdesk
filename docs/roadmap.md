@@ -153,6 +153,7 @@
 - [x] Server page: **Log QA** matches errors to the release that fixed them; sections fold away; a version history (0.68.7)
 - [x] **Gentle upgrades** (Docker): restart only what a release needs, workers one at a time (0.69)
 - [x] Help for readers and administrators on signing in and sign-up email ([Signing in](signing-in.md), [Sign-in email and sign-ups](sign-in-email.md))
+- [x] Typing in your own language (jquery.ime) in search and proofreading; proofreading picks languages by code, not a long list (0.71)
 - [ ] **Self-healing**: a watchdog that clears ghost jobs of dead workers and damaged records, and retries failed emails, with every repair logged
 - [ ] A public contributors page, for people who chose to be named
 

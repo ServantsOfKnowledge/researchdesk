@@ -112,6 +112,8 @@ folders, and Research Desk will:
 - offer the portal **in Kannada and other languages**: a language switch for readers, and every
   portal phrase (and the library's own words: its name, About page, collections) translated on
   one Desk page or in a spreadsheet
+- let readers **type in Kannada, Hindi, Tamil and 20 more languages on any keyboard** in search
+  boxes and proofreading (jquery.ime), and pick languages in proofreading by typing a code
 - **help on every screen**: the documentation is built into the portal (for readers) and the
   Desk (for staff), with step-by-step tours of the main forms, a getting-started checklist for
   a new library, and first-visit tips for readers

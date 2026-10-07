@@ -369,7 +369,7 @@
 /* Proofread → "Read with" languages (OCR) */
 .rd-proof__langs { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; font-size: .88rem; margin: 6px 0; }
 .rd-proof__langs label { display: inline-flex; gap: 4px; align-items: center; }
-.rd-zone-list select[data-zlang] { max-width: 11em; }
+.rd-zone-list input[data-zlang] { max-width: 9em; }
 
 /* Ground truth (/library/ground-truth) */
 .rd-gt-list { list-style: none; padding: 0; margin: 16px 0; display: grid; gap: 12px; }
@@ -498,3 +498,15 @@ html[data-rd-colours="sepia"] body, html[data-rd-colours="sepia"] .navbar, html[
 .rd-form fieldset[disabled] { opacity: .6; }
 .rd-error:not(:empty) { color: #a4161a; border-left: 4px solid #a4161a; padding: 6px 10px; }
 html[data-rd-colours="dark"] .rd-error:not(:empty) { color: #ff9b9b; border-color: #ff9b9b; }
+
+/* Typing in your own language (ime.js) and the language chips in proofreading */
+.rd-ime { display: inline-flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; margin: 4px 0; font-size: .88rem; }
+.rd-ime__btn { border: 1px solid var(--rd-border); background: var(--rd-bg); color: inherit; border-radius: 6px; padding: 4px 10px; min-height: 32px; cursor: pointer; }
+.rd-ime__btn[aria-pressed="true"], .rd-ime__btn.is-on { background: var(--rd-accent); color: #fff; border-color: var(--rd-accent); }
+.rd-ime__code { max-width: 9em; }
+.rd-ime__msg:not(:empty) { color: var(--rd-muted); }
+.rd-chips { display: inline-flex; flex-wrap: wrap; gap: 4px 6px; list-style: none; margin: 0; padding: 0; }
+.rd-chip { border: 1px solid var(--rd-border); background: var(--rd-soft); color: inherit; border-radius: 999px; padding: 2px 10px; min-height: 28px; cursor: pointer; }
+.rd-chip:hover, .rd-chip:focus-visible { border-color: var(--rd-accent); }
+.rd-proof__langs input { max-width: 11em; }
+.imeselector { display: none; }

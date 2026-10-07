@@ -74,9 +74,7 @@
 					.map(
 						(z, i) => `<li data-z="${i}" tabindex="0" aria-label="${esc(__("Zone {0}: {1}% from the left, {2}% from the top, {3}% wide, {4}% high. Arrow keys move it; Shift and the arrow keys change its size.", [i + 1, Math.round(z.x), Math.round(z.y), Math.round(z.w), Math.round(z.h)]))}"><b>${z.kind === "skip" ? "×" : i + 1}</b>
 				<select data-kind="${i}" aria-label="${esc(__("Read or skip zone {0}", [i + 1]))}"><option value="text" ${z.kind === "text" ? "selected" : ""}>${__("read")}</option><option value="skip" ${z.kind === "skip" ? "selected" : ""}>${__("skip")}</option></select>
-				<select data-zlang="${i}" aria-label="${esc(__("Language of zone {0}", [i + 1]))}" title="${esc(__("This part's language, when it differs from the page's"))}" ${z.kind === "skip" ? "hidden" : ""}><option value="">${__("page's languages")}</option>${Object.entries(langs.available)
-					.map(([m, n]) => `<option value="${esc(m)}" ${(z.langs || [])[0] === m ? "selected" : ""}>${esc(n)}</option>`)
-					.join("")}</select>
+				<input data-zlang="${i}" list="rd-proof-langlist" size="8" autocomplete="off" spellcheck="false" value="${esc((z.langs || [])[0] || "")}" placeholder="${esc(__("page's languages"))}" aria-label="${esc(__("Language of zone {0}: a code such as kan, or part of the name; empty for the page's languages", [i + 1]))}" title="${esc(__("This part's language, when it differs from the page's"))}" ${z.kind === "skip" ? "hidden" : ""}>
 				<button type="button" data-up="${i}" title="${__("Earlier")}" ${i ? "" : "disabled"}>↑</button><button type="button" data-down="${i}" title="${__("Later")}" ${i < zones.length - 1 ? "" : "disabled"}>↓</button>
 				<button type="button" data-del="${i}" title="${__("Remove")}">✕</button></li>`
 					)
@@ -84,16 +82,31 @@
 			: `<li class="rd-muted">${__("No zones: the whole page is read as one block. Draw a box for each column or part.")}</li>`;
 	}
 
-	// "Read with": the languages Tesseract reads this page in (the main one first, English added)
+	// "Read with": the languages Tesseract reads this page in (the main one first, English added).
+	// A short row of chips and a box to type a code or a bit of a name into, not a list of every
+	// language installed: the suggestions come as you type.
 	function drawLangs() {
 		const box = $("#rd-proof-langs");
 		if (!box) return;
-		const all = Object.entries(langs.available);
-		box.innerHTML = all.length
-			? `<span class="rd-muted">${__("Read with:")}</span> ${all
-					.map(([m, n]) => `<label><input type="checkbox" data-lang="${esc(m)}" ${runLangs.includes(m) ? "checked" : ""}> ${esc(n)}</label>`)
-					.join(" ")}`
-			: "";
+		const L = window.rdLang;
+		if (L) L.datalist("rd-proof-langlist", Object.fromEntries(Object.entries(langs.available).map(([m, n]) => [m, n])));
+		if (!Object.keys(langs.available).length) return (box.innerHTML = "");
+		box.innerHTML = `<span class="rd-muted" id="rd-proof-langs-l">${__("Read with:")}</span>
+			<ul class="rd-chips" aria-labelledby="rd-proof-langs-l">${runLangs
+				.map((m) => `<li><button type="button" class="rd-chip" data-lang-remove="${esc(m)}" aria-label="${esc(__("Remove {0}", [langs.available[m] || m]))}">${esc(langs.available[m] || m)} <span aria-hidden="true">✕</span></button></li>`)
+				.join("")}</ul>
+			<input type="text" size="12" list="rd-proof-langlist" id="rd-proof-lang-add" autocomplete="off" spellcheck="false" placeholder="${esc(__("add: kan, eng…"))}" aria-label="${esc(__("Add a language: type a code such as kan, or part of its name"))}">`;
+	}
+
+	// a language typed into a box → its code; says so when none or several fit
+	function pickLang(input) {
+		const r = window.rdLang ? window.rdLang.resolve(input.value, langs.available) : { code: input.value.trim(), matches: [] };
+		if (r.code === null || (r.code && !langs.available[r.code])) {
+			$("#rd-proof-msg").textContent = r.matches && r.matches.length > 1 ? __("Several languages fit: keep typing the code.") : __("No language matches “{0}”.", [input.value]);
+			return null;
+		}
+		$("#rd-proof-msg").textContent = "";
+		return r.code;
 	}
 
 	function editor() {
@@ -127,7 +140,10 @@
 		on = true;
 		$("#rd-proof-btn").textContent = __("Close proofreading");
 		$("#rd-pages-text").hidden = true;
-		if (!$("#rd-proof")) $("#rd-pages-text").after(editor()); // in the text's place, beside the image
+		if (!$("#rd-proof")) {
+			$("#rd-pages-text").after(editor()); // in the text's place, beside the image
+			if (window.rdIme) window.rdIme.attach($("#rd-proof-text")); // type in the book's language on any keyboard
+		}
 		$("#rd-proof").hidden = false;
 		$("#rd-proof-text").value = original = page.text || "";
 		$("#rd-proof-msg").textContent = "";
@@ -305,6 +321,13 @@
 				const li = $(`#rd-zone-list [data-z="${zones.length - 1}"]`);
 				if (li) li.focus();
 			}
+			const chip = t.closest("[data-lang-remove]");
+			if (chip && runLangs.length > 1) {
+				runLangs = runLangs.filter((x) => x !== chip.dataset.langRemove);
+				drawLangs();
+				const again = $("#rd-proof-lang-add");
+				if (again) again.focus();
+			} else if (chip) $("#rd-proof-msg").textContent = __("Keep at least one language.");
 			if (t.closest("#rd-zone-clear")) (zones = []), drawZones();
 			if (t.closest("#rd-zone-ocr")) ocr();
 			if (t.closest("#rd-proof-save")) save(false);
@@ -357,15 +380,19 @@
 			const zl = e.target.closest("[data-zlang]");
 			if (zl) {
 				const z = zones[+zl.dataset.zlang];
-				if (zl.value) z.langs = [zl.value];
-				else delete z.langs;
+				const m = pickLang(zl);
+				if (m) (z.langs = [m]), (zl.value = m);
+				else if (m === "") delete z.langs;
+				else zl.value = (z.langs || [])[0] || "";
 			}
-			const lg = e.target.closest("[data-lang]");
-			if (lg) {
-				const m = lg.dataset.lang;
-				// keep the book's order (its main language first), then what was added
-				runLangs = lg.checked ? [...runLangs, m] : runLangs.filter((x) => x !== m);
-				if (!runLangs.length) (runLangs = [m]), (lg.checked = true);
+			if (e.target.id === "rd-proof-lang-add") {
+				const m = pickLang(e.target);
+				if (m && !runLangs.includes(m)) runLangs = [...runLangs, m];
+				if (m !== null) {
+					drawLangs();
+					const again = $("#rd-proof-lang-add");
+					if (again) again.focus();
+				}
 			}
 			if (e.target.id === "rd-zone-preset" && e.target.value) {
 				zones = JSON.parse(JSON.stringify(presets[e.target.value] || []));

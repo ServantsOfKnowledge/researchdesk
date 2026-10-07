@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.71.0 (2026-11-07): Type in your own language; pick proofreading languages by code
+
+- **Type in…** on search boxes and the proofreading text (jquery.ime, vendored with the input methods of 23 languages): Kannada, Hindi, Tamil and more on any keyboard, following the portal's language, with the choice kept in the browser. It loads only when turned on.
+- Proofreading no longer lists every installed language: the page's languages are buttons, and a language is added (or set for one zone) by typing its code or part of its name, with suggestions as you type.
+- Tests: the vendored input-method lists, and the language box's matching. Documented in the reader guide, staff guide, technology map and accessibility page.
+
 ## 0.70.1 (2026-11-07): About me meets more of WCAG 2.2 AA
 
 - The About me page names its fields to browsers (autocomplete), says each character limit, shows and announces the reason when a save fails, locks the form until the saved answers arrive, and has larger tick boxes and radios.

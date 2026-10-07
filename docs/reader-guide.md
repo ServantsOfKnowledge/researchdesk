@@ -33,6 +33,17 @@ shows the best matches first. **Sort** changes that: relevance, oldest, newest o
 The address in your browser always matches the search, so you can bookmark it or send it to
 someone. More on searching: [Searching](searching.md).
 
+### Typing in your own language
+
+Search boxes, and the text you proofread, have a **Type in…** button. Press it (or Ctrl+M) to
+type Kannada, Hindi, Tamil, Telugu, Malayalam, Sanskrit, Marathi, Bengali, Gujarati, Punjabi,
+Odia, Assamese, Nepali, Konkani, Urdu, Arabic and other languages on any keyboard: with the
+default way of typing, spell the word in Latin letters (`kannaDa` becomes ಕನ್ನಡ). The box beside
+the button names the language: it starts as the portal's own language, and you can type another
+code (`hi`) or a bit of its name. Where a language has several ways of typing (an Inscript
+keyboard, transliteration…) a menu appears to choose one. Your choice is kept in this browser.
+This is [jquery.ime](https://github.com/wikimedia/jquery.ime), the same library Wikipedia uses.
+
 ## Collections
 
 **Browse collections** (or **All collections**) on the home page lists every collection on one
@@ -162,11 +173,13 @@ When the page's text is poor, or its columns run into each other, have it read a
    right. A layout (*Two columns*, *Three columns*, *Heading and two columns*) draws the usual
    ones for you.
 2. Mark a part **skip** to leave it out (a picture, a stamp, a page number).
-3. **Read with** the languages the page is in: the book's languages are ticked, with English
-   (many Indian books have English titles, notes or references alongside the main language).
-   Tick more, or fewer; the first one ticked is the main one. A part in a different language (a
-   Sanskrit verse in a Kannada book, an English footnote) can have **its own language**: choose it
-   in the part's list.
+3. **Read with** the languages the page is in: the book's languages show as small buttons, with
+   English (many Indian books have English titles, notes or references alongside the main
+   language). Press one to remove it. To add a language, type its code (`kan`, `san`, `eng`) or a
+   bit of its name in the box beside them and press Tab or Enter; matches are suggested as you
+   type, so there is no long list to scroll. The first one is the main one. A part in a different
+   language (a Sanskrit verse in a Kannada book, an English footnote) can have **its own
+   language**: type it in the box on that part's row.
 4. **OCR the zones**: each part is read on its own with its languages, and the text comes
    back into the editor, part by part, to check and save. Nothing is saved until you do.
 

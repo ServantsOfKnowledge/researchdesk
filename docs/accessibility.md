@@ -63,6 +63,18 @@ that gets in your way (see *Reporting a problem*).
 - Proofreading zones: **Add a zone**, then on the zone in the list the arrow keys move it and
   Shift with the arrow keys resizes it; each zone says where it is.
 
+**Typing and choosing languages**
+
+- **Type in your own language** (**Type in…** beside search boxes and the proofreading text, or
+  Ctrl+M): Kannada, Hindi, Tamil and 20 more languages on any keyboard, with several ways of
+  typing where a language has them. It follows the portal's language and is kept in the browser.
+  Helpful to readers without an Indic keyboard, with a motor difficulty (transliteration needs
+  fewer keys than hunting for letters) or on a phone.
+- **No long lists of languages**: proofreading shows the book's languages as buttons and takes a
+  language by its code (`kan`) or a bit of its name, with suggestions as you type, so the editor
+  stays next to the page image and the page is short to move through with a screen reader or a
+  magnifier.
+
 **Signing in and telling the library what you need**
 
 - **About me** (`/library/profile`) is optional and short. Every box has a visible label, related
@@ -105,6 +117,7 @@ offers Kannada or another language).
 | 0.61 | the text of EPUB books, so they can be read, searched and downloaded as text |
 | 0.68 | **About me**: readers can say they are blind, low-vision, deaf or hard of hearing, or have a motor difficulty or dyslexia, and what would help; managers can offer support |
 | 0.70.1 | the review below: About me fixes, and the page joins the CI accessibility check |
+| 0.71 | typing in your own language (jquery.ime) in search boxes and proofreading; proofreading languages by code instead of a long list |
 
 ## Review of the About me page (October 2026, v0.70)
 
@@ -185,6 +198,7 @@ them every day.
 - [ ] **Sugamya Pustakalaya** (India's online library for people with print disabilities, run by
       the DAISY Forum of India): share proofread books under section 52(1)(zb) and the
       Marrakesh Treaty, including books for members only
+- [ ] Test typing in your own language (jquery.ime) and the language box with NVDA, JAWS and TalkBack
 - [ ] Marking regions and drawing zones by keyboard on the image itself
 - [ ] Better text for scans without OCR: proofreading drives, and re-OCR on ingest for books
       archive.org has no text for
