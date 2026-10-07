@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.68.6 (2026-11-07): "Send now" no longer fails on a page-text sender that was stopped half-way
+
+- A page-text sender whose worker died (a restart, running out of memory) left a half-written record in Redis, and *Send now*
+  (and the ten-minute turn) then failed with `KeyError: b'created_at'`. The record is now cleared and the sender queued again
+  (the event is noted in the Error Log)
+
 ## 0.68.5 (2026-11-07): Changing mail provider: the old failed emails no longer look like the new error
 
 - After a change of provider (Resend to Gmail, say) the Outgoing email box kept showing the previous provider's error for the

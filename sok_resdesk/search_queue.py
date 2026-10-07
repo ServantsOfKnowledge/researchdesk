@@ -93,7 +93,7 @@ def _sender_running() -> bool:
 	try:
 		from frappe.utils.background_jobs import is_job_enqueued
 
-		return bool(is_job_enqueued("resdesk-send-pending-pages"))
+		return bool(is_job_enqueued(SENDER_JOB))
 	except Exception:
 		return False
 
@@ -287,14 +287,53 @@ def hold_page_text(hold: int = 1) -> dict:
 	return overview()
 
 
-def _queue_send() -> None:
+SENDER_JOB = "resdesk-send-pending-pages"
+
+
+def _enqueue_send() -> None:
 	frappe.enqueue(
 		"sok_resdesk.search_queue.send_pending",
 		queue="long",
 		timeout=6 * 3600,
-		job_id="resdesk-send-pending-pages",
+		job_id=SENDER_JOB,
 		deduplicate=True,
 	)
+
+
+def forget_job(job_id: str) -> int:
+	"""Remove every trace of a background job from Redis: its record, its executions and its place in
+	the queue and registries. A sender whose worker died (restart, out of memory) leaves a half-written
+	record that makes the job library fail ("KeyError: b'created_at'") whenever the same job is queued
+	again. Returns how many keys were deleted."""
+	from frappe.utils.background_jobs import create_job_id, get_redis_conn
+
+	full = create_job_id(job_id)
+	conn = get_redis_conn()
+	gone = 0
+	for key in list(conn.scan_iter(match=f"rq:*{full}*")):
+		gone += conn.delete(key)
+	for kind in ("wip", "started", "finished", "failed", "deferred", "scheduled", "canceled"):
+		for key in list(conn.scan_iter(match=f"rq:{kind}:*")):
+			try:
+				conn.zrem(key, full)
+			except Exception:
+				pass  # not a sorted set: not a registry
+	for key in list(conn.scan_iter(match="rq:queue:*")):
+		try:
+			conn.lrem(key, 0, full)
+		except Exception:
+			pass
+	return gone
+
+
+def _queue_send() -> None:
+	try:
+		_enqueue_send()
+	except Exception:
+		# a damaged record of an earlier run: clear it and try once more
+		frappe.log_error(title="Research Desk: the page-text sender's old record was damaged; cleared")
+		forget_job(SENDER_JOB)
+		_enqueue_send()
 
 
 @hold_when_paused("long")

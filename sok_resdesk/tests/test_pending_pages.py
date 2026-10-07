@@ -53,6 +53,23 @@ class TestPendingPages(IntegrationTestCase):
 		frappe.db.set_value("RD Item", "rdtestpend1", "pages_pending", 0)
 		self.assertIsNone(search_queue.pending_why(50, 2))  # nothing waits: no reason needed
 
+	def test_a_damaged_job_record_is_cleared_and_the_sender_queued_again(self):
+		calls = []
+
+		def enqueue(*args, **kwargs):
+			calls.append(kwargs.get("job_id"))
+			if len(calls) == 1:
+				raise KeyError(b"created_at")  # what rq raises on a half-written execution record
+
+		with (
+			mock.patch("frappe.enqueue", enqueue),
+			mock.patch("sok_resdesk.search_queue.forget_job") as forget,
+			mock.patch("frappe.log_error"),
+		):
+			search_queue._queue_send()
+		forget.assert_called_once_with(search_queue.SENDER_JOB)
+		self.assertEqual(len(calls), 2)
+
 	def test_send_now_queues_the_sender_unless_held(self):
 		with mock.patch("sok_resdesk.search_queue._queue_send") as queue:
 			self.assertTrue(search_queue.send_now()["queued"])
