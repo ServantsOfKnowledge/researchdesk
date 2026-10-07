@@ -197,7 +197,7 @@ class ResDeskJobs {
 			<tr><td>${__("Page text held back")}</td><td>${Q.held ? `<b class="text-warning">${__("on hold")}</b> · ` : ""}${__("{0} books waiting to send", [n(Q.pages_pending)])}${
 				Q.pending_why ? `<br><span class="small ${["waiting", "sending"].includes(Q.pending_why.code) ? "text-muted" : "text-warning"}">${frappe.utils.escape_html(Q.pending_why.message)}</span>` : ""
 			}</td></tr>
-			<tr><td>${__("Task history")}</td><td>${__("{0} finished tasks remembered", [n(Q.history)])}</td></tr>
+			<tr><td>${__("Task history")}</td><td>${__("{0} tasks remembered: {1} done, {2} waiting or running", [n(Q.history), n(Q.history_done), n((Q.history || 0) - (Q.history_done || 0))])}<br><span class="text-muted">${__("last hour: {0} added, {1} finished. The total rises as tasks are added and falls when finished ones are cleared (every night, and by the button below), not as the engine works through them.", [n(Q.added_hour), n(Q.finished_hour)])}</span></td></tr>
 			<tr><td>${__("Books first")}</td><td>${Q.auto ? __("automatic: when a new book waits over 15 minutes behind page text") : __("by hand only")}${
 				Q.auto_last ? ` · ${__("last done by itself {0}: {1} page-text tasks moved back", [frappe.datetime.comment_when(Q.auto_last.at), Q.auto_last.cancelled])}` : ""
 			} <a href="/app/rd-settings">${__("Settings")}</a></td></tr>

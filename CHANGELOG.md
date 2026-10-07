@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.69.1 (2026-11-07): Background Jobs → Task history says what its number is doing
+
+- The search engine's **Task history** number counts every task it remembers, waiting or done, so it moves only when tasks are
+  added or cleared, not as the engine works through them, which made it look stuck. It now splits the total into done and
+  waiting or running, shows how many tasks were added and how many finished in the last hour, and says when the total falls
+
 ## 0.69.0 (2026-11-07): Gentle upgrades: restart only what a release needs
 
 - **`./upgrade.sh --gentle`** (Docker; `UPGRADE_GENTLE=1` in `.env`; *Gentle* in the Server page's upgrade box): looks at the files

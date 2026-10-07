@@ -153,7 +153,7 @@ class TestHelperProtocol(ServerTestCase):
 		name = server.request_task("upgrade", json.dumps({"target": "0.11.0", "backup": 0, "frappe": 0}))
 		self.assertEqual(
 			json.loads(frappe.db.get_value(server.TASK, name, "args")),
-			{"target": "v0.11.0", "backup": 0, "frappe": 0},
+			{"target": "v0.11.0", "backup": 0, "frappe": 0, "gentle": 0},
 		)
 
 	def test_managers_may_look_but_not_change(self):

@@ -70,6 +70,8 @@ def overview(client: MeiliClient | None = None) -> dict:
 	done_lately = _count(client, statuses="succeeded", afterFinishedAt=since)
 	failed_lately = _count(client, statuses="failed", afterFinishedAt=since)
 	per_minute = done_lately / RATE_MINUTES
+	hour = _iso(_dt.datetime.now(_dt.UTC) - _dt.timedelta(hours=1))
+	ended = "succeeded,failed,canceled"
 	eta = round(waiting_all / per_minute) if per_minute else None
 	return {
 		"waiting_books": waiting_books,
@@ -79,7 +81,12 @@ def overview(client: MeiliClient | None = None) -> dict:
 		"done_per_minute": round(per_minute, 1),
 		"failed_lately": failed_lately,
 		"eta_minutes": eta,
-		"history": _count(client),  # every task Meilisearch still remembers
+		"history": _count(client),  # every task Meilisearch still remembers, waiting or done
+		"history_done": _count(client, statuses=ended),
+		# the number above moves only when tasks are added or cleared, not as they are worked
+		# through, so these say what is happening to it
+		"added_hour": _count(client, afterEnqueuedAt=hour),
+		"finished_hour": _count(client, statuses=ended, afterFinishedAt=hour),
 		"held": bool(cint(frappe.db.get_single_value("RD Settings", "hold_page_text"))),
 		"auto": bool(cint(frappe.db.get_single_value("RD Settings", "auto_books_first"))),
 		"auto_last": frappe.cache.get_value("resdesk:auto-books-first-last"),
