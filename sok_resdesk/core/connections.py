@@ -14,7 +14,7 @@ CATALOGUERS = (*MANAGERS, "ResDesk Cataloguer")
 WORKERS = (*CATALOGUERS, "ResDesk Proofreader")
 SENDERS = (*CATALOGUERS, "ResDesk Depositor")
 
-ROUTE, URL = "route", "url"
+ROUTE, URL, EMAIL = "route", "url", "email"
 
 
 @dataclass(frozen=True)
@@ -52,6 +52,7 @@ def _r(*parts: str) -> tuple[str, ...]:
 
 
 GROUPS: tuple[Group, ...] = (
+	Group("people", "People and sign-in", "The email that lets people sign in and sign up", "mail"),
 	Group("archive", "Internet Archive", "Bring books in from archive.org, give books to it", "archive"),
 	Group(
 		"wikimedia",
@@ -83,6 +84,15 @@ GROUPS: tuple[Group, ...] = (
 )
 
 CARDS: tuple[Card, ...] = (
+	Card(
+		"mail",
+		"people",
+		"Outgoing email",
+		"Sign-in links, sign-up confirmations, password resets and alerts are all sent from one mailbox. Without it nobody receives them.",
+		"Managers set it up once.",
+		MANAGERS,
+		(Action("Set up and test", EMAIL, "mail", True),),
+	),
 	Card(
 		"ia_bring",
 		"archive",

@@ -425,6 +425,30 @@ def _check(key, label, state, detail="", link=""):
 	return {"key": key, "label": label, "state": state, "detail": detail, "link": link}
 
 
+def _mail_check() -> dict:
+	"""Outgoing email: sign-in, sign-up and password emails need it."""
+	from sok_resdesk import mail
+
+	if not mail.ready():
+		return _check(
+			"mail",
+			_("Outgoing email"),
+			"bad" if mail.signup_mode() != "Admins add readers" else "warn",
+			_("not set up: sign-in and sign-up emails are not sent"),
+			"/app/resdesk-connections",
+		)
+	left = mail.stuck()
+	if left["failed"]:
+		return _check(
+			"mail",
+			_("Outgoing email"),
+			"bad",
+			_("{0} emails failed: {1}").format(left["failed"], left["last_error"]),
+			"/app/resdesk-connections",
+		)
+	return _check("mail", _("Outgoing email"), "ok", _("set up"))
+
+
 def health() -> list[dict]:
 	"""Every part Research Desk needs, as ok / warn / bad / off, with a sentence each."""
 	from datetime import UTC, datetime
@@ -494,6 +518,7 @@ def health() -> list[dict]:
 		)
 
 	out.append(_scheduler_check())
+	out.append(_mail_check())
 
 	from sok_resdesk.search import MeiliClient, SearchError
 

@@ -54,6 +54,15 @@ def _status(c: core.Card) -> dict:
 			if who
 			else {"state": "todo", "text": _("Not connected: connect your Wikimedia account")}
 		)
+	if key == "mail":
+		from sok_resdesk import mail
+
+		if not mail.ready():
+			return {"state": "todo", "text": _("Not set up: sign-in and sign-up emails are not sent")}
+		left = mail.stuck()
+		if left["failed"]:
+			return {"state": "todo", "text": _("{0} emails failed to send").format(left["failed"])}
+		return {"state": "ok", "text": _("Set up")}
 	if key == "ia_bring":
 		n = _count("RD Ingest Profile", {"source": "Internet Archive"})
 		return {"state": "ok" if n else "info", "text": _("Profiles: {0}").format(n)}

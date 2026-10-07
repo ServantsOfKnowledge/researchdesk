@@ -26,6 +26,10 @@ class ResDeskConnections {
 			e.preventDefault();
 			frappe.set_route(...String($(e.currentTarget).data("route")).split("/").map(decodeURIComponent));
 		});
+		this.$body.on("click", "[data-email]", (e) => {
+			e.preventDefault();
+			this.mail_dialog();
+		});
 		this.$body.on("click", "[data-copy]", (e) => {
 			e.preventDefault();
 			frappe.utils.copy_to_clipboard($(e.currentTarget).data("copy"));
@@ -64,6 +68,39 @@ class ResDeskConnections {
 		frappe.call("sok_resdesk.connections.overview").then((r) => this.render(r.message || []));
 	}
 
+	mail_dialog() {
+		frappe.call("sok_resdesk.mail.status").then((r) => {
+			const m = r.message || {};
+			const cur = m.settings || {};
+			const d = new frappe.ui.Dialog({
+				title: __("Outgoing email"),
+				fields: [
+					{ fieldtype: "HTML", options: `<p class="text-muted small">${__("The mailbox Research Desk sends sign-in, sign-up and password emails from. Gmail and Microsoft need an app password, not your normal one.")}${m.failed ? `<br><b>${__("{0} emails failed.", [m.failed])}</b> ${frappe.utils.escape_html(m.last_error || "")}` : ""}</p>` },
+					{ fieldname: "preset", label: __("Mail provider"), fieldtype: "Select", options: (m.presets || []).map((p) => p.label).join("\n"),
+						change: () => { const p = (m.presets || []).find((x) => x.label === d.get_value("preset")); if (p) { d.set_value("smtp_server", p.server); d.set_value("smtp_port", p.port); d.set_value("security", p.security); } } },
+					{ fieldname: "email_id", label: __("Send from (address)"), fieldtype: "Data", reqd: 1, default: cur.email_id },
+					{ fieldname: "smtp_server", label: __("Mail server"), fieldtype: "Data", reqd: 1, default: cur.smtp_server },
+					{ fieldname: "smtp_port", label: __("Port"), fieldtype: "Int", default: cur.smtp_port || 587 },
+					{ fieldname: "security", label: __("Security"), fieldtype: "Select", options: "tls\nssl\nnone", default: cur.use_ssl_for_outgoing ? "ssl" : cur.use_tls === 0 ? "none" : "tls", description: __("tls = STARTTLS (587), ssl = SSL (465)") },
+					{ fieldname: "login_id", label: __("Sign-in name (if not the address)"), fieldtype: "Data", default: cur.login_id },
+					{ fieldname: "password", label: __("Password or app password"), fieldtype: "Password", description: m.ready ? __("Leave empty to keep the saved one") : "" },
+					{ fieldname: "to", label: __("Send a test to"), fieldtype: "Data", default: frappe.session.user_email },
+				],
+				primary_action_label: __("Save and send test"),
+				primary_action: (v) => {
+					frappe.call({ method: "sok_resdesk.mail.save", args: { email_id: v.email_id, smtp_server: v.smtp_server, smtp_port: v.smtp_port, login_id: v.login_id || "", password: v.password || "", security: v.security } })
+						.then(() => frappe.call("sok_resdesk.mail.test", { to: v.to }))
+						.then((t) => {
+							const x = t.message || {};
+							frappe.msgprint({ title: x.ok ? __("Email works") : __("Email did not send"), message: frappe.utils.escape_html(x.message || ""), indicator: x.ok ? "green" : "red" });
+							if (x.ok) { d.hide(); this.refresh(); if (m.failed) frappe.call("sok_resdesk.mail.retry_failed"); }
+						});
+				},
+			});
+			d.show();
+		});
+	}
+
 	render(groups) {
 		const esc = frappe.utils.escape_html;
 		const jump = groups.map((g) => `<a href="#" data-jump="${esc(g.key)}">${esc(g.title)}</a>`).join("");
@@ -71,6 +108,7 @@ class ResDeskConnections {
 		const action = (a, can) => {
 			const cls = `btn btn-xs ${a.primary && can ? "btn-primary" : "btn-default"}`;
 			if (!can) return `<span class="btn btn-xs btn-default disabled" aria-disabled="true">${esc(a.label)}</span>`;
+			if (a.kind === "email") return `<a class="${cls}" href="#" data-email="1">${esc(a.label)}</a>`;
 			return a.kind === "url"
 				? `<a class="${cls}" href="${esc(a.target)}" target="_blank" rel="noopener">${esc(a.label)} ↗</a>`
 				: `<a class="${cls}" href="#" data-route="${route(a)}">${esc(a.label)}</a>`;

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.67.0 (2026-11-07): sign-in and sign-up emails: set up outgoing mail in two minutes
+
+- **Why people got no sign-in email:** a new install has no outgoing mail account, and Frappe sends every sign-in link,
+  sign-up confirmation and password reset through one. Nothing was ever sent
+- **Connections → People and sign-in → Outgoing email**: pick the provider (Gmail, Microsoft 365, Zoho, SES, Brevo or
+  another), enter the mailbox and an app password, and it saves and sends a real test at once, naming what is wrong in
+  plain words ("the password was refused: use an app password")
+- Server health shows **Outgoing email** (red when sign-up is open and no mail is set up, or when emails are failing);
+  emails that failed are sent again once it works
+
 ## 0.66.4 (2026-11-07): Background Jobs says when page text is being sent, not "held back"
 
 - While the page-text sender is working, the Search queue now says so ("Page text is being sent ... Nothing is stuck;
