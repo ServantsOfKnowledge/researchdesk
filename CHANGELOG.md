@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.71.3 (2026-11-07): Outgoing email: switching to Gmail no longer keeps Resend's login, and the dialog says what happened
+
+- Choosing a provider now clears the login name unless the provider has its own (Resend's `resend` stayed in the box and made Gmail refuse the sign-in); the server also drops a leftover `resend` login for any other provider.
+- The Outgoing email dialog shows *Saving…*, *Saved. Sending a test email…* and the reason for any failure inside the dialog (a failed test no longer looks like a failed save), and closes itself when the test works.
+
 ## 0.71.2 (2026-11-07): README: a new introduction, and "How it fits together" as a picture
 
 - The README's introduction now describes what Research Desk has become: an open-source digital library, archive and research platform for institutions (also the app's description in Frappe).

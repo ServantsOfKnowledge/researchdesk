@@ -76,8 +76,9 @@ class ResDeskConnections {
 				title: __("Outgoing email"),
 				fields: [
 					{ fieldtype: "HTML", options: `<p class="text-muted small">${__("The mailbox Research Desk sends sign-in, sign-up and password emails from. Gmail and Microsoft need an app password, not your normal one.")} <a href="/app/resdesk-help/sign-in-email" target="_blank">${__("Help")}</a></p>${m.failed ? `<div class="alert alert-warning small"><b>${__("{0} earlier emails failed to send.", [m.failed])}</b> ${frappe.utils.escape_html(m.last_error || "")}<br>${__("This is the error from the earlier try, not from your new settings. Save and send the test: once it works the failed emails are sent again.")}</div>` : ""}` },
+					{ fieldname: "status", fieldtype: "HTML" },
 					{ fieldname: "preset", label: __("Mail provider"), fieldtype: "Select", options: (m.presets || []).map((p) => p.label).join("\n"),
-						change: () => { const p = (m.presets || []).find((x) => x.label === d.get_value("preset")); if (p) { d.set_value("smtp_server", p.server); d.set_value("smtp_port", p.port); d.set_value("security", p.security); if (p.login) d.set_value("login_id", p.login); } } },
+						change: () => { const p = (m.presets || []).find((x) => x.label === d.get_value("preset")); if (p) { d.set_value("smtp_server", p.server); d.set_value("smtp_port", p.port); d.set_value("security", p.security); d.set_value("login_id", p.login || ""); } } },
 					{ fieldname: "email_id", label: __("Send from (address)"), fieldtype: "Data", reqd: 1, default: cur.email_id },
 					{ fieldname: "smtp_server", label: __("Mail server"), fieldtype: "Data", reqd: 1, default: cur.smtp_server },
 					{ fieldname: "smtp_port", label: __("Port"), fieldtype: "Int", default: cur.smtp_port || 587 },
@@ -89,13 +90,41 @@ class ResDeskConnections {
 				],
 				primary_action_label: __("Save and send test"),
 				primary_action: (v) => {
-					frappe.call({ method: "sok_resdesk.mail.save", args: { email_id: v.email_id, smtp_server: v.smtp_server, smtp_port: v.smtp_port, login_id: v.login_id || "", password: v.password || "", security: v.security } })
-						.then(() => frappe.call("sok_resdesk.mail.test", { to: v.to }))
-						.then((t) => {
-							const x = t.message || {};
-							frappe.msgprint({ title: x.ok ? __("Email works") : __("Email did not send"), message: frappe.utils.escape_html(x.message || ""), indicator: x.ok ? "green" : "red" });
-							if (x.ok) { d.hide(); this.refresh(); if (m.failed) frappe.call("sok_resdesk.mail.retry_failed").then((q) => frappe.msgprint({ title: __("Failed emails"), message: frappe.utils.escape_html((q.message || {}).message || ""), indicator: "blue" })); }
-						});
+					const say = (html, kind) => d.fields_dict.status.$wrapper.html(`<div class="alert alert-${kind} small" role="${kind === "danger" ? "alert" : "status"}">${html}</div>`);
+					// the server's reason, in words, from whatever came back (frappe shows nothing for some errors)
+					const why = (r, text) => {
+						try {
+							const body = typeof r === "object" && r ? r : JSON.parse(text);
+							const msgs = JSON.parse(body._server_messages || "[]").map((x) => JSON.parse(x).message);
+							if (msgs.length) return msgs.join("<br>");
+							if (body.exception) return frappe.utils.escape_html(String(body.exception).split("\n").pop());
+						} catch (e) { /* not JSON */ }
+						return __("The server did not accept the settings. Look in Error Log for “outgoing email could not be saved”.");
+					};
+					const busy = (on) => d.get_primary_btn().prop("disabled", on);
+					busy(true);
+					say(__("Saving…"), "info");
+					frappe.call({ method: "sok_resdesk.mail.save", type: "POST", silent: true,
+						args: { email_id: v.email_id, smtp_server: v.smtp_server, smtp_port: v.smtp_port, login_id: v.login_id || "", password: v.password || "", security: v.security },
+						callback: () => {
+							this.refresh();
+							say(__("Saved. Sending a test email…"), "info");
+							frappe.call({ method: "sok_resdesk.mail.test", type: "POST", silent: true, args: { to: v.to },
+								callback: (t) => {
+									const x = t.message || {};
+									busy(false);
+									if (x.ok) {
+										say(frappe.utils.escape_html(x.message || ""), "success");
+										frappe.show_alert({ message: __("Outgoing email saved and working."), indicator: "green" });
+										if (m.failed) frappe.call("sok_resdesk.mail.retry_failed").then((q) => frappe.show_alert({ message: ((q.message || {}).message || ""), indicator: "blue" }));
+										setTimeout(() => d.hide(), 1500);
+									} else say(`<b>${__("Saved, but the test email did not send.")}</b> ${frappe.utils.escape_html(x.message || "")}`, "warning");
+								},
+								error: (r, text) => { busy(false); say(`<b>${__("Saved, but the test could not run.")}</b> ${why(r, text)}`, "warning"); },
+							});
+						},
+						error: (r, text) => { busy(false); say(`<b>${__("Not saved.")}</b> ${why(r, text)}`, "danger"); },
+					});
 				},
 			});
 			d.show();

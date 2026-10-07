@@ -29,3 +29,10 @@ def test_resend_is_a_ready_made_choice():
 	resend = next(p for p in m.PRESETS if p["label"].startswith("Resend"))
 	assert resend["server"] == "smtp.resend.com" and resend["login"] == "resend"
 	assert resend["port"] == 587 and resend["security"] == "tls"
+
+
+def test_resends_login_name_does_not_follow_you_to_another_provider():
+	assert m.login_for("smtp.resend.com", "resend") == "resend"
+	assert m.login_for("smtp.gmail.com", "resend") == ""  # left over from the Resend set-up
+	assert m.login_for("smtp.gmail.com", " me@gmail.com ") == "me@gmail.com"
+	assert m.login_for("smtp.gmail.com", "") == ""

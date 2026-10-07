@@ -81,6 +81,15 @@ def problem(email_id: str, server: str, port, security: str) -> str:
 	return ""
 
 
+def login_for(server: str, login: str) -> str:
+	"""The login name to keep. Resend's is the word "resend": left over from an earlier set-up it
+	would make every other provider (Gmail…) refuse the sign-in, so it is dropped elsewhere."""
+	login = (login or "").strip()
+	if login.lower() == "resend" and "resend" not in (server or "").lower():
+		return ""
+	return login
+
+
 def plain_error(raw: str) -> str:
 	"""The mail library's message in words a librarian can act on; the raw text if unknown."""
 	text = (raw or "").strip()

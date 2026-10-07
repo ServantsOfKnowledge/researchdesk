@@ -9,7 +9,11 @@ administrators and managers.
 **Research Desk → Exchange → Connections → People and sign-in → Outgoing email.** Pick your
 provider (it fills in the server, port and security), type the mailbox address and its password, and
 press **Save and send test**. The test goes to your own address and says in plain words what went
-wrong if it fails. When the test works, any emails that failed earlier are sent again.
+wrong if it fails. The dialog says at each step what happened (*Saving…*, *Saved. Sending a test
+email…*); if the test fails the settings are still saved, so change what the message points at and
+press the button again. Choosing a provider fills in its server, port and login (for Resend the
+login is `resend`; for the others it is cleared, so a login left from an earlier set-up cannot make
+Gmail refuse you). When the test works, any emails that failed earlier are sent again.
 
 | Provider | What to enter |
 |---|---|

@@ -86,6 +86,7 @@ def save(
 	problem = core.problem(email_id, smtp_server, smtp_port, security)
 	if problem:
 		frappe.throw(_(problem))
+	login_id = core.login_for(smtp_server, login_id)
 	port, tls, ssl = cint(smtp_port), security == "tls", security == "ssl"
 	try:
 		doc = _save_account(email_id, smtp_server, port, login_id, password, tls, ssl)
