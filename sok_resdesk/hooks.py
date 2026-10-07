@@ -3,9 +3,7 @@ from sok_resdesk import __version__
 app_name = "sok_resdesk"
 app_title = "Research Desk"
 app_publisher = "Servants of Knowledge"
-app_description = (
-	"Open research portal and digital library for Servants of Knowledge and Internet Archive collections"
-)
+app_description = "Open-source digital library, archive and research platform for books, manuscripts, photographs and recordings"
 app_email = "omshivaprakash@gmail.com"
 app_license = "MIT"
 # the app's own logo (Frappe's apps screen, Desk sidebar); a library's logo from

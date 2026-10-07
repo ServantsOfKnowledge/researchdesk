@@ -2,9 +2,23 @@
 
 # SOK Research Desk
 
-An open research portal and digital library for the books digitised by
-[Servants of Knowledge](https://archive.org/details/ServantsOfKnowledge), and for any other
-Internet Archive collection. It is built on the [Frappe](https://frappe.io) framework.
+**An open-source digital library, archive and research platform for books, manuscripts,
+photographs and recordings: made for Indian languages, open to every language.**
+
+Research Desk takes in material from the Internet Archive, your own folders and servers,
+Calibre, institutional repositories, Wikisource and people's own deposits. It makes it
+**searchable down to the page** (in Kannada, Hindi, Tamil and more, typed in the script or in
+Latin letters), **readable and citable** (a page-by-page reader, notes, reading lists, every
+citation format), **correctable** (proofreading, re-OCR, machine drafts for people to check) and
+**kept safe** (permanent links, checked copies, a second copy that repairs itself). It shares
+what it holds through open standards (OAI-PMH, IIIF, OPDS, SRU, COUNTER) and gives back to
+Wikidata, Wikisource, Commons and the Internet Archive under each person's own account.
+
+It is built for institutions: roles and members-only access, reviewed deposits, archival
+description (ISAD(G), EAD3), accessibility checked in every release (WCAG 2.2 AA), a Server page
+with health checks, backups, alerts and gentle upgrades, and one-command installation, from a
+laptop to a server holding tens of thousands of books. It runs on the
+[Frappe](https://frappe.io) framework and is free software (MIT).
 
 Research Desk is one link in a chain Servants of Knowledge builds in the open, from scanner to
 reader: **TTScribe**, open book-scanning hardware; **Repub**, free software that crops,
@@ -13,6 +27,8 @@ straightens, flattens and reads each scan and exports a searchable PDF, text and
 Research Desk, which makes the books searchable to the page, citable, correctable and kept safe.
 Books can go to archive.org, to Research Desk, or to both. **OpenScribe**, the last module of
 the digitisation workflow, is in progress.
+
+## What it does
 
 Choose a collection, a search or a list of items on archive.org, or point it at your own
 folders, and Research Desk will:
@@ -142,7 +158,7 @@ It's built to install with one command, for librarians, educators, archivists an
 anyone else who can open a terminal. It scales to tens of thousands of books on one server
 ([measured](docs/scaling.md)).
 
-> Status: **v0.70**, before 1.0. It works end to end and is tested against live Servants of
+> Status: **v0.71**, before 1.0. It works end to end and is tested against live Servants of
 > Knowledge data, but expect changes before 1.0. What changed: [CHANGELOG](CHANGELOG.md); what
 > comes next: [the roadmap](docs/roadmap.md).
 
@@ -234,6 +250,11 @@ day, changed ones are refreshed, removed ones are unpublished
 
 ## How it fits together
 
+![How SOK Research Desk fits together: material comes in from archive.org, folders, Calibre, repositories, Wikisource and deposits; ingest, proofreading, machine drafts, preservation and review work on it; it is kept in Frappe and MariaDB and found through Meilisearch; and it goes out to readers, open standards, Wikimedia and other systems, and offline copies](sok_resdesk/public/images/how-it-fits.svg)
+
+<details>
+<summary>The same, in text, with every connection</summary>
+
 ```
  archive.org · folders (books, leaf images, photographs, recordings) · a Calibre library ·
  repositories (OAI-PMH) · Wikisource · deposits ──(metadata+text)▶ Ingest jobs ──▶ Frappe / MariaDB
@@ -257,6 +278,8 @@ day, changed ones are refreshed, removed ones are unpublished
   USB sticks, phones, Kiwix ◀── offline copy (zip, ZIM) · Calibre library · the guide as EPUB
   Zotero, Google Scholar ◀── citation_* meta tags, JSON-LD, COinS
 ```
+
+</details>
 
 Material from your own folders or web server (books with `meta.xml` + OCR text + PDF, loose
 PDFs, leaf images, photographs, recordings) or from a Calibre library goes through the same

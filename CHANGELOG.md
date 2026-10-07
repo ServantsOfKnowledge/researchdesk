@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.71.2 (2026-11-07): README: a new introduction, and "How it fits together" as a picture
+
+- The README's introduction now describes what Research Desk has become: an open-source digital library, archive and research platform for institutions (also the app's description in Frappe).
+- The README's text diagram is now a picture (an SVG drawn by `scripts/gen_overview.py`, with the Servants of Knowledge logo, readable in light and dark themes, with a text description for screen readers); the full text version stays underneath, folded.
+
 ## 0.71.1 (2026-11-07): Reader guide: pictures with test records and broken thumbnails taken out
 
 - The portal home, search results and book page pictures in the reader guide were taken on a test library (broken cover images, "Test Author" records, an empty reader) and are removed until they can be retaken on a real library (roadmap).
