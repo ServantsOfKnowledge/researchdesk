@@ -1070,9 +1070,14 @@ def _ocr_progress() -> dict | None:
 @frappe.whitelist()
 def score_ocr_now() -> dict:
 	frappe.only_for(MANAGERS)
-	from sok_resdesk.ocr import queue_scoring
+	from sok_resdesk.ocr import queue_scoring, why_not_running
 
-	n = queue_scoring()
+	n = queue_scoring(force=True)
+	if not n:
+		return {"message": _("Every book with page text kept here is scored.")}
+	reason = why_not_running()
+	if reason:
+		return {"message": _("{0} books wait to be scored. {1}").format(n, reason)}
 	return {"message": _("{0} books are being scored in the background.").format(n)}
 
 

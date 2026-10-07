@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.71.4 (2026-11-07): Score now and Worst first work again
+
+- **Score now** (Background Jobs → Machine → OCR quality) clears a scoring job that was on record but not running (left by a restart or a killed worker, which made every later press do nothing), then starts one. It says when nothing can start (Pause All, or everything was just stopped) and when there is nothing left to score.
+- **Worst first** opens the books that have a score, lowest first (the address's `order_by` was not read by Frappe's list, so it showed them in the usual order).
+
 ## 0.71.3 (2026-11-07): Outgoing email: switching to Gmail no longer keeps Resend's login, and the dialog says what happened
 
 - Choosing a provider now clears the login name unless the provider has its own (Resend's `resend` stayed in the box and made Gmail refuse the sign-in); the server also drops a leftover `resend` login for any other provider.

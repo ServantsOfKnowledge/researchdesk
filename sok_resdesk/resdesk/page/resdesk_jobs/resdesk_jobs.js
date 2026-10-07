@@ -55,6 +55,16 @@ class ResDeskJobs {
 		this.$body.on("click", "[data-choose-preset]", () => this.choose_preset());
 		this.$body.on("click", "[data-renice]", () => this.renice());
 		this.$body.on("click", "[data-score-ocr]", () => this.call("score_ocr_now", {}));
+		// the books with a score, lowest first (a ?order_by in the address is not read by the list)
+		this.$body.on("click", "[data-worst-first]", (e) => {
+			e.preventDefault();
+			frappe.model.user_settings
+				.save("RD Item", "List", { sort_by: "ocr_quality", sort_order: "asc" })
+				.then(() => {
+					frappe.route_options = { ocr_quality: [">", 0] };
+					frappe.set_route("List", "RD Item", "List");
+				});
+		});
 		this.$body.on("click", "[data-restart-search]", () =>
 			frappe.confirm(__("Restart the search engine? Searching pauses for a minute; waiting tasks are kept and carry on."), () =>
 				frappe
@@ -180,7 +190,7 @@ class ResDeskJobs {
 		return `<p class="small" style="margin-top:6px">${__("OCR quality")}: <b>${O.scored.toLocaleString()}</b> ${__("of")} ${O.with_text.toLocaleString()} ${__("books scored")}${
 			O.no_text_kept ? ` · ${__("{0} without page text kept here (scored when next indexed)", [O.no_text_kept.toLocaleString()])}` : ""
 		}${O.waiting ? ` <button class="btn btn-xs btn-default" data-score-ocr>${__("Score now")}</button>` : ""}
-		<a href="/app/rd-item?ocr_quality=%5B%22%3E%22%2C0%5D&order_by=ocr_quality%20asc">${__("Worst first")}</a></p>`;
+		<a href="#" data-worst-first>${__("Worst first")}</a></p>`;
 	}
 
 	// Search queue: what waits in the search engine, how fast it goes, and what can be done about it

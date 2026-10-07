@@ -911,6 +911,24 @@ class TestOcrQuality(OpsTestCase):
 		self.assertGreaterEqual(progress["scored"], 1)
 		self.assertGreaterEqual(progress["no_text_kept"], 1)
 
+	def test_score_now_starts_the_job_even_after_an_old_one_was_lost(self):
+		"""Pressing Score now clears a scoring job that is on record but not running, then queues
+		one, and says why when nothing can start."""
+		from sok_resdesk import ocr
+
+		name = _item(35)
+		frappe.db.set_value("RD Item", name, {"has_page_text": 1, "ocr_quality": 0, "ocr_low_pages": 0})
+		self.enqueued.clear()
+		with mock.patch("sok_resdesk.ocr._clear_ghost") as clear:
+			self.assertGreaterEqual(ocr.queue_scoring(force=True), 1)
+			clear.assert_called_once_with(ocr.SCORE_JOB)
+			clear.reset_mock()
+			ocr.queue_scoring()  # the scheduler's daily run never clears anything
+			clear.assert_not_called()
+		self.assertEqual([m for m, _kw in self.enqueued], ["sok_resdesk.ocr.score_some"] * 2)
+		with mock.patch("sok_resdesk.holding.is_paused", return_value=True):
+			self.assertIn("Pause All", ocr.why_not_running())
+
 	def test_indexing_records_the_quality(self):
 		from sok_resdesk.search import IndexBuffer
 

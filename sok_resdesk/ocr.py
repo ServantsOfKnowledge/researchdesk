@@ -30,27 +30,73 @@ def unscored(limit: int = 0) -> list[str]:
 	)
 
 
+SCORE_JOB = "resdesk-ocr-score"
+
+
 @frappe.whitelist()
 def enqueue_scoring(limit: int = 0) -> int:
 	"""Score the books that have no OCR quality yet, in the background. Returns how many."""
 	frappe.only_for(MANAGERS)
-	return queue_scoring(cint(limit))
+	return queue_scoring(cint(limit), force=True)
 
 
-def queue_scoring(limit: int = 0) -> int:
+def _clear_ghost(job_id: str) -> None:
+	"""Forget a job that is on record in Redis but that no worker is running. The job library skips
+	a job whose id is already there, so a scoring job whose worker was restarted or killed would
+	otherwise stop every later "Score now" quietly."""
+	try:
+		from frappe.utils.background_jobs import create_job_id, get_redis_conn
+		from rq import Worker
+
+		full = create_job_id(job_id)
+		conn = get_redis_conn()
+		if any(w.get_current_job_id() == full for w in Worker.all(connection=conn)):
+			return  # really running
+		from sok_resdesk.search_queue import forget_job
+
+		forget_job(job_id)
+	except Exception:
+		pass  # no Redis to look at (tests, CLI): nothing to clear
+
+
+def _enqueue_score() -> None:
+	frappe.enqueue(
+		"sok_resdesk.ocr.score_some", queue="long", timeout=3600, job_id=SCORE_JOB, deduplicate=True
+	)
+
+
+def queue_scoring(limit: int = 0, force: bool = False) -> int:
 	"""Start scoring in the background: one job that works through the unscored books and queues
 	itself again until none are left (queueing a job per batch for a big catalogue filled the job
-	queue and was refused). Returns how many books are waiting to be scored."""
+	queue and was refused). `force` (a person pressed *Score now*) first clears a job that is on
+	record but not running. Returns how many books are waiting to be scored."""
 	waiting = len(unscored(limit))
 	if waiting:
-		frappe.enqueue(
-			"sok_resdesk.ocr.score_some",
-			queue="long",
-			timeout=3600,
-			job_id="resdesk-ocr-score",
-			deduplicate=True,
-		)
+		if force:
+			_clear_ghost(SCORE_JOB)
+		try:
+			_enqueue_score()
+		except Exception:
+			# a damaged record of an earlier job: clear it and try once more
+			frappe.log_error(title="Research Desk: the OCR scoring job's old record was damaged; cleared")
+			from sok_resdesk.search_queue import forget_job
+
+			forget_job(SCORE_JOB)
+			_enqueue_score()
 	return waiting
+
+
+def why_not_running() -> str:
+	"""A sentence about why scoring will not start now, or ''."""
+	from frappe import _
+
+	from sok_resdesk.holding import is_paused
+
+	if is_paused():
+		return _("Background work is paused (Pause All). Scoring starts when you Resume All.")
+	if frappe.cache.get_value("resdesk:stop-background"):
+		return _("Everything was stopped a few minutes ago. Scoring can start again in about ten minutes.")
+	return ""
 
 
 @hold_when_paused("long")
@@ -78,7 +124,7 @@ def score_some(limit: int = 5000) -> int:
 			"sok_resdesk.ocr.score_some",
 			queue="long",
 			timeout=3600,
-			job_id="resdesk-ocr-score",
+			job_id=SCORE_JOB,
 			enqueue_after_commit=True,
 		)
 	return done
