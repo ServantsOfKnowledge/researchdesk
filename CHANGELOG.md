@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.68.4 (2026-11-07): Retaking the help pictures works with Frappe 16.50's login page
+
+- `scripts/screenshots.py` waited for a login button class that Frappe 16.50 no longer uses ("Timeout waiting for
+  .btn-login", no pictures taken). It now logs in the way a person does (Enter in the password box), and says plainly when the
+  user name or password is refused
+
 ## 0.68.3 (2026-11-07): Saving the email settings no longer fails with a server error
 
 - Making Research Desk's mail account the default made Frappe re-save, and live-test, every other default mail account:

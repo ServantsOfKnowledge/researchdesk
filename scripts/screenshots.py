@@ -170,13 +170,24 @@ async def take(args) -> list[str]:
 
 
 async def log_in(context, url: str, user: str, password: str) -> None:
+	"""Log in through the login page. Frappe's login button has changed its markup between
+	releases, so submit with Enter (what a person does), and check we left the login page."""
 	page = await context.new_page()
-	await page.goto(f"{url}/login")
-	await page.fill("#login_email", user)
-	await page.fill("#login_password", password)
-	await page.click(".btn-login")
-	await page.wait_for_timeout(3000)
-	await page.close()
+	try:
+		await page.goto(f"{url}/login")
+		await page.fill("#login_email", user, timeout=20000)
+		await page.fill("#login_password", password)
+		await page.press("#login_password", "Enter")
+		try:
+			await page.wait_for_url(lambda u: "/login" not in u, timeout=20000)
+		except Exception:
+			raise SystemExit(
+				f"Could not log in as {user} at {url}/login: still on the login page after 20 seconds. "
+				"Check the user name and password (--user, --password), and that the account may log in."
+			) from None
+		await page.wait_for_timeout(1500)
+	finally:
+		await page.close()
 
 
 async def closed_to_visitors(guest, url: str) -> bool:
