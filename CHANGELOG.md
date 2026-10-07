@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.69.3 (2026-11-07): Saving the outgoing email account works when Frappe already has one for that address
+
+- Saving the outgoing email account no longer fails when Frappe already has an account for the same address (its addresses are unique, so a Gmail account made earlier in Frappe's own form blocked the save). That account is used and made the default. Gmail app passwords pasted with their spaces are cleaned up.
+
 ## 0.69.2 (2026-11-07): Retaking the help pictures logs in through Frappe's own call, and says why it can't
 
 - `scripts/screenshots.py` now logs in with Frappe's login call instead of typing into the login page, so no change to that

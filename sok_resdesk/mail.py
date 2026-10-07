@@ -102,12 +102,27 @@ def save(
 
 
 def _save_account(email_id, smtp_server, port, login_id, password, tls, ssl):
-	existing = frappe.db.exists("Email Account", ACCOUNT)
-	doc = frappe.get_doc("Email Account", ACCOUNT) if existing else frappe.new_doc("Email Account")
+	address = email_id.strip()
+	# An Email Account's address is unique. If the library already made one for this mailbox in
+	# Frappe's own form (the usual case with Gmail), use that one instead of failing as a duplicate.
+	target = frappe.db.get_value("Email Account", {"email_id": address}, "name") or (
+		ACCOUNT if frappe.db.exists("Email Account", ACCOUNT) else None
+	)
+	existing = bool(target)
+	doc = frappe.get_doc("Email Account", target) if existing else frappe.new_doc("Email Account")
+	if target and target != ACCOUNT and frappe.db.exists("Email Account", ACCOUNT):
+		frappe.db.set_value(
+			"Email Account", ACCOUNT, {"enable_outgoing": 0, "default_outgoing": 0}, update_modified=False
+		)
+	# Google shows app passwords in groups of four with spaces; the spaces are not part of it
+	if "gmail" in smtp_server.lower() or "google" in smtp_server.lower():
+		password = "".join(password.split())
 	doc.update(
 		{
-			"email_account_name": ACCOUNT,
-			"email_id": email_id.strip(),
+			"email_account_name": doc.name or ACCOUNT,
+			"email_id": address,
+			"auth_method": "Basic",
+			"awaiting_password": 0,
 			"smtp_server": smtp_server.strip(),
 			"smtp_port": port,
 			"use_tls": 1 if tls else 0,
@@ -130,7 +145,7 @@ def _save_account(email_id, smtp_server, port, login_id, password, tls, ssl):
 	# when this one becomes the default: one old account with a bad setting would then fail the
 	# whole save. Take the default off the others quietly first.
 	for other in frappe.get_all(
-		"Email Account", filters={"default_outgoing": 1, "name": ("!=", ACCOUNT)}, pluck="name"
+		"Email Account", filters={"default_outgoing": 1, "name": ("!=", doc.name or ACCOUNT)}, pluck="name"
 	):
 		frappe.db.set_value("Email Account", other, "default_outgoing", 0, update_modified=False)
 	doc.flags.ignore_permissions = True
