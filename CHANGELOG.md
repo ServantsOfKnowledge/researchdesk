@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.69.2 (2026-11-07): Retaking the help pictures logs in through Frappe's own call, and says why it can't
+
+- `scripts/screenshots.py` now logs in with Frappe's login call instead of typing into the login page, so no change to that
+  page's markup can stop it. When Frappe refuses (a wrong or changed Administrator password, two-factor on), it says so with the
+  reason and how to give the right password (`RD_PASSWORD='…' ./resdesk.sh screenshots --site`), instead of waiting 20 seconds
+
 ## 0.69.1 (2026-11-07): Background Jobs → Task history says what its number is doing
 
 - The search engine's **Task history** number counts every task it remembers, waiting or done, so it moves only when tasks are

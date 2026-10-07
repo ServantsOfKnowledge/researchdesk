@@ -170,24 +170,32 @@ async def take(args) -> list[str]:
 
 
 async def log_in(context, url: str, user: str, password: str) -> None:
-	"""Log in through the login page. Frappe's login button has changed its markup between
-	releases, so submit with Enter (what a person does), and check we left the login page."""
-	page = await context.new_page()
+	"""Log in the way the login page does, through Frappe's own login call, so a change to the page's
+	buttons can't stop it, and so a refusal is reported exactly (the browser then holds the session)."""
 	try:
-		await page.goto(f"{url}/login")
-		await page.fill("#login_email", user, timeout=20000)
-		await page.fill("#login_password", password)
-		await page.press("#login_password", "Enter")
-		try:
-			await page.wait_for_url(lambda u: "/login" not in u, timeout=20000)
-		except Exception:
-			raise SystemExit(
-				f"Could not log in as {user} at {url}/login: still on the login page after 20 seconds. "
-				"Check the user name and password (--user, --password), and that the account may log in."
-			) from None
-		await page.wait_for_timeout(1500)
-	finally:
-		await page.close()
+		r = await context.request.post(
+			f"{url}/api/method/login", form={"usr": user, "pwd": password}, timeout=30000
+		)
+	except Exception as e:
+		raise SystemExit(f"Could not reach {url}/api/method/login: {e}") from None
+	try:
+		body = await r.json()
+	except Exception:
+		body = {}
+	if r.ok and body.get("message") == "Logged In":
+		return
+	if body.get("verification") or "verification" in str(body.get("message", "")).lower():
+		raise SystemExit(
+			f"{user} has two-factor authentication on, which this script can't answer. Take the pictures with "
+			"another staff account (--user, --password) that has none."
+		)
+	why = body.get("message") or r.status_text or str(r.status)
+	raise SystemExit(
+		f"Could not log in as {user} at {url}: {why} (HTTP {r.status}).\n"
+		"  The password tried is ADMIN_PASSWORD from .env (or RD_PASSWORD / --password). If Administrator's\n"
+		"  password was changed since, say so: RD_PASSWORD='the password' ./resdesk.sh screenshots --site\n"
+		"  (./resdesk.sh password NEW sets it; update ADMIN_PASSWORD in .env to match)."
+	)
 
 
 async def closed_to_visitors(guest, url: str) -> bool:
