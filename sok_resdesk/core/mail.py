@@ -7,6 +7,13 @@ import re
 # (label, server, port, security) for the choices most libraries make
 PRESETS = [
 	{
+		"label": "Resend (login is 'resend', password is your API key)",
+		"server": "smtp.resend.com",
+		"port": 587,
+		"security": "tls",
+		"login": "resend",
+	},
+	{
 		"label": "Gmail / Google Workspace (use an app password)",
 		"server": "smtp.gmail.com",
 		"port": 587,

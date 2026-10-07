@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.68.1 (2026-11-07): Resend as a one-click mail provider
+
+- Connections → Outgoing email has a **Resend** choice: server `smtp.resend.com`, login `resend`, your Resend API key as the
+  password, and the sender address on a domain verified in Resend
+
 ## 0.68.0 (2026-11-07): About me: profiles, volunteers and support needs
 
 - **/library/profile** (Account menu → About me; new members are invited to it): a short optional form: a person or an

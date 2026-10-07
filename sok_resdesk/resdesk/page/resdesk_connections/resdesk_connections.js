@@ -77,7 +77,7 @@ class ResDeskConnections {
 				fields: [
 					{ fieldtype: "HTML", options: `<p class="text-muted small">${__("The mailbox Research Desk sends sign-in, sign-up and password emails from. Gmail and Microsoft need an app password, not your normal one.")}${m.failed ? `<br><b>${__("{0} emails failed.", [m.failed])}</b> ${frappe.utils.escape_html(m.last_error || "")}` : ""}</p>` },
 					{ fieldname: "preset", label: __("Mail provider"), fieldtype: "Select", options: (m.presets || []).map((p) => p.label).join("\n"),
-						change: () => { const p = (m.presets || []).find((x) => x.label === d.get_value("preset")); if (p) { d.set_value("smtp_server", p.server); d.set_value("smtp_port", p.port); d.set_value("security", p.security); } } },
+						change: () => { const p = (m.presets || []).find((x) => x.label === d.get_value("preset")); if (p) { d.set_value("smtp_server", p.server); d.set_value("smtp_port", p.port); d.set_value("security", p.security); if (p.login) d.set_value("login_id", p.login); } } },
 					{ fieldname: "email_id", label: __("Send from (address)"), fieldtype: "Data", reqd: 1, default: cur.email_id },
 					{ fieldname: "smtp_server", label: __("Mail server"), fieldtype: "Data", reqd: 1, default: cur.smtp_server },
 					{ fieldname: "smtp_port", label: __("Port"), fieldtype: "Int", default: cur.smtp_port || 587 },

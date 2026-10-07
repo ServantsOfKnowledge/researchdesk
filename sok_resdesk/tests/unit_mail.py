@@ -23,3 +23,9 @@ def test_errors_are_put_in_plain_words():
 def test_presets_are_complete():
 	for p in m.PRESETS:
 		assert p["port"] and p["security"] in m.SECURITY
+
+
+def test_resend_is_a_ready_made_choice():
+	resend = next(p for p in m.PRESETS if p["label"].startswith("Resend"))
+	assert resend["server"] == "smtp.resend.com" and resend["login"] == "resend"
+	assert resend["port"] == 587 and resend["security"] == "tls"
