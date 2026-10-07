@@ -1,0 +1,170 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-11-07 10:00:00.000000",
+ "modified": "2026-11-07 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Reader Profile",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "autoname": "field:user",
+ "title_field": "full_name",
+ "show_title_field_in_link": 1,
+ "search_fields": "organisation,country",
+ "links": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "track_changes": 0,
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User",
+   "reqd": 1,
+   "unique": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "label": "Name",
+   "fetch_from": "user.full_name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "kind",
+   "fieldtype": "Select",
+   "label": "This is a",
+   "options": "Individual\nOrganisation",
+   "default": "Individual"
+  },
+  {
+   "fieldname": "organisation",
+   "fieldtype": "Data",
+   "label": "Organisation or institution"
+  },
+  {
+   "fieldname": "role_title",
+   "fieldtype": "Data",
+   "label": "Role or interest"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Data",
+   "label": "Country or place"
+  },
+  {
+   "fieldname": "website",
+   "fieldtype": "Data",
+   "label": "Website"
+  },
+  {
+   "fieldname": "about",
+   "fieldtype": "Small Text",
+   "label": "About"
+  },
+  {
+   "fieldname": "show_publicly",
+   "fieldtype": "Check",
+   "label": "Show these details (not the section below) on the library's contributors list",
+   "default": "0"
+  },
+  {
+   "fieldname": "volunteer_sb",
+   "fieldtype": "Section Break",
+   "label": "Helping the library"
+  },
+  {
+   "fieldname": "wants_reviewer",
+   "fieldtype": "Check",
+   "label": "I would like to review deposits and catalogue records"
+  },
+  {
+   "fieldname": "wants_proofreader",
+   "fieldtype": "Check",
+   "label": "I would like to proofread page text"
+  },
+  {
+   "fieldname": "volunteer_note",
+   "fieldtype": "Small Text",
+   "label": "Languages, subjects or time I can offer"
+  },
+  {
+   "fieldname": "access_sb",
+   "fieldtype": "Section Break",
+   "label": "Support (private)"
+  },
+  {
+   "fieldname": "access_need",
+   "fieldtype": "Select",
+   "label": "Support I may need",
+   "options": "\nBlind\nLow vision\nDeaf or hard of hearing\nMotor or mobility\nDyslexia or reading difficulty\nOther\nPrefer not to say",
+   "description": "Seen only by you and the library's managers. Never shown publicly."
+  },
+  {
+   "fieldname": "access_note",
+   "fieldtype": "Small Text",
+   "label": "What would help (large text, a screen reader, audio, more time)"
+  },
+  {
+   "fieldname": "notes_sb",
+   "fieldtype": "Section Break",
+   "label": "Library notes"
+  },
+  {
+   "fieldname": "staff_note",
+   "fieldtype": "Small Text",
+   "label": "Staff note (private)"
+  }
+ ],
+ "field_order": [
+  "user",
+  "full_name",
+  "kind",
+  "organisation",
+  "role_title",
+  "country",
+  "website",
+  "about",
+  "show_publicly",
+  "volunteer_sb",
+  "wants_reviewer",
+  "wants_proofreader",
+  "volunteer_note",
+  "access_sb",
+  "access_need",
+  "access_note",
+  "notes_sb",
+  "staff_note"
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "report": 1
+  }
+ ]
+}

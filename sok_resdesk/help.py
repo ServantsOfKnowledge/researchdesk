@@ -35,6 +35,7 @@ SCREEN_HELP = {
 	"RD Push Run": ("collections-and-metadata", "pushing-metadata-to-other-systems"),
 	"RD External Record": ("collections-and-metadata", "pushing-metadata-to-other-systems"),
 	"RD Reader Request": ("access", "reader-accounts"),
+	"RD Reader Profile": ("staff-guide", "reader-profiles-and-volunteers"),
 	"RD Creator": ("staff-guide", "authors-and-subjects"),
 	"RD Subject": ("staff-guide", "authors-and-subjects"),
 	"resdesk-jobs": ("operations", "background-jobs-see-pause-and-stop-what-is-running"),

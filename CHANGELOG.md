@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.68.0 (2026-11-07): About me: profiles, volunteers and support needs
+
+- **/library/profile** (Account menu → About me; new members are invited to it): a short optional form: a person or an
+  organisation, role, place, website, a few words, whether the library may name them as a contributor
+- **Would you like to help?** tick to offer to review deposits and catalogue records, or to proofread page text, with a note of
+  languages, subjects or time; managers are notified and give the role in one click from Desk → Reader Profiles
+- **Support (private)**: blind, low vision, deaf or hard of hearing, motor, dyslexia, other, and what would help. Seen only by the
+  person and managers; never shown publicly
+
 ## 0.67.0 (2026-11-07): sign-in and sign-up emails: set up outgoing mail in two minutes
 
 - **Why people got no sign-in email:** a new install has no outgoing mail account, and Frappe sends every sign-in link,

@@ -11,6 +11,11 @@
 
 		{% include "templates/includes/rd_search_form.html" %}
 		{% include "templates/includes/rd_tips.html" %}
+		{% if ask_profile and not viewer.pending %}
+		<p class="rd-access-note" id="rd-ask-profile"><a href="/library/profile">{{ _("Tell us a little about you") }}</a> {{ _("(optional, one minute): who you are, whether you'd like to help as a reviewer or proofreader, and any support you may need.") }}
+			<button type="button" class="rd-btn rd-btn--plain" id="rd-ask-profile-x" aria-label="{{ _('Not now') }}">×</button></p>
+		<script>(function(){var b=document.getElementById("rd-ask-profile"),x=document.getElementById("rd-ask-profile-x");try{if(localStorage.getItem("rd-no-profile")&&b)b.hidden=true}catch(e){}if(x)x.addEventListener("click",function(){b.hidden=true;try{localStorage.setItem("rd-no-profile","1")}catch(e){}})})();</script>
+		{% endif %}
 		{% if viewer.pending %}
 		<p class="rd-access-note">{{ _("Your account is waiting for approval. Until then you see what visitors see.") }}</p>
 		{% elif not viewer.logged_in and viewer.guest_mode == "Records only" %}

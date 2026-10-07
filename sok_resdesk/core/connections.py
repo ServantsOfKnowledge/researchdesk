@@ -94,6 +94,18 @@ CARDS: tuple[Card, ...] = (
 		(Action("Set up and test", EMAIL, "mail", True),),
 	),
 	Card(
+		"profiles",
+		"people",
+		"Reader profiles and volunteers",
+		"People and organisations can say who they are, offer to review or proofread, and tell the library what support they need (blindness, low vision and so on, kept private).",
+		"Managers read them and give volunteers a role; everyone fills in their own.",
+		MANAGERS,
+		(
+			Action("Reader profiles", ROUTE, _r("List", "RD Reader Profile"), True),
+			Action("The form people see", URL, "/library/profile"),
+		),
+	),
+	Card(
 		"ia_bring",
 		"archive",
 		"Bring books in from archive.org",

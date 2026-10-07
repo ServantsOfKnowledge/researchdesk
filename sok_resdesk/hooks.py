@@ -36,6 +36,11 @@ website_route_rules = [
 ]
 
 
+# the Account menu on the portal: My profile
+portal_menu_items = [
+	{"title": "About me", "route": "/library/profile", "reference_doctype": "", "role": ""},
+]
+
 # our Desk pages' accessibility fixes (desk.css)
 app_include_css = [f"/assets/sok_resdesk/css/desk.css?v={__version__}"]
 # Help and Take-the-tour buttons on Research Desk screens

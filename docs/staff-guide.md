@@ -489,6 +489,20 @@ Only a super admin (or System Manager) gives or takes the System Manager and sup
 from themselves or switch themselves off, so a library can't lock itself out. The full Frappe
 account screen stays one click away (**⋯ → All accounts**).
 
+## Reader profiles and volunteers
+
+Anyone signed in can fill in **About me** (`/library/profile`, also in the portal's Account menu;
+new members are invited to it): a person or an organisation, role, place, website and a few words,
+and whether the library may name them as a contributor. It is all optional.
+
+- **Would you like to help?** People tick that they would like to review deposits and catalogue
+  records, or proofread page text. Managers get a Desk notice. Open **Reader Profiles**, then the
+  person, and use **Volunteers → Make a proofreader / Make a reviewer** to give the role.
+- **Support (private).** People may say they are blind, have low vision, are deaf or hard of
+  hearing, have a motor difficulty or dyslexia, or other, and what would help. Only the person and
+  managers see it; it is never shown publicly. Use it to offer large text, screen-reader help,
+  audio or more time.
+
 ## Usage statistics
 
 Settings → **Usage Statistics** counts how readers use the portal. The Desk is never counted,

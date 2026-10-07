@@ -1,0 +1,72 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="rd rd-profile">
+	<nav class="rd-crumbs"><a href="{{ library_url() }}">← {{ portal_title }}</a></nav>
+	<h1 class="rd-page-title">{{ _("About me") }}</h1>
+	<p class="rd-muted">{{ _("Everything here is optional. Tell the library as much or as little as you like. It helps us know our readers, find volunteers and give the right support.") }}</p>
+	<form id="rd-pf" class="rd-form" autocomplete="off">
+		<fieldset>
+			<legend>{{ _("Who you are") }}</legend>
+			<p><label><input type="radio" name="kind" value="Individual" checked> {{ _("A person") }}</label>
+				<label><input type="radio" name="kind" value="Organisation"> {{ _("An organisation or institution") }}</label></p>
+			<p><label><span id="rd-pf-org-l">{{ _("Organisation or institution") }}</span> <input name="organisation" maxlength="140" style="width:100%"></label></p>
+			<p><label>{{ _("Your role or interest") }} <input name="role_title" maxlength="140" style="width:100%" placeholder="{{ _('Researcher, teacher, student, librarian…') }}"></label></p>
+			<p><label>{{ _("Country or place") }} <input name="country" maxlength="80"></label>
+				<label>{{ _("Website") }} <input name="website" maxlength="200" inputmode="url"></label></p>
+			<p><label>{{ _("A few words about you or your work") }} <textarea name="about" rows="4" maxlength="1500" style="width:100%"></textarea></label></p>
+			<p><label><input type="checkbox" name="show_publicly" value="1"> {{ _("The library may name me and these details (not the support section below) as a contributor") }}</label></p>
+		</fieldset>
+		<fieldset>
+			<legend>{{ _("Would you like to help?") }}</legend>
+			<p><label><input type="checkbox" name="wants_reviewer" value="1"> {{ _("I would like to review deposits and catalogue records") }}</label></p>
+			<p><label><input type="checkbox" name="wants_proofreader" value="1"> {{ _("I would like to proofread page text") }}</label></p>
+			<p><label>{{ _("Languages, subjects or time you can offer") }} <textarea name="volunteer_note" rows="2" maxlength="600" style="width:100%"></textarea></label></p>
+		</fieldset>
+		<fieldset>
+			<legend>{{ _("Support (private)") }}</legend>
+			<p class="rd-muted">{{ _("Only you and the library's managers see this. It is never shown publicly. Tell us if you are blind, have low vision or any other disability, so we can support you.") }}</p>
+			<p><label>{{ _("Support I may need") }} <select name="access_need"></select></label></p>
+			<p><label>{{ _("What would help (large text, a screen reader, audio, more time)") }} <textarea name="access_note" rows="2" maxlength="600" style="width:100%"></textarea></label></p>
+		</fieldset>
+		<p class="rd-actions"><button class="rd-btn rd-btn--primary" type="submit">{{ _("Save") }}</button></p>
+		<p id="rd-pf-msg" role="status" class="rd-muted"></p>
+	</form>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+(function () {
+	const f = document.getElementById("rd-pf"), msg = document.getElementById("rd-pf-msg");
+	const T = {{ {"saved": _("Saved. Thank you."), "failed": _("Could not save. Try again."), "none": _("No answer")} | tojson }};
+	const call = (m, args) => fetch("/api/method/" + m, {
+		method: "POST", credentials: "same-origin",
+		headers: {"Content-Type": "application/json", "X-Frappe-CSRF-Token": window.csrf_token},
+		body: JSON.stringify(args || {})
+	}).then((r) => r.json());
+	call("sok_resdesk.profile.mine").then((r) => {
+		const m = r.message || {}, p = m.profile || {};
+		const sel = f.elements.access_need;
+		(m.access_options || [""]).forEach((o) => sel.add(new Option(o || T.none, o)));
+		Object.keys(p).forEach((k) => {
+			const el = f.elements[k];
+			if (!el || p[k] == null) return;
+			if (el.type === "checkbox") el.checked = !!p[k];
+			else if (el.length && el[0] && el[0].type === "radio") [...el].forEach((x) => (x.checked = x.value === p[k]));
+			else el.value = p[k];
+		});
+	});
+	f.addEventListener("submit", (e) => {
+		e.preventDefault();
+		const d = {};
+		["organisation", "role_title", "country", "website", "about", "volunteer_note", "access_need", "access_note"].forEach((k) => (d[k] = f.elements[k].value));
+		["show_publicly", "wants_reviewer", "wants_proofreader"].forEach((k) => (d[k] = f.elements[k].checked ? 1 : 0));
+		d.kind = [...f.elements.kind].find((x) => x.checked).value;
+		call("sok_resdesk.profile.save", d).then((r) => { msg.textContent = r.message && r.message.saved ? T.saved : T.failed; }).catch(() => (msg.textContent = T.failed));
+	});
+})();
+</script>
+{% endblock %}
