@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.71.6 (2026-11-07): Checks that run for you
+
+- `CLAUDE.md` with the project's rules; a push guard and a format hook for Claude Code (`.claude/`); `/release` and `/docs-page` skills; `scripts/prepush.sh`; an optional pre-commit configuration.
+- Browser tests (`sok_resdesk/tests/ui`, `scripts/ui-tests.sh`, a CI job): About me, typing in your own language and the proofreading language picker, in Chromium, with axe-core.
+
 ## 0.71.5 (2026-11-07): Background Jobs says what each worker is doing
 
 - A line above the parts list on Background Jobs → Machine: how many workers are busy, what each is doing, for how long, and how many wait for work. One busy worker and seven waiting is normal while a single job (sending page text, scoring) runs; the docs say so.

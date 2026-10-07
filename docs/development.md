@@ -196,6 +196,20 @@ a batch, `source_pages` for the text when the cache lacks it), the `is_repositor
 Good next candidates: Wikisource, Digital Library of India mirrors, and local uploads (PDF +
 OCR).
 
+## Automations (checks that run for you)
+
+| What | Where | Does |
+|---|---|---|
+| `scripts/prepush.sh` | run by hand, by the push guard, by `/release` | ruff check, ruff format --check, `test_docs`, `bash -n`; lists the documentation files that differ from `origin/main` so none changes unasked (`--full` adds `pytest -q`) |
+| Push guard | `.claude/hooks/guard.py` (Claude Code) | blocks force pushes, pushes to anything but `main`, tags, two releases in one push, commits with Claude trailers; runs `prepush.sh` on the exact commit |
+| Format hook | `.claude/hooks/format.sh` | `ruff format` on each Python file Claude edits (Python only; no documentation is touched) |
+| `/release` skill | `.claude/skills/release` | pushes the next waiting version once the last one is tagged and green |
+| `/docs-page` skill | `.claude/skills/docs-page` | adds one help page and its registrations; lists the files first and changes no other documentation |
+| Browser tests | `sok_resdesk/tests/ui`, `scripts/ui-tests.sh`, the CI job *Browser tests* | the About me page, typing in your own language and the proofreading language picker, in Chromium with axe-core |
+| pre-commit | `.pre-commit-config.yaml` | the same checks before a commit and a push (optional) |
+
+The rules these enforce are in `CLAUDE.md`.
+
 ## Keeping the docs current
 
 The documentation is part of the product: the same `docs/*.md` files are the Help inside the

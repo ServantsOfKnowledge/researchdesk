@@ -30,6 +30,22 @@ jobs:
         run: pytest -q sok_resdesk/tests/test_docs.py
       - run: bash -n install.sh resdesk.sh upgrade.sh scripts/*.sh docker/create-site.sh
 
+  ui-tests:
+    name: Browser tests (portal pages, typing, proofreading; axe-core)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: pip install pytest playwright jinja2
+      - run: playwright install --with-deps chromium
+      - name: "Pages in a real browser, behaviour and WCAG 2.2 A/AA (scripts/ui-tests.sh)"
+        run: scripts/ui-tests.sh
+
   docker-install:
     name: Docker install + integration tests
     runs-on: ubuntu-latest

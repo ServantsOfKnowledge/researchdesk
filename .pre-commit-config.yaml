@@ -1,0 +1,26 @@
+# Optional: pip install pre-commit && pre-commit install --hook-type pre-commit --hook-type pre-push
+# The same checks CI runs first, before the commit and before the push (nothing is fetched: local hooks).
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: ruff check
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: ruff format
+        language: system
+        types: [python]
+      - id: shell-syntax
+        name: shell scripts parse (bash -n)
+        entry: bash -n
+        language: system
+        files: \.sh$
+      - id: docs-match-code
+        name: docs match the code (test_docs)
+        entry: python3 -m pytest -q sok_resdesk/tests/test_docs.py
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
