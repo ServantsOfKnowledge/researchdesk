@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.74.3 (2026-10-12): Accessibility check tolerates a slow archive.org
+
+- **Checks:** the CI accessibility check waited for the network to go idle on every page, and the book page (which embeds archive.org's reader) timed out when archive.org was slow. It now loads each page, waits up to eight seconds for the network to settle, and checks the page either way.
+
 ## 0.74.2 (2026-10-12): Slow page images are announced
 
 - **Page & text:** when a page image takes more than five seconds to arrive from archive.org, the reader now says so and that the text is already there, instead of looking broken. The message goes when the image arrives or fails.

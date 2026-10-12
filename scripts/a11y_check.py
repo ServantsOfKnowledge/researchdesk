@@ -65,6 +65,16 @@ def first_book(base: str) -> str | None:
 	return None
 
 
+def visit(page, url: str) -> None:
+	"""Open a page and let it settle. The book page embeds archive.org's reader and page images, so the
+	network may never go idle when archive.org is slow: that is not an accessibility fault."""
+	page.goto(url, wait_until="load")
+	try:
+		page.wait_for_load_state("networkidle", timeout=8000)
+	except Exception:  # shortcut: slow outside embeds are ignored, not reported; see the reader's own notice
+		pass
+
+
 def run_axe(page, axe: str, include: str | None) -> list[dict]:
 	page.add_script_tag(content=axe)
 	return page.evaluate(
@@ -104,7 +114,7 @@ def main() -> int:
 			ctx = browser.new_context(viewport={"width": width, "height": 900})
 			page = ctx.new_page()
 			for name, path, include in pages:
-				page.goto(base + path, wait_until="networkidle")
+				visit(page, base + path)
 				found = run_axe(page, axe, include)
 				report.append({"page": name, "path": path, "width": width, "violations": found})
 			ctx.close()
@@ -116,7 +126,7 @@ def main() -> int:
 				"(m) => localStorage.setItem('rd-reading', JSON.stringify({ colours: m, size: 'xl', spacing: 'wide' }))",
 				mode,
 			)
-			page.goto(base + path, wait_until="networkidle")
+			visit(page, base + path)
 			found = run_axe(page, axe, None)
 			report.append({"page": f"Colours: {mode}", "path": path, "width": 1280, "violations": found})
 		ctx.close()
@@ -132,9 +142,7 @@ def main() -> int:
 				print("Could not log in to check the Desk pages", file=sys.stderr)
 				failed = True
 			if book:  # Page & text is for logged-in members: checked as one
-				# page images come from archive.org, so the network may never go idle: load, then settle
-				page.goto(base + f"/library/item/{book}?view=text", wait_until="load")
-				page.wait_for_timeout(3000)
+				visit(page, base + f"/library/item/{book}?view=text")
 				found = run_axe(page, axe, None)
 				report.append(
 					{
@@ -144,7 +152,7 @@ def main() -> int:
 						"violations": found,
 					}
 				)
-			page.goto(base + "/library/profile", wait_until="networkidle")  # About me, for members
+			visit(page, base + "/library/profile")  # About me, for members
 			page.wait_for_function("document.getElementById('rd-pf').getAttribute('aria-busy') === 'false'")
 			report.append(
 				{
@@ -155,7 +163,7 @@ def main() -> int:
 				}
 			)
 			for name, path, include in desk:
-				page.goto(base + path, wait_until="networkidle")
+				visit(page, base + path)
 				page.wait_for_selector(include, timeout=20000)
 				page.wait_for_timeout(800)  # the page fills itself in
 				found = run_axe(page, axe, include)
