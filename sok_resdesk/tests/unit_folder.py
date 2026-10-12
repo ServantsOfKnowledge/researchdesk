@@ -188,3 +188,34 @@ def test_http_store_manifest(http_library):
 	store.session.trust_env = False
 	assert list(store.iter_items()) == [("a0001", "a0001"), ("b0002", "2026/sep/b0002")]
 	assert store.page_texts("b0002", "2026/sep/b0002")[1] == "hocr.html"
+
+
+def test_http_store_does_not_follow_a_redirect_to_a_private_address():
+	class Redirecting:
+		headers: dict = {}
+
+		def get(self, url, **kwargs):
+			r = type("R", (), {})()
+			r.status_code, r.headers, r.close = (
+				302,
+				{"Location": "http://169.254.169.254/latest/"},
+				lambda: None,
+			)
+			return r
+
+	store = HttpStore("https://files.example/", session=Redirecting())
+	with pytest.raises(StoreError, match="private network"):
+		store._get("https://files.example/a0001/")
+
+
+def test_http_store_head_requests_do_not_follow_a_redirect_to_a_private_address():
+	class Redirecting:
+		headers: dict = {}
+
+		def head(self, url, **kwargs):
+			r = type("R", (), {})()
+			r.status_code, r.headers, r.close = 302, {"Location": "http://169.254.169.254/"}, lambda: None
+			return r
+
+	store = HttpStore("https://files.example/", session=Redirecting())
+	assert store._exists("a0001", "a0001_meta.xml") is False

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.74.4 (2026-10-12): Audit fixes: failed emails sent again, lighter contributors list, safer folder source
+
+- **Email:** the watchdog puts failed emails of the last twelve hours back in the queue (after half an hour, twenty per run), so a mail outage no longer leaves people without their link. Older ones stay failed: **Send a new link** is better than a stale one.
+- **Contributors:** the list is kept for ten minutes and shows at most 500 people, so the page and the sitemap no longer query the database on every request.
+- **Folder source over HTTP:** redirects (also on the existence and signature checks) are checked, so a folder host cannot send the server to a private address.
+- **Checks:** a browser test covers the slow page image notice; the accessibility check's tolerance of a slow archive.org says when to revisit it.
+
 ## 0.74.3 (2026-10-12): Accessibility check tolerates a slow archive.org
 
 - **Checks:** the CI accessibility check waited for the network to go idle on every page, and the book page (which embeds archive.org's reader) timed out when archive.org was slow. It now loads each page, waits up to eight seconds for the network to settle, and checks the page either way.

@@ -45,12 +45,12 @@ def check(url: str, trusted_hosts: tuple[str, ...] = (), resolve=socket.getaddri
 	return url
 
 
-def get(session, url: str, trusted_hosts: tuple[str, ...] = (), **kwargs):
-	"""session.get, following redirects by hand so each hop is checked."""
+def get(session, url: str, trusted_hosts: tuple[str, ...] = (), method: str = "get", **kwargs):
+	"""session.get (or .head), following redirects by hand so each hop is checked."""
 	kwargs.pop("allow_redirects", None)
 	for _hop in range(MAX_REDIRECTS + 1):
 		check(url, trusted_hosts)
-		resp = session.get(url, allow_redirects=False, **kwargs)
+		resp = getattr(session, method)(url, allow_redirects=False, **kwargs)
 		if resp.status_code in (301, 302, 303, 307, 308) and resp.headers.get("Location"):
 			url = urljoin(url, resp.headers["Location"])
 			resp.close()

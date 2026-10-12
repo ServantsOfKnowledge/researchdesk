@@ -110,7 +110,7 @@ Any server that exposes the item folders works:
 
 Readers never talk to the book server directly: PDFs and covers are streamed through Research
 Desk, so the server can stay on a private network (it only has to be reachable from the
-Research Desk machine).
+Research Desk machine). A redirect from the book server to any other private address is refused.
 
 ## Loose PDFs and scans without text
 

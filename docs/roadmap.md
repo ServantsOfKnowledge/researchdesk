@@ -157,7 +157,7 @@
 - [x] Typing in your own language (jquery.ime) in search and proofreading; proofreading picks languages by code, not a long list (0.71)
 - [x] **Self-healing** for the page-text sender and OCR scoring: a watchdog clears the record of a job whose worker stopped and queues it again, and logs each repair (0.72)
 - [x] Self-healing for the other Research Desk jobs: a dead job's record is cleared and logged (0.74)
-- [ ] Re-sending failed emails by itself: Frappe retries three times and the Server page shows what is waiting or failed; a stale sign-in link is better replaced with **Send a new link** than re-sent
+- [x] Re-sending failed emails by itself: the watchdog puts failed emails of the last twelve hours back in the queue; older ones stay failed, because a stale sign-in link is better replaced with **Send a new link** (0.74)
 - [x] A public contributors page (/library/contributors) for people who chose to be named in About me (0.74)
 
 ## v1.0: library-grade

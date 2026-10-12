@@ -96,7 +96,32 @@ def run() -> list[str]:
 		except Exception:
 			frappe.log_error(title=f"Research Desk watchdog: could not check {what}")
 	repaired += sweep()
+	repaired += retry_mail()
 	return repaired
+
+
+def retry_mail() -> list[str]:
+	"""Failed sign-in and sign-up emails, recent and left alone for a while, go back in the queue so they
+	leave once the mail account works again. Older ones stay failed: their link has aged, and Server →
+	Send a new link is better than an old one. Frappe's own three tries happen inside each attempt."""
+	created_after, idle_before = core.mail_window(now_datetime())
+	try:
+		names = frappe.db.sql_list(
+			"select name from `tabEmail Queue` where status = 'Error' and creation > %s and modified < %s"
+			" limit %s",
+			(created_after, idle_before, core.MAIL_BATCH),
+		)
+		if not names:
+			return []
+		frappe.db.sql(
+			"update `tabEmail Queue` set status = 'Not Sent', error = null where name in %s", (names,)
+		)
+		note = f"Email: {len(names)} failed email(s) put back in the queue to be sent again"
+		_write(note)
+		return [note]
+	except Exception:
+		frappe.log_error(title="Research Desk watchdog: could not retry failed emails")
+		return []
 
 
 def _record_ids() -> list[str]:

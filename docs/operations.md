@@ -623,8 +623,10 @@ jobs: when work is waiting and the record is held by no queue and no worker on t
 clears the record and queues the job again. It does nothing while background work is paused or
 stopped. Any other Research Desk job (a fixity audit, a review scan, one book's re-OCR) whose record is
 held by no queue and no worker on two checks has its record cleared too, so its next scheduled run or
-button press starts instead of doing nothing; it is not queued by the watchdog. The latest repairs
-show on **Background Jobs → Machine** under the workers line.
+button press starts instead of doing nothing; it is not queued by the watchdog. Failed emails from the
+last twelve hours, left alone for half an hour, are put back in the queue so they
+leave once the mail account works again; older ones stay failed (use **Send a new link**). The latest
+repairs show on **Background Jobs → Machine** under the workers line.
 
 ### The search queue
 

@@ -20,6 +20,7 @@ import argparse
 import json
 import sys
 import urllib.request
+from contextlib import suppress
 
 TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]
 FAIL_ON = {"serious", "critical"}
@@ -69,10 +70,9 @@ def visit(page, url: str) -> None:
 	"""Open a page and let it settle. The book page embeds archive.org's reader and page images, so the
 	network may never go idle when archive.org is slow: that is not an accessibility fault."""
 	page.goto(url, wait_until="load")
-	try:
+	# shortcut: a slow settle is ignored, not reported; make it a warning if CI hits it often
+	with suppress(Exception):
 		page.wait_for_load_state("networkidle", timeout=8000)
-	except Exception:  # shortcut: slow outside embeds are ignored, not reported; see the reader's own notice
-		pass
 
 
 def run_axe(page, axe: str, include: str | None) -> list[dict]:

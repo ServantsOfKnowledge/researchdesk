@@ -132,17 +132,28 @@ def _tell_managers(doc) -> None:
 			frappe.log_error("Research Desk: volunteer notice")
 
 
+CONTRIBUTORS_KEY = "resdesk:contributors"
+CONTRIBUTORS_MAX = 500  # shortcut: the first 500 by name are listed, add paging if a library has more
+
+
 def contributors() -> list[dict]:
-	"""The people who ticked "the library may name me": name and the details they agreed to show."""
+	"""The people who ticked "the library may name me": name and the details they agreed to show.
+	Kept ten minutes: the page and the sitemap are public and a crawler asks often."""
+	cached = frappe.cache.get_value(CONTRIBUTORS_KEY)
+	if cached is not None:
+		return cached
 	from sok_resdesk.core.contributors import public_row
 
 	rows = frappe.db.sql(
 		"""select p.full_name, p.kind, p.organisation, p.role_title, p.country, p.website, p.about
 		from `tabRD Reader Profile` p join `tabUser` u on u.name = p.user
-		where p.show_publicly = 1 and u.enabled = 1 order by p.full_name""",
+		where p.show_publicly = 1 and u.enabled = 1 order by p.full_name limit %s""",
+		(CONTRIBUTORS_MAX,),
 		as_dict=True,
 	)
-	return [r for r in (public_row(row) for row in rows) if r]
+	people = [r for r in (public_row(row) for row in rows) if r]
+	frappe.cache.set_value(CONTRIBUTORS_KEY, people, expires_in_sec=600)
+	return people
 
 
 @frappe.whitelist()

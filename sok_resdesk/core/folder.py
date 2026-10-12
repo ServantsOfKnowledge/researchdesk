@@ -43,7 +43,7 @@ from urllib.parse import quote, unquote, urljoin, urlparse
 
 import requests
 
-from sok_resdesk.core import leafimages, scandata
+from sok_resdesk.core import leafimages, netguard, scandata
 from sok_resdesk.core import media as mediafiles
 from sok_resdesk.core import photo as photofiles
 
@@ -598,11 +598,15 @@ class HttpStore(ItemStore):
 	def _get(self, url: str) -> requests.Response:
 		for attempt in range(3):
 			try:
-				resp = self.session.get(url, timeout=self.timeout)
+				resp = netguard.get(
+					self.session, url, (urlparse(self.base).hostname or "",), timeout=self.timeout
+				)
 				if resp.status_code in (429, 502, 503, 504):
 					time.sleep(2**attempt)
 					continue
 				return resp
+			except netguard.Blocked as exc:  # a redirect to a private address: not retried
+				raise StoreError(f"{url}: {exc}") from exc
 			except requests.RequestException as exc:
 				if attempt == 2:
 					raise StoreError(f"{url}: {exc}") from exc
@@ -696,11 +700,15 @@ class HttpStore(ItemStore):
 			self._listing[loc] = files
 		return self._listing[loc]
 
+	def _head(self, url: str) -> requests.Response:
+		return netguard.get(
+			self.session, url, (urlparse(self.base).hostname or "",), "head", timeout=self.timeout
+		)
+
 	def _exists(self, loc: str, name: str) -> bool:
 		try:
-			resp = self.session.head(self._url(loc, name), timeout=self.timeout, allow_redirects=True)
-			return resp.status_code == 200
-		except requests.RequestException:
+			return self._head(self._url(loc, name)).status_code == 200
+		except (requests.RequestException, netguard.Blocked):
 			return False
 
 	def read(self, loc: str, name: str) -> bytes | None:
@@ -715,11 +723,11 @@ class HttpStore(ItemStore):
 		for name in self.list_files(loc):
 			if name.endswith((META_SUFFIX, ".gz", ".html", ".xml", ".txt")):
 				try:
-					resp = self.session.head(self._url(loc, name), timeout=self.timeout, allow_redirects=True)
+					resp = self._head(self._url(loc, name))
 					parts.append(
 						f"{name}:{resp.headers.get('Content-Length', '')}:{resp.headers.get('Last-Modified', resp.headers.get('ETag', ''))}"
 					)
-				except requests.RequestException:
+				except (requests.RequestException, netguard.Blocked):
 					parts.append(name)
 		return hashlib.sha1("|".join(parts).encode()).hexdigest()[:16]
 
