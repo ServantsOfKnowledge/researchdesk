@@ -317,19 +317,22 @@ def forget_job(job_id: str) -> int:
 	full = create_job_id(job_id)
 	conn = get_redis_conn()
 	gone = 0
-	for key in list(conn.scan_iter(match=f"rq:*{full}*")):
-		gone += conn.delete(key)
-	for kind in ("wip", "started", "finished", "failed", "deferred", "scheduled", "canceled"):
-		for key in list(conn.scan_iter(match=f"rq:{kind}:*")):
-			try:
-				conn.zrem(key, full)
-			except Exception:
-				pass  # not a sorted set: not a registry
-	for key in list(conn.scan_iter(match="rq:queue:*")):
+	registries = tuple(
+		f"rq:{k}:" for k in ("wip", "started", "finished", "failed", "deferred", "scheduled", "canceled")
+	)
+	# one pass over the keys (each SCAN walks them all): the record, then its place in the registries
+	# and in the queues
+	for raw in list(conn.scan_iter(match="rq:*", count=1000)):
+		key = raw.decode() if isinstance(raw, bytes) else raw
 		try:
-			conn.lrem(key, 0, full)
+			if full in key:
+				gone += conn.delete(raw)
+			elif key.startswith(registries):
+				conn.zrem(raw, full)
+			elif key.startswith("rq:queue:"):
+				conn.lrem(raw, 0, full)
 		except Exception:
-			pass
+			pass  # not the kind of key it looked like
 	return gone
 
 

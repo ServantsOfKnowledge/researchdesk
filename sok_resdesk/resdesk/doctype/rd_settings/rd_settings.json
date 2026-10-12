@@ -183,8 +183,6 @@
   "backup_with_files",
   "backup_keep",
   "column_break_server",
-  "alert_email",
-  "alert_emails",
   "alert_webhook_url",
   "alert_disk_percent"
  ],
@@ -1419,21 +1417,6 @@
   {
    "fieldname": "column_break_server",
    "fieldtype": "Column Break",
-   "permlevel": 1
-  },
-  {
-   "fieldname": "alert_email",
-   "fieldtype": "Check",
-   "label": "Email Alerts to Managers",
-   "default": "1",
-   "description": "When a part stops working, the disk is nearly full, a backup or upgrade fails, or a new release is out. Needs an outgoing email account (Desk → Email Account). Alerts always appear in the Desk's notifications too.",
-   "permlevel": 1
-  },
-  {
-   "fieldname": "alert_emails",
-   "fieldtype": "Small Text",
-   "label": "Also Email",
-   "description": "More addresses for alerts, separated by commas.",
    "permlevel": 1
   },
   {

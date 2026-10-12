@@ -524,6 +524,12 @@ class ResDeskJobs {
 					W.busy.length ? ": " + W.busy.map((b) => `${esc(b.what)}${b.minutes ? ` (${__("{0} min", [b.minutes])})` : ""}`).join(" · ") : ""
 				}${W.idle ? ` · ${__("{0} waiting for work", [W.idle])}` : ""}</p>`
 			: "";
+		// the watchdog's latest repairs: a job whose worker stopped, cleared and queued again
+		const fixes = (m.repairs || []).length
+			? `<p class="small text-muted" style="margin:4px 0">${__("Repaired by itself")}: ${m.repairs
+					.map((r) => `${esc(r.at)} ${esc(r.what)}`)
+					.join(" · ")}</p>`
+			: "";
 		const preset = L.preset || (m.native ? "" : "standard");
 		const P = m.priority || {};
 		const started = L.worker_nice != null && L.worker_nice !== "" ? L.worker_nice : null;
@@ -554,7 +560,7 @@ class ResDeskJobs {
 							: __("Quiet hours are off.")
 					} <a href="/app/rd-settings">${__("Settings → Machine Resources")}</a></p>
 				</div>
-				<div>${limits}${doing}${rows}</div>
+				<div>${limits}${doing}${fixes}${rows}</div>
 			</div>`;
 
 		const schedules = d.schedules.length

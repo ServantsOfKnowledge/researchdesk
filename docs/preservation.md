@@ -94,8 +94,7 @@ identifier) and check it.
 A check reads every file of the copy and compares it with the inventory: a file changed (bit
 rot, a disk fault, tampering), missing, or not listed is a **failure**. The book is marked
 *Failed check*, the failure is recorded with what was wrong, and the Server page shows
-*Preservation copies* in red and sends an alert (by Desk notification, email or webhook, as set
-in Settings → Server & Updates).
+*Preservation copies* in red and sends an alert (a Desk notification and, if set in Settings → Server & Updates, a webhook).
 
 ### Preservation events
 

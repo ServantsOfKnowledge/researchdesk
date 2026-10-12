@@ -1038,7 +1038,7 @@ def _managers() -> list[str]:
 
 
 def send_alert(key: str, severity: str, message: str, link: str = "") -> None:
-	"""Tell managers: a Desk notification, email (if outgoing email is set up) and a webhook."""
+	"""Tell managers: a Desk notification and a webhook. Never an email: email is for sign-in messages only."""
 	s = _settings()
 	title = frappe.db.get_single_value("RD Settings", "portal_title") or "Research Desk"
 	subject = f"[{title}] {message}"[:140]
@@ -1056,21 +1056,6 @@ def send_alert(key: str, severity: str, message: str, link: str = "") -> None:
 			).insert(ignore_permissions=True)
 		except Exception:
 			frappe.log_error(title="Research Desk: could not add a Desk alert")
-	if cint(s.get("alert_email") if s.get("alert_email") is not None else 1):
-		recipients = set(_managers()) - {"Administrator"}
-		recipients |= {
-			e.strip() for e in (s.get("alert_emails") or "").replace("\n", ",").split(",") if "@" in e
-		}
-		if recipients and frappe.db.exists("Email Account", {"enable_outgoing": 1}):
-			try:
-				url = frappe.utils.get_url(link or "/app/resdesk-server")
-				frappe.sendmail(
-					recipients=sorted(recipients),
-					subject=subject,
-					message=f"<p>{frappe.utils.escape_html(message)}</p><p><a href='{url}'>{url}</a></p>",
-				)
-			except Exception:
-				frappe.log_error(title="Research Desk: could not email an alert")
 	url = (s.get("alert_webhook_url") or "").strip()
 	if url.startswith(("http://", "https://")):
 		try:
@@ -1121,7 +1106,7 @@ def watch() -> None:
 def test_alert() -> dict:
 	frappe.only_for(MANAGERS)
 	send_alert("test", "info", _("This is a test alert from the Server page."), link="/app/resdesk-server")
-	return {"message": _("Test alert sent to the Desk, email (if set up) and the webhook (if set).")}
+	return {"message": _("Test alert sent to the Desk and the webhook (if set).")}
 
 
 @frappe.whitelist(allow_guest=True)
@@ -1205,14 +1190,22 @@ def status() -> dict:
 			limit=12,
 		),
 		"alerts": {
-			"email": cint(s.get("alert_email") if s.get("alert_email") is not None else 1),
-			"email_ready": bool(frappe.db.exists("Email Account", {"enable_outgoing": 1})),
 			"webhook": bool((s.get("alert_webhook_url") or "").strip()),
 		},
 		"is_admin": _is_admin(),
+		"clock": _clock(),
 		"resource_preset": s.get("resource_preset") or "",
 		"capacity": _capacity(),
 	}
+
+
+def _clock() -> dict | None:
+	try:
+		from sok_resdesk import clock
+
+		return clock.status()
+	except Exception:
+		return None
 
 
 def _capacity() -> dict:

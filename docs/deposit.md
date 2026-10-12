@@ -38,16 +38,16 @@ withdrawn; after *Ask for changes* it can be changed and submitted again.
 
 ## Reviewing
 
-Reviewers (managers and cataloguers) are mailed when a deposit is submitted. In the Desk:
+Reviewers (managers and cataloguers) get a Desk notification when a deposit is submitted (no email). In the Desk:
 Research Desk → **Deposits**, open one with status *Submitted*. The *Checks made on submission*
 box says if a file is the same as one already deposited, or the catalogue already has a book with
 that title. Then **Review**:
 
 - **Accept**: the work is written to the deposit folder as a book, catalogued (a PDF's text read,
-  or OCR for a scan), listed in the collection chosen, and mailed to the depositor. Its details are
+  or OCR for a scan), listed in the collection chosen, and shown as accepted on the depositor's Deposit page. Its details are
   locked so a later ingest never undoes the reviewed record, and the book notes who deposited and
   who accepted it.
-- **Ask for Changes** / **Reject**: a note is required and goes to the depositor by mail.
+- **Ask for Changes** / **Reject**: a note is required and is shown to the depositor on their Deposit page.
 
 Nobody reviews their own deposit (only a System Manager can, so a one-person library can still
 use it).

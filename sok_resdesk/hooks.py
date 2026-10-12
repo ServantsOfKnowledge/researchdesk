@@ -149,6 +149,8 @@ scheduler_events = {
 			"sok_resdesk.server.watch",
 			# page text that waited (Books first, Hold page text) goes when the engine has room
 			"sok_resdesk.search_queue.every_ten_minutes",
+			# jobs whose worker stopped are cleared and queued again (Background Jobs → Machine)
+			"sok_resdesk.watchdog.run",
 		],
 		# automatic backups, at night (server time zone)
 		"30 2 * * *": ["sok_resdesk.server.scheduled_backup"],

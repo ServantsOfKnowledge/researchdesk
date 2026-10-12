@@ -163,6 +163,7 @@ PAGES = [
 		"staff",
 		"For administrators",
 	),
+	Page("test-accounts", "test-accounts.md", "Testing with test accounts", "staff", "For administrators"),
 	Page(
 		"preservation",
 		"preservation.md",

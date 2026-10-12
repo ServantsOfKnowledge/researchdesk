@@ -929,6 +929,62 @@ class TestOcrQuality(OpsTestCase):
 		with mock.patch("sok_resdesk.holding.is_paused", return_value=True):
 			self.assertIn("Pause All", ocr.why_not_running())
 
+	def test_watchdog_repairs_a_dead_job_on_the_second_sighting_only(self):
+		"""A job on record that no queue or worker holds is cleared and queued again, but only once
+		it has been seen dead on two checks, and never while background work is paused."""
+		from sok_resdesk import watchdog
+
+		name = _item(36)
+		frappe.db.set_value("RD Item", name, {"pages_pending": 1})
+		frappe.cache.delete_value(f"resdesk:watchdog-seen:{watchdog._chains()[0][0]}")
+		with (
+			mock.patch("sok_resdesk.watchdog.job_state", return_value="dead"),
+			mock.patch("sok_resdesk.search_queue.forget_job") as forget,
+			mock.patch("sok_resdesk.search_queue._queue_send") as again,
+			mock.patch("sok_resdesk.watchdog._score_waiting", return_value=False),
+		):
+			self.assertEqual(watchdog.run(), [])  # first sighting: wait
+			forget.assert_not_called()
+			self.assertEqual(len(watchdog.run()), 1)  # second: repair
+			forget.assert_called_once()
+			again.assert_called_once()
+			self.assertIn("sending page text", watchdog.last_repairs(1)[0]["what"])
+			with mock.patch("sok_resdesk.holding.is_paused", return_value=True):
+				self.assertEqual(watchdog.run(), [])
+
+	def test_link_life_is_lengthened_once_and_a_chosen_value_is_left_alone(self):
+		"""Frappe's 20 minutes becomes a day; anything an administrator chose stays."""
+		from sok_resdesk import clock
+
+		field = clock.LIFETIME
+		keep = frappe.db.get_single_value("System Settings", field)
+		try:
+			frappe.db.set_single_value("System Settings", field, clock.FRAPPE_DEFAULT)
+			self.assertTrue(clock.lengthen_default())
+			self.assertEqual(int(frappe.db.get_single_value("System Settings", field)), clock.KINDER)
+			frappe.db.set_single_value("System Settings", field, 7200)
+			self.assertFalse(clock.lengthen_default())
+			self.assertEqual(int(frappe.db.get_single_value("System Settings", field)), 7200)
+			self.assertIn("short", clock.status()["advice"])
+		finally:
+			frappe.db.set_single_value("System Settings", field, keep)
+
+	def test_a_new_link_is_made_with_Frappe_own_call(self):
+		"""send_new_link leans on User._reset_password; this fails if a Frappe update renames it."""
+		from sok_resdesk import clock
+
+		email = "rdtest.link@example.org"
+		if not frappe.db.exists("User", email):
+			frappe.get_doc(
+				{"doctype": "User", "email": email, "first_name": "Link", "send_welcome_email": 0}
+			).insert(ignore_permissions=True)
+		frappe.db.set_value("User", email, "reset_password_key", "")
+		with mock.patch("frappe.core.doctype.user.user.User.password_reset_mail") as sent:
+			clock.send_new_link(email)
+		sent.assert_called_once()
+		self.assertTrue(frappe.db.get_value("User", email, "reset_password_key"))
+		self.assertTrue(frappe.db.get_value("User", email, "last_reset_password_key_generated_on"))
+
 	def test_indexing_records_the_quality(self):
 		from sok_resdesk.search import IndexBuffer
 

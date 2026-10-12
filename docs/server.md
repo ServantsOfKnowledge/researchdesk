@@ -9,7 +9,7 @@ look after it without opening a terminal:
   engine, disk space, backups;
 - backups: make one, download one, and when they are made automatically;
 - recent errors, failed jobs and log files;
-- alerts by Desk notification, email and webhook when something goes wrong;
+- alerts by Desk notification and webhook when something goes wrong;
 - with the **updater helper** on: **upgrade**, go back to an earlier release, **restart** a
   part, apply a **resource preset**, and read each part's logs, all from the Desk.
 
@@ -265,8 +265,7 @@ Checks run every 10 minutes. Alerts go to:
 | Where | How |
 |---|---|
 | Desk notifications | always (the bell at the top of the Desk) |
-| Outgoing email | sign-in links, sign-up confirmations, password resets and alerts all need it: **Connections → Outgoing email** sets it up and sends a test (presets for Gmail, Microsoft 365, Zoho, SES, Brevo and Resend: for Resend the login is `resend`, the password is the API key, and the sender must be on a domain verified in Resend) |
-| Email | to every manager, and the *Also Email* addresses, when *Email Alerts to Managers* is on. Needs an outgoing email account: Connections → Outgoing email ([Sign-in email and sign-ups](sign-in-email.md)) |
+| Outgoing email | sign-in links, sign-up confirmations and password resets need it (alerts are never emailed): **Connections → Outgoing email** sets it up and sends a test (presets for Gmail, Microsoft 365, Zoho, SES, Brevo and Resend: for Resend the login is `resend`, the password is the API key, and the sender must be on a domain verified in Resend) |
 | Webhook | *Alert Webhook URL*: a JSON post with the message in `text`, which Slack, Mattermost and Discord (add `/slack` to a Discord webhook address) show as a message. Other fields: `event`, `severity` (`bad`, `ok`, `info`), `message`, `site`, `link`, `at` |
 
 **Send a test alert** (Server page, Alerts) checks all three.

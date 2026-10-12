@@ -242,7 +242,7 @@ def select_items(
 	conditions, values = [], {}
 	if collection:
 		conditions.append("concat('\n', ifnull(collections, ''), '\n') like %(coll)s")
-		values["coll"] = f"%\n{collection.strip()}\n%"
+		values["coll"] = f"%\n{core.like_literal(collection.strip())}\n%"
 	if profile:
 		conditions.append("ingest_profile = %(profile)s")
 		values["profile"] = profile

@@ -4,6 +4,10 @@ Reader sign-up, "set my password" and "forgot password" all send email. A fresh 
 mailbox to send from, so these emails go nowhere until you set one up. This page is for
 administrators and managers.
 
+## What is emailed
+
+Only account messages: the welcome and password-reset links, sign-up confirmations, and the test message you ask for in Connections. Alerts, deposit notices and the like are never emailed; they appear in the Desk's notifications (and a webhook, if you set one).
+
 ## Setting up outgoing email
 
 **Research Desk → Exchange → Connections → People and sign-in → Outgoing email.** Pick your
@@ -40,6 +44,23 @@ The message is the provider's, put into words. Common ones:
 
 If the dialog shows **earlier emails failed**, that is the error from the earlier try. **Forget the
 failed emails** discards them (use it after changing provider); a successful test resends them.
+
+## Links that arrive expired
+
+A link in a welcome or password-reset email lives for a fixed time from the moment the email is
+**made**, not from when it arrives. Frappe's own setting is 20 minutes, so a link expired for anyone
+who read the email late, or whose email waited in the queue because outgoing email was not working.
+Research Desk makes it 24 hours when it is installed or upgraded (unless you had already chosen a
+time), and **Server → Date, time and sign-in links** shows and changes it:
+
+- the **time zone** Frappe keeps every stored time in, with the time now there and in UTC;
+- how long a **mailed link lives**;
+- how many **emails are waiting or failed**, and how long the oldest has waited. Fix outgoing email
+  first if this is not zero ([the test above](#when-the-test-fails)).
+
+If someone's link has already expired, **Send a new link…** makes a fresh one and emails it at once.
+Links sent before stop working. To try all of this with accounts of every kind, see
+[Testing with test accounts](test-accounts.md).
 
 ## Who may sign up
 

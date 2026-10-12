@@ -155,7 +155,8 @@
 - [x] **Gentle upgrades** (Docker): restart only what a release needs, workers one at a time (0.69)
 - [x] Help for readers and administrators on signing in and sign-up email ([Signing in](signing-in.md), [Sign-in email and sign-ups](sign-in-email.md))
 - [x] Typing in your own language (jquery.ime) in search and proofreading; proofreading picks languages by code, not a long list (0.71)
-- [ ] **Self-healing**: a watchdog that clears ghost jobs of dead workers and damaged records, and retries failed emails, with every repair logged
+- [x] **Self-healing** for the page-text sender and OCR scoring: a watchdog clears the record of a job whose worker stopped and queues it again, and logs each repair (0.72)
+- [ ] Self-healing for the other jobs, and retrying failed emails
 - [ ] A public contributors page, for people who chose to be named
 
 ## v1.0: library-grade

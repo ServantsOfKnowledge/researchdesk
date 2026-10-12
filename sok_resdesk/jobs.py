@@ -1118,6 +1118,15 @@ def _workers_doing() -> dict | None:
 		return None
 
 
+def _repairs() -> list[dict]:
+	try:
+		from sok_resdesk import watchdog
+
+		return watchdog.last_repairs(3)
+	except Exception:
+		return []
+
+
 def machine() -> dict:
 	from sok_resdesk import priority
 
@@ -1126,6 +1135,7 @@ def machine() -> dict:
 		"ocr": _ocr_progress(),
 		"indexing": _indexing(),
 		"workers_doing": _workers_doing(),
+		"repairs": _repairs(),
 		"host": _host(),
 		"limits": _limits(),
 		"containers": _containers(),

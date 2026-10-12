@@ -54,6 +54,12 @@ def after_install():
 	create_workspace()
 	set_website_home()
 	set_up_about_page()
+	try:
+		from sok_resdesk import clock
+
+		clock.lengthen_default()  # mailed sign-in links: a day, not Frappe's 20 minutes
+	except Exception:
+		frappe.log_error("Research Desk: could not set the sign-in link life")
 	frappe.db.commit()
 
 

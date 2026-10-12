@@ -118,8 +118,8 @@ version for a person to proofread, and none is ever shared as ground truth.
 ## The Server page
 
 **Server** shows whether every part of Research Desk is working, which version runs and whether
-a newer one is out, the backups, recent errors and logs. Managers get an alert (in the Desk, by
-email or a webhook) when something stops working. With the updater helper turned on, a System
+a newer one is out, the backups, recent errors and logs. Managers get an alert (in the Desk, or by
+a webhook) when something stops working. With the updater helper turned on, a System
 Manager can also upgrade, restart and apply resource presets from here.
 
 ![The Server page](../sok_resdesk/public/images/guide/desk-server.png)

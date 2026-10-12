@@ -458,6 +458,32 @@ def add_reader_cmd(context, email, full_name, no_email):
 		frappe.destroy()
 
 
+@resdesk.command("test-accounts")
+@click.option(
+	"--password", default="", help="One password for all of them (else a new one is made and shown once)"
+)
+@click.option("--remove", is_flag=True, help="Delete the test accounts")
+@pass_context
+def test_accounts_cmd(context, password, remove):
+	"""Create one test account for every kind of person (docs/test-accounts.md), or remove them."""
+	frappe = _connect(context)
+	try:
+		frappe.set_user("Administrator")
+		from sok_resdesk import testaccounts
+
+		if remove:
+			click.echo(f"Removed {testaccounts.remove()} test accounts.")
+		else:
+			made = testaccounts.create(password or None)
+			click.echo("Test accounts (no email was sent). Password for all:")
+			click.echo(f"  {made['password']}")
+			for email in made["accounts"]:
+				click.echo(f"  {email}")
+		frappe.db.commit()
+	finally:
+		frappe.destroy()
+
+
 @resdesk.command("jobs")
 @click.option("--stop", "stop_run", help="Stop this ingest run (e.g. RUN-00042)")
 @click.option(

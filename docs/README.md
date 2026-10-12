@@ -27,6 +27,7 @@ The same pages are inside the app: **Help** on the portal (for readers) and **He
 5. [Citations & reading lists](citations.md): formats, Zotero, sharing a bibliography
 6. [Who can see what](access.md): members-only books, public catalogue or internal library, reader sign-up and approval, bulk changes
 - [Sign-in email and sign-ups](sign-in-email.md): set up outgoing email (Resend, Gmail and others), test it, fix errors, sign-up choices, finding who tried to sign up, volunteers
+- [Testing with test accounts](test-accounts.md): one account for every kind of person, what to try as each, and checking sign-in links and the clock
 7. [Collections, metadata & pushing](collections-and-metadata.md): curated collections, editing details, exports (spreadsheet, MARCXML, MODS, Dublin Core, JSON-LD, IA), spreadsheet imports, pushing to Internet Archive, Koha, Wikidata or a webhook
    - [Permanent links, preservation & OCR quality](preservation.md): ARKs for every book and page, tombstones, the library's own checked copies (OCFL), a second copy (folder or S3) with automatic repair, serving books from our copy, BagIt exports, preservation events, OCR quality scores
 8. [Koha & interoperability](koha.md): OAI-PMH harvesting, MARCXML import, standalone mode

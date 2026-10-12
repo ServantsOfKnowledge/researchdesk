@@ -70,7 +70,6 @@ class ServerTestCase(IntegrationTestCase):
 		for f in (
 			"allow_desk_upgrades",
 			"alert_webhook_url",
-			"alert_email",
 			"book_limit",
 			"book_limit_number",
 		):
@@ -243,9 +242,7 @@ class TestHealthAndAlerts(ServerTestCase):
 		self.assertEqual([a[1] for a in self.alerts], ["bad", "ok"])
 
 	def test_alert_channels(self):
-		frappe.db.set_single_value(
-			"RD Settings", {"alert_webhook_url": "https://hooks.example.org/x", "alert_email": 0}
-		)
+		frappe.db.set_single_value("RD Settings", {"alert_webhook_url": "https://hooks.example.org/x"})
 		before = frappe.db.count("Notification Log", {"subject": ("like", "%test alert%")})
 		with mock.patch("requests.post") as post:
 			self.real_send_alert("test", "info", "This is a test alert")

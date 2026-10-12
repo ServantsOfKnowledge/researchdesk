@@ -33,6 +33,11 @@ SIGNUP_MODES = (SIGNUP_CLOSED, SIGNUP_OPEN, SIGNUP_APPROVE)
 RULE_FIELDS = ("Collection", "Subject", "Language", "Creator", "Source", "Ingest Profile")
 
 
+def like_literal(text: str) -> str:
+	"""Text for a SQL `like` pattern that must match itself: `%`, `_` and `\\` are not wildcards."""
+	return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
 def normalise(visibility: str | None) -> str:
 	"""Unknown or empty values count as Public (records indexed before access control existed)."""
 	return visibility if visibility in VISIBILITIES else PUBLIC

@@ -558,8 +558,6 @@ Every setting:
 | Automatic Backups | Back up the database every night (Weekly: on Sunday night). Backups are kept on the server; download them from the Server page and keep copies elsewhere. Choices: *Off*, *Daily*, *Weekly*. |
 | Include Uploaded Files | Also back up uploaded files (logos, pictures, attachments). Books themselves are never in backups: they stay on archive.org or in your folders. |
 | Backups to Keep | Older backups are deleted after each new one. |
-| Email Alerts to Managers | When a part stops working, the disk is nearly full, a backup or upgrade fails, or a new release is out. Needs an outgoing email account (Desk → Email Account). Alerts always appear in the Desk's notifications too. |
-| Also Email | More addresses for alerts, separated by commas. |
 | Alert Webhook URL | Also post alerts as JSON to this address, for example a Slack, Mattermost or Discord incoming webhook (the text is in "text"). |
 | Alert When Disk Is This Full (%) | Warn when the disk holding Research Desk's data is this full. |
 <!-- /generated:settings -->
@@ -615,6 +613,15 @@ page text to the search engine (42 min) · 7 waiting for work*. Workers all take
 as many are busy as there are jobs in the queue. A big ingest or a bulk re-OCR is cut into batches
 and keeps every worker busy; page text sending, scoring OCR quality and one book's re-OCR are single
 jobs, so one busy worker and seven waiting is normal while those run.
+
+### Jobs that repair themselves
+
+Sending page text and scoring OCR quality each run as one job that queues itself again. If the
+worker running one is restarted or killed, its record stays behind and the job could not be queued
+again until someone pressed *Send now* or *Score now*. Every ten minutes a watchdog checks those two
+jobs: when work is waiting and the record is held by no queue and no worker on two checks in a row, it
+clears the record and queues the job again. It does nothing while background work is paused or
+stopped. The latest repairs show on **Background Jobs → Machine** under the workers line.
 
 ### The search queue
 
@@ -780,6 +787,7 @@ The Research Desk commands behind it (`./resdesk.sh <command>` runs `bench --sit
 | `status` | Catalogue and search-engine health. |  |
 | `access` | Who can see what: public, login-to-read or login-to-find (members only). | `VISIBILITY`<br>`--collection` Books in this collection, e.g. ServantsOfKnowledge<br>`--profile` Books ingested by this RD Ingest Profile<br>`--language` Books in this language, e.g. Kannada or kan<br>`--ids` Comma-separated item identifiers<br>`--ids-file` File with one identifier per line<br>`--all` Every book in the catalogue<br>`--apply-rules` Re-apply profiles, rules and the default (Settings → Access)<br>`--include-manual` With --apply-rules: also change books set by hand or in bulk<br>`--guests` What visitors who are not logged in may do<br>`--signup` How people get reader accounts<br>`--default` Visibility for new books when no profile or rule decides |
 | `add-reader` | Create a reader account (or give an existing account the Reader role). | `EMAIL`<br>`--name` Full name<br>`--no-email` Don't send the welcome email (set a password in the Desk instead) |
+| `test-accounts` | Create one test account for every kind of person (docs/test-accounts.md), or remove them. | `--password` One password for all of them (else a new one is made and shown once)<br>`--remove` Delete the test accounts |
 | `jobs` | What is running in the background; pause, resume or stop it. | `--stop` Stop this ingest run (e.g. RUN-00042)<br>`--stop-all` Cancel all runs and queued Research Desk jobs, pause schedules<br>`--now` With --stop/--stop-all: kill running jobs instead of letting them finish the current book<br>`--pause` Pause scheduled ingests<br>`--resume` Resume scheduled ingests<br>`--pause-run` Pause this ingest or push run (it keeps its place)<br>`--resume-run` Resume a paused run<br>`--pause-all` Pause all runs, hold waiting jobs, pause schedules<br>`--resume-all` Undo --pause-all: everything carries on |
 | `resource-preset` | The resource preset chosen in the Desk (read by ./resdesk.sh resources apply). | `--set` Record the preset in use (./resdesk.sh resources does this) |
 | `relink-folders` | Point books and profiles at the book folders' new place (after moving; see docs/moving.md). | `--from` Where the book folders were, e.g. /Users/om/library<br>`--to` Where they are now (default: the library folder) |

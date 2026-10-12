@@ -45,6 +45,8 @@ class ResDeskServer {
 			this.call("delete_backup", { name: $b.data("delete-backup") }, __("Delete this backup? This can't be undone."))
 		);
 		on("[data-apply-preset]", () => this.apply_preset());
+		on("[data-clock]", () => this.clock_dialog());
+		on("[data-new-link]", () => this.new_link_dialog());
 		on("[data-watch]", ($b) => this.watch($b.data("watch")));
 		on("[data-cancel-task]", ($b) => this.call("cancel_task", { name: $b.data("cancel-task") }));
 		on("[data-log-source]", ($b) => this.load_logs($b.data("log-source")));
@@ -125,6 +127,36 @@ class ResDeskServer {
 				},
 			});
 		confirm_text ? frappe.confirm(confirm_text, go) : go();
+	}
+
+	clock_dialog() {
+		const C = (this.data && this.data.clock) || {};
+		const d = new frappe.ui.Dialog({
+			title: __("Time zone and link life"),
+			fields: [
+				{ fieldname: "time_zone", fieldtype: "Data", label: __("Time zone"), default: C.time_zone, description: __("A name such as Asia/Kolkata or Europe/London. Change it only if it is wrong: times already stored are read in the new zone.") },
+				{ fieldname: "lifetime_hours", fieldtype: "Float", label: __("A mailed link lives (hours)"), default: C.lifetime_hours || 24, description: __("From 1 hour to 30 days (720). 24 or more is kind to people who read their email late.") },
+			],
+			primary_action_label: __("Save"),
+			primary_action: (v) => {
+				frappe.call({ method: "sok_resdesk.clock.set_clock", args: { time_zone: v.time_zone === C.time_zone ? "" : v.time_zone, lifetime_hours: v.lifetime_hours }, freeze: true,
+					callback: (r) => { d.hide(); frappe.show_alert({ message: r.message.message, indicator: "green" }); this.refresh(true); } });
+			},
+		});
+		d.show();
+	}
+
+	new_link_dialog() {
+		const d = new frappe.ui.Dialog({
+			title: __("Send a new link"),
+			fields: [{ fieldname: "user", fieldtype: "Data", options: "Email", label: __("Account (email address)"), reqd: 1, description: __("Makes a fresh password link now and emails it. Links already sent stop working.") }],
+			primary_action_label: __("Send"),
+			primary_action: (v) => {
+				frappe.call({ method: "sok_resdesk.clock.send_new_link", args: { user: v.user }, freeze: true,
+					callback: (r) => { d.hide(); frappe.show_alert({ message: r.message.message, indicator: "green" }, 8); this.refresh(true); } });
+			},
+		});
+		d.show();
 	}
 
 	task(action, args, confirm_text) {
@@ -589,11 +621,32 @@ class ResDeskServer {
 			<p class="small">${__("Managers get an alert in the Desk when a part stops working and again when it is fine, when the disk is nearly full, when a backup or upgrade fails, and when a new release is out.")}</p>
 			<ul class="small">
 				<li>${__("Desk notifications")}: ${pill(__("On"), "green")}</li>
-				<li>${__("Email")}: ${a.email ? (a.email_ready ? pill(__("On"), "green") : pill(__("On, but no outgoing email account"), "orange")) : pill(__("Off"), "gray")}</li>
 				<li>${__("Webhook")}: ${a.webhook ? pill(__("On"), "green") : pill(__("Not set"), "gray")}</li>
 			</ul>
 			<a class="small" href="/app/rd-settings">${__("Settings → Server & Updates")}</a> · <a class="small" href="#" onclick="frappe.call({method:'sok_resdesk.server.test_alert',callback:r=>frappe.show_alert({message:r.message.message,indicator:'green'})});return false;">${__("Send a test alert")}</a>
 			<p class="small text-muted" style="margin-top:8px">${__("Uptime monitors can check")} <code>${esc(location.origin)}/api/method/sok_resdesk.server.ping</code> ${__("(answers ok, or 503 when something is wrong).")}</p>`;
+
+		// dates and sign-in links: why a mailed link arrives expired, and a fresh one on demand
+		const C = d.clock;
+		const advice = {
+			short: __("A mailed link lives less than a day. Lengthen it."),
+			mail_late: __("Emails are waiting to be sent: their links are using up their life in the queue. Fix outgoing email (Connections) first."),
+			mail_outlives: __("An email has waited longer than a link lives, so it can only arrive expired. Send that person a new link."),
+			zone_differs: __("The server's own clock zone differs from the zone below. Frappe uses the zone below for everything it stores; the server's logs use theirs."),
+			no_setting: __("This version of Frappe has no link lifetime setting."),
+		};
+		const clock = C
+			? `<table class="table table-sm rds-table small"><tbody>
+				<tr><td>${__("Time zone (System Settings)")}</td><td><b>${esc(C.time_zone)}</b></td></tr>
+				<tr><td>${__("Time now in that zone")}</td><td>${esc(C.now)}</td></tr>
+				<tr><td>${__("Time now, UTC")}</td><td>${esc(C.utc)} <span class="text-muted">(${__("server clock zone")}: ${esc(C.host_zone)})</span></td></tr>
+				<tr><td>${__("A mailed link lives")}</td><td>${C.lifetime_hours == null ? "–" : C.lifetime_hours ? __("{0} hours", [C.lifetime_hours]) : __("no limit set")}</td></tr>
+				<tr><td>${__("Emails waiting or failed")}</td><td>${C.mail_waiting}${C.mail_waiting ? ` (${__("oldest {0} min", [C.mail_wait_minutes])})` : ""}</td></tr></tbody></table>
+				${C.advice.length ? `<div class="rds-note"><ul>${C.advice.map((a) => `<li>${advice[a]}</li>`).join("")}</ul></div>` : `<p class="small">${pill(__("Nothing to fix"), "green")}</p>`}
+				<div class="rds-bar">
+					${d.is_admin ? `<button class="btn btn-xs btn-default" data-clock>${__("Change time zone or link life…")}</button>` : ""}
+					<button class="btn btn-xs btn-default" data-new-link>${__("Send a new link…")}</button></div>`
+			: `<p class="text-muted small">${__("Not available.")}</p>`;
 
 		const helper = h.configured
 			? `<p>${h.connected ? pill(__("Connected"), "green") : pill(__("Not reporting"), "red")}
@@ -656,6 +709,7 @@ class ResDeskServer {
 					${this.card("backups", __("Backups"), backups)}
 					${this.card("logs", __("Logs"), `<div class="rds-logs"></div>`)}
 					${this.card("resources", __("Resources"), resources)}
+					${this.card("clock", __("Date, time and sign-in links"), clock)}
 					${this.card("alerts", __("Alerts"), alerts)}
 					${this.card("helper", __("Updater helper"), helper)}
 				</div>

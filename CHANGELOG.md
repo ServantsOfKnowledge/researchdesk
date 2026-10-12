@@ -1,70 +1,94 @@
 # Changelog
 
-## 0.71.7 (2026-11-07): Outgoing email: "Connection unexpectedly closed" explained and prevented
+## 0.73.2 (2026-10-12): Audit fixes
+
+- Choosing books by collection (bulk changes, and an OAI-PMH `set`) matched `%` and `_` as wildcards, so a collection name containing them could select other collections' books. They now match themselves.
+- A second index on the three fields used to find books still to score, which the watchdog now asks about every ten minutes.
+- Clearing a lost job's record now makes one pass over Redis instead of nine.
+- A test (run in CI) that fails if a Frappe update renames the call used to send a fresh password link.
+- The dates of earlier changelog entries are now each version's real release date (they had drifted ahead, to as late as 2026-11-07).
+
+## 0.73.1 (2026-10-12): Email only for account messages
+
+- Alerts (a part stopped, disk nearly full, a failed backup or upgrade, a new release) and deposit notices are no longer emailed to managers, reviewers or anyone else. They appear as Desk notifications, and alerts also go to the webhook if one is set. Email is used only for welcome and password-reset links, sign-up messages and the test message you ask for.
+- The settings *Email Alerts to Managers* and *Also Email* are gone. Depositors see the decision and the reviewer's note on their Deposit page.
+- A test fails if any new code sends email.
+
+## 0.73.0 (2026-10-12): Mailed links that do not arrive expired; test accounts for every kind of person
+
+- **Why links arrived expired:** Frappe lets a welcome or password-reset link live 20 minutes from the moment the email is made. Installing or upgrading now makes it 24 hours (unless an administrator had chosen a time), and the Server page has a new section, **Date, time and sign-in links**, with the time zone, the time now, the link life, and the emails waiting or failed. Administrators change the time zone and the link life there; managers can send any account a fresh link.
+- `resdesk test-accounts` makes a test account for every kind of person (visitor-level, reader, depositor, proofreader, cataloguer, manager, super admin, System Manager, and a switched-off reader), on `@example.org` so no email can reach anyone, with one password shown once; `--remove` deletes them. New page: [Testing with test accounts](docs/test-accounts.md).
+
+## 0.72.0 (2026-10-12): Self-healing for the jobs that carry on by themselves
+
+- Every ten minutes a watchdog looks at the two jobs that queue themselves again (sending page text to the search engine, scoring OCR quality). When there is work waiting and the job's record in Redis is not held by a queue or a worker (the worker was restarted or killed), it clears the record and queues the job again, so the work no longer waits for someone to press *Send now* or *Score now*.
+- It acts only after seeing the job dead on two checks in a row, never while background work is paused or stopped, and never starts a job that has no record. Background Jobs → Machine shows the latest repairs.
+
+## 0.71.7 (2026-10-07): Outgoing email: "Connection unexpectedly closed" explained and prevented
 
 - That error is the mail server hanging up because the security choice did not match the port (465 speaks SSL from the first byte; 587 starts plain and upgrades with STARTTLS). Choosing a port in the Outgoing email dialog now picks the matching security; saving corrects a mismatch and says so; and if the server hangs up anyway, the message says what to check in plain words.
 
-## 0.71.6 (2026-11-07): Checks that run for you
+## 0.71.6 (2026-10-07): Checks that run for you
 
 - `CLAUDE.md` with the project's rules; a push guard and a format hook for Claude Code (`.claude/`); `/release` and `/docs-page` skills; `scripts/prepush.sh`; an optional pre-commit configuration.
 - Browser tests (`sok_resdesk/tests/ui`, `scripts/ui-tests.sh`, a CI job): About me, typing in your own language and the proofreading language picker, in Chromium, with axe-core.
 
-## 0.71.5 (2026-11-07): Background Jobs says what each worker is doing
+## 0.71.5 (2026-10-07): Background Jobs says what each worker is doing
 
 - A line above the parts list on Background Jobs → Machine: how many workers are busy, what each is doing, for how long, and how many wait for work. One busy worker and seven waiting is normal while a single job (sending page text, scoring) runs; the docs say so.
 
-## 0.71.4 (2026-11-07): Score now and Worst first work again
+## 0.71.4 (2026-10-07): Score now and Worst first work again
 
 - **Score now** (Background Jobs → Machine → OCR quality) clears a scoring job that was on record but not running (left by a restart or a killed worker, which made every later press do nothing), then starts one. It says when nothing can start (Pause All, or everything was just stopped) and when there is nothing left to score.
 - **Worst first** opens the books that have a score, lowest first (the address's `order_by` was not read by Frappe's list, so it showed them in the usual order).
 
-## 0.71.3 (2026-11-07): Outgoing email: switching to Gmail no longer keeps Resend's login, and the dialog says what happened
+## 0.71.3 (2026-10-07): Outgoing email: switching to Gmail no longer keeps Resend's login, and the dialog says what happened
 
 - Choosing a provider now clears the login name unless the provider has its own (Resend's `resend` stayed in the box and made Gmail refuse the sign-in); the server also drops a leftover `resend` login for any other provider.
 - The Outgoing email dialog shows *Saving…*, *Saved. Sending a test email…* and the reason for any failure inside the dialog (a failed test no longer looks like a failed save), and closes itself when the test works.
 
-## 0.71.2 (2026-11-07): README: a new introduction, and "How it fits together" as a picture
+## 0.71.2 (2026-10-07): README: a new introduction, and "How it fits together" as a picture
 
 - The README's introduction now describes what Research Desk has become: an open-source digital library, archive and research platform for institutions (also the app's description in Frappe).
 - The README's text diagram is now a picture (an SVG drawn by `scripts/gen_overview.py`, with the Servants of Knowledge logo, readable in light and dark themes, with a text description for screen readers); the full text version stays underneath, folded.
 
-## 0.71.1 (2026-11-07): Reader guide: pictures with test records and broken thumbnails taken out
+## 0.71.1 (2026-10-07): Reader guide: pictures with test records and broken thumbnails taken out
 
 - The portal home, search results and book page pictures in the reader guide were taken on a test library (broken cover images, "Test Author" records, an empty reader) and are removed until they can be retaken on a real library (roadmap).
 
-## 0.71.0 (2026-11-07): Type in your own language; pick proofreading languages by code
+## 0.71.0 (2026-10-07): Type in your own language; pick proofreading languages by code
 
 - **Type in…** on search boxes and the proofreading text (jquery.ime, vendored with the input methods of 23 languages): Kannada, Hindi, Tamil and more on any keyboard, following the portal's language, with the choice kept in the browser. It loads only when turned on.
 - Proofreading no longer lists every installed language: the page's languages are buttons, and a language is added (or set for one zone) by typing its code or part of its name, with suggestions as you type.
 - Tests: the vendored input-method lists, and the language box's matching. Documented in the reader guide, staff guide, technology map and accessibility page.
 
-## 0.70.1 (2026-11-07): About me meets more of WCAG 2.2 AA
+## 0.70.1 (2026-10-07): About me meets more of WCAG 2.2 AA
 
 - The About me page names its fields to browsers (autocomplete), says each character limit, shows and announces the reason when a save fails, locks the form until the saved answers arrive, and has larger tick boxes and radios.
 - The page joins the CI accessibility check (axe-core). The accessibility page lists what was found, what was fixed, and what has been done release by release.
 
-## 0.70.0 (2026-11-07): Help for signing in, and the documentation brought up to date
+## 0.70.0 (2026-10-07): Help for signing in, and the documentation brought up to date
 
 - New help pages: **Signing in, your account and About me** (readers, on the portal) and **Sign-in email and sign-ups** (administrators, in the Desk), linked from the About me page and the Outgoing email dialog; the Reader Request screen's Help opens the sign-up choices.
 - Architecture, Connections, Operations, Server, Staff guide, Getting started, Access, Roadmap, Development and the README now cover outgoing email, About me and volunteers, Log QA, folding Server sections, gentle upgrades and the search queue's Task history and repair.
 
-## 0.69.3 (2026-11-07): Saving the outgoing email account works when Frappe already has one for that address
+## 0.69.3 (2026-10-07): Saving the outgoing email account works when Frappe already has one for that address
 
 - Saving the outgoing email account no longer fails when Frappe already has an account for the same address (its addresses are unique, so a Gmail account made earlier in Frappe's own form blocked the save). That account is used and made the default. Gmail app passwords pasted with their spaces are cleaned up.
 
-## 0.69.2 (2026-11-07): Retaking the help pictures logs in through Frappe's own call, and says why it can't
+## 0.69.2 (2026-10-07): Retaking the help pictures logs in through Frappe's own call, and says why it can't
 
 - `scripts/screenshots.py` now logs in with Frappe's login call instead of typing into the login page, so no change to that
   page's markup can stop it. When Frappe refuses (a wrong or changed Administrator password, two-factor on), it says so with the
   reason and how to give the right password (`RD_PASSWORD='…' ./resdesk.sh screenshots --site`), instead of waiting 20 seconds
 
-## 0.69.1 (2026-11-07): Background Jobs → Task history says what its number is doing
+## 0.69.1 (2026-10-07): Background Jobs → Task history says what its number is doing
 
 - The search engine's **Task history** number counts every task it remembers, waiting or done, so it moves only when tasks are
   added or cleared, not as the engine works through them, which made it look stuck. It now splits the total into done and
   waiting or running, shows how many tasks were added and how many finished in the last hour, and says when the total falls
 
-## 0.69.0 (2026-11-07): Gentle upgrades: restart only what a release needs
+## 0.69.0 (2026-10-07): Gentle upgrades: restart only what a release needs
 
 - **`./upgrade.sh --gentle`** (Docker; `UPGRADE_GENTLE=1` in `.env`; *Gentle* in the Server page's upgrade box): looks at the files
   the release changes and says what it will restart. A release of documents, screens, styles or data definitions restarts the web
@@ -77,7 +101,7 @@
 - `--gentle` comes with the upgrade script of this release, so it works from the upgrade after the one that installs it
   (restart the updater helper to use it from the Server page)
 
-## 0.68.7 (2026-11-07): Server page: Log QA, and sections that fold away
+## 0.68.7 (2026-10-07): Server page: Log QA, and sections that fold away
 
 - **Server → Logs → Log QA**: the Error Log matched to the releases that fixed its errors. Green: fixed in a release you run, and
   logged before it was installed, so safe to ignore. Orange: fixed in a release you have not installed yet. Red: logged *after* the
@@ -89,41 +113,41 @@
   button on each section's title opens or folds it, **Fold all sections / Open all sections** do it all at once, and the choice is
   remembered in this browser. A link to Requirements from Health opens it
 
-## 0.68.6 (2026-11-07): "Send now" no longer fails on a page-text sender that was stopped half-way
+## 0.68.6 (2026-10-07): "Send now" no longer fails on a page-text sender that was stopped half-way
 
 - A page-text sender whose worker died (a restart, running out of memory) left a half-written record in Redis, and *Send now*
   (and the ten-minute turn) then failed with `KeyError: b'created_at'`. The record is now cleared and the sender queued again
   (the event is noted in the Error Log)
 
-## 0.68.5 (2026-11-07): Changing mail provider: the old failed emails no longer look like the new error
+## 0.68.5 (2026-10-07): Changing mail provider: the old failed emails no longer look like the new error
 
 - After a change of provider (Resend to Gmail, say) the Outgoing email box kept showing the previous provider's error for the
   emails that had failed. It now says plainly that it is the earlier try, resends the failed emails once the new test works
   (saying how many still fail, and why), and has **Forget the failed emails** for ones you do not want sent
 
-## 0.68.4 (2026-11-07): Retaking the help pictures works with Frappe 16.50's login page
+## 0.68.4 (2026-10-07): Retaking the help pictures works with Frappe 16.50's login page
 
 - `scripts/screenshots.py` waited for a login button class that Frappe 16.50 no longer uses ("Timeout waiting for
   .btn-login", no pictures taken). It now logs in the way a person does (Enter in the password box), and says plainly when the
   user name or password is refused
 
-## 0.68.3 (2026-11-07): Saving the email settings no longer fails with a server error
+## 0.68.3 (2026-10-07): Saving the email settings no longer fails with a server error
 
 - Making Research Desk's mail account the default made Frappe re-save, and live-test, every other default mail account:
   one older account with a wrong setting turned the whole save into a "500". The others now just lose the default, and any
   other failure is shown in plain words (and logged in the Error Log) instead of a server error
 
-## 0.68.2 (2026-11-07): Connections: links to lists open (Library Systems, Ingest Profiles and the rest)
+## 0.68.2 (2026-10-07): Connections: links to lists open (Library Systems, Ingest Profiles and the rest)
 
 - The Connections screen encoded the address of each list twice, so *Library systems*, *Ingest profiles*, *Push targets* and
   every other button that opens a list with a space in its name said "Page rd%20library%20system not found". They open now
 
-## 0.68.1 (2026-11-07): Resend as a one-click mail provider
+## 0.68.1 (2026-10-07): Resend as a one-click mail provider
 
 - Connections → Outgoing email has a **Resend** choice: server `smtp.resend.com`, login `resend`, your Resend API key as the
   password, and the sender address on a domain verified in Resend
 
-## 0.68.0 (2026-11-07): About me: profiles, volunteers and support needs
+## 0.68.0 (2026-10-07): About me: profiles, volunteers and support needs
 
 - **/library/profile** (Account menu → About me; new members are invited to it): a short optional form: a person or an
   organisation, role, place, website, a few words, whether the library may name them as a contributor
@@ -132,7 +156,7 @@
 - **Support (private)**: blind, low vision, deaf or hard of hearing, motor, dyslexia, other, and what would help. Seen only by the
   person and managers; never shown publicly
 
-## 0.67.0 (2026-11-07): sign-in and sign-up emails: set up outgoing mail in two minutes
+## 0.67.0 (2026-10-07): sign-in and sign-up emails: set up outgoing mail in two minutes
 
 - **Why people got no sign-in email:** a new install has no outgoing mail account, and Frappe sends every sign-in link,
   sign-up confirmation and password reset through one. Nothing was ever sent
@@ -142,13 +166,13 @@
 - Server health shows **Outgoing email** (red when sign-up is open and no mail is set up, or when emails are failing);
   emails that failed are sent again once it works
 
-## 0.66.4 (2026-11-07): Background Jobs says when page text is being sent, not "held back"
+## 0.66.4 (2026-10-07): Background Jobs says when page text is being sent, not "held back"
 
 - While the page-text sender is working, the Search queue now says so ("Page text is being sent ... Nothing is stuck;
   the engine's speed sets the pace") instead of "held back ... goes when it has fewer than 150". The sender adds
   more as the engine clears below 300; the 150 is only when a new sender starts
 
-## 0.66.3 (2026-11-06): Frappe is updated with the app when a release needs it; the library's logo on Frappe 16.50
+## 0.66.3 (2026-10-06): Frappe is updated with the app when a release needs it; the library's logo on Frappe 16.50
 
 - Each release names the Frappe it needs (`__frappe_min__`): an upgrade whose target needs a newer Frappe than the server has updates
   Frappe too, even with `--no-frappe`, and the Server page's upgrade box ticks and locks "Also update
@@ -156,7 +180,7 @@
 - **The library's own logo** shows on the Desk's app icon again on Frappe 16.50 and later (it took
   the app's default icon there)
 
-## 0.66.2 (2026-11-06): Desk pages sit in from the sidebar
+## 0.66.2 (2026-10-06): Desk pages sit in from the sidebar
 
 - Research Desk's own Desk pages (Review Queue, Connections, Authorities, People & Roles, Background
   Jobs, Server, Portal Translations, Help) had no margin and touched the sidebar; they now have the
@@ -174,7 +198,7 @@
   own page, instead of the bare address. The badges are served by the portal itself (no request to
   another server); a licence that is not a Creative Commons one stays a plain link
 
-## 0.66.1 (2026-11-06): Connections: every outside system, by kind, in one place
+## 0.66.1 (2026-10-06): Connections: every outside system, by kind, in one place
 
 - **Research Desk → Exchange → Connections** lists everything the library shares with or takes from
   other systems, by kind: Internet Archive, Wikimedia, library systems, repositories and deposit,
@@ -184,7 +208,7 @@
   IIIF and the COUNTER report). A connection your role does not use is shown greyed out, not hidden
 - [Connections](docs/connections.md)
 
-## 0.66.0 (2026-11-06): Give a book to the Internet Archive
+## 0.66.0 (2026-10-06): Give a book to the Internet Archive
 
 - **Send to the Internet Archive** from Research Desk. A person with an archive.org account
   connects its keys once (Desk → My archive.org Account, or the box on the deposit page), then
@@ -201,7 +225,7 @@
 - [Giving a book to the Internet Archive](docs/archive-upload.md)
 - The accessibility check opens Page & text logged in, since it is for members
 
-## 0.65.2 (2026-11-06): Page & text and the text downloads are for members
+## 0.65.2 (2026-10-06): Page & text and the text downloads are for members
 
 - **Page & text**, its page images, notes and read aloud, and **The text, to read your way** (the
   accessible EPUB and plain text) now need a login as a reader or staff, on every book, even a
@@ -209,7 +233,7 @@
   still see the details, citations and the book reader, with a note on the book page that says why
   and a Log in button. The page, page image and text download addresses refuse them too
 
-## 0.65.1 (2026-11-06): A super admin for Servants of Knowledge; footer; busy-database fixes
+## 0.65.1 (2026-10-06): A super admin for Servants of Knowledge; footer; busy-database fixes
 
 - **SOK Super Admin**: a role for Servants of Knowledge to manage the installation as a whole.
   Librarians with the manager role still run the library, but Settings shows the Features tab,
@@ -225,7 +249,7 @@
   else changed the book meanwhile; they now read again from a fresh snapshot (up to three
   tries) instead of failing
 
-## 0.65.0 (2026-11-06): SRU and COUNTER style usage reports
+## 0.65.0 (2026-10-06): SRU and COUNTER style usage reports
 
 - **SRU 1.2** at `/sru`: older library systems, union catalogues and Z39.50 gateways can search the
   catalogue with CQL (title, author, subject, identifier, date, language; and, or, not; brackets)
@@ -238,13 +262,13 @@
 - Holdings, patrons and circulation staying in Koha is now stated in the Koha page as a design
   decision, and the roadmap items for these three are closed
 
-## 0.64.2 (2026-11-06): Technology map
+## 0.64.2 (2026-10-06): Technology map
 
 - A new help page, **Technology map**: every runtime service, tool, library, outside service and
   standard Research Desk uses, what each is configured for, where it is set, where its files live,
   and which components each feature needs
 
-## 0.64.1 (2026-11-06): Documentation brought up to date
+## 0.64.1 (2026-10-06): Documentation brought up to date
 
 - The README, the architecture page (components diagram, data model, new sections on kinds of
   material, archival description, machine drafts, giving back to Wikimedia and taking the library
@@ -253,7 +277,7 @@
 - The installer's three institution questions are in Getting started; re-OCR is described for books
   with a PDF or leaf photographs too
 
-## 0.64.0 (2026-11-06): Archival description
+## 0.64.0 (2026-10-05): Archival description
 
 - **Archival Description** (Desk, and the *Archival description* feature): papers described as a
   hierarchy of fonds, sub-fonds, collection, series, sub-series, file and item, with the ISAD(G) fields
@@ -268,7 +292,7 @@
 - On for archives, university repositories and manuscript libraries and archives; a library that chose
   its kinds gets it as they say on upgrade
 
-## 0.63.0 (2026-11-06): Machine drafts of transcripts
+## 0.63.0 (2026-10-05): Machine drafts of transcripts
 
 - **Draft the Transcript (Speech to Text)** for recordings held here, with `faster-whisper` or the
   `whisper` command; **Draft the Text of the Leaves** for manuscripts, with Tesseract or Kraken
@@ -277,7 +301,7 @@
   person's work, replaced only by a newer machine draft, and never shared as ground truth
 - Settings → *Machine Drafts*: the speech model size, the handwriting engine and the Kraken model file
 
-## 0.62.0 (2026-11-06): Offline copies and Kiwix
+## 0.62.0 (2026-10-05): Offline copies and Kiwix
 
 - **Exports → Offline copy (zip, for Kiwix)**: a collection as a folder of web pages with a search
   box, a page per book (details, cover, downloads) and the text where the library holds it. It opens
@@ -286,7 +310,7 @@
   zip carries the command to make it
 - Only books open to read and public get their files and text; the rest are listed by their details
 
-## 0.61.0 (2026-11-06): E-reader catalogue, EPUB text, fewer fields
+## 0.61.0 (2026-10-05): E-reader catalogue, EPUB text, fewer fields
 
 - **OPDS** at `/opds`: the library as a catalogue for e-reader apps (KOReader, Thorium, Moon+ Reader…):
   newest books, collections, search, covers and a download link for every file, under the portal's
@@ -300,7 +324,7 @@
 - Libraries without the **manuscripts** or **photographs** feature no longer see those sections on an
   item's form (unless the item already has such details)
 
-## 0.60.0 (2026-11-06): Ground truth released by the people who made it
+## 0.60.0 (2026-10-05): Ground truth released by the people who made it
 
 - Everyone who proofreads or validates is asked to **release their corrections under an open licence of
   their choice** (CC0, CC BY or CC BY-SA), and whether they may be named: Research Desk → *My Release for
@@ -313,7 +337,7 @@
   out; *Mark Reviewed* is needed before a set goes on the portal (making it again clears it)
 - Names in a set come from each person's own release, not from a library-wide switch
 
-## 0.59.0 (2026-11-06): Photographs to Wikimedia Commons
+## 0.59.0 (2026-10-05): Photographs to Wikimedia Commons
 
 - **Actions → Send to Wikimedia Commons** on a photograph: uploads the original under the sender's own
   Wikimedia account, with a description page (Information template, licence, author, place, categories)
@@ -325,14 +349,14 @@
   read, or without its original is refused with the reason; Commons' warnings are never overridden
 - The item records the Commons file, who sent it and when. Tokens now ask for *Upload new files* too
 
-## 0.58.1 (2026-11-06): Libraries and archives keep manuscripts and photographs
+## 0.58.1 (2026-10-05): Libraries and archives keep manuscripts and photographs
 
 - Manuscripts and palm leaves, and photographs, are included for **every kind of library and archive**
   (small library, public research portal, members-only, archive, university or repository); only the
   language-technology partner kind leaves them out. The special kind is now called **Manuscript library or
   archive**. A library that had chosen its kinds gets the two features as they say on upgrade
 
-## 0.58.0 (2026-11-06): Manuscripts and photographs, as profiled features
+## 0.58.0 (2026-10-05): Manuscripts and photographs, as profiled features
 
 - **Manuscripts and palm leaves** and **Photographs** are now features of the institutions that keep them
   (eighteen features in all). Two new institution kinds, **Manuscript or palm-leaf library** and
@@ -346,7 +370,7 @@
 - A book of photographs opens in Page & text, as it has no PDF to show
 - See [Photographs](docs/photographs.md); contributing photographs to Wikimedia Commons follows
 
-## 0.57.0 (2026-11-05): Audio and video
+## 0.57.0 (2026-10-05): Audio and video
 
 - **Recordings**: in a Folder or Server profile, a media file (MP3, M4A, AAC, OGG, OPUS, WAV, FLAC, MP4,
   M4V, WEBM, OGV) is an item, with the files of the same name belonging to it: more formats, a WebVTT
@@ -365,7 +389,7 @@
   *Archive* profiles; off means not collected; see [Audio and video](docs/audio-video.md). Adds the
   mutagen library to read lengths (ffprobe is the fallback; plain WAV needs neither)
 
-## 0.56.0 (2026-11-04): One sidebar, and no way into Frappe's desktop
+## 0.56.0 (2026-10-05): One sidebar, and no way into Frappe's desktop
 
 - **Research Desk's sidebar holds every screen**, in sections: Catalogue (profiles, runs, items,
   collections, deposits, review, authorities), Exchange (exports, imports, library systems, push
@@ -378,7 +402,7 @@
   *Research Desk only, for everyone*; the other choices give Frappe's desktop back to Administrator,
   to System Managers or to everyone. A library on the old default is moved to the new one
 
-## 0.55.0 (2026-11-03): Folders of photographs and deep zoom
+## 0.55.0 (2026-10-05): Folders of photographs and deep zoom
 
 - **A folder of photographs is a book**: a folder of JPEG, PNG or TIFF images (a palm-leaf bundle,
   a manuscript, a volume shot page by page) with no `_meta.xml` and no PDF is catalogued as one
@@ -393,7 +417,7 @@
   portal gives a photograph at screen size and the whole photograph to the viewer
 - See [folders of photographs](docs/local-folders.md) and [Manuscripts and palm leaves](docs/manuscripts.md)
 
-## 0.54.0 (2026-11-02): Manuscripts and palm leaves
+## 0.54.0 (2026-10-05): Manuscripts and palm leaves
 
 - **A manuscript's own details**: a *Manuscript* section on the book (holding institution,
   shelfmark, material, script, leaves, dimensions, condition, scribe, date copied, works
@@ -405,7 +429,7 @@
   exists; the first transcribed leaf makes the book searchable as text; the Proofreading page lists
   manuscripts to transcribe, the least done first; see [Manuscripts and palm leaves](docs/manuscripts.md)
 
-## 0.53.0 (2026-11-01): Repository deposit
+## 0.53.0 (2026-10-05): Repository deposit
 
 - **People can deposit their own work** on the portal (`/library/deposit`): details, licence (CC0,
   CC-BY, CC-BY-SA, CC-BY-NC or all rights reserved), who may read the files, an optional
@@ -420,7 +444,7 @@
 - A new feature, **Repository deposit** (fifteen now), in Settings → Features and in the
   *University or repository front* profile; see [Repository deposit](docs/deposit.md)
 
-## 0.52.0 (2026-10-31): A small Calibre collection to take away
+## 0.52.0 (2026-10-05): A small Calibre collection to take away
 
 - **Export → Calibre library (zip)**: any set of books the Export screen can choose (a
   collection, a search, selected books, a profile) written as folders Calibre adds in one step:
@@ -431,7 +455,7 @@
   Wikisource) are listed in `not-included.csv` with a link to where they are
 - See [Books from a Calibre library](docs/calibre.md#making-a-small-calibre-collection)
 
-## 0.51.0 (2026-10-30): Books from a Calibre library
+## 0.51.0 (2026-10-05): Books from a Calibre library
 
 - **Import a Calibre library**: a Folder or Server profile whose location holds a Calibre
   `metadata.db` brings in every book with its title, authors, date, publisher, languages, tags,
@@ -444,7 +468,7 @@
 - Identifiers come from Calibre's own book id, so they survive a rebuilt or moved library; see
   [Books from a Calibre library](docs/calibre.md)
 
-## 0.50.0 (2026-10-29): Send your corrections back to Wikisource
+## 0.50.0 (2026-10-05): Send your corrections back to Wikisource
 
 - **Item → Actions → Send to Wikisource** for books from Wikisource: your own proofreading goes
   back as *proofread* pages and your own validation as *validated* pages, each as an edit under
@@ -456,7 +480,7 @@
 - Only when the library's Ground truth licence is CC0, CC-BY or CC-BY-SA (Wikisource's text is
   CC BY-SA 4.0); [Giving back to Wikimedia](docs/wikimedia.md)
 
-## 0.49.0 (2026-10-28): Give back to Wikimedia under your own account
+## 0.49.0 (2026-10-05): Give back to Wikimedia under your own account
 
 - **My Wikimedia Account** (Desk → Research Desk): each person connects their own Wikimedia
   account once, by pasting the access token of an owner-only OAuth 2.0 consumer they register
@@ -469,7 +493,7 @@
   own bot
 - Documented in [Giving back to Wikimedia](docs/wikimedia.md)
 
-## 0.48.0 (2026-10-27): Books from Wikisource
+## 0.48.0 (2026-10-05): Books from Wikisource
 
 - **A new source, Wikisource**: an Ingest Profile names a Wikisource (`kn.wikisource.org`,
   `sa.wikisource.org`, any language's) and a category of Index pages and/or a list of them. Each
@@ -482,7 +506,7 @@
 - Part of *Books from repositories* in Settings → Features
 - Docs: [Books from Wikisource](docs/wikisource.md)
 
-## 0.47.0 (2026-10-26): IIIF
+## 0.47.0 (2026-10-05): IIIF
 
 - **Every book is a IIIF manifest** (`/iiif/<book>/manifest`, Presentation 3.0): its metadata, one
   canvas per page with the page image, the PDF, MARCXML and archive.org's own manifest as links,
@@ -498,7 +522,7 @@
   Features
 - Docs: [IIIF](docs/iiif.md)
 
-## 0.46.2 (2026-10-26): Help pictures for members-only libraries
+## 0.46.2 (2026-10-05): Help pictures for members-only libraries
 
 - **Retake help pictures** works for a members-only portal: when visitors are sent to the login
   page, the portal pictures are taken as a temporary reader account (*Help Pictures Reader*,
@@ -507,7 +531,7 @@
 - The temporary accounts are switched back on correctly on the second retake (the first retake
   made them; later ones failed on setting the new password)
 
-## 0.46.1 (2026-10-26): Why page text is waiting, and Send now
+## 0.46.1 (2026-10-05): Why page text is waiting, and Send now
 
 - **Background Jobs → Search queue** says **why** page text waiting to be sent is not moving
   (on hold, background work paused, scheduler off, page-level search off, the engine busy, or the
@@ -515,7 +539,7 @@
   once instead of at the next ten-minute turn
 - Docs: [Operations → Search queue](docs/operations.md#the-search-queue)
 
-## 0.46.0 (2026-10-26): The institution's profile at install
+## 0.46.0 (2026-10-05): The institution's profile at install
 
 - `./install.sh` asks **what kind of institution** this is (numbers that combine, e.g. `2,4`), the
   **books' languages** for OCR and **about how many books**, or takes `--profile`, `--languages`
@@ -525,7 +549,7 @@
   as before
 - Docs: [Installation → Docker: one command](docs/installation.md#docker-one-command)
 
-## 0.45.0 (2026-10-25): Features and institution profiles
+## 0.45.0 (2026-10-05): Features and institution profiles
 
 - **Settings → Features**: say what kind of institution the library is (small library or school,
   public research portal, members-only institution, archive, university or repository front,
@@ -541,19 +565,19 @@
   numbers and a **Turn on** button on the Features tab and the Research Desk workspace
 - Docs: [Staff guide → Features and your institution](docs/staff-guide.md#features-and-your-institution)
 
-## 0.44.3 (2026-10-24): Collection pictures shown whole
+## 0.44.3 (2026-10-05): Collection pictures shown whole
 
 - Collection pictures are shown whole, on the collections page and on each collection's page,
   instead of being cropped to fill the box: logos and wide banners alike
 
-## 0.44.2 (2026-10-24): Every OCR language
+## 0.44.2 (2026-10-05): Every OCR language
 
 - Tesseract now comes with **every language model** it has (Debian's `tesseract-ocr-all`), in the
   Docker image and on native installs, so Server → Requirements no longer reports missing models
   for books in Urdu, Nepali, Assamese or any other language. A smaller image is still possible
   with a list in `OCR_LANGS` (`.env`)
 
-## 0.44.1 (2026-10-24): Help pages never stuck on an old version
+## 0.44.1 (2026-10-05): Help pages never stuck on an old version
 
 - **Help pictures follow upgrades**: the pictures that come with Research Desk carry the version
   in their address, so browsers fetch the new ones after an upgrade instead of showing the ones
@@ -564,7 +588,7 @@
 - Help brought up to date: the Research Desk workspace (review queue, authorities, library
   systems), the Library Systems screen, catalogue links and collection pictures on the portal
 
-## 0.44.0 (2026-10-24): Collection pictures from archive.org
+## 0.44.0 (2026-10-05): Collection pictures from archive.org
 
 - Collections that mirror archive.org get **that collection's own picture** (its curators' logo,
   or the image archive.org shows), copied here when the collection is made and filled in for any
@@ -575,7 +599,7 @@
   list's menu fills in every missing one
 - Docs: [Collection images](docs/collections-and-metadata.md#collection-images)
 
-## 0.43.0 (2026-10-23): Staff work in Research Desk
+## 0.43.0 (2026-10-05): Staff work in Research Desk
 
 - **The Desk shows only Research Desk** to librarians, cataloguers and managers (System
   Managers included): Frappe's own workspaces (Build, Users, Website, Integrations, Printing,

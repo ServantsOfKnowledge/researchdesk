@@ -469,7 +469,7 @@ def release_embargoes() -> int:
 	return n
 
 
-# -- mail --------------------------------------------------------------------------------------------
+# -- notices ------------------------------------------------------------------------------------------
 
 
 def _reviewers() -> list[str]:
@@ -486,11 +486,19 @@ def _reviewers() -> list[str]:
 
 
 def _tell(users: list[str], subject: str, message: str) -> None:
-	"""Mail that must never stop the work it announces."""
-	try:
-		emails = [frappe.db.get_value("User", u, "email") for u in users]
-		emails = [e for e in emails if e]
-		if emails:
-			frappe.sendmail(recipients=emails, subject=subject, message=message.replace("\n", "<br>"))
-	except Exception:
-		frappe.log_error(title="Research Desk: deposit mail not sent")
+	"""A Desk notification, never an email (email is for sign-in messages only). Must never stop the
+	work it announces."""
+	for user in users:
+		try:
+			frappe.get_doc(
+				{
+					"doctype": "Notification Log",
+					"for_user": user,
+					"type": "Alert",
+					"subject": subject,
+					"email_content": message.replace("\n", "<br>"),
+					"link": "/app/rd-deposit",
+				}
+			).insert(ignore_permissions=True)
+		except Exception:
+			frappe.log_error(title="Research Desk: deposit notification not sent")

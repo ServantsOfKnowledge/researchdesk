@@ -208,7 +208,8 @@ only; 10 a minute.
 | `sok_resdesk.server.get_task` (`name`) · `cancel_task` (`name`) | a task's status and log; cancel one still waiting |
 | `sok_resdesk.server.take_backup` (`with_files`) · `delete_backup` (`name`) | back up now in the background; delete a backup (System Manager). Download: `/backups/<file>` (System Manager) |
 | `sok_resdesk.server.logs` (`source`=`errors`/`failed_jobs`/`files`, `name`, `lines`) | recent errors, failed jobs, or the end of a log file |
-| `sok_resdesk.server.test_alert` | send a test alert to the Desk, email and webhook |
+| `sok_resdesk.server.test_alert` | send a test alert to the Desk and webhook |
+| `sok_resdesk.clock.set_clock` (`time_zone`, `lifetime_hours`) · `send_new_link` (`user`) | Server → Date, time and sign-in links: administrators set the System Settings time zone and how long a mailed link lives (1 hour to 30 days); managers make and email one account a fresh password link now |
 
 See [Collections, metadata & pushing](collections-and-metadata.md) for what these do.
 

@@ -9,7 +9,6 @@ def execute():
 		("allow_desk_upgrades", 1),
 		("backup_schedule", "Daily"),
 		("backup_keep", 7),
-		("alert_email", 1),
 		("alert_disk_percent", 90),
 		("book_limit", "Automatic"),
 	):

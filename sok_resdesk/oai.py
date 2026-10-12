@@ -18,6 +18,7 @@ from werkzeug.wrappers import Response
 
 from sok_resdesk import features
 from sok_resdesk.catalogue import base_url, item_to_record, portal_title, settings
+from sok_resdesk.core.access import like_literal
 from sok_resdesk.core.oai import Repository
 
 
@@ -111,7 +112,7 @@ class FrappeStore:
 			values["curated"] = set_spec[3:]
 		elif set_spec:
 			conditions.append("concat('\n', collections, '\n') like %(set)s")
-			values["set"] = f"%\n{set_spec}\n%"
+			values["set"] = f"%\n{like_literal(set_spec)}\n%"
 		where = " and ".join(conditions)
 		total = frappe.db.sql(f"select count(*) from `tabRD Item` where {where}", values)[0][0]
 		names = frappe.db.sql_list(
