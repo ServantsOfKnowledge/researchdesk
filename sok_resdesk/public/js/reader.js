@@ -71,7 +71,19 @@
 			fig.innerHTML = `<img src="${esc(d.image)}" alt="${esc(__("Page image {0}", [d.leaf + 1]))}" loading="eager">`;
 			// the page whole, to look at closely (zoom.js)
 			fig.insertAdjacentHTML("beforeend", `<button type="button" class="rd-btn rd-btn--plain rd-zoom-open" data-zoom="${esc(d.image.replace(/&width=\d+/, ""))}" data-alt="${esc(__("Page image {0}", [d.leaf + 1]))}">${esc(__("Zoom"))}</button>`);
-			$("img", fig).addEventListener("error", () => {
+			// archive.org can be slow: say so, so the wait is not mistaken for a broken page (text is already shown)
+			const img = $("img", fig);
+			const slow = setTimeout(() => {
+				if (img.complete || !fig.contains(img)) return;
+				fig.insertAdjacentHTML("afterbegin", `<p class="rd-muted rd-slow" role="status">${esc(__("The page image is slow to arrive from archive.org. The text is already here."))}</p>`);
+			}, 5000);
+			const clear = () => {
+				clearTimeout(slow);
+				fig.querySelector(".rd-slow")?.remove();
+			};
+			img.addEventListener("load", clear);
+			img.addEventListener("error", () => {
+				clearTimeout(slow);
 				fig.innerHTML = `<p class="rd-muted">${esc(__("This page image isn't available here."))} <a href="#" data-to-book>${esc(__("Open it in the book reader"))}</a></p>`;
 			});
 			// the next one, ready (archive.org's …/n12.jpg, or a page drawn here: …&leaf=12)

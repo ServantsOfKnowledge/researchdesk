@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.74.2 (2026-10-12): Slow page images are announced
+
+- **Page & text:** when a page image takes more than five seconds to arrive from archive.org, the reader now says so and that the text is already there, instead of looking broken. The message goes when the image arrives or fails.
+
 ## 0.74.1 (2026-10-12): Accessibility check no longer waits for the network to go idle
 
 - **Checks:** the CI accessibility check timed out loading the logged-in Page & text view, whose page images come from archive.org and keep the network busy. It now waits for the page to load and settle instead; no change to the library itself.
