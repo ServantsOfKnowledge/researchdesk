@@ -132,7 +132,9 @@ def main() -> int:
 				print("Could not log in to check the Desk pages", file=sys.stderr)
 				failed = True
 			if book:  # Page & text is for logged-in members: checked as one
-				page.goto(base + f"/library/item/{book}?view=text", wait_until="networkidle")
+				# page images come from archive.org, so the network may never go idle: load, then settle
+				page.goto(base + f"/library/item/{book}?view=text", wait_until="load")
+				page.wait_for_timeout(3000)
 				found = run_axe(page, axe, None)
 				report.append(
 					{

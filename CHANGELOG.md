@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.74.1 (2026-10-12): Accessibility check no longer waits for the network to go idle
+
+- **Checks:** the CI accessibility check timed out loading the logged-in Page & text view, whose page images come from archive.org and keep the network busy. It now waits for the page to load and settle instead; no change to the library itself.
+
 ## 0.74.0 (2026-10-12): Contributors page, more self-healing, every public endpoint rate limited
 
 - **Contributors:** people and organisations who ticked *The library may name me as a contributor* in About me are listed at `/library/contributors` (name, role, organisation, place, website, a few words). Their volunteering and support details are never shown. The About page links to it and the sitemap lists it once someone is named; a browser test checks it with axe-core.
