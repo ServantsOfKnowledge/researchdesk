@@ -16,6 +16,9 @@ def get_context(context):
 		raise frappe.Redirect
 	context.update(page)
 	context.no_cache = 1
+	from sok_resdesk.profile import contributors
+
+	context.has_contributors = bool(contributors())
 	context.full_width = 1
 	context.show_sidebar = 0
 	context.metatags = {

@@ -21,6 +21,7 @@ import hashlib
 import json
 
 import frappe
+from frappe.rate_limiter import rate_limit
 from frappe.utils import cint
 from werkzeug.wrappers import Response
 
@@ -71,6 +72,7 @@ def _path() -> list[str]:
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"])
+@rate_limit(limit=120, seconds=60)
 def annotations(**kwargs):
 	"""The protocol's one entry point: the container (…/<book>/) or one annotation (…/<book>/<note>)."""
 	parts = _path()

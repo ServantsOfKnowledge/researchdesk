@@ -24,6 +24,10 @@ page is the rules that apply to every change. Some are enforced by `.claude/hook
 - Python uses tabs and 110 columns (`ruff format`); a hook formats edited `.py` files.
 - Portal scripts (`public/js`) take `__` from `a11y.js` (`const __ = window.rdT`), never build a
   phrase from pieces (`__("{0} books", [n])`), and are listed in `translations.SCRIPTS`.
+- After a change to a public endpoint, access rule, ingest or integration, ask the `security-reviewer`
+  subagent; before a release, the `docs-sync-reviewer` (`.claude/agents/`). Both only report.
+- Email is for account messages only (welcome, password, sign-up). `tests/unit_mail_policy.py` fails on
+  any other sender; alerts and notices go to the Desk.
 - `pytest -q` runs the pure tests. Three tests (`unit_pdfs`, `unit_harvest`) fail without `pypdf`
   installed; CI installs it. Frappe tests (`test_*.py` other than core/push/docs) run only in CI.
 

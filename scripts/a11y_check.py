@@ -30,6 +30,7 @@ PORTAL = [
 	("Search inside the text", "/?q=india&mode=pages"),
 	("Collections", "/library/collections"),
 	("About", "/about"),
+	("Contributors", "/library/contributors"),
 	("Help", "/library/help"),
 ]
 DESK = [

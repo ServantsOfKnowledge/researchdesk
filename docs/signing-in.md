@@ -27,7 +27,9 @@ Open **About me** from the Account menu, or at `/library/profile`. Tell the libr
 little as you like.
 
 - **Who you are**: a person or an organisation, your role or interest, place, website and a few
-  words. Tick *The library may name me as a contributor* only if you want to be named.
+  words. Tick *The library may name me as a contributor* only if you want to be named: your name and
+  these details then appear on the **Contributors** page (`/library/contributors`), and leave it when
+  you untick. The volunteering and support sections are never shown there.
 - **Would you like to help?** Tick that you would like to **review** deposits and catalogue records,
   or to **proofread** page text, and say what languages, subjects or time you can offer. A librarian
   sees this and can give you the right access.

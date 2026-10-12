@@ -15,6 +15,7 @@ import os
 
 import frappe
 from frappe import _
+from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, get_fullname, now_datetime
 
 from sok_resdesk import features
@@ -396,6 +397,7 @@ def public_sets() -> list[dict]:
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=20, seconds=60)
 def download(name: str):
 	"""The set's zip: anyone for a set on the portal, staff for any set."""
 	from werkzeug.utils import send_file

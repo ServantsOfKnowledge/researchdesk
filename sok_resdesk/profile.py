@@ -132,6 +132,19 @@ def _tell_managers(doc) -> None:
 			frappe.log_error("Research Desk: volunteer notice")
 
 
+def contributors() -> list[dict]:
+	"""The people who ticked "the library may name me": name and the details they agreed to show."""
+	from sok_resdesk.core.contributors import public_row
+
+	rows = frappe.db.sql(
+		"""select p.full_name, p.kind, p.organisation, p.role_title, p.country, p.website, p.about
+		from `tabRD Reader Profile` p join `tabUser` u on u.name = p.user
+		where p.show_publicly = 1 and u.enabled = 1 order by p.full_name""",
+		as_dict=True,
+	)
+	return [r for r in (public_row(row) for row in rows) if r]
+
+
 @frappe.whitelist()
 def grant(user: str, role: str) -> dict:
 	"""Managers: give a volunteer the proofreader or cataloguer role."""

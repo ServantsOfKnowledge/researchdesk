@@ -114,7 +114,7 @@ doc_events = {
 	},
 	# portal sign-ups become readers, or wait for approval (RD Settings → Reader Accounts)
 	"User": {
-		"after_insert": "sok_resdesk.access.on_user_insert",
+		"after_insert": ["sok_resdesk.access.on_user_insert", "sok_resdesk.notifications.quiet_new_user"],
 		# staff see Research Desk, not Frappe's own workspaces (Settings → The Desk)
 		"before_validate": [
 			"sok_resdesk.deskscope.before_validate",
@@ -136,6 +136,10 @@ doc_events = {
 }
 
 # Scheduled ingest (profiles set to Daily / Weekly) ---------------------------
+
+# Email is for account messages only: Frappe's own notifications (a mention, an assignment, a share,
+# energy points) stay in the Desk bell. Frappe skips "Alert" itself; this adds the rest.
+notification_skip_email_types = ["Mention", "Assignment", "Share", "Energy Point"]
 
 scheduler_events = {
 	# quiet hours: pause all background work at set times (RD Settings → Machine Resources)

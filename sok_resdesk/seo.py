@@ -105,6 +105,10 @@ def sitemap(part: int = 0) -> str:
 		return core.sitemap_index(entries)
 	if part == "pages":
 		entries = [(base + "/", ""), (base + "/library/collections", ""), (base + "/about", "")]
+		from sok_resdesk.profile import contributors
+
+		if contributors():
+			entries.append((base + "/library/contributors", ""))
 		for name, modified in frappe.get_all(
 			"RD Collection", filters={"published": 1}, fields=["name", "modified"], as_list=True
 		):

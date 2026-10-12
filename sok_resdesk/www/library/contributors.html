@@ -1,0 +1,27 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="rd rd-contributors">
+	<nav class="rd-crumbs"><a href="{{ library_url() }}">← {{ portal_title }}</a></nav>
+	<h1 class="rd-page-title">{{ _("Contributors") }}</h1>
+	<p class="rd-muted">{{ _("People and organisations who asked to be named here for what they give to the library. Anyone can choose this, or take it back, on their About me page.") }}</p>
+	{% if people %}
+	<ul class="rd-contrib-list">
+		{% for p in people %}
+		<li class="rd-card">
+			<h2>{{ p.name }}</h2>
+			{% if p.role_title or p.organisation or p.country %}
+			<p class="rd-muted">{{ [p.role_title, p.organisation, p.country] | select | join(" · ") }}</p>
+			{% endif %}
+			{% if p.about %}<p>{{ p.about }}</p>{% endif %}
+			{% if p.website %}<p><a href="{{ p.website }}" rel="nofollow noopener">{{ p.website }}</a></p>{% endif %}
+		</li>
+		{% endfor %}
+	</ul>
+	{% else %}
+	<p>{{ _("No one is named here yet.") }}</p>
+	{% endif %}
+</div>
+{% endblock %}

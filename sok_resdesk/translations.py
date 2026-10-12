@@ -18,6 +18,7 @@ from pathlib import Path
 
 import frappe
 from frappe import _
+from frappe.rate_limiter import rate_limit
 from frappe.utils import cint
 
 from sok_resdesk.core import phrases as core
@@ -217,6 +218,7 @@ READING_SETTINGS = (
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=30, seconds=60)
 def set_language(lang: str) -> dict:
 	"""The portal's language switch: a cookie, for the portal only. The account's own language
 	(what the Desk is shown in) is never changed by it: staff who looked at the portal in

@@ -95,7 +95,51 @@ def run() -> list[str]:
 			repaired.append(note)
 		except Exception:
 			frappe.log_error(title=f"Research Desk watchdog: could not check {what}")
+	repaired += sweep()
 	return repaired
+
+
+def _record_ids() -> list[str]:
+	"""The ids of every Research Desk job on record in Redis for this site (without the site prefix)."""
+	from frappe.utils.background_jobs import create_job_id, get_redis_conn
+
+	prefix = create_job_id("resdesk-")  # "<site>::resdesk-"
+	found = []
+	for raw in get_redis_conn().scan_iter(match=f"rq:job:{prefix}*", count=1000):
+		key = raw.decode() if isinstance(raw, bytes) else raw
+		found.append(key.removeprefix("rq:job:").split("::", 1)[1])
+	return found
+
+
+def sweep() -> list[str]:
+	"""Any other Research Desk job (a fixity audit, a review scan, one book's re-OCR…) whose record is
+	held by no queue and no worker on two checks in a row has its record cleared. It is not queued again:
+	nothing says work is waiting, and the job's own schedule or button starts it next time. Without
+	this the dead record made every later start of the same job quietly do nothing."""
+	from sok_resdesk.search_queue import forget_job
+
+	done = []
+	try:
+		ids = _record_ids()
+	except Exception:
+		return done  # no Redis to look at
+	for job_id in ids:
+		seen_key = f"resdesk:watchdog-seen:{job_id}"
+		try:
+			if job_state(job_id) != "dead":
+				frappe.cache.delete_value(seen_key)
+				continue
+			if not frappe.cache.get_value(seen_key):
+				frappe.cache.set_value(seen_key, 1, expires_in_sec=core.CONFIRM_MINUTES * 60)
+				continue
+			forget_job(job_id)
+			frappe.cache.delete_value(seen_key)
+			note = f"{job_id}: a job whose worker had stopped was cleared"
+			_write(note)
+			done.append(note)
+		except Exception:
+			frappe.log_error(title=f"Research Desk watchdog: could not check {job_id}")
+	return done
 
 
 def _write(what: str) -> None:

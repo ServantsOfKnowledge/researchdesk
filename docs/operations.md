@@ -621,7 +621,10 @@ worker running one is restarted or killed, its record stays behind and the job c
 again until someone pressed *Send now* or *Score now*. Every ten minutes a watchdog checks those two
 jobs: when work is waiting and the record is held by no queue and no worker on two checks in a row, it
 clears the record and queues the job again. It does nothing while background work is paused or
-stopped. The latest repairs show on **Background Jobs → Machine** under the workers line.
+stopped. Any other Research Desk job (a fixity audit, a review scan, one book's re-OCR) whose record is
+held by no queue and no worker on two checks has its record cleared too, so its next scheduled run or
+button press starts instead of doing nothing; it is not queued by the watchdog. The latest repairs
+show on **Background Jobs → Machine** under the workers line.
 
 ### The search queue
 

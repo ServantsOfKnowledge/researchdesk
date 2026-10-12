@@ -206,6 +206,9 @@ OCR).
 | `/release` skill | `.claude/skills/release` | pushes the next waiting version once the last one is tagged and green |
 | `/docs-page` skill | `.claude/skills/docs-page` | adds one help page and its registrations; lists the files first and changes no other documentation |
 | Browser tests | `sok_resdesk/tests/ui`, `scripts/ui-tests.sh`, the CI job *Browser tests* | the About me page, typing in your own language and the proofreading language picker, in Chromium with axe-core |
+| Review subagents | `.claude/agents/security-reviewer.md`, `docs-sync-reviewer.md` | read-only reviewers Claude Code calls (`/release` asks both before a push): one for security and privacy faults in a change, one for missing or extra documentation |
+| Vendored libraries | `scripts/check_vendored.py`, `.github/workflows/vendored.yml` | once a week, compares each library copied into the app (jquery.ime) with its latest release and opens one issue when it is behind |
+| Email policy test | `sok_resdesk/tests/unit_mail_policy.py` | fails if code other than the listed account-message senders sends email |
 | pre-commit | `.pre-commit-config.yaml` | the same checks before a commit and a push (optional) |
 
 The rules these enforce are in `CLAUDE.md`.

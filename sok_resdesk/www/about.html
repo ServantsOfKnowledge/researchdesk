@@ -68,6 +68,10 @@
 	</section>
 	{% endif %}
 
+	{% if has_contributors %}
+	<p class="rd-about__more"><a href="/library/contributors">{{ _("Contributors") }} →</a></p>
+	{% endif %}
+
 	{% if body %}
 	<section class="rd-about__section">
 		{% if body_title %}<h2>{{ body_title | e }}</h2>{% endif %}

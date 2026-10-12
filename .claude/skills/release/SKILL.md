@@ -23,10 +23,13 @@ workflow tags only the version at main's head, so a second version in the same p
      save the file, replace `\n`, search for `FAIL` or `Traceback`). Fix it **in the next unpushed
      version** (`git commit --fixup=<sha>` then `GIT_SEQUENCE_EDITOR=true git rebase -i --autosquash
      origin/main`, unpushed commits only), never as an extra commit on a pushed one.
-3. Push the oldest waiting version: `git push origin <sha>:main`. The push guard
+3. **Review it first.** Ask the `security-reviewer` and `docs-sync-reviewer` subagents (`.claude/agents/`)
+   to review that version's commit (`git show <sha>`); they read and report, never edit. Fix what they
+   find in that unpushed commit (as in step 2) before pushing; say what they found when you report.
+4. Push the oldest waiting version: `git push origin <sha>:main`. The push guard
    (`.claude/hooks/guard.py`) refuses force pushes, other branches, tags, more than one release, and
    runs `scripts/prepush.sh` on that commit; if it blocks, fix what it says.
-4. Tell the user which version went out. If more wait, schedule the same check about 9 minutes later
+5. Tell the user which version went out. If more wait, schedule the same check about 9 minutes later
    (`send_later`) naming the remaining shas, until the last one is tagged.
 
 ## Never

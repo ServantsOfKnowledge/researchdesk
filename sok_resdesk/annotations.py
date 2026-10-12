@@ -645,6 +645,7 @@ def collection(item_id: str, leaf: int | None = None):
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=120, seconds=60)
 def get(name: str):
 	"""One note as a W3C Web Annotation, if this visitor may see it."""
 	from sok_resdesk.api import _text_response

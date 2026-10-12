@@ -1,0 +1,33 @@
+# Once a week: is a library copied into the app behind its latest release? If so, open one issue
+# per library (not one per week). Nothing is changed: a person refreshes it (docs/technology.md).
+name: Vendored libraries
+
+on:
+  schedule:
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare with the latest releases
+        id: check
+        run: |
+          set +e
+          python3 scripts/check_vendored.py | tee report.txt
+          echo "behind=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+      - name: Open an issue when one is behind
+        if: steps.check.outputs.behind == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Vendored library out of date"
+          if [ -z "$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number')" ]; then
+            gh issue create --title "$title" --body "$(cat report.txt)"
+          fi

@@ -6,7 +6,10 @@ administrators and managers.
 
 ## What is emailed
 
-Only account messages: the welcome and password-reset links, sign-up confirmations, and the test message you ask for in Connections. Alerts, deposit notices and the like are never emailed; they appear in the Desk's notifications (and a webhook, if you set one).
+Only account messages: the welcome and password-reset links, sign-up confirmations, and the test message you ask for in Connections. Alerts, deposit notices and the like are never emailed; they appear in the Desk's notifications (and a webhook, if you set one). Frappe's own notifications
+(a mention, an assignment, a share, energy points, event reminders) are kept in the Desk too: each
+account's own email-notification setting is switched off, now and for new accounts, and a person
+may turn it back on in their Notification Settings.
 
 ## Setting up outgoing email
 

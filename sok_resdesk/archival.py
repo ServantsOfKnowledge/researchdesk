@@ -9,6 +9,7 @@ above it are published, and visible to the reader as books are (public, or for l
 from __future__ import annotations
 
 import frappe
+from frappe.rate_limiter import rate_limit
 
 from sok_resdesk import access, features
 from sok_resdesk.catalogue import portal_title
@@ -71,6 +72,7 @@ def _staff() -> bool:
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=30, seconds=60)
 def ead(unit: str) -> None:
 	"""A fonds or collection (and everything under it the reader may see) as an EAD3 finding aid."""
 	if not features.on("archival"):

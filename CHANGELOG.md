@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.74.0 (2026-10-12): Contributors page, more self-healing, every public endpoint rate limited
+
+- **Contributors:** people and organisations who ticked *The library may name me as a contributor* in About me are listed at `/library/contributors` (name, role, organisation, place, website, a few words). Their volunteering and support details are never shown. The About page links to it and the sitemap lists it once someone is named; a browser test checks it with axe-core.
+- **Self-healing:** the watchdog also clears the lost record of any other Research Desk job (a fixity audit, a review scan, one book's re-OCR), seen dead twice, so the next run starts.
+- **Email:** Frappe's own notifications (mentions, assignments, shares, energy points, event reminders) no longer email: their types are skipped, and every account's own email-notification setting is switched off now and for each new account (a person may turn it back on in their Notification Settings). Any Email Digest is paused.
+- **Rate limits:** ten public endpoints had none (a book's details, the statistics, one note, an EAD finding aid, OAI-PMH, the annotation protocol, a ground-truth download, the language switch and the statistics config). They have now, and a test fails if a public endpoint has none.
+- **Checks:** a weekly CI run compares the vendored jquery.ime with its latest release and opens one issue when it is behind; two read-only review subagents (security, documentation) are in `.claude/agents/`, and `/release` asks both before a push.
+
 ## 0.73.2 (2026-10-12): Audit fixes
 
 - Choosing books by collection (bulk changes, and an OAI-PMH `set`) matched `%` and `_` as wildcards, so a collection name containing them could select other collections' books. They now match themselves.

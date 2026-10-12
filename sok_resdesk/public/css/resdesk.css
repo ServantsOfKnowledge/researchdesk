@@ -219,6 +219,8 @@
 .rd-linkish:hover { background: var(--rd-soft); }
 .rd-card { border: 1px solid var(--rd-border); border-radius: 10px; padding: 16px; margin-bottom: 16px; background: var(--rd-bg); }
 .rd-card h2 { font-size: 1rem; margin: 0 0 10px; }
+.rd-contrib-list { list-style: none; margin: 16px 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.rd-contrib-list .rd-card { margin: 0; overflow-wrap: anywhere; }
 .rd-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
 .rd-tab { border: 1px solid var(--rd-border); background: var(--rd-bg); color: inherit; border-radius: 6px; padding: 3px 8px; font-size: .82rem; cursor: pointer; }
 .rd-tab.is-active { background: var(--rd-accent); border-color: var(--rd-accent); color: #fff; }

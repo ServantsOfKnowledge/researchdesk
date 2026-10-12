@@ -13,6 +13,7 @@ from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
 
 import frappe
+from frappe.rate_limiter import rate_limit
 from frappe.utils import get_system_timezone
 from werkzeug.wrappers import Response
 
@@ -123,6 +124,7 @@ class FrappeStore:
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
+@rate_limit(limit=60, seconds=60)
 def endpoint(**kwargs):
 	s = settings()
 	if (s.oai_scope or OAI_GUEST) == OAI_OFF or not features.on("sharing"):

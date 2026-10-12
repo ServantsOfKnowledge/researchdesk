@@ -367,6 +367,7 @@ def cite_page(item_id: str, leaf: int = 0, label: str = ""):
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=120, seconds=60)
 def item(item_id: str):
 	record = get_record(item_id)
 	if not record:
@@ -557,6 +558,7 @@ def file(item_id: str, name: str):
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=30, seconds=60)
 def stats():
 	seen = f"published=1 and {access.sql_condition()}"  # what this visitor can find
 	counts = {

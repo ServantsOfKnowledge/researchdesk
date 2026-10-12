@@ -16,6 +16,7 @@ from urllib.parse import urlparse
 
 import frappe
 from frappe import _
+from frappe.rate_limiter import rate_limit
 
 PROVIDERS = ("Off", "Built-in", "PostHog", "Plausible", "Umami")
 EXTERNAL = ("PostHog", "Plausible", "Umami")
@@ -23,6 +24,7 @@ CACHE_KEY = "resdesk:analytics-config"
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=120, seconds=60)
 def config() -> dict:
 	"""What portal pages load: {provider, host, key} (all public: they are in every page anyway)."""
 	cached = frappe.cache.get_value(CACHE_KEY)

@@ -952,6 +952,38 @@ class TestOcrQuality(OpsTestCase):
 			with mock.patch("sok_resdesk.holding.is_paused", return_value=True):
 				self.assertEqual(watchdog.run(), [])
 
+	def test_watchdog_sweeps_other_dead_jobs_without_queueing_them(self):
+		"""Another Research Desk job seen dead twice has its record cleared, and nothing is queued."""
+		from sok_resdesk import watchdog
+
+		frappe.cache.delete_value("resdesk:watchdog-seen:resdesk-fixity-audit")
+		with (
+			mock.patch("sok_resdesk.watchdog._record_ids", return_value=["resdesk-fixity-audit"]),
+			mock.patch("sok_resdesk.watchdog.job_state", return_value="dead"),
+			mock.patch("sok_resdesk.search_queue.forget_job") as forget,
+		):
+			self.assertEqual(watchdog.sweep(), [])
+			forget.assert_not_called()
+			self.enqueued.clear()
+			self.assertEqual(len(watchdog.sweep()), 1)
+			forget.assert_called_once_with("resdesk-fixity-audit")
+			self.assertEqual(self.enqueued, [])
+
+	def test_a_new_account_gets_no_notification_email(self):
+		"""Frappe's own notification emails are off for a new account and for existing ones."""
+		from sok_resdesk import notifications
+
+		email = "rdtest.quiet@example.org"
+		if frappe.db.exists("User", email):
+			frappe.delete_doc("User", email, force=True, ignore_permissions=True)
+		frappe.get_doc(
+			{"doctype": "User", "email": email, "first_name": "Quiet", "send_welcome_email": 0}
+		).insert(ignore_permissions=True)
+		self.assertEqual(frappe.db.get_value("Notification Settings", email, notifications.SETTING), 0)
+		frappe.db.set_value("Notification Settings", email, notifications.SETTING, 1)
+		self.assertGreaterEqual(notifications.quiet_everyone(), 1)
+		self.assertEqual(frappe.db.get_value("Notification Settings", email, notifications.SETTING), 0)
+
 	def test_link_life_is_lengthened_once_and_a_chosen_value_is_left_alone(self):
 		"""Frappe's 20 minutes becomes a day; anything an administrator chose stays."""
 		from sok_resdesk import clock
