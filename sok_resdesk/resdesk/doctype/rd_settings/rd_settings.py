@@ -55,7 +55,9 @@ class RDSettings(Document):
 			features.apply(self)
 
 
-DEFAULT_LOGO = "/assets/sok_resdesk/images/resdesk-logo.svg"
+# the Servants of Knowledge logo ships with the app: a new install starts with it (setup.py), the Desk's
+# app icon and the help pages fall back to it
+DEFAULT_LOGO = "/assets/sok_resdesk/images/sok-logo.png"
 
 
 def footer_powered() -> str:

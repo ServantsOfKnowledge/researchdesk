@@ -380,9 +380,17 @@ def _save_state(state: dict) -> None:
 	frappe.db.set_default(STATE_KEY, frappe.as_json(state))
 
 
+def _own_logo() -> bool:
+	"""A logo that is the library's own: the Servants of Knowledge one a new install starts with is not."""
+	from sok_resdesk.resdesk.doctype.rd_settings.rd_settings import DEFAULT_LOGO
+
+	logo = frappe.db.get_single_value("RD Settings", "portal_logo")
+	return bool(logo) and logo != DEFAULT_LOGO
+
+
 def _auto_done() -> dict:
 	return {
-		"logo": bool(frappe.db.get_single_value("RD Settings", "portal_logo")),
+		"logo": _own_logo(),
 		"ingest_done": bool(
 			frappe.db.exists("RD Ingest Run", {"status": ("in", ["Completed", "Completed with Errors"])})
 		),

@@ -265,6 +265,9 @@ def apply_default_settings():
 	if conf.get("resdesk_meili_key"):
 		s.meili_api_key = conf.get("resdesk_meili_key")
 	s.index_prefix = s.index_prefix or "rd"
+	from sok_resdesk.resdesk.doctype.rd_settings.rd_settings import DEFAULT_LOGO
+
+	s.portal_logo = s.portal_logo or DEFAULT_LOGO  # a new library starts with the Servants of Knowledge logo
 	s.repository_id = conf.get("resdesk_repository_id") or s.repository_id or frappe.local.site
 	s.ia_contact = conf.get("resdesk_contact") or s.ia_contact
 	s.admin_email = (

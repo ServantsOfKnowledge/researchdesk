@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.75.0 (2026-10-15): The Servants of Knowledge logo is the default
+
+- **Logo:** a new install starts with the Servants of Knowledge logo as its Logo (Settings → Logo & Branding), so the portal, the browser tab, the Desk's app icon and the help pictures all carry it from the first day instead of a generic icon. Libraries that set their own logo keep it. The Desk's app icon and the apps screen use it when no logo is set. The first-steps list still asks for a logo until the library sets its own.
+
 ## 0.74.4 (2026-10-12): Audit fixes: failed emails sent again, lighter contributors list, safer folder source
 
 - **Email:** the watchdog puts failed emails of the last twelve hours back in the queue (after half an hour, twenty per run), so a mail outage no longer leaves people without their link. Older ones stay failed: **Send a new link** is better than a stale one.

@@ -61,7 +61,8 @@ take seconds. At the end, answer **Y** to load 20 sample Kannada books.
 
 ## 4. Add your logo
 
-Desk → Research Desk → **Settings** → *Logo & Branding* → **Logo** → upload a PNG or SVG
+A new install starts with the Servants of Knowledge logo, on the portal, in the Desk and on the help
+pages (and so in the help pictures). To use your own: Desk → Research Desk → **Settings** → *Logo & Branding* → **Logo** → upload a PNG or SVG
 (a wide logo about 400×120 px works well) → **Save**. It appears on the portal home page and top
 bar, on the login page, and in the Desk. Add a square **Icon** too (e.g. just the emblem of your
 logo): it is used for the browser tab and the Research Desk icon in the Desk, where a wide logo

@@ -8,11 +8,11 @@ app_email = "omshivaprakash@gmail.com"
 app_license = "MIT"
 # the app's own logo (Frappe's apps screen, Desk sidebar); a library's logo from
 # RD Settings replaces it on the portal and in the Desk
-app_logo_url = "/assets/sok_resdesk/images/resdesk-logo.svg"
+app_logo_url = "/assets/sok_resdesk/images/sok-logo.png"
 add_to_apps_screen = [
 	{
 		"name": "sok_resdesk",
-		"logo": "/assets/sok_resdesk/images/resdesk-logo.svg",
+		"logo": "/assets/sok_resdesk/images/sok-logo.png",
 		"title": "Research Desk",
 		"route": "/app/research-desk",
 	}
