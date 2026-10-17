@@ -1,22 +1,25 @@
 """Governance Mode: setting a record's level and department, and keeping the rules that go with it.
 
-A classified or department-scoped record carries the visibility "Cleared only", which the plain
-access rules never show to anyone (core/access.py); the people cleared for it see it through
-access.effective. The level and department are indexed beside the visibility, so search honours
-them. Clearances, departments and every change of classification are written to the audit log.
+A classified or department-scoped record has one line in RD Item Scope (its level and department;
+apart from the item because the item's own table is already full) and carries the visibility
+"Cleared only", which the plain access rules never show to anyone (core/access.py); the people
+cleared for it see it through access.effective. The level and department are indexed beside the
+visibility, so search honours them. Clearances, departments and every change of classification are
+written to the audit log.
 """
 
 from __future__ import annotations
 
 import frappe
 from frappe import _
-from frappe.utils import cint
+from frappe.utils import cint, now_datetime
 
 from sok_resdesk import access, audit
 from sok_resdesk.core import classification as levels
 from sok_resdesk.core.access import CLEARED_ONLY, LOGIN_TO_FIND
 
 CLASSIFIERS = ("ResDesk Security Officer", "SOK Super Admin", "ResDesk Manager")
+SCOPE = "RD Item Scope"
 
 
 def classified_mode() -> bool:
@@ -40,26 +43,52 @@ def _may_classify(level: str, department: str | None) -> None:
 		frappe.throw(_("You cannot classify a record above your own clearance."), frappe.PermissionError)
 
 
-def on_item_validate(doc, method=None) -> None:
-	"""Keeps the level number and the "Cleared only" visibility in step with the classification."""
+def _reindex(names: list[str]) -> None:
+	from sok_resdesk.search import update_item_fields
+
+	if len(names) <= access.BACKGROUND_OVER:
+		update_item_fields(names, wait=True)  # hidden from search before this returns
+	else:
+		frappe.enqueue(update_item_fields, names=names, queue="long", timeout=3600)
+
+
+# -- one record: the RD Item Scope form -------------------------------------------------------
+
+
+def on_scope_validate(doc) -> None:
+	if not access.governed():
+		frappe.throw(_("Switch on Governance Mode (Settings) before classifying records."))
 	doc.class_rank = levels.rank(doc.classification)
-	if not access.governed() and not doc.class_rank and not doc.department:
-		return
+	if not doc.class_rank and not doc.department:
+		frappe.throw(_("An Unclassified record with no department needs no line here: delete it instead."))
+	_may_classify(doc.classification, doc.department)
 	old = doc.get_doc_before_save()
-	was = (old.classification or "Unclassified", old.department or "") if old else ("Unclassified", "")
-	now = (doc.classification or "Unclassified", doc.department or "")
-	if was != now:
-		if not access.governed():
-			frappe.throw(_("Switch on Governance Mode (Settings) before classifying records."))
-		_may_classify(now[0], now[1])
-		audit.record("classification", doc.name, f"{was[0]} {was[1]} → {now[0]} {now[1]}".strip())
-	scoped = bool(doc.class_rank or doc.department)
-	if scoped and doc.visibility != CLEARED_ONLY:
-		doc.visibility_before = doc.visibility
-		doc.visibility = CLEARED_ONLY
-	elif not scoped and doc.visibility == CLEARED_ONLY:
-		doc.visibility = doc.visibility_before or LOGIN_TO_FIND
-		doc.visibility_before = ""
+	if old:  # no one reclassifies what they are not cleared for
+		_may_classify(old.classification, old.department)
+	if not doc.visibility_before:
+		current = frappe.db.get_value("RD Item", doc.item, "visibility")
+		doc.visibility_before = current if current != CLEARED_ONLY else LOGIN_TO_FIND
+
+
+def apply_to_item(item: str) -> None:
+	"""After the scope is saved: the record becomes Cleared only, at once in search too."""
+	frappe.db.set_value("RD Item", item, "visibility", CLEARED_ONLY, update_modified=False)
+	level, department = frappe.db.get_value(SCOPE, item, ["classification", "department"])
+	audit.record("classification", item, f"{level} {department or ''}".strip())
+	_reindex([item])
+
+
+def release_item(doc) -> None:
+	"""The scope line is deleted: the record has the visibility it had before."""
+	if frappe.db.get_value("RD Item", doc.item, "visibility") == CLEARED_ONLY:
+		frappe.db.set_value(
+			"RD Item", doc.item, "visibility", doc.visibility_before or LOGIN_TO_FIND, update_modified=False
+		)
+	audit.record("classification", doc.item, "declassified")
+	_reindex([doc.item])
+
+
+# -- many records: Items list → Actions → Set Classification -----------------------------------
 
 
 @frappe.whitelist(methods=["POST"])
@@ -74,32 +103,43 @@ def set_classification(level: str, department: str = "", names=None, filters=Non
 		frappe.throw(_("Unknown department: {0}").format(department))
 	_may_classify(level, department)
 	selected = access.select_items(names=names, filters=filters)
-	rank, scoped = levels.rank(level), bool(levels.rank(level) or department)
+	rank = levels.rank(level)
+	user, now = frappe.session.user, now_datetime()
 	for i in range(0, len(selected), 500):
-		frappe.db.sql(
-			"""update `tabRD Item` set classification=%(level)s, class_rank=%(rank)s, department=%(dept)s,
-			visibility_before = if(%(scoped)s and visibility != %(c)s, visibility, visibility_before),
-			visibility = if(%(scoped)s, %(c)s,
-				if(visibility = %(c)s, if(ifnull(visibility_before, '') = '', %(find)s, visibility_before), visibility))
-			where name in %(names)s""",
-			{
-				"level": level,
-				"rank": rank,
-				"dept": department or None,
-				"scoped": 1 if scoped else 0,
-				"c": CLEARED_ONLY,
-				"find": LOGIN_TO_FIND,
-				"names": tuple(selected[i : i + 500]),
-			},
-		)
+		chunk = tuple(selected[i : i + 500])
+		if rank or department:
+			frappe.db.sql(
+				f"""insert into `tab{SCOPE}`
+				(name, creation, modified, modified_by, owner, docstatus, idx, item, classification, class_rank,
+				department, visibility_before)
+				select name, %(now)s, %(now)s, %(user)s, %(user)s, 0, 0, name, %(level)s, %(rank)s, %(dept)s,
+					if(ifnull(visibility, '') in ('', %(c)s), %(find)s, visibility)
+				from `tabRD Item` where name in %(names)s
+				on duplicate key update classification = values(classification),
+					class_rank = values(class_rank), department = values(department), modified = values(modified)""",
+				{
+					"now": now,
+					"user": user,
+					"level": level,
+					"rank": rank,
+					"dept": department or None,
+					"c": CLEARED_ONLY,
+					"find": LOGIN_TO_FIND,
+					"names": chunk,
+				},
+			)
+			frappe.db.sql("update `tabRD Item` set visibility = %s where name in %s", (CLEARED_ONLY, chunk))
+		else:  # declassify: back to what each had before, and no scope line
+			frappe.db.sql(
+				f"""update `tabRD Item` i join `tab{SCOPE}` s on s.name = i.name
+				set i.visibility = if(ifnull(s.visibility_before, '') = '', %s, s.visibility_before)
+				where i.name in %s and i.visibility = %s""",
+				(LOGIN_TO_FIND, chunk, CLEARED_ONLY),
+			)
+			frappe.db.sql(f"delete from `tab{SCOPE}` where name in %s", (chunk,))
 	frappe.db.commit()
 	audit.record("classification", detail=f"{len(selected)} records → {level} {department}".strip())
-	from sok_resdesk.search import update_item_fields
-
-	if len(selected) <= access.BACKGROUND_OVER:
-		update_item_fields(selected, wait=True)  # hidden from search before this returns
-	else:
-		frappe.enqueue(update_item_fields, names=selected, queue="long", timeout=3600)
+	_reindex(selected)
 	return {
 		"count": len(selected),
 		"message": _("{0} records are now {1}.").format(len(selected), _(level)),

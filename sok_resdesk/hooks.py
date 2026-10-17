@@ -114,6 +114,7 @@ permission_query_conditions = {
 	"RD Review Flag": "sok_resdesk.access.review_flag_conditions",
 	"RD Ground Truth": "sok_resdesk.access.ground_truth_conditions",
 	"RD External Record": "sok_resdesk.access.external_record_conditions",
+	"RD Item Scope": "sok_resdesk.access.scope_conditions",
 }
 has_permission = {
 	"RD Item": "sok_resdesk.access.item_has_permission",
@@ -122,12 +123,11 @@ has_permission = {
 	"RD Review Flag": "sok_resdesk.access.by_item_has_permission",
 	"RD Ground Truth": "sok_resdesk.access.by_item_has_permission",
 	"RD External Record": "sok_resdesk.access.by_item_has_permission",
+	"RD Item Scope": "sok_resdesk.access.scope_has_permission",
 }
 
 doc_events = {
 	"RD Item": {
-		# Governance Mode: the level number and the "Cleared only" visibility follow the classification
-		"validate": ["sok_resdesk.classification.on_item_validate"],
 		"on_update": [
 			"sok_resdesk.search.on_item_update",
 			"sok_resdesk.outbound.on_item_change",

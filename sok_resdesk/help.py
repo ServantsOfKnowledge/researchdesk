@@ -52,6 +52,7 @@ SCREEN_HELP = {
 	"RD Tombstone": ("preservation", "tombstones"),
 	"RD Audit Event": ("governance", "the-audit-log"),
 	"RD Department": ("governance", "departments-and-clearances"),
+	"RD Item Scope": ("governance", "where-the-level-and-department-live"),
 	"RD Clearance": ("governance", "departments-and-clearances"),
 	"RD Annotation": ("staff-guide", "readers-notes"),
 	"RD Research Group": ("staff-guide", "readers-notes"),

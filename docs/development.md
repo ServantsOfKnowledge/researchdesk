@@ -25,7 +25,7 @@ researchdesk/
 ├── .github/workflows/      CI (lint, unit, Docker install + integration) and image publishing
 └── sok_resdesk/            the Frappe app
     ├── hooks.py            routes, doc events, scheduler, install hooks
-    ├── core/               pure Python, no Frappe:  ia.py  folder.py  normalize.py  citations.py  marc.py  oai.py  access.py
+    ├── core/               pure Python, no Frappe:  ia.py  folder.py  normalize.py  citations.py  marc.py  oai.py  access.py  classification.py  audit.py
     │                                           mail.py (outgoing email presets, plain-words errors)  known_errors.py (Log QA: which release fixed which error)
     │                                           helpdocs.py (docs as help pages)  collections.py (rules, slugs)  metaio.py (export formats, spreadsheet)  push.py (IA, Koha, Wikidata, webhook clients)
     │                                           ark.py (ARKs, check character)  ocfl.py (preservation copies)  replica.py (second copy: folder, S3)  bagit.py (BagIt bags)
@@ -37,7 +37,9 @@ researchdesk/
     ├── local_source.py     IA-style item folders on disk / NAS / web server
     ├── search.py           Meilisearch adapter, indexing, search (romanised words, OR, federated)
     ├── search_queue.py     the search engine's queue: books first, page text held or paced
-    ├── access.py           who can see what: members, bulk visibility, reader sign-up
+    ├── access.py           who can see what: members, bulk visibility, reader sign-up, clearance (Governance Mode)
+    ├── classification.py   Governance Mode: levels and departments on records, Set Classification, clearance audit
+    ├── audit.py            Governance Mode: the tamper-evident audit log (views, downloads, searches, changes)
     ├── people.py           People & Roles page: roles, invitations, accounts, sign-ups
     ├── identifiers.py      ARKs: minting, resolver, tombstones
     ├── preservation.py     preservation copies, fixity, second copy, repair, serving from copy, BagIt

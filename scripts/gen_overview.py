@@ -175,6 +175,22 @@ box(
 	fill="#eef3f1",
 )
 
+box(
+	640,
+	520,
+	240,
+	134,
+	"Governance Mode (optional)",
+	(
+		"levels and departments: records",
+		"hidden from anyone not cleared",
+		"a clearance per person",
+		"tamper-evident audit log",
+	),
+	colour=AMBER,
+	fill="#fbf3e8",
+)
+
 # column 4: out
 box(
 	910,
@@ -230,7 +246,7 @@ parts.append(
 	f'<text x="46" y="706" font-size="14" font-weight="700" fill="{SLATE}">Looking after it (Desk → Server, Connections, Background Jobs)</text>'
 )
 parts.append(
-	f'<text x="46" y="727" font-size="12.5" fill="{INK}">health checks, backups and alerts · gentle upgrades through the optional updater helper · Log QA · search queue care · outgoing email for sign-in</text>'
+	f'<text x="46" y="727" font-size="12.5" fill="{INK}">health checks, backups and alerts · gentle upgrades through the optional updater helper (or the Coolify API) · Log QA · search queue care · outgoing email for sign-in</text>'
 )
 
 
@@ -264,7 +280,8 @@ svg = (
 	'<title id="t">SOK Research Desk: how it fits together</title>'
 	'<desc id="d">Books and material come in from archive.org, folders, Calibre, repositories, Wikisource and deposits. '
 	"Ingest jobs, proofreading, machine drafts, preservation and review work on them. They are kept in Frappe and MariaDB "
-	"and found through Meilisearch, and go out to readers, open standards, Wikimedia and other systems, and offline copies.</desc>"
+	"and found through Meilisearch, and go out to readers, open standards, Wikimedia and other systems, and offline copies. "
+	"Governance Mode, when switched on, adds classification levels, departments, clearances and an audit log.</desc>"
 	f'<defs><marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="{LINE}"/></marker></defs>'
 	+ "".join(parts)
 	+ "</svg>\n"

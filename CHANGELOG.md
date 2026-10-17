@@ -1,9 +1,14 @@
 # Changelog
 
+## 0.78.1 (2026-10-17): Classification installs, and Governance Mode documented
+
+- **Fix for 0.78.0, which did not install** (MariaDB: "Row size too large": the item's table is already full): a record's level and department are now a line in **Classified Records** (RD Item Scope), not columns on the item. Nothing else changes for the person using it.
+- **Docs:** [Government and institutional use](docs/governance.md) is now the whole design (the decision on every request, how classification and clearance work, the audit log, where each surface enforces it, what is not covered, and how to deploy), with a diagram; the architecture guide, the development map, the roadmap and the README mention it, and the *How it fits together* picture shows Governance Mode and the Coolify route.
+
 ## 0.78.0 (2026-10-17): Classification and need-to-know
 
 - **Governance Mode:** records have a **level** (Unclassified, Restricted, Confidential; Secret and Top Secret only on a Classified-mode installation) and an optional **department**. A classified or department-scoped record is hidden from everyone without a clearance for it: search, its page, its files (never cached), IIIF, OPDS, OAI-PMH, SRU, exports and pushes. Nobody has a clearance by role; only the built-in Administrator sees all, and that is audited.
-- **Departments** (a tree: offices see the offices below them) and **Clearances** (a level and departments per person), kept by the new role **ResDesk Security Officer**. **Items → Actions → Set Classification** classifies many records. Governance Mode cannot be switched off while classified records exist, and a classified record stays hidden even if it were (the hiding does not depend on the switch). Clearances can only be granted within the grantor's own level and departments, never to oneself; departments are kept by super admins.
+- **Departments** (a tree: offices see the offices below them) and **Clearances** (a level and departments per person), kept by the new role **ResDesk Security Officer**. **Items → Actions → Set Classification** classifies many records; one record's level and department are a line in **Classified Records** (RD Item Scope), kept apart from the item because its table is already at MariaDB's row limit. Governance Mode cannot be switched off while classified records exist, and a classified record stays hidden even if it were (the hiding does not depend on the switch). Clearances can only be granted within the grantor's own level and departments, never to oneself; departments are kept by super admins.
 - Not yet covered: archival units, deposits and readers' notes (a classified book's are hidden from everyone). See [Government and institutional use](docs/governance.md).
 
 ## 0.77.0 (2026-10-17): Governance Mode and a tamper-evident audit log

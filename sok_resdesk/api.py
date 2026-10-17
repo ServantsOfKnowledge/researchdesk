@@ -156,10 +156,8 @@ def search_inside(item_id: str, q: str, limit: int = 50):
 	"""Pages of one book that match `q`, with highlighted snippets."""
 	if not q.strip():
 		return {"hits": []}
-	row = frappe.db.get_value(
-		"RD Item", item_id, ["published", "visibility", "class_rank", "department"], as_dict=True
-	)
-	shown = row and access.effective(row.visibility, row.class_rank, row.department)
+	row = frappe.db.get_value("RD Item", item_id, ["published", "visibility"], as_dict=True)
+	shown = row and access.effective(row.visibility, item_id)
 	if not row or not row.published or not access.can_find(shown):
 		frappe.throw(_("Item not found"), frappe.DoesNotExistError)
 	if not access.can_read(shown):
@@ -509,15 +507,13 @@ def file(item_id: str, name: str):
 			"local_thumb",
 			"local_files",
 			"visibility",
-			"class_rank",
-			"department",
 			"served_from_copy",
 		],
 		as_dict=True,
 	)
 	classified = bool(doc) and doc.visibility == "Cleared only"
 	if doc:  # a classified record reads like a members-only one to the people cleared for it
-		doc.visibility = access.effective(doc.visibility, doc.class_rank, doc.department)
+		doc.visibility = access.effective(doc.visibility, item_id)
 	if doc and doc.published and doc.served_from_copy:
 		# a book archive.org no longer serves: its PDF from our preservation copy
 		from sok_resdesk.preservation import copy_pdf

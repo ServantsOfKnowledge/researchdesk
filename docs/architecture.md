@@ -57,6 +57,7 @@ The full list of software, what each part is configured for and which features n
 │                             │  api.py           search · cite · marc · stats · media  │
 │                             │  oai.py  iiif.py  OAI-PMH · IIIF manifests + image      │
 │                             │  opds.py          e-reader catalogue (OPDS 1.2)         │
+│                             │  audit.py classification.py  Governance Mode            │
 │                             │  Desk             one sidebar: DocTypes, forms, pages   │
 │                             ▼                                                         │
 │  MariaDB  ◀── catalogue ── Frappe ORM ──▶ search.py ──▶ Meilisearch                   │
@@ -129,6 +130,7 @@ cause. Under Coolify, which owns the containers, the helper cannot run; restart 
 | **RD Department** | an office in the department tree; people of an office see the records of the offices below it | department_name, parent_department |
 | **RD Clearance** | what a person may see under Governance Mode: up to a level, for some departments and the offices below them | user, level, departments |
 | **RD Clearance Department** | one row of a clearance | department |
+| **RD Item Scope** | the level and department of one classified record (none: unclassified); kept apart from the item, whose table is full | item, classification, class_rank, department, visibility_before |
 | **RD Preservation Event** | a book's preservation history (PREMIS-style) | item, event (Ingestion / Fixity check / Replication / Repair / Deletion / Access from copy / Export), outcome, when, copy version, by, detail |
 | **RD Annotation** | a reader's note on a page | item, leaf, printed page, kind (Highlight / Comment / Tag / Question / Link / OCR error), who can see it (Private / Group / Public), research group, review (Pending / Approved / Rejected), note, tags, link, what it is about (a Wikidata item, with its name and description); on a passage: quoted text with the text before and after it, and its character positions; on the page image: a region in percent |
 | **RD Ground Truth** | a set of proofread pages with their images, shared for training and testing OCR | title, which pages (proofread or validated, validated only), collection, language, book, only books anyone can read, page parts, at most; status, on the portal, licence, pages, page parts, books, languages, file, size, SHA-256, log; pages left out for want of a contributor release, who reviewed it and when (a set goes on the portal only after review) |
@@ -449,6 +451,15 @@ size limit), draws its pages with poppler's `pdftoppm` (`core/pdfrender.py`, or 
 embedded image without poppler) for *Page & text*, proofreading and re-OCR, and reads a scan
 without text with Tesseract in a background job. OCR'd text is kept in `private/resdesk-ocr`
 (it can't be fetched again) and comes before every other source in `ingest.fetch_pages`. See [Development → Adding a source](development.md#adding-a-new-source).
+
+## Governance Mode
+
+For a government or other institution that must show who may see what, and who did: each record
+can carry a level and a department, a person's clearance decides what they find and read, and every
+view, download, search and change goes into a tamper-evident audit log. A classified record is
+*Cleared only*: the plain access rules never show it, and only `access.effective()` lets the cleared
+through, so a surface that was never taught about classification fails closed. The whole design,
+with its diagram, is in [Government and institutional use](governance.md).
 
 ## Access control
 

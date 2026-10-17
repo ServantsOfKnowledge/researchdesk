@@ -28,6 +28,7 @@ class TestGovernance(IntegrationTestCase):
 
 	def _clean(self):
 		frappe.set_user("Administrator")
+		frappe.db.delete("RD Item Scope", {"item": ("like", "rdgovtest%")})
 		frappe.db.delete("RD Item", {"name": ("like", "rdgovtest%")})
 		frappe.db.delete("RD Clearance", {"name": self.USER})
 		frappe.db.delete("RD Department", {"name": ("like", "RD Test %")})
@@ -59,14 +60,19 @@ class TestGovernance(IntegrationTestCase):
 			}
 		).insert(ignore_permissions=True)
 
+	def scope(self, item, level="Confidential", department="RD Test District"):
+		return frappe.get_doc(
+			{"doctype": "RD Item Scope", "item": item, "classification": level, "department": department}
+		).insert(ignore_permissions=True)
+
 	def test_a_classified_record_becomes_cleared_only_and_comes_back(self):
-		doc = self.item(1, classification="Confidential", department="RD Test District")
-		self.assertEqual(
-			(doc.visibility, doc.class_rank, doc.visibility_before), ("Cleared only", 2, "Public")
-		)
-		doc.classification, doc.department = "Unclassified", None
-		doc.save(ignore_permissions=True)
-		self.assertEqual((doc.visibility, doc.class_rank), ("Public", 0))
+		doc = self.item(1)
+		line = self.scope(doc.name)
+		self.assertEqual(line.class_rank, 2)
+		self.assertEqual(frappe.db.get_value("RD Item", doc.name, "visibility"), "Cleared only")
+		self.assertEqual(line.visibility_before, "Public")
+		line.delete(ignore_permissions=True)
+		self.assertEqual(frappe.db.get_value("RD Item", doc.name, "visibility"), "Public")
 
 	def test_a_head_office_is_cleared_for_its_district_not_the_reverse(self):
 		self.clear("Confidential", "RD Test Head")
@@ -77,7 +83,7 @@ class TestGovernance(IntegrationTestCase):
 		self.assertFalse(access.is_cleared(1, "RD Test Head", self.USER))
 
 	def test_nobody_has_a_clearance_by_role_and_a_guest_sees_nothing_classified(self):
-		self.item(2, classification="Restricted")
+		self.scope(self.item(2).name, "Restricted", None)
 		frappe.set_user("Guest")
 		try:
 			names = frappe.db.sql_list(
@@ -89,11 +95,11 @@ class TestGovernance(IntegrationTestCase):
 
 	def test_secret_needs_classified_mode(self):
 		with self.assertRaises(frappe.ValidationError):
-			self.item(3, classification="Secret")
+			self.scope(self.item(3).name, "Secret", None)
 		self.assertFalse(classification.classified_mode())
 
 	def test_governance_cannot_be_switched_off_with_classified_records(self):
-		self.item(4, classification="Restricted")
+		self.scope(self.item(4).name, "Restricted", None)
 		settings = frappe.get_doc("RD Settings")
 		settings.governance = 0
 		with self.assertRaises(frappe.ValidationError):

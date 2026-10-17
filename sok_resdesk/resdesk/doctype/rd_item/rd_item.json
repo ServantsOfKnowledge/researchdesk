@@ -19,10 +19,6 @@
   "published",
   "visibility",
   "visibility_set_by",
-  "classification",
-  "class_rank",
-  "department",
-  "visibility_before",
   "access_status",
   "thumbnail_url",
   "section_people",
@@ -222,39 +218,6 @@
    "label": "Visibility Set By",
    "read_only": 1,
    "description": "Default, Profile, Rule, Bulk or Manual. “Apply rules” in Settings leaves Manual and Bulk choices alone unless asked."
-  },
-  {
-   "fieldname": "classification",
-   "fieldtype": "Select",
-   "label": "Classification",
-   "options": "Unclassified\nRestricted\nConfidential\nSecret\nTop Secret",
-   "default": "Unclassified",
-   "in_standard_filter": 1,
-   "description": "Governance Mode: who may see this record by level (Secret and Top Secret need Classified mode). Set it with Actions → Set Classification, or here."
-  },
-  {
-   "fieldname": "class_rank",
-   "fieldtype": "Int",
-   "label": "Level Number",
-   "read_only": 1,
-   "search_index": 1,
-   "default": "0",
-   "hidden": 1
-  },
-  {
-   "fieldname": "department",
-   "fieldtype": "Link",
-   "label": "Department",
-   "options": "RD Department",
-   "search_index": 1,
-   "description": "Governance Mode: only people of this department (and the offices above it) may see it. Empty: any person cleared for its level."
-  },
-  {
-   "fieldname": "visibility_before",
-   "fieldtype": "Data",
-   "label": "Visibility Before Classification",
-   "read_only": 1,
-   "hidden": 1
   },
   {
    "fieldname": "access_status",

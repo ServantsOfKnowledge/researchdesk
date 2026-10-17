@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 
 import frappe
-from frappe.utils import cint, get_url, now_datetime
+from frappe.utils import get_url, now_datetime
 
 from sok_resdesk.core.normalize import decade_of
 
@@ -23,6 +23,12 @@ def portal_title() -> str:
 
 
 # -- read ---------------------------------------------------------------------
+
+
+def _scope(item: str) -> tuple[int, str]:
+	from sok_resdesk.access import scope_of
+
+	return scope_of(item)
 
 
 def item_to_record(doc) -> dict:
@@ -75,8 +81,8 @@ def item_to_record(doc) -> dict:
 		"rights": doc.rights or "",
 		"access_status": doc.access_status or "Unknown",
 		"visibility": doc.visibility or "Public",
-		"class_rank": cint(doc.get("class_rank")),
-		"department": doc.get("department") or "",
+		"class_rank": _scope(doc.name)[0],
+		"department": _scope(doc.name)[1],
 		"source_url": doc.source_url or "",
 		"thumbnail_url": _absolute(doc.thumbnail_url or ""),
 		"ark": doc.ark or "",
@@ -265,7 +271,7 @@ def get_record(item_id: str, published_only: bool = True, check_access: bool = T
 	if check_access:
 		from sok_resdesk.access import can_find, effective
 
-		shown = effective(doc.visibility, doc.get("class_rank"), doc.get("department"))
+		shown = effective(doc.visibility, doc.name)
 		if not can_find(shown):
 			return None
 		record = item_to_record(doc)
