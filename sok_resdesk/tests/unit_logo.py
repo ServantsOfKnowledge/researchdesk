@@ -20,3 +20,7 @@ def test_every_default_is_the_servants_of_knowledge_logo():
 
 def test_the_logo_is_shipped_with_the_app():
 	assert (APP / "public" / "images" / "sok-logo.png").is_file()
+
+
+def test_the_default_logo_patch_is_registered():
+	assert "sok_resdesk.patches.v0_75.default_logo" in (APP / "patches.txt").read_text()

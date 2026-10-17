@@ -44,7 +44,9 @@ def get_context(context):
 
 	context.has_archive = bool(archival.top_units())
 	context.facet_labels = facet_labels()
-	context.logo = s.portal_logo if s.portal_logo and s.logo_on_home else ""
+	from sok_resdesk.resdesk.doctype.rd_settings.rd_settings import DEFAULT_LOGO
+
+	context.logo = (s.portal_logo or DEFAULT_LOGO) if s.logo_on_home else ""
 	context.home_banner = s.home_banner or ""
 	context.metatags = {
 		"title": context.title,

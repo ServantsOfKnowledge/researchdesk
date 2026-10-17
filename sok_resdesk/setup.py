@@ -55,6 +55,10 @@ def after_install():
 	set_website_home()
 	set_up_about_page()
 	try:
+		ensure_default_logo()
+	except Exception:
+		frappe.log_error("Research Desk: could not set the default logo")
+	try:
 		from sok_resdesk import clock
 
 		clock.lengthen_default()  # mailed sign-in links: a day, not Frappe's 20 minutes
@@ -256,6 +260,17 @@ def create_roles():
 		admin.add_roles(*missing)
 
 
+def ensure_default_logo():
+	"""A library with no logo of its own gets the Servants of Knowledge one: on a new install, and
+	(patch v0_75) on a site that never set one. The portal's top bar and the Desk are updated with it."""
+	from sok_resdesk.resdesk.doctype.rd_settings.rd_settings import DEFAULT_LOGO, apply_branding
+
+	if frappe.db.get_single_value("RD Settings", "portal_logo"):
+		return
+	frappe.db.set_single_value("RD Settings", "portal_logo", DEFAULT_LOGO)
+	apply_branding()
+
+
 def apply_default_settings():
 	"""Pick up values the installer wrote into site_config (resdesk_*)."""
 	s = frappe.get_single("RD Settings")
@@ -265,9 +280,6 @@ def apply_default_settings():
 	if conf.get("resdesk_meili_key"):
 		s.meili_api_key = conf.get("resdesk_meili_key")
 	s.index_prefix = s.index_prefix or "rd"
-	from sok_resdesk.resdesk.doctype.rd_settings.rd_settings import DEFAULT_LOGO
-
-	s.portal_logo = s.portal_logo or DEFAULT_LOGO  # a new library starts with the Servants of Knowledge logo
 	s.repository_id = conf.get("resdesk_repository_id") or s.repository_id or frappe.local.site
 	s.ia_contact = conf.get("resdesk_contact") or s.ia_contact
 	s.admin_email = (

@@ -29,3 +29,4 @@ sok_resdesk.patches.v0_64.archival_feature
 sok_resdesk.patches.v0_72.longer_link_life
 sok_resdesk.patches.v0_73.scoring_index
 sok_resdesk.patches.v0_74.quiet_frappe_mail
+sok_resdesk.patches.v0_75.default_logo

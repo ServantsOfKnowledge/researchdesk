@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.75.2 (2026-10-17): The default logo reaches the portal
+
+- **Logo:** the Servants of Knowledge logo showed in the Desk but not on the portal: the portal's home page and top bar only read the Logo setting, which stayed empty on a site that did not get it at install. A library with no logo of its own now gets the default one set, on a new install and, by a patch, on a site that never set one, and the portal's home page falls back to it. A library that set its own logo keeps it.
+
 ## 0.75.1 (2026-10-17): Native installs: the updater helper starts again
 
 - **Native installs:** `./resdesk.sh updater on` failed with `cd: scripts/..: No such file or directory`, so the updater helper never got into the Procfile. The Procfile script now works out the app's folder before it moves into the bench.
