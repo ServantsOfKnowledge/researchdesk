@@ -91,6 +91,7 @@ only; 10 a minute.
 |---|---|
 | `sok_resdesk.api.marcxml?item_ids=["a","b"]` | MARCXML collection (≤ 500) |
 | `sok_resdesk.api.marcxml_all[?profile=<name>]` | whole catalogue or one profile (**login required**) |
+| `sok_resdesk.mirror.ping`, `sok_resdesk.mirror.receive` (`item`, `meta_xml`, files `pdf` and `thumb`, or `withdraw=1`) | only on a [public mirror](governance.md#the-public-mirror): the main system's push, with the header `X-ResDesk-Mirror-Token`; refused without the right token |
 | `sok_resdesk.oai.endpoint?verb=…` | OAI-PMH 2.0 (see [Koha](koha.md)) |
 
 ## Staff actions (login required)

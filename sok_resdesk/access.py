@@ -321,6 +321,9 @@ def apply_visibility(names: list[str], visibility: str, set_by: str = "Bulk", wa
 	from sok_resdesk import audit
 
 	audit.record("visibility", detail=f"{len(names)} items set to {visibility} ({set_by})")
+	from sok_resdesk.outbound import reconcile_soon
+
+	reconcile_soon()  # a book no longer Public leaves the public mirror
 	update_index_visibility(names, visibility, wait=wait)
 	return len(names)
 

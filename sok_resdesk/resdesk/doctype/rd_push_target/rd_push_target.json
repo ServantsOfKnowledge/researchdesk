@@ -36,7 +36,10 @@
   "wd_create",
   "section_hook",
   "hook_url",
-  "hook_secret"
+  "hook_secret",
+  "section_mirror",
+  "mirror_url",
+  "mirror_token"
  ],
  "fields": [
   {
@@ -51,7 +54,7 @@
    "fieldname": "target_type",
    "fieldtype": "Select",
    "label": "Send To",
-   "options": "Internet Archive\nKoha\nWikidata\nWebhook",
+   "options": "Internet Archive\nKoha\nWikidata\nWebhook\nPublic mirror",
    "reqd": 1,
    "in_list_view": 1
   },
@@ -226,6 +229,27 @@
    "fieldtype": "Password",
    "label": "Secret",
    "depends_on": "eval:doc.target_type=='Webhook'"
+  },
+  {
+   "fieldname": "section_mirror",
+   "fieldtype": "Section Break",
+   "label": "Public mirror",
+   "depends_on": "eval:doc.target_type=='Public mirror'",
+   "description": "A second, read-only Research Desk that holds only what is released here: Unclassified books that are published, Public and Open, with a file on this library's own storage. A book is taken off the mirror as soon as it is classified, unpublished or made less than public. The mirror is set up with RESDESK_MIRROR_TOKEN (docs/governance.md). In Classified mode, add the mirror's host to resdesk_allowed_hosts."
+  },
+  {
+   "fieldname": "mirror_url",
+   "fieldtype": "Data",
+   "label": "Mirror URL",
+   "options": "URL",
+   "depends_on": "eval:doc.target_type=='Public mirror'",
+   "description": "e.g. https://public.example.gov.in"
+  },
+  {
+   "fieldname": "mirror_token",
+   "fieldtype": "Password",
+   "label": "Mirror Token",
+   "depends_on": "eval:doc.target_type=='Public mirror'"
   }
  ],
  "links": [],

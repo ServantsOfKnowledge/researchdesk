@@ -196,12 +196,43 @@ firewall and the network around it (no route to the internet), and encryption of
 to set up and to confirm. This mode makes the software suitable; it does not make an installation
 approved.
 
-**Planned** (see the [roadmap](roadmap.md)):
+### The public mirror
 
-- **A public mirror**: a second, read-only Research Desk on another container or server that holds
-  only what the main system has released (Unclassified, public, published), sent by the main system
-  and withdrawn from the mirror the moment a record is classified, withdrawn or unpublished. The
-  main system alone decides what is public.
+For a body that holds confidential and public records both: a second, read-only Research Desk on
+another container or server that holds **only what the main system has released**. The main system
+alone decides what is public; the mirror cannot ask for anything.
+
+- **Push, never pull.** The main system sends to the mirror. The mirror has no address, key or
+  password for the main system, so the main system can stay on an internal network with a route out
+  to the mirror alone.
+- **The release gate** (`outbound.releasable`): a book is sent only when it is published, Public,
+  Open, a book of the library's own (files on its storage, not an archive.org book), and has no
+  classification line. Nothing else is sent, whatever the push target's scope says.
+- **Taken back at once.** A book that is classified, unpublished, made less than public or deleted is
+  withdrawn from the mirror (its record, its search entries and its files) soon after the
+  change (normally within a minute), at the end of every push run, and again by an hourly pass for anything missed (the mirror was out of reach). A withdrawal
+  is made even while the target is switched off or in a Dry Run, and deleting the target first takes
+  its books off the mirror (and is refused if the mirror cannot be reached).
+- **The mirror is a library like any other**: search, the reader, IIIF, OAI-PMH and OPDS work on
+  it. It has no staff accounts of its own to give; run it with sign-in off and Governance Mode off.
+
+Setting it up:
+
+1. **Mirror**: install Research Desk on the second server; put `RESDESK_MIRROR_TOKEN=` followed by
+   a long random secret (at least 32 characters) in its `.env` and restart. It is written to the site configuration
+   (`resdesk_mirror`, `resdesk_mirror_token`), outside the Desk, so no one there can change it. It must
+   be reached over HTTPS.
+2. **Main system**: Desk → Research Desk → **Push Targets** → new, *Send To* **Public mirror**,
+   the mirror's address and the same token. **Test Connection**, then leave Dry Run on for a first
+   run, look at the log, and untick it. Tick *Send Changes Automatically* to send each change within
+   a minute.
+3. **Classified mode**: add the mirror's host to `resdesk_allowed_hosts`. The Public mirror is the one
+   push target that stays available in Classified mode.
+
+What it does not do: it does not send archive.org books (the mirror can ingest those itself), it does
+not carry readers' notes, accounts or search history, and a book once seen by the public may have been
+copied by them: withdrawal removes it from the mirror, not from anyone's disk. The token is a shared
+secret: rotate it by changing both ends.
 
 ## What comes next
 

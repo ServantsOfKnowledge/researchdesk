@@ -39,7 +39,8 @@ def library_roots() -> list[str]:
 	roots = frappe.conf.get("resdesk_library_roots") or []
 	if isinstance(roots, str):
 		roots = [roots]
-	return [os.path.realpath(r) for r in [library_dir(), deposits_root(), *roots]]
+	mirror = [frappe.get_site_path("private", "mirror")] if frappe.conf.get("resdesk_mirror") else []
+	return [os.path.realpath(r) for r in [library_dir(), deposits_root(), *mirror, *roots]]
 
 
 def resolve_location(path: str) -> str:

@@ -117,7 +117,7 @@ cause. Under Coolify, which owns the containers, the helper cannot run; restart 
 | RD Item Collection | child table of RD Item (`curated_collections`) | collection |
 | **RD Export** | one export | format (metadata formats, a Calibre library, an offline copy for Kiwix), which books, status, file |
 | **RD Metadata Import** | one spreadsheet import | file, preview, counts, status |
-| **RD Push Target** | where to send metadata | type (Internet Archive / Koha / Wikidata / Webhook), dry run, scope, auto push, credentials (Password fields) |
+| **RD Push Target** | where to send metadata | type (Internet Archive / Koha / Wikidata / Webhook / Public mirror), dry run, scope, auto push, credentials (Password fields) |
 | **RD Push Run** | one push | status, counts, log |
 | **RD External Record** | what was sent where | item, target, external id (Koha biblionumber, Wikidata QID), url, last hash |
 | **RD Library System** | a library system whose catalogue is matched to the books here | system type, records from a MARC file or OAI-PMH, OPAC record address (`{id}`), a Koha Push Target for sending links back, link text, cataloguing unmatched records; counts and progress |

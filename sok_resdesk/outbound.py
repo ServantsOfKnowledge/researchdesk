@@ -8,6 +8,7 @@ and later runs update rather than duplicate (Koha biblionumber, Wikidata QID).
 from __future__ import annotations
 
 import json
+import os
 import time
 
 import frappe
@@ -22,6 +23,7 @@ from sok_resdesk.core.push import (
 	IA_FIELDS,
 	IAWriter,
 	KohaClient,
+	MirrorClient,
 	PushError,
 	Webhook,
 	WikidataClient,
@@ -32,6 +34,7 @@ from sok_resdesk.core.push import (
 from sok_resdesk.holding import hold_when_paused
 
 MANAGERS = ("System Manager", "ResDesk Manager")
+SCOPE = "RD Item Scope"
 RUN = "tabRD Push Run"
 
 
@@ -51,14 +54,22 @@ def _client(t):
 			t.wd_user or "",
 			t.get_password("wd_password", raise_exception=False) or "",
 		)
+	if t.target_type == "Public mirror":
+		return MirrorClient(t.mirror_url or "", t.get_password("mirror_token", raise_exception=False) or "")
 	return Webhook(t.hook_url or "", t.get_password("hook_secret", raise_exception=False) or "")
 
 
+def _sharing_on(t) -> bool:
+	"""The public mirror is the governed way out, so Classified mode (which turns Sharing off) keeps it."""
+	return t.target_type == "Public mirror" or features.on("sharing")
+
+
 @frappe.whitelist()
-@features.needs("sharing")
 def test_connection(target: str) -> dict:
 	frappe.only_for(MANAGERS)
 	t = frappe.get_doc("RD Push Target", target)
+	if not _sharing_on(t):
+		frappe.throw(features.off_message("sharing"), title=_("Switched off"))
 	c = _client(t)
 	try:
 		if t.target_type == "Wikidata":
@@ -75,6 +86,22 @@ def test_connection(target: str) -> dict:
 # -- choosing books --------------------------------------------------------------------------------
 
 
+def releasable(item: str) -> bool:
+	"""What the public mirror may hold: published, Unclassified, Public, Open, and a book of our own
+	(one with files on this library's storage). The only gate between the main system and the public."""
+	row = frappe.db.get_value(
+		"RD Item", item, ["published", "visibility", "access_status", "source"], as_dict=True
+	)
+	return bool(
+		row
+		and row.published
+		and row.visibility == "Public"
+		and row.access_status == "Open"
+		and row.source == "Local"
+		and not frappe.db.exists(SCOPE, item)
+	)
+
+
 def _books(t) -> list[str]:
 	if t.scope == "Collection":
 		names = frappe.db.sql_list(
@@ -89,6 +116,8 @@ def _books(t) -> list[str]:
 			pluck="name",
 			order_by="creation asc",
 		)
+	if t.target_type == "Public mirror":
+		names = [n for n in names if releasable(n)]
 	if t.target_type == "Internet Archive" and names:
 		on_ia = set(
 			frappe.get_all("RD Item", filters={"name": ("in", names), "on_archive_org": 1}, pluck="name")
@@ -98,6 +127,8 @@ def _books(t) -> list[str]:
 
 
 def in_scope(t, item: str) -> bool:
+	if t.target_type == "Public mirror" and not releasable(item):
+		return False
 	published, on_ia, vis = frappe.db.get_value(
 		"RD Item", item, ["published", "on_archive_org", "visibility"]
 	) or (0, 0, "")
@@ -212,6 +243,9 @@ def push_one(t, client, item: str, dry: bool, force: bool = False) -> tuple[str,
 		_remember(t.name, item, qid, f"https://www.wikidata.org/wiki/{qid}", fingerprint, ext)
 		return "sent", f"created {qid}"
 
+	if t.target_type == "Public mirror":
+		return _push_mirror(t, client, item, record, ext, dry, force)
+
 	# webhook
 	payload = metaio.json_record(record, base_url())
 	fingerprint = payload_hash(payload)
@@ -222,6 +256,99 @@ def push_one(t, client, item: str, dry: bool, force: bool = False) -> tuple[str,
 	status = client.send("record.updated", payload)
 	_remember(t.name, item, "", t.hook_url, fingerprint, ext)
 	return "sent", f"HTTP {status}"
+
+
+def _mirror_files(item: str) -> tuple[str, str]:
+	"""Paths of the book's PDF and cover on this library's storage ("" for a missing one)."""
+	from sok_resdesk.local_source import store_for_item
+
+	doc = frappe.get_doc("RD Item", item)
+	store = store_for_item(doc)
+	if store is None or not hasattr(store, "file_path"):
+		return "", ""
+	return tuple(
+		(store.file_path(doc.local_path, n) or "") if n else "" for n in (doc.local_pdf, doc.local_thumb)
+	)
+
+
+def _push_mirror(t, client, item, record, ext, dry, force) -> tuple[str, str]:
+	pdf, thumb = _mirror_files(item)
+	if not pdf:
+		return "skipped", "no PDF on this library's storage to send"
+	meta = metaio.meta_xml(record)
+	files = [(p, os.path.getsize(p), int(os.path.getmtime(p))) for p in (pdf, thumb) if p]
+	fingerprint = payload_hash([meta, files])
+	if ext and ext.last_hash == fingerprint and not force:
+		return "unchanged", "already on the mirror"
+	if dry:
+		return "sent", "would send the record and its files to the mirror"
+	if not releasable(item):  # classified or unpublished since this run began
+		return "skipped", "no longer releasable"
+	# remembered before it is sent: a send that fails half way is still withdrawn later
+	_remember(t.name, item, item, "", "", ext)
+	frappe.db.commit()
+	client.send(item, meta, pdf, thumb)
+	_remember(
+		t.name, item, item, (t.mirror_url or "").rstrip("/") + f"/library/item/{item}", fingerprint, ext
+	)
+	return "sent", "on the mirror"
+
+
+def reconcile_target(name: str) -> int:
+	"""Take off the mirror every book that may no longer be there: classified, unpublished, made less
+	than public, no longer Open, or deleted. Returns how many were withdrawn."""
+	t = frappe.get_doc("RD Push Target", name)
+	if t.target_type != "Public mirror":
+		return 0  # a withdrawal is made even while the target is off or in a dry run
+	gone = [
+		(row.name, row.item)
+		for row in frappe.get_all("RD External Record", filters={"target": name}, fields=["name", "item"])
+		if not (frappe.db.exists("RD Item", row.item) and in_scope(t, row.item))
+	]
+	if not gone:
+		return 0
+	client = _client(t)
+	done = 0
+	for ext, item in gone:
+		try:
+			client.withdraw(item)
+		except Exception as e:  # the next pass tries again
+			frappe.log_error(title="Research Desk: mirror withdraw failed", message=f"{item}: {e}")
+			continue
+		frappe.delete_doc("RD External Record", ext, force=True, ignore_permissions=True)
+		done += 1
+	frappe.db.commit()
+	return done
+
+
+def withdraw_all(name: str) -> None:
+	"""Every book sent to this mirror is taken off it (the target is being deleted)."""
+	t = frappe.get_doc("RD Push Target", name)
+	client = _client(t)
+	for item in frappe.get_all("RD External Record", filters={"target": name}, pluck="item"):
+		client.withdraw(item)
+
+
+def mirrors() -> list[str]:
+	return frappe.get_all("RD Push Target", filters={"target_type": "Public mirror"}, pluck="name")
+
+
+def reconcile_all() -> None:
+	"""Hourly, and soon after any change of classification or visibility."""
+	for name in mirrors():
+		reconcile_target(name)
+
+
+def reconcile_soon(*_args, **_kwargs) -> None:
+	"""A book may have just left the public: queue the withdrawal (one pass at a time)."""
+	if mirrors():
+		frappe.enqueue(
+			"sok_resdesk.outbound.reconcile_all",
+			queue="short",
+			job_id="resdesk-mirror-reconcile",
+			deduplicate=True,
+			enqueue_after_commit=True,
+		)
 
 
 # -- runs -----------------------------------------------------------------------------------------
@@ -235,10 +362,11 @@ def _log(run: str, line: str):
 
 
 @frappe.whitelist()
-@features.needs("sharing")
 def start(target: str, force: int = 0, dry_run: int | None = None, items=None) -> str:
 	"""Push Now / Dry Run from the form or the API."""
 	frappe.only_for(MANAGERS)
+	if not _sharing_on(frappe.get_doc("RD Push Target", target)):
+		frappe.throw(features.off_message("sharing"), title=_("Switched off"))
 	return _start(target, force, dry_run, items, "Manual")
 
 
@@ -283,6 +411,12 @@ def run(run_name: str, force: int = 0, items: list | None = None, resume: int = 
 	if r.status in ("Cancelled", "Paused"):
 		return  # stopped or paused before this job started
 	t = frappe.get_doc("RD Push Target", r.target)
+	if not _sharing_on(t):
+		frappe.db.sql(
+			f"update `{RUN}` set status='Failed', finished_on=%s where name=%s", (now_datetime(), run_name)
+		)
+		frappe.db.commit()
+		return
 	names = [n for n in (items or _books(t)) if in_scope(t, n)]  # never a classified record
 	if resume:
 		counts = {k: cint(r.get(k)) for k in ("sent", "unchanged", "skipped", "failed")}
@@ -348,6 +482,8 @@ def run(run_name: str, force: int = 0, items: list | None = None, resume: int = 
 		f"{counts['skipped']} skipped, {counts['failed']} failed",
 	)
 	frappe.db.commit()
+	if t.target_type == "Public mirror":
+		reconcile_target(t.name)  # anything classified while this run was sending
 
 
 def _paused_here(run_name: str, remaining: list, counts: dict, force: int) -> bool:
@@ -457,14 +593,16 @@ def cancel(run_name: str) -> None:
 # -- automatic pushes -------------------------------------------------------------------------------
 
 
-@features.scheduled("sharing")
 def on_item_change(doc, method=None):
 	"""RD Item saved (form, bulk edit, import): queue a push to targets that want it."""
-	if doc.flags.from_ingest or frappe.flags.in_install or frappe.flags.in_migrate:
+	if frappe.flags.in_install or frappe.flags.in_migrate:
 		return
+	if doc.flags.from_ingest:
+		return
+	reconcile_soon()  # a book that is no longer public leaves the mirror, however it was saved
 	for name in frappe.get_all("RD Push Target", filters={"enabled": 1, "auto_push": 1}, pluck="name"):
 		t = frappe.get_cached_doc("RD Push Target", name)
-		if in_scope(t, doc.name):
+		if _sharing_on(t) and in_scope(t, doc.name):
 			frappe.enqueue(
 				"sok_resdesk.outbound.auto_push",
 				queue="default",

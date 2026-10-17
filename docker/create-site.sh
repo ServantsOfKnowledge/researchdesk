@@ -50,6 +50,13 @@ if [ "${RESDESK_CLASSIFIED:-}" = 1 ] && ! env/bin/python -c 'import json,sys; sy
   bench --site "${SITE_NAME}" execute sok_resdesk.classified.apply
 fi
 
+# Public mirror (docs/governance.md#the-public-mirror): a token in .env makes this site the read-only
+# copy the main system feeds; it is written to the site configuration, outside the Desk's reach
+if [ -n "${RESDESK_MIRROR_TOKEN:-}" ] && ! env/bin/python -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("resdesk_mirror_token") == sys.argv[2] else 1)' "sites/${SITE_NAME}/site_config.json" "${RESDESK_MIRROR_TOKEN}" 2>/dev/null; then
+  bench --site "${SITE_NAME}" set-config resdesk_mirror 1
+  bench --site "${SITE_NAME}" set-config resdesk_mirror_token "${RESDESK_MIRROR_TOKEN}"
+fi
+
 stored_host() {
   env/bin/python -c 'import json,sys; print(json.load(open(sys.argv[1])).get("host_name") or "")' \
     "sites/${SITE_NAME}/site_config.json" 2>/dev/null || true

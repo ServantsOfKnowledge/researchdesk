@@ -526,3 +526,40 @@ class Webhook:
 		if r.status_code >= 400:
 			raise PushError(f"webhook answered {r.status_code}: {r.text[:200]}")
 		return r.status_code
+
+
+# -- Public mirror ----------------------------------------------------------------------------------
+
+
+class MirrorClient:
+	"""The main system's side of the public mirror (sok_resdesk/mirror.py on the other end)."""
+
+	def __init__(self, url: str, token: str, session=None):
+		self.base = url.rstrip("/") + "/api/method/sok_resdesk.mirror."
+		self.session = _session(session)
+		self.session.headers["X-ResDesk-Mirror-Token"] = token
+
+	def _call(self, method: str, data: dict, files=None, timeout: int = 600):
+		r = self.session.post(
+			self.base + method, data=data, files=files, timeout=timeout, allow_redirects=False
+		)
+		if r.status_code >= 400:
+			raise PushError(f"mirror answered {r.status_code}: {r.text[:200]}")
+		return r.json().get("message")
+
+	def check(self) -> str:
+		return self._call("ping", {}, timeout=30)
+
+	def send(self, item: str, meta_xml: str, pdf: str = "", thumb: str = "") -> None:
+		handles = {}
+		try:
+			for field, path in (("pdf", pdf), ("thumb", thumb)):
+				if path:
+					handles[field] = open(path, "rb")
+			self._call("receive", {"item": item, "meta_xml": meta_xml}, files=handles or None)
+		finally:
+			for h in handles.values():
+				h.close()
+
+	def withdraw(self, item: str) -> None:
+		self._call("receive", {"item": item, "withdraw": 1}, timeout=60)

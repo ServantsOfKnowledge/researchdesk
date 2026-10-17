@@ -46,7 +46,10 @@ def _may_classify(level: str, department: str | None) -> None:
 
 
 def _reindex(names: list[str]) -> None:
+	from sok_resdesk.outbound import reconcile_soon
 	from sok_resdesk.search import update_item_fields
+
+	reconcile_soon()  # a classified book leaves the public mirror
 
 	if len(names) <= access.BACKGROUND_OVER:
 		update_item_fields(names, wait=True)  # hidden from search before this returns

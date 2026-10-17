@@ -139,7 +139,11 @@ doc_events = {
 			# the review queue's questions answered (or asked) as soon as a person edits the book
 			"sok_resdesk.review.on_item_update",
 		],
-		"on_trash": ["sok_resdesk.search.on_item_trash", "sok_resdesk.review.on_item_trash"],
+		"on_trash": [
+			"sok_resdesk.search.on_item_trash",
+			"sok_resdesk.review.on_item_trash",
+			"sok_resdesk.outbound.reconcile_soon",
+		],
 	},
 	# portal sign-ups become readers, or wait for approval (RD Settings → Reader Accounts)
 	"User": {
@@ -195,7 +199,8 @@ scheduler_events = {
 		# preservation copies and their fixity checks, after the backup (Settings → Preservation)
 		"15 3 * * *": ["sok_resdesk.preservation.daily"],
 	},
-	"hourly": ["sok_resdesk.ingest.run_scheduled_hourly"],
+	# books that left the public are taken off the public mirror (if there is one)
+	"hourly": ["sok_resdesk.ingest.run_scheduled_hourly", "sok_resdesk.outbound.reconcile_all"],
 	"daily": [
 		# deposits whose embargo has ended become readable (Settings → Features → Repository deposit)
 		"sok_resdesk.deposit.release_embargoes",
