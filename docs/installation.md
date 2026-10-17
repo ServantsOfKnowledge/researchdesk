@@ -345,8 +345,25 @@ Research Desk runs as a Docker Compose resource in Coolify, built from this repo
 
 Changed a variable? **Redeploy** (a restart keeps the old values). To upgrade, redeploy the
 latest code. The updater helper and the Background Jobs container monitor don't work under
-Coolify (they need a Research Desk folder and Compose project of their own), so the Server
-page's Upgrade and Restart buttons stay off; health, backups, logs and alerts work.
+Coolify (they need a Research Desk folder and Compose project of their own). Health, backups,
+logs and alerts work, and the Server page can still **restart** and **redeploy** by asking
+Coolify's API:
+
+1. In Coolify: switch the API on (in its settings) and create an API token (*Keys & Tokens*) with
+   the **deploy** permission.
+2. In the resource's **Environment Variables**, add (the uuid is in the resource's address in
+   Coolify, `/application/<uuid>`):
+
+   ```
+   RESDESK_COOLIFY_API=https://coolify.example.org    # your Coolify dashboard: use https, the token travels with each request
+   RESDESK_COOLIFY_TOKEN=...
+   RESDESK_COOLIFY_APP=...                            # the resource's uuid
+   ```
+3. **Redeploy** once. The Server page then shows **Restart everything** and **Redeploy the latest
+   code (Coolify)** for a System Manager. Restart is the whole resource (one part at a time, and
+   logs, stay in Coolify), and a redeploy builds the branch Coolify is set to: it can't choose a
+   release. *Settings → Server & Updates → Allow Upgrades and Restarts from the Desk* switches
+   the buttons off.
 
 **Moving an existing install to Coolify**: make an export on the old install
 (`./resdesk.sh export`), copy it to the Coolify server, clone this repository there and load it

@@ -35,6 +35,9 @@ class ResDeskServer {
 		const on = (sel, fn) => this.$body.on("click", sel, (e) => fn($(e.currentTarget), e));
 		on("[data-upgrade]", () => this.upgrade_dialog());
 		on("[data-restart]", ($b) => this.restart($b.data("restart")));
+		on("[data-redeploy]", () =>
+			this.task("upgrade", { target: "latest" }, __("Redeploy the latest code through Coolify? The site restarts while it builds."))
+		);
 		on("[data-server-logs]", ($b) => this.server_logs($b.data("server-logs")));
 		on("[data-backup]", ($b) => this.call("take_backup", { with_files: $b.data("backup") === "files" ? 1 : 0 }));
 		on("[data-help-pictures]", () =>
@@ -447,6 +450,8 @@ class ResDeskServer {
 		const u = d.updates;
 		const h = d.helper;
 		const can_act = h.configured && h.connected && d.is_admin && h.allowed;
+		// under Coolify the helper can't run: restarts and redeploys go through Coolify's API
+		const cool = !h.connected && d.coolify.configured && d.is_admin && d.coolify.allowed;
 		const pill = (text, color) => `<span class="indicator-pill ${color}">${esc(text)}</span>`;
 		const state_pill = { ok: pill(__("OK"), "green"), warn: pill(__("Check"), "orange"), bad: pill(__("Problem"), "red"), off: pill(__("Off"), "gray"), info: pill(__("New"), "blue") };
 		const gb = (b) => (b ? (b / 1024 ** 3).toFixed(1) + " GB" : "–");
@@ -536,6 +541,8 @@ class ResDeskServer {
 			<div style="margin-top:10px">${
 				can_act
 					? `<button class="btn btn-sm ${u.newer ? "btn-primary" : "btn-default"}" data-upgrade>${u.newer ? __("Upgrade to {0}", [esc(u.latest)]) : __("Upgrade or reinstall…")}</button>`
+					: cool
+					? `<button class="btn btn-sm btn-default" data-redeploy>${__("Redeploy the latest code (Coolify)")}</button><p class="small text-muted" style="margin-top:6px">${__("Coolify builds the branch it is set to and starts it. To go back to an earlier release, change the branch or tag in Coolify.")}</p>`
 					: `<p class="small text-muted">${
 							h.configured && !h.allowed
 								? __("Upgrades from the Desk are switched off in Settings → Server & Updates. On the server, run:")
@@ -605,6 +612,8 @@ class ResDeskServer {
 						  }<button class="btn btn-xs btn-default" data-restart="all">${__("Restart everything")}</button></div>`
 						: ""
 				}`
+			: cool
+			? `<p class="small text-muted">${__("Coolify runs the containers. Restart restarts the whole resource through Coolify; to restart one part or read its logs, use Coolify.")}</p><button class="btn btn-xs btn-default" data-restart="all">${__("Restart everything")}</button>`
 			: `<p class="text-muted small">${__("The health list above shows whether each part answers. To see every container or process, restart parts and read their logs from here, turn on the updater helper. On the server:")}</p>${cmd("./resdesk.sh status")}${cmd("./resdesk.sh restart")}`;
 
 		const resources = `

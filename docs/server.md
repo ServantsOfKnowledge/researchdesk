@@ -197,6 +197,10 @@ switches the buttons off (for everyone) without touching the server.
 
 ## Restarting and reading logs
 
+On **Coolify** the helper can't run; the buttons ask Coolify's API instead
+([Installation → Coolify](installation.md#coolify)): **Restart everything** and **Redeploy the
+latest code**.
+
 With the helper, **Services** lists every part with its state. **Restart** the portal and Desk,
 the background workers, the scheduler, the search engine, or everything (native installs can
 only restart everything). **Logs** shows the last few hundred lines of that part.

@@ -23,6 +23,7 @@ from frappe.rate_limiter import rate_limit
 from frappe.utils import add_to_date, cint, get_datetime, now_datetime
 
 from sok_resdesk import access
+from sok_resdesk.core import coolify
 from sok_resdesk.core import updates as upd
 
 MANAGERS = ("System Manager", "ResDesk Manager")
@@ -224,13 +225,85 @@ def _check_args(action: str, args: dict) -> dict:
 	return {}
 
 
+def coolify_config() -> dict | None:
+	"""Set from the Coolify resource's environment variables (compose.yaml passes them on)."""
+	return coolify.settings(os.environ)
+
+
+def _via_coolify(action: str, cfg: dict) -> str:
+	"""Restart or redeploy through Coolify's API: the updater helper can't run under Coolify, which
+	owns the containers. Recorded as a server task that is already finished."""
+	import requests
+
+	url, headers = coolify.request_for(action, cfg)
+	title = (
+		_("Restart everything (Coolify)") if action == "restart" else _("Redeploy the latest code (Coolify)")
+	)
+	task = frappe.get_doc(
+		{
+			"doctype": TASK,
+			"action": action,
+			"title": title,
+			"args": "{}",
+			"status": "Running",
+			"started_on": now_datetime(),
+			"requested_by": frappe.session.user,
+		}
+	).insert(ignore_permissions=True)
+	log = ""
+	try:
+		resp = requests.get(url, headers=headers, timeout=20, allow_redirects=False)  # never resend the token
+		log = resp.text[:2000]
+		if resp.status_code < 300:
+			summary = _("Coolify was asked. The site restarts in a moment and this page reconnects.")
+		elif 300 <= resp.status_code < 400:
+			summary = _("Coolify answered with a redirect: use its https address in RESDESK_COOLIFY_API.")
+		elif resp.status_code in (401, 403):
+			summary = _("Coolify refused the token: it needs the deploy permission.")
+		elif resp.status_code == 404:
+			summary = _("Coolify doesn't know this resource: check RESDESK_COOLIFY_APP.")
+		else:
+			summary = _("Coolify answered {0}.").format(resp.status_code)
+		ok = resp.status_code < 300
+	except requests.RequestException as e:
+		ok, summary, log = False, _("Coolify could not be reached: check RESDESK_COOLIFY_API."), str(e)[:500]
+	frappe.db.set_value(
+		TASK,
+		task.name,
+		{
+			"status": "Succeeded" if ok else "Failed",
+			"finished_on": now_datetime(),
+			"exit_code": 0 if ok else 1,
+			"summary": summary,
+			"log": log,
+		},
+	)
+	return task.name
+
+
 @frappe.whitelist()
 def request_task(action: str, args=None) -> str:
-	"""Ask the updater helper to do something (Server page buttons)."""
+	"""Ask the updater helper to do something (Server page buttons); under Coolify, restarts and
+	redeploys go to Coolify's API instead."""
 	if action not in ACTIONS:
 		frappe.throw(_("Unknown action."))
 	roles, exclusive = ACTIONS[action]
 	frappe.only_for(roles)
+	cool = coolify_config() if action in coolify.ACTIONS and not helper_connected() else None
+	if cool:
+		if not desk_control_allowed():
+			frappe.throw(
+				_("Upgrades and restarts from the Desk are switched off in Settings → Server & Updates.")
+			)
+		target = frappe.parse_json(args).get("target") if args else None
+		if target not in (None, "", "latest"):
+			frappe.throw(
+				_("Under Coolify a redeploy builds the branch Coolify is set to: it can't choose a release.")
+			)
+		recent = add_to_date(now_datetime(), seconds=-60)
+		if frappe.db.exists(TASK, {"action": ("in", list(coolify.ACTIONS)), "creation": (">", recent)}):
+			frappe.throw(_("Coolify was asked a moment ago. Give it a minute."))
+		return _via_coolify(action, cool)
 	if not helper_configured() or not helper_connected():
 		frappe.throw(
 			_(
@@ -608,6 +681,10 @@ def health() -> list[dict]:
 					_("not reporting: is it running? ./resdesk.sh updater status"),
 				)
 			)
+	elif coolify_config():
+		out.append(
+			_check("helper", _("Updater helper"), "off", _("off: restarts and redeploys go through Coolify"))
+		)
 	else:
 		out.append(
 			_check(
@@ -1173,6 +1250,7 @@ def status() -> dict:
 			"agent_version": facts.get("agent_version"),
 			"allowed": desk_control_allowed(),
 		},
+		"coolify": {"configured": bool(coolify_config()), "allowed": desk_control_allowed()},
 		"tasks": frappe.get_all(
 			TASK,
 			fields=[

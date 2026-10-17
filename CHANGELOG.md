@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.76.0 (2026-10-17): Restart and redeploy from the Server page under Coolify
+
+- **Coolify:** the Server page can restart the whole resource and redeploy the latest code by asking Coolify's API, where the updater helper can't run. Set `RESDESK_COOLIFY_API`, `RESDESK_COOLIFY_TOKEN` (a token with the deploy permission) and `RESDESK_COOLIFY_APP` (the resource's uuid) in the resource's environment variables and redeploy once; see Installation → Coolify. Where the helper runs, nothing changes.
+
 ## 0.75.2 (2026-10-17): The default logo reaches the portal
 
 - **Logo:** the Servants of Knowledge logo showed in the Desk but not on the portal: the portal's home page and top bar only read the Logo setting, which stayed empty on a site that did not get it at install. A library with no logo of its own now gets the default one set, on a new install and, by a patch, on a site that never set one, and the portal's home page falls back to it. A library that set its own logo keeps it.
