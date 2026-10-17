@@ -19,7 +19,9 @@ def get_context(context):
 		if (
 			frappe.session.user == "Guest"
 			and item_id
-			and frappe.db.exists("RD Item", {"name": item_id, "published": 1})
+			and frappe.db.exists(
+				"RD Item", {"name": item_id, "published": 1, "visibility": ("!=", "Cleared only")}
+			)
 		):
 			frappe.local.flags.redirect_location = access.login_url(f"/library/item/{item_id}")
 			raise frappe.Redirect

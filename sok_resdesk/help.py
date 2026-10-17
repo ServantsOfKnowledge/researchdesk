@@ -51,6 +51,8 @@ SCREEN_HELP = {
 	"RD Server Task": ("server", "upgrading-from-the-desk"),
 	"RD Tombstone": ("preservation", "tombstones"),
 	"RD Audit Event": ("governance", "the-audit-log"),
+	"RD Department": ("governance", "departments-and-clearances"),
+	"RD Clearance": ("governance", "departments-and-clearances"),
 	"RD Annotation": ("staff-guide", "readers-notes"),
 	"RD Research Group": ("staff-guide", "readers-notes"),
 	"RD Page Text": ("staff-guide", "proofreading-and-re-ocr"),

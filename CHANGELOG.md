@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.78.0 (2026-10-17): Classification and need-to-know
+
+- **Governance Mode:** records have a **level** (Unclassified, Restricted, Confidential; Secret and Top Secret only on a Classified-mode installation) and an optional **department**. A classified or department-scoped record is hidden from everyone without a clearance for it: search, its page, its files (never cached), IIIF, OPDS, OAI-PMH, SRU, exports and pushes. Nobody has a clearance by role; only the built-in Administrator sees all, and that is audited.
+- **Departments** (a tree: offices see the offices below them) and **Clearances** (a level and departments per person), kept by the new role **ResDesk Security Officer**. **Items → Actions → Set Classification** classifies many records. Governance Mode cannot be switched off while classified records exist, and a classified record stays hidden even if it were (the hiding does not depend on the switch). Clearances can only be granted within the grantor's own level and departments, never to oneself; departments are kept by super admins.
+- Not yet covered: archival units, deposits and readers' notes (a classified book's are hidden from everyone). See [Government and institutional use](docs/governance.md).
+
 ## 0.77.0 (2026-10-17): Governance Mode and a tamper-evident audit log
 
 - **Governance Mode** (Settings → Government and institutional use, administrators only), off by default.

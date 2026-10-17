@@ -461,7 +461,8 @@ def release_embargoes() -> int:
 	):
 		doc = frappe.get_doc(DT, name)
 		visibility = doc.access or "Public"
-		frappe.db.set_value("RD Item", doc.item, "visibility", visibility)
+		if frappe.db.get_value("RD Item", doc.item, "visibility") != "Cleared only":  # classified stays so
+			frappe.db.set_value("RD Item", doc.item, "visibility", visibility)
 		frappe.db.set_value(DT, name, "embargo_lifted", 1, update_modified=False)
 		n += 1
 	if n:

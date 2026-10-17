@@ -142,8 +142,8 @@ def leave_tombstone(item, reason: str = "Deleted", replaced_by: str = "") -> Non
 	key = item.get("persistent_id") or (
 		f"doi:{item.doi}" if item.get("doi") and item.get("doi_state") == "Findable" else ""
 	)
-	if not key or frappe.db.exists("RD Tombstone", {"ark": key}):
-		return
+	if not key or item.get("visibility") == "Cleared only" or frappe.db.exists("RD Tombstone", {"ark": key}):
+		return  # a classified record leaves no public trace, not even a tombstone
 	frappe.get_doc(
 		{
 			"doctype": "RD Tombstone",

@@ -53,9 +53,10 @@ def _where() -> str:
 	scope = settings().oai_scope or OAI_GUEST
 	if scope == OAI_OFF:
 		return "1=0"
+	# a classified record (Governance Mode) is never harvested, whatever the scope
 	if scope == OAI_ALL:
-		return "published = 1"
-	return f"published = 1 and {sql_condition(settings().guest_access, member=False)}"
+		return "published = 1 and ifnull(visibility, '') != 'Cleared only'"
+	return f"published = 1 and ifnull(visibility, '') != 'Cleared only' and {sql_condition(settings().guest_access, member=False)}"
 
 
 def _record(name: str) -> dict:

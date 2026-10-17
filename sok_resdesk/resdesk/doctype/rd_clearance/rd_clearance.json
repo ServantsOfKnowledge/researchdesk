@@ -1,0 +1,30 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "field:user",
+ "creation": "2026-10-17 20:00:00.000000",
+ "modified": "2026-10-17 20:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Clearance",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "description": "What a person may see under Governance Mode: up to which level, and for which departments (and the offices below them). No clearance: Unclassified records that belong to no department.",
+ "field_order": ["user", "level", "departments"],
+ "fields": [
+  {"fieldname": "user", "fieldtype": "Link", "label": "Person", "options": "User", "reqd": 1, "unique": 1, "in_list_view": 1},
+  {"fieldname": "level", "fieldtype": "Select", "label": "Up To Level", "options": "Unclassified\nRestricted\nConfidential\nSecret\nTop Secret", "default": "Unclassified", "reqd": 1, "in_list_view": 1},
+  {"fieldname": "departments", "fieldtype": "Table", "label": "Departments", "options": "RD Clearance Department"}
+ ],
+ "links": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "track_changes": 1,
+ "permissions": [
+  {"role": "ResDesk Security Officer", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1, "export": 1},
+  {"role": "SOK Super Admin", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1, "export": 1}
+ ]
+}

@@ -42,6 +42,48 @@ A reader is never stopped because the log could not be written: that failure app
 in the Error Log, and the request carries on. Files other than a book's PDF and files (the cover
 pictures, and anything served outside Research Desk) are not logged.
 
+## Classification and need-to-know
+
+With Governance Mode on, each record (book, photograph, manuscript, recording) has a **level** and,
+optionally, a **department**:
+
+| Level | |
+|---|---|
+| Unclassified | the default |
+| Restricted, Confidential | for ordinary government records |
+| Secret, Top Secret | only on an installation set up for Classified mode (`resdesk_classified` in the site configuration) |
+
+A classified or department-scoped record is hidden from **everyone** who has no clearance for it:
+from search and its counts, from its page, its files, IIIF, OPDS, OAI-PMH, SRU, exports and pushes.
+Its files are never kept by a browser or proxy cache. Nobody has a clearance by role: not a
+System Manager, not a manager. Only the built-in Administrator account sees everything, and its
+views are in the audit log.
+
+Set the level on the item's form, or tick records in the **Items** list → **Actions → Set
+Classification**. Only a security officer, a manager or a super admin can, never above their own
+clearance. Governance Mode cannot be switched off while classified records exist.
+
+### Departments and clearances
+
+**Departments** (Desk → Research Desk → Running the Library) is a tree: each office has the office
+above it. **Clearances** gives a person a level and the departments they belong to. A person sees a
+record when their level is at least the record's and the record's department is theirs **or below
+it**: a directorate sees its district and taluk offices, a taluk office sees only its own. A record
+with no department is open to anyone cleared for its level. The role **ResDesk Security Officer**
+keeps departments and clearances; granting or removing one is in the audit log.
+
+### What this does not cover yet
+
+Staff screens that read records directly rather than through the Desk's permissions (the review
+queue's list, the usage reports' counts, the dashboard's counts, and the number of page documents
+in the search engine on the Server page) can still show counts or titles of classified records to
+staff; the page text, notes, flags, ground truth and push records of a classified book are hidden
+in the Desk. Treat the counts as unclassified information until these are closed.
+
+Units of archival description and deposits are not classified. A classified book's public notes and
+its archival units are hidden from the portal for everyone (failing closed), so cleared people do not
+see them there either. Page-level text of a classified book is searched only by the people cleared for it.
+
 ## What comes next
 
 Classification levels and need-to-know access by department, retention rules and legal holds,

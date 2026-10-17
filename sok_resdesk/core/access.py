@@ -19,6 +19,10 @@ PUBLIC = "Public"
 LOGIN_TO_READ = "Login to read"
 LOGIN_TO_FIND = "Login to find"
 VISIBILITIES = (PUBLIC, LOGIN_TO_READ, LOGIN_TO_FIND)
+# Governance Mode: a classified or department-scoped record. Not a choice anyone makes by hand (it is
+# set with the classification) and not in VISIBILITIES: the plain rules never show it, see
+# access.effective for the people who are cleared for it.
+CLEARED_ONLY = "Cleared only"
 
 GUEST_ITEM = "Each item's setting"
 GUEST_RECORDS = "Records only"
@@ -44,6 +48,8 @@ def normalise(visibility: str | None) -> str:
 
 
 def can_find(visibility: str | None, guest_mode: str | None, member: bool) -> bool:
+	if visibility == CLEARED_ONLY:
+		return False
 	if member:
 		return True
 	if guest_mode == GUEST_NONE:
@@ -52,6 +58,8 @@ def can_find(visibility: str | None, guest_mode: str | None, member: bool) -> bo
 
 
 def can_read(visibility: str | None, guest_mode: str | None, member: bool) -> bool:
+	if visibility == CLEARED_ONLY:
+		return False
 	if member:
 		return True
 	if guest_mode in (GUEST_NONE, GUEST_RECORDS):

@@ -106,8 +106,28 @@ after_migrate = "sok_resdesk.setup.after_migrate"
 on_session_creation = ["sok_resdesk.audit.on_login"]
 on_logout = ["sok_resdesk.audit.on_logout"]
 
+# Governance Mode: the Desk's lists and forms of items show only what the person is cleared for
+permission_query_conditions = {
+	"RD Item": "sok_resdesk.access.item_query_conditions",
+	"RD Page Text": "sok_resdesk.access.page_text_conditions",
+	"RD Annotation": "sok_resdesk.access.annotation_conditions",
+	"RD Review Flag": "sok_resdesk.access.review_flag_conditions",
+	"RD Ground Truth": "sok_resdesk.access.ground_truth_conditions",
+	"RD External Record": "sok_resdesk.access.external_record_conditions",
+}
+has_permission = {
+	"RD Item": "sok_resdesk.access.item_has_permission",
+	"RD Page Text": "sok_resdesk.access.by_item_has_permission",
+	"RD Annotation": "sok_resdesk.access.by_item_has_permission",
+	"RD Review Flag": "sok_resdesk.access.by_item_has_permission",
+	"RD Ground Truth": "sok_resdesk.access.by_item_has_permission",
+	"RD External Record": "sok_resdesk.access.by_item_has_permission",
+}
+
 doc_events = {
 	"RD Item": {
+		# Governance Mode: the level number and the "Cleared only" visibility follow the classification
+		"validate": ["sok_resdesk.classification.on_item_validate"],
 		"on_update": [
 			"sok_resdesk.search.on_item_update",
 			"sok_resdesk.outbound.on_item_change",
@@ -126,6 +146,10 @@ doc_events = {
 			"sok_resdesk.access.super_admin_is_manager",
 		],
 	},
+	"RD Clearance": {
+		"on_update": "sok_resdesk.classification.on_clearance_change",
+		"on_trash": "sok_resdesk.classification.on_clearance_change",
+	},
 	"RD Collection": {"on_trash": "sok_resdesk.curation.on_collection_trash"},
 	# a public note's tags and Wikidata item are searched with its book
 	"RD Annotation": {
@@ -135,7 +159,8 @@ doc_events = {
 	# a profile's portal collection (Keep in Step with archive.org)
 	"RD Ingest Profile": {"on_update": "sok_resdesk.ia_sync.on_profile_update"},
 	"RD Settings": {
-		"on_update": ["sok_resdesk.ia_sync.on_settings_update", "sok_resdesk.identifiers.on_settings_change"]
+		"validate": "sok_resdesk.classification.check_governance_switch",
+		"on_update": ["sok_resdesk.ia_sync.on_settings_update", "sok_resdesk.identifiers.on_settings_change"],
 	},
 }
 

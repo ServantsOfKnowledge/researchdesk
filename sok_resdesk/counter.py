@@ -71,7 +71,7 @@ def titles_of(item_ids: list[str]) -> dict[str, dict]:
 	out = {}
 	for r in frappe.get_all(
 		"RD Item",
-		filters={"name": ("in", item_ids)},
+		filters={"name": ("in", item_ids), "visibility": ("!=", "Cleared only")},
 		fields=["name", "title", "publisher", "isbn", "ark", "doi", "visibility"],
 	):
 		out[r.name] = {

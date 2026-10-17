@@ -12,6 +12,7 @@ from frappe.utils import cint
 from sok_resdesk import features
 from sok_resdesk.catalogue import settings
 from sok_resdesk.core import access as core
+from sok_resdesk.core import classification as levels
 from sok_resdesk.core.access import LOGIN_TO_FIND, LOGIN_TO_READ, PUBLIC, VISIBILITIES  # noqa: F401
 from sok_resdesk.holding import hold_when_paused
 
@@ -81,12 +82,144 @@ def can_use_text(visibility: str | None, user: str | None = None) -> bool:
 	return can_read(visibility, user) and is_member(user)
 
 
+# -- Governance Mode: classification and need-to-know ------------------------------------
+
+
+def governed() -> bool:
+	from sok_resdesk import audit
+
+	return audit.on()  # Governance Mode is one switch: the audit log and the classification
+
+
+def clearance(user: str | None = None) -> tuple[int, set[str] | None]:
+	"""(highest level number, departments incl. the offices below them). None = every department.
+	Nobody holds a clearance by role: not even a System Manager. Only the built-in Administrator
+	sees all, and that is in the audit log. No clearance record: Unclassified, no department."""
+	user = user or frappe.session.user
+	if user == "Administrator":
+		return len(levels.LEVELS) - 1, None
+	cache = getattr(frappe.local, "rd_clearance", None)
+	if cache is None:
+		cache = frappe.local.rd_clearance = {}
+	if user not in cache:
+		row = frappe.db.get_value("RD Clearance", user, "name") if user != "Guest" else None
+		if not row:
+			cache[user] = (0, set())
+		else:
+			doc = frappe.get_cached_doc("RD Clearance", user)
+			parents = dict(
+				frappe.db.sql(
+					"select name, parent_department from `tabRD Department` where ifnull(parent_department, '') != ''"
+				)
+			)
+			cache[user] = (
+				levels.rank(doc.level),
+				levels.expand([d.department for d in doc.departments], parents),
+			)
+	return cache[user]
+
+
+def is_cleared(class_rank, department, user: str | None = None) -> bool:
+	rank, departments = clearance(user)
+	return levels.cleared(rank, departments, cint(class_rank), department)
+
+
+def effective(visibility: str | None, class_rank=0, department: str | None = None) -> str | None:
+	"""A record's visibility for the person looking: a classified record they are cleared for reads like
+	a members-only one (Login to find); one they are not cleared for stays Cleared only, which the
+	plain rules never show."""
+	if visibility != core.CLEARED_ONLY:
+		return visibility
+	if frappe.session.user != "Guest" and is_member() and is_cleared(class_rank, department):
+		return core.LOGIN_TO_FIND
+	return visibility
+
+
 def search_filter(kind: str) -> str | None:
-	return core.search_filter(kind, guest_mode(), is_member())
+	"""The plain rules, and a classified record is never in them. Governance Mode only adds the
+	people who are cleared for it: with it off (or unreadable) a classified record stays hidden."""
+	base = core.search_filter(kind, guest_mode(), is_member())
+	if base == "":
+		return base
+	hidden = f'NOT visibility = "{core.CLEARED_ONLY}"'
+	clause = hidden
+	if governed() and frappe.session.user != "Guest" and is_member():
+		rank, departments = clearance()
+		clause = f"({hidden} OR {levels.meili_clause(rank, departments)})"
+	return f"{base} AND {clause}" if base else clause
 
 
 def sql_condition(column: str = "visibility") -> str:
-	return core.sql_condition(guest_mode(), is_member(), column)
+	base = core.sql_condition(guest_mode(), is_member(), column)
+	if base == "1=0":
+		return base
+	hidden = f"ifnull({column}, '') != '{core.CLEARED_ONLY}'"
+	if governed() and frappe.session.user != "Guest" and is_member():
+		rank, departments = clearance()
+		prefix = column.rsplit(".", 1)[0] + "." if "." in column else ""
+		hidden = f"({hidden} or {levels.sql_clause(rank, departments, prefix, frappe.db.escape)})"
+	return f"({base}) and {hidden}"
+
+
+def item_query_conditions(user: str | None = None) -> str:
+	"""The Desk's lists of items: a person sees what they are cleared for (the Administrator sees all)."""
+	hidden = f"ifnull(`tabRD Item`.visibility, '') != '{core.CLEARED_ONLY}'"
+	if not governed():
+		return hidden
+	rank, departments = clearance(user)
+	return f"({hidden} or {levels.sql_clause(rank, departments, '`tabRD Item`.', frappe.db.escape)})"
+
+
+def _by_item(table: str, user: str | None) -> str:
+	"""A doctype that hangs off an item (its page text, notes, flags…): hidden with a classified item."""
+	if governed():
+		rank, departments = clearance(user)
+		mine = levels.sql_clause(rank, departments, "", frappe.db.escape)
+	else:
+		mine = "1=0"
+	return (
+		f"`tab{table}`.item not in (select name from `tabRD Item` "
+		f"where ifnull(visibility, '') = '{core.CLEARED_ONLY}' and not {mine})"
+	)
+
+
+def page_text_conditions(user=None):
+	return _by_item("RD Page Text", user)
+
+
+def annotation_conditions(user=None):
+	return _by_item("RD Annotation", user)
+
+
+def review_flag_conditions(user=None):
+	return _by_item("RD Review Flag", user)
+
+
+def ground_truth_conditions(user=None):
+	return _by_item("RD Ground Truth", user)
+
+
+def external_record_conditions(user=None):
+	return _by_item("RD External Record", user)
+
+
+def by_item_has_permission(doc, ptype=None, user=None):
+	"""The same for one document: refused when its item is classified and the person is not cleared."""
+	row = frappe.db.get_value(
+		"RD Item", doc.get("item"), ["visibility", "class_rank", "department"], as_dict=True
+	)
+	if row and row.visibility == core.CLEARED_ONLY:
+		if not (governed() and is_cleared(row.class_rank, row.department, user)):
+			return False
+	return None
+
+
+def item_has_permission(doc, ptype=None, user=None):
+	"""Only ever a refusal: the roles' own permissions still decide everything else."""
+	if doc.get("visibility") == core.CLEARED_ONLY:
+		if not (governed() and is_cleared(doc.get("class_rank"), doc.get("department"), user)):
+			return False
+	return None
 
 
 def viewer() -> dict:
@@ -150,6 +283,14 @@ def apply_visibility(names: list[str], visibility: str, set_by: str = "Bulk", wa
 	"""Set visibility on many items at once, in the database and in both search indexes."""
 	_check_visibility(visibility)
 	names = list(dict.fromkeys(n for n in names if n))
+	if names and governed():  # a classified record's visibility is its classification's, not a bulk choice
+		held = set(
+			frappe.db.sql_list(
+				"select name from `tabRD Item` where name in %s and visibility=%s",
+				(tuple(names), core.CLEARED_ONLY),
+			)
+		)
+		names = [n for n in names if n not in held]
 	for i in range(0, len(names), 500):
 		chunk = names[i : i + 500]
 		frappe.db.sql(
@@ -215,7 +356,25 @@ def update_index_visibility(names: list[str], visibility: str, wait: bool = Fals
 		frappe.log_error("Research Desk: could not update visibility in the search index", str(e))
 
 
-def select_items(
+def select_items(*args, **kwargs) -> list[str]:
+	"""The items a bulk action or export works on, less the classified ones this person is not cleared for."""
+	names = _select_items(*args, **kwargs)
+	if not names or not governed() or frappe.session.user == "Administrator":
+		return names
+	rank, departments = clearance()
+	mine = levels.sql_clause(rank, departments, "", frappe.db.escape)
+	ok: set[str] = set()
+	for i in range(0, len(names), 1000):
+		ok.update(
+			frappe.db.sql_list(
+				f"select name from `tabRD Item` where name in %s and (ifnull(visibility, '') != %s or {mine})",
+				(tuple(names[i : i + 1000]), core.CLEARED_ONLY),
+			)
+		)
+	return [n for n in names if n in ok]
+
+
+def _select_items(
 	names=None,
 	filters=None,
 	collection=None,

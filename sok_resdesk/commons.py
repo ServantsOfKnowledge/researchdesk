@@ -59,6 +59,8 @@ def _problem(doc, path: str, account: str) -> str:
 		return _("Connect your own Wikimedia account first (Research Desk → My Wikimedia Account).")
 	if doc.commons_file:
 		return _("Already sent to Commons as {0}.").format(doc.commons_file)
+	if doc.visibility == "Cleared only":
+		return _("This photograph is classified, so it is not published elsewhere.")
 	if doc.access_status != "Open":
 		return _("This photograph is not open to read here, so it is not published elsewhere.")
 	if cm.licence_problem(doc.licence_url):

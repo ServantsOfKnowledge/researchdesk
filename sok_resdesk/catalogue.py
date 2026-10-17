@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 
 import frappe
-from frappe.utils import get_url, now_datetime
+from frappe.utils import cint, get_url, now_datetime
 
 from sok_resdesk.core.normalize import decade_of
 
@@ -75,6 +75,8 @@ def item_to_record(doc) -> dict:
 		"rights": doc.rights or "",
 		"access_status": doc.access_status or "Unknown",
 		"visibility": doc.visibility or "Public",
+		"class_rank": cint(doc.get("class_rank")),
+		"department": doc.get("department") or "",
 		"source_url": doc.source_url or "",
 		"thumbnail_url": _absolute(doc.thumbnail_url or ""),
 		"ark": doc.ark or "",
@@ -261,10 +263,14 @@ def get_record(item_id: str, published_only: bool = True, check_access: bool = T
 	if published_only and not doc.published:
 		return None
 	if check_access:
-		from sok_resdesk.access import can_find
+		from sok_resdesk.access import can_find, effective
 
-		if not can_find(doc.visibility):
+		shown = effective(doc.visibility, doc.get("class_rank"), doc.get("department"))
+		if not can_find(shown):
 			return None
+		record = item_to_record(doc)
+		record["visibility"] = shown  # a classified record reads like a members-only one to those cleared
+		return record
 	return item_to_record(doc)
 
 

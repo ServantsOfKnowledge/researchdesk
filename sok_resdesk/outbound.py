@@ -79,11 +79,16 @@ def _books(t) -> list[str]:
 	if t.scope == "Collection":
 		names = frappe.db.sql_list(
 			"""select distinct c.parent from `tabRD Item Collection` c join `tabRD Item` i on i.name=c.parent
-			where c.collection=%s and i.published=1 order by i.creation""",
+			where c.collection=%s and i.published=1 and ifnull(i.visibility, '') != 'Cleared only' order by i.creation""",
 			t.collection,
 		)
 	else:
-		names = frappe.get_all("RD Item", filters={"published": 1}, pluck="name", order_by="creation asc")
+		names = frappe.get_all(
+			"RD Item",
+			filters={"published": 1, "visibility": ("!=", "Cleared only")},
+			pluck="name",
+			order_by="creation asc",
+		)
 	if t.target_type == "Internet Archive" and names:
 		on_ia = set(
 			frappe.get_all("RD Item", filters={"name": ("in", names), "on_archive_org": 1}, pluck="name")
@@ -93,8 +98,10 @@ def _books(t) -> list[str]:
 
 
 def in_scope(t, item: str) -> bool:
-	published, on_ia = frappe.db.get_value("RD Item", item, ["published", "on_archive_org"]) or (0, 0)
-	if not published or (t.target_type == "Internet Archive" and not on_ia):
+	published, on_ia, vis = frappe.db.get_value(
+		"RD Item", item, ["published", "on_archive_org", "visibility"]
+	) or (0, 0, "")
+	if not published or vis == "Cleared only" or (t.target_type == "Internet Archive" and not on_ia):
 		return False
 	if t.scope == "Collection":
 		return bool(frappe.db.exists("RD Item Collection", {"parent": item, "collection": t.collection}))
@@ -126,6 +133,8 @@ def _remember(target: str, item: str, ext_id: str, url: str, fingerprint: str, e
 
 def push_one(t, client, item: str, dry: bool, force: bool = False) -> tuple[str, str]:
 	"""Returns (outcome, message); outcome is sent | unchanged | skipped."""
+	if frappe.db.get_value("RD Item", item, "visibility") == "Cleared only":
+		return "skipped", "classified"
 	record = item_to_record(frappe.get_doc("RD Item", item))
 	portal = f"{base_url()}/library/item/{item}"
 	ext = _external(t.name, item)
@@ -274,7 +283,7 @@ def run(run_name: str, force: int = 0, items: list | None = None, resume: int = 
 	if r.status in ("Cancelled", "Paused"):
 		return  # stopped or paused before this job started
 	t = frappe.get_doc("RD Push Target", r.target)
-	names = items or _books(t)
+	names = [n for n in (items or _books(t)) if in_scope(t, n)]  # never a classified record
 	if resume:
 		counts = {k: cint(r.get(k)) for k in ("sent", "unchanged", "skipped", "failed")}
 		frappe.db.sql(f"update `{RUN}` set status='Running' where name=%s", run_name)

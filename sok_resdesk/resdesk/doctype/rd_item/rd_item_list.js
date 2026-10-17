@@ -113,6 +113,28 @@ frappe.listview_settings["RD Item"] = {
 			frappe.new_doc("RD Export", { scope: "Filters", filters_json: JSON.stringify(listview.get_filters_for_args()) })
 		);
 
+		listview.page.add_actions_menu_item(__("Set Classification"), () => {
+			const names = listview.get_checked_items(true);
+			const d = new frappe.ui.Dialog({
+				title: __("Set Classification"),
+				fields: [
+					{ fieldname: "level", fieldtype: "Select", label: __("Level"), reqd: 1, default: "Unclassified", options: ["Unclassified", "Restricted", "Confidential", "Secret", "Top Secret"] },
+					{ fieldname: "department", fieldtype: "Link", label: __("Department"), options: "RD Department", description: __("Empty: any person cleared for the level.") },
+				],
+				primary_action_label: __("Apply to {0} records", [names.length]),
+				primary_action: (v) => {
+					d.hide();
+					frappe.call({
+						method: "sok_resdesk.classification.set_classification",
+						args: { level: v.level, department: v.department || "", names: JSON.stringify(names) },
+						freeze: true,
+						callback: (r) => frappe.show_alert({ message: r.message.message, indicator: "green" }, 7),
+					});
+				},
+			});
+			d.show();
+		});
+
 		listview.page.add_actions_menu_item(__("Set Who Can See Them"), () => {
 			const names = listview.get_checked_items(true);
 			ask(__("Selected books"), { names: JSON.stringify(names) }, names.length);

@@ -52,9 +52,12 @@ def select_for_export(doc) -> list[str]:
 
 	scope = doc.scope
 	if scope == "Collection":
-		names = frappe.db.sql_list(
-			"select distinct parent from `tabRD Item Collection` where collection=%s and parenttype='RD Item'",
-			doc.collection,
+		names = select_items(
+			names=frappe.db.sql_list(
+				"select distinct parent from `tabRD Item Collection` where collection=%s and parenttype='RD Item'",
+				doc.collection,
+			)
+			or ["-"]
 		)
 	elif scope == "Ingest Profile":
 		names = select_items(profile=doc.profile)

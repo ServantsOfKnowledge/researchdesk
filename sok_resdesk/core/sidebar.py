@@ -75,6 +75,8 @@ STRUCTURE: list = [
 			("Background Jobs", P, "resdesk-jobs"),
 			("Server", P, "resdesk-server"),
 			("Audit Log", D, "RD Audit Event"),
+			("Departments", D, "RD Department"),
+			("Clearances", D, "RD Clearance"),
 			("Open Portal", "URL", "/"),
 			("Settings", D, "RD Settings"),
 			("About Page", D, "RD About Page"),

@@ -156,10 +156,13 @@ def search_inside(item_id: str, q: str, limit: int = 50):
 	"""Pages of one book that match `q`, with highlighted snippets."""
 	if not q.strip():
 		return {"hits": []}
-	row = frappe.db.get_value("RD Item", item_id, ["published", "visibility"], as_dict=True)
-	if not row or not row.published or not access.can_find(row.visibility):
+	row = frappe.db.get_value(
+		"RD Item", item_id, ["published", "visibility", "class_rank", "department"], as_dict=True
+	)
+	shown = row and access.effective(row.visibility, row.class_rank, row.department)
+	if not row or not row.published or not access.can_find(shown):
 		frappe.throw(_("Item not found"), frappe.DoesNotExistError)
-	if not access.can_read(row.visibility):
+	if not access.can_read(shown):
 		return {"total": 0, "hits": [], "login_needed": True}
 	from sok_resdesk.search import expand_query, federated
 
@@ -468,7 +471,7 @@ def marcxml(item_ids):
 def marcxml_all(profile: str | None = None):
 	"""Whole catalogue (or one ingest profile) as MARCXML. Staff only."""
 	frappe.only_for(("System Manager", "ResDesk Manager", "ResDesk Cataloguer"))
-	filters = {"published": 1}
+	filters = {"published": 1, "visibility": ("!=", "Cleared only")}
 	if profile:
 		filters["ingest_profile"] = profile
 	names = frappe.get_all("RD Item", filters=filters, pluck="name")
@@ -506,10 +509,15 @@ def file(item_id: str, name: str):
 			"local_thumb",
 			"local_files",
 			"visibility",
+			"class_rank",
+			"department",
 			"served_from_copy",
 		],
 		as_dict=True,
 	)
+	classified = bool(doc) and doc.visibility == "Cleared only"
+	if doc:  # a classified record reads like a members-only one to the people cleared for it
+		doc.visibility = access.effective(doc.visibility, doc.class_rank, doc.department)
 	if doc and doc.published and doc.served_from_copy:
 		# a book archive.org no longer serves: its PDF from our preservation copy
 		from sok_resdesk.preservation import copy_pdf
@@ -520,8 +528,11 @@ def file(item_id: str, name: str):
 		if doc.access_status != "Open" or not access.can_read(doc.visibility):
 			raise frappe.PermissionError
 		audit.record_download(item_id, name)
-		return send_file(
-			found[1], frappe.local.request.environ, conditional=True, max_age=86400, download_name=name
+		return _private(
+			send_file(
+				found[1], frappe.local.request.environ, conditional=True, max_age=86400, download_name=name
+			),
+			classified,
 		)
 	if (
 		not doc
@@ -555,11 +566,23 @@ def file(item_id: str, name: str):
 			in ("content-type", "content-length", "content-range", "accept-ranges", "last-modified", "etag")
 		}
 		passthrough["Cache-Control"] = "public, max-age=86400"
+		if classified:
+			passthrough["Cache-Control"] = "private, no-store"
 		return Response(upstream.iter_content(64 * 1024), status=upstream.status_code, headers=passthrough)
 	path = store.file_path(loc, name)
 	if not path:
 		raise frappe.PageDoesNotExistError
-	return send_file(path, frappe.local.request.environ, conditional=True, max_age=86400, download_name=name)
+	return _private(
+		send_file(path, frappe.local.request.environ, conditional=True, max_age=86400, download_name=name),
+		classified,
+	)
+
+
+def _private(response, classified: bool):
+	"""A classified file is never kept by a browser cache or a proxy."""
+	if classified:
+		response.headers["Cache-Control"] = "private, no-store"
+	return response
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
