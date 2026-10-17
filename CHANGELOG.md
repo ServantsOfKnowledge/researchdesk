@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.75.1 (2026-10-17): Native installs: the updater helper starts again
+
+- **Native installs:** `./resdesk.sh updater on` failed with `cd: scripts/..: No such file or directory`, so the updater helper never got into the Procfile. The Procfile script now works out the app's folder before it moves into the bench.
+
 ## 0.75.0 (2026-10-15): The Servants of Knowledge logo is the default
 
 - **Logo:** a new install starts with the Servants of Knowledge logo as its Logo (Settings → Logo & Branding), so the portal, the browser tab, the Desk's app icon and the help pictures all carry it from the first day instead of a generic icon. Libraries that set their own logo keep it. The Desk's app icon and the apps screen use it when no logo is set. The first-steps list still asks for a logo until the library sets its own.

@@ -6,6 +6,8 @@
 set -euo pipefail
 BENCH_DIR="$1"; WORKERS="${2:-2}"; MEILI_PORT="${3:-7700}"; MEILI_KEY="$4"
 PORT="${HTTP_PORT:-8000}"
+# the app's folder, found before the cd below: $0 is relative ("scripts/native-procfile.sh")
+APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BIND="${BIND_ADDRESS:-0.0.0.0}"
 cd "$BENCH_DIR"
 rm -f Procfile && bench setup procfile >/dev/null   # regenerates web/socketio/watch/schedule/worker/redis
@@ -36,7 +38,6 @@ sed -i.bak -E "s#^(worker[^:]*): (nice -n [0-9]+ )?bench worker#\1: $NICE bench 
   done
   # the updater helper (./resdesk.sh updater on): the Server page's upgrades and restarts
   if [ "${UPDATER:-0}" = 1 ]; then
-    APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
     echo "updater: RESDESK_DIR=$APP_DIR python3 $APP_DIR/scripts/agent.py 1>> logs/updater.log 2>&1"
   fi
 } >> Procfile
