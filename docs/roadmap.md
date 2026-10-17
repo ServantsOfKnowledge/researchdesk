@@ -106,6 +106,10 @@
 
 ## Next
 
+- [ ] **Government and institutional use** ([Governance](governance.md)): the audit log is done (0.77);
+      still to come: classification levels and need-to-know access by department, retention rules
+      and legal holds, single sign-on, a file register, records intake, signature checks, a
+      disclosure-request workflow, redaction and an offline install bundle
 - [ ] **Accessibility** (details and the full plan: [Accessibility](accessibility.md)): testing with
       blind and low-vision readers using NVDA and TalkBack with Indic voices; later DAISY talking
       books, and sharing with Sugamya Pustakalaya under the Marrakesh Treaty and Copyright Act

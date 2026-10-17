@@ -102,6 +102,10 @@ after_migrate = "sok_resdesk.setup.after_migrate"
 
 # Keep the search index in sync with the catalogue ----------------------------
 
+# the audit log (Governance Mode)
+on_session_creation = ["sok_resdesk.audit.on_login"]
+on_logout = ["sok_resdesk.audit.on_logout"]
+
 doc_events = {
 	"RD Item": {
 		"on_update": [

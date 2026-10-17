@@ -158,6 +158,9 @@ def apply_visibility(names: list[str], visibility: str, set_by: str = "Bulk", wa
 			{"v": visibility, "by": set_by[:140], "names": tuple(chunk)},
 		)
 		frappe.db.commit()
+	from sok_resdesk import audit
+
+	audit.record("visibility", detail=f"{len(names)} items set to {visibility} ({set_by})")
 	update_index_visibility(names, visibility, wait=wait)
 	return len(names)
 

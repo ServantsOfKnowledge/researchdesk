@@ -40,6 +40,7 @@ The same pages are inside the app: **Help** on the portal (for readers) and **He
 9. [API](api.md): public HTTP endpoints
 10. [Server: updates, health & backups](server.md): the Server page in the Desk: new releases, health of every part, the book limit, backups, logs, alerts; upgrading and restarting from the Desk with the updater helper
 11. [Operations](operations.md): upgrading and rolling back, backups, workers, background jobs (see, pause, resume and stop), resources (presets, quiet hours), re-indexing, logo & branding, troubleshooting
+   - [Government and institutional use](governance.md): Governance Mode and the tamper-evident audit log
    - [Moving to another server](moving.md): one-file export and import, `move-to` over SSH, Docker ↔ native
 12. [Scaling to 50,000 books](scaling.md): measured numbers, server sizing, running a large ingest
 13. [Architecture](architecture.md): components, data model, scaling from a laptop to a national library

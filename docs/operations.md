@@ -561,6 +561,12 @@ Every setting:
 | Backups to Keep | Older backups are deleted after each new one. |
 | Alert Webhook URL | Also post alerts as JSON to this address, for example a Slack, Mattermost or Discord incoming webhook (the text is in "text"). |
 | Alert When Disk Is This Full (%) | Warn when the disk holding Research Desk's data is this full. |
+
+**Government and institutional use**
+
+| Setting | What it does |
+|---|---|
+| Governance Mode | Records who viewed, downloaded, searched and changed what, in a log that cannot be edited or deleted from the Desk and shows any tampering (Audit Log). Meant for a government or institutional deployment; off, nothing is recorded. |
 <!-- /generated:settings -->
 
 ## Users and roles

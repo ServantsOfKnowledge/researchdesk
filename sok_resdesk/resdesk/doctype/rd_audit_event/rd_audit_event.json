@@ -1,0 +1,122 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-10-17 18:00:00.000000",
+ "modified": "2026-10-17 18:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Audit Event",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "description": "One line of the audit log: who did what to which record, and when. Each line carries a hash of the one before it, so a change or a removal anywhere shows up.",
+ "field_order": [
+  "seq",
+  "event_time",
+  "user",
+  "event",
+  "item",
+  "detail",
+  "ip_address",
+  "column_break_a",
+  "prev_hash",
+  "row_hash"
+ ],
+ "fields": [
+  {
+   "fieldname": "seq",
+   "fieldtype": "Int",
+   "label": "Number",
+   "read_only": 1,
+   "in_list_view": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "event_time",
+   "fieldtype": "Datetime",
+   "label": "When",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Data",
+   "label": "Who",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "event",
+   "fieldtype": "Data",
+   "label": "What",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Data",
+   "label": "Record",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "detail",
+   "fieldtype": "Small Text",
+   "label": "Detail",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ip_address",
+   "fieldtype": "Data",
+   "label": "Address",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_a",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "prev_hash",
+   "fieldtype": "Data",
+   "label": "Previous Hash",
+   "read_only": 1
+  },
+  {
+   "fieldname": "row_hash",
+   "fieldtype": "Data",
+   "label": "Hash",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "sort_field": "seq",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "in_create": 1,
+ "read_only": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "SOK Super Admin",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "report": 1
+  }
+ ]
+}

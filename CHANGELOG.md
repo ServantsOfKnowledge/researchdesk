@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.77.0 (2026-10-17): Governance Mode and a tamper-evident audit log
+
+- **Governance Mode** (Settings → Government and institutional use, administrators only), off by default.
+- **Audit log:** with it on, each book view, file download, search, change of who can see books, and sign-in or sign-out is written to a log that cannot be edited or deleted from the Desk or the portal. Each line is hashed (with a secret kept outside the database) with the one before it, written under a short lock that never holds up a reader; **Audit Log → Check the log** says where it was tampered with. See [Government and institutional use](docs/governance.md).
+
 ## 0.76.6 (2026-10-17): Documentation up to date
 
 - **Docs:** the README status, the architecture note on the updater helper and Coolify, the Background Jobs table, the Server page's stuck-task button and the source-tree map now match 0.76.

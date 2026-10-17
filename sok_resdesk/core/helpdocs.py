@@ -179,6 +179,7 @@ PAGES = [
 	Page("installation", "installation.md", "Installation", "staff", "For administrators"),
 	Page("server", "server.md", "Server: updates, health & backups", "staff", "For administrators"),
 	Page("operations", "operations.md", "Operations", "staff", "For administrators"),
+	Page("governance", "governance.md", "Government and institutional use", "staff", "For administrators"),
 	Page("moving", "moving.md", "Moving to another server", "staff", "For administrators"),
 	Page("scaling", "scaling.md", "Scaling to 50,000 books", "staff", "For administrators"),
 	Page("api", "api.md", "HTTP API", "staff", "Technical"),

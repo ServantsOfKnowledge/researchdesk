@@ -184,7 +184,9 @@
   "backup_keep",
   "column_break_server",
   "alert_webhook_url",
-  "alert_disk_percent"
+  "alert_disk_percent",
+  "governance_section",
+  "governance"
  ],
  "fields": [
   {
@@ -1435,6 +1437,20 @@
    "non_negative": 1,
    "description": "Warn when the disk holding Research Desk's data is this full.",
    "permlevel": 1
+  },
+  {
+   "fieldname": "governance_section",
+   "fieldtype": "Section Break",
+   "label": "Government and institutional use",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "governance",
+   "fieldtype": "Check",
+   "label": "Governance Mode",
+   "default": "0",
+   "permlevel": 1,
+   "description": "Records who viewed, downloaded, searched and changed what, in a log that cannot be edited or deleted from the Desk and shows any tampering (Audit Log). Meant for a government or institutional deployment; off, nothing is recorded."
   }
  ],
  "links": [],

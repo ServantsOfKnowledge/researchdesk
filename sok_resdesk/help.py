@@ -50,6 +50,7 @@ SCREEN_HELP = {
 	"RD Library Record": ("koha", "option-e-bring-the-librarys-catalogue-in-link-it-send-the-links-back"),
 	"RD Server Task": ("server", "upgrading-from-the-desk"),
 	"RD Tombstone": ("preservation", "tombstones"),
+	"RD Audit Event": ("governance", "the-audit-log"),
 	"RD Annotation": ("staff-guide", "readers-notes"),
 	"RD Research Group": ("staff-guide", "readers-notes"),
 	"RD Page Text": ("staff-guide", "proofreading-and-re-ocr"),
