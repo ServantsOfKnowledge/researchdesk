@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.76.5 (2026-10-17): Drag and drop files onto the deposit form
+
+- **Deposit:** files can be dragged onto the Files box of the portal deposit form, as well as chosen with the button (which still works from the keyboard). Staff can deposit the same way.
+
 ## 0.76.4 (2026-10-17): Server tasks show on Background Jobs
 
 - **Background Jobs:** a new card, *Server tasks (upgrades, restarts, backups)*, lists the latest five tasks asked for on the Server page with their status, so an upgrade in progress or one that is stuck can be seen next to the other jobs.

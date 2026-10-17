@@ -37,7 +37,10 @@
 				<legend>{{ _("Files") }}</legend>
 				<p class="rd-muted" id="rd-dep-allowed"></p>
 				<ul id="rd-dep-files"></ul>
-				<input type="file" id="rd-dep-file" multiple aria-label="{{ _('Choose files') }}">
+				<div id="rd-dep-drop" style="border:2px dashed #6b7178;border-radius:8px;padding:16px;text-align:center">
+					<p style="margin:0 0 8px">{{ _("Drop files here, or choose them") }}</p>
+					<input type="file" id="rd-dep-file" multiple aria-label="{{ _('Choose files') }}">
+				</div>
 			</fieldset>
 			<p><label><input type="checkbox" name="declaration" value="1"> {{ _("I have the right to deposit this work, and it may be shared on the terms above") }}</label></p>
 			<p class="rd-actions">
@@ -185,10 +188,10 @@
 		catch (e) { say(e.message, true); }
 	};
 	$("#rd-dep-new").onclick = () => { form.reset(); name = ""; files([]); say(""); $("#rd-dep-form-h").textContent = $("#rd-dep-form-h").dataset.new; };
-	$("#rd-dep-file").onchange = async (e) => {
+	async function upload(list) {
 		try {
 			await ensure();
-			for (const f of e.target.files) {
+			for (const f of list) {
 				say(T.uploading + " " + f.name);
 				const fd = new FormData();
 				fd.append("file", f, f.name); fd.append("is_private", "1"); fd.append("doctype", "RD Deposit"); fd.append("docname", name);
@@ -197,9 +200,14 @@
 				if (!up.ok) throw new Error((uj.exception || "Upload failed").replace(/<[^>]+>/g, ""));
 				await call("attach_file", { name, file_url: uj.message.file_url }, true);
 			}
-			say(""); files((await call("get", { name })).files); e.target.value = "";
+			say(""); files((await call("get", { name })).files);
 		} catch (err) { say(err.message, true); }
-	};
+	}
+	$("#rd-dep-file").onchange = async (e) => { await upload([...e.target.files]); e.target.value = ""; };
+	const drop = $("#rd-dep-drop");
+	for (const ev of ["dragenter", "dragover"]) drop.addEventListener(ev, (e) => { e.preventDefault(); drop.style.background = "#eef3f8"; });
+	for (const ev of ["dragleave", "drop"]) drop.addEventListener(ev, () => { drop.style.background = ""; });
+	drop.addEventListener("drop", (e) => { e.preventDefault(); upload([...e.dataTransfer.files]); });
 	call("options").then((o) => {
 		const fill = (sel, items, blank) => { sel.innerHTML = (blank ? '<option value=""></option>' : "") + items.map((i) => `<option value="${esc(i.value)}">${esc(i.label)}</option>`).join(""); };
 		fill(form.item_type, o.kinds.map((k) => ({ value: k, label: k })));

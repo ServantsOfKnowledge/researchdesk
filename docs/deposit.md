@@ -1,7 +1,7 @@
 # Repository deposit
 
 People can give the library their own work: a paper, a thesis, a report, a dataset description.
-They describe it, choose a licence and who may read it, add the files and submit it. A librarian
+They describe it, choose a licence and who may read it, add the files (drag them onto the Files box, or choose them) and submit it. A librarian
 who is not the depositor reviews it and accepts it, asks for changes or rejects it. An accepted
 deposit becomes a book in the catalogue, with its text searchable, downloads, a collection and
 the access the depositor chose.
