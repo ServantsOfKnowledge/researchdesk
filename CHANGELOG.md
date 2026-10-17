@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.78.2 (2026-10-17): A revoked clearance stops at once
+
+- **Governance Mode:** a person's clearance is read afresh on each request, not from a cached copy, so removing or lowering it takes effect immediately. Two of its tests are corrected.
+
 ## 0.78.1 (2026-10-17): Classification installs, and Governance Mode documented
 
 - **Fix for 0.78.0, which did not install** (MariaDB: "Row size too large": the item's table is already full): a record's level and department are now a line in **Classified Records** (RD Item Scope), not columns on the item. Nothing else changes for the person using it.

@@ -87,7 +87,7 @@ class TestGovernance(IntegrationTestCase):
 		frappe.set_user("Guest")
 		try:
 			names = frappe.db.sql_list(
-				f"select name from `tabRD Item` where name like 'rdgovtest%' and {access.sql_condition()}"
+				f"select name from `tabRD Item` where name like 'rdgovtest%%' and {access.sql_condition()}"
 			)
 		finally:
 			frappe.set_user("Administrator")

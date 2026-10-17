@@ -106,7 +106,7 @@ def clearance(user: str | None = None) -> tuple[int, set[str] | None]:
 		if not row:
 			cache[user] = (0, set())
 		else:
-			doc = frappe.get_cached_doc("RD Clearance", user)
+			doc = frappe.get_doc("RD Clearance", user)  # not cached: a revoked clearance must stop at once
 			parents = dict(
 				frappe.db.sql(
 					"select name, parent_department from `tabRD Department` where ifnull(parent_department, '') != ''"
