@@ -365,6 +365,16 @@ def cancel_task(name: str) -> None:
 		f"update `tab{TASK}` set status='Cancelled', finished_on=%s where name=%s and status='Queued'",
 		(now_datetime(), name),
 	)
+	# a task the helper never finished reporting on would otherwise block the next one for hours
+	frappe.db.sql(
+		f"""update `tab{TASK}` set status='Failed', finished_on=%s, exit_code=1, summary=%s
+		where name=%s and status='Running'""",
+		(
+			now_datetime(),
+			_("Cleared by {0}: the helper never reported a result.").format(frappe.session.user),
+			name,
+		),
+	)
 
 
 @frappe.whitelist()

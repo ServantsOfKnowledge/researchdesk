@@ -236,6 +236,7 @@ class ResDeskServer {
 				<h4>${esc(t.title || t.name)} <span class="indicator-pill ${color}">${__(t.status)}</span>
 					<a class="small" href="/app/rd-server-task/${encodeURIComponent(t.name)}" style="margin-left:6px">${esc(t.name)}</a>
 					${t.status === "Queued" ? `<button class="btn btn-xs btn-default" data-cancel-task="${esc(t.name)}" style="margin-left:6px">${__("Cancel")}</button>` : ""}
+					${t.status === "Running" ? `<button class="btn btn-xs btn-default" data-cancel-task="${esc(t.name)}" style="margin-left:6px">${__("Clear stuck task")}</button>` : ""}
 				</h4>
 				${
 					this.offline

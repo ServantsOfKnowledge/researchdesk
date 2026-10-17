@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.76.2 (2026-10-17): A stuck server task can be cleared
+
+- **Server page:** a task still shown as Running because the updater helper never reported its result (an upgrade that restarted it, say) now has a **Clear stuck task** button. It marks the task Failed so the next upgrade or restart is not blocked for the three hours it used to wait.
+
 ## 0.76.1 (2026-10-17): The Server page says what kind of setup this is
 
 - **Server page:** the Install tile now says Native, Docker or Coolify, and the Updater helper tile and card say why the helper isn't used: on Coolify it can't run (and shows **Via Coolify** once the three `RESDESK_COOLIFY_*` variables are set, or which ones to set), instead of a bare "Off".
