@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.76.4 (2026-10-17): Server tasks show on Background Jobs
+
+- **Background Jobs:** a new card, *Server tasks (upgrades, restarts, backups)*, lists the latest five tasks asked for on the Server page with their status, so an upgrade in progress or one that is stuck can be seen next to the other jobs.
+
 ## 0.76.3 (2026-10-17): The page-text sender no longer trips on error 1020
 
 - **Search queue:** the sender read each book, waited for the search engine (sometimes minutes), then wrote back from the same database snapshot, so any change to the book meanwhile made MariaDB refuse the write (error 1020) even after 0.65.1's retries. The snapshot is now released before the write, and a batch is tried five times instead of three.

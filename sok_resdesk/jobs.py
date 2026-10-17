@@ -210,6 +210,13 @@ def overview() -> dict:
 			"RD Push Run", filters={"status": ("in", ACTIVE)}, fields=push_fields, order_by="creation desc"
 		),
 		"workers": _workers(),
+		# upgrades, restarts and backups from the Server page: the latest few
+		"server_tasks": frappe.get_all(
+			"RD Server Task",
+			fields=["name", "title", "status", "summary", "creation"],
+			order_by="creation desc",
+			limit=5,
+		),
 		"active_runs": active,
 		"recent_runs": recent,
 		"jobs": jobs,

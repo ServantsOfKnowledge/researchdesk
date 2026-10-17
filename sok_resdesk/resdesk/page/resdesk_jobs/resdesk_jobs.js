@@ -424,6 +424,18 @@ class ResDeskJobs {
 					.join("")}</tbody></table>`
 			: `<p class="text-muted">${__("Nothing queued. The workers are idle.")}</p>`;
 
+		const server_tasks = (d.server_tasks || []).length
+			? `<table class="table table-sm rdj-table"><tbody>${d.server_tasks
+					.map(
+						(t) => `<tr>
+						<td><a href="/app/rd-server-task/${encodeURIComponent(t.name)}">${esc(t.title || t.name)}</a></td>
+						<td>${pill(__(t.status), { Queued: "gray", Running: "blue", Succeeded: "green", Failed: "red" }[t.status] || "gray")}</td>
+						<td class="text-muted">${esc(t.summary || "")}</td>
+						<td class="text-muted">${ago(t.creation)}</td></tr>`
+					)
+					.join("")}</tbody></table>
+				<p class="small"><a href="/app/resdesk-server">${__("Server page")}</a></p>`
+			: `<p class="text-muted">${__("No upgrade, restart or backup has been asked for yet.")}</p>`;
 		const push_link = (r) => `<a href="/app/rd-push-run/${encodeURIComponent(r.name)}">${esc(r.name)}</a>`;
 		const pushes = d.push_runs.length
 			? d.push_runs
@@ -622,6 +634,7 @@ class ResDeskJobs {
 			${summary}
 			<div class="rdj-card"><h4>${__("Ingest runs in progress")}</h4>${active}</div>
 			<div class="rdj-card"><h4>${__("Metadata pushes in progress")}</h4>${pushes}</div>
+			<div class="rdj-card"><h4>${__("Server tasks (upgrades, restarts, backups)")}</h4>${server_tasks}</div>
 			<div class="rdj-card"><h4>${__("Background jobs (Research Desk)")}</h4>${jobs}</div>
 			<div class="rdj-card"><h4>${__("Held jobs")}</h4>${held}</div>
 			<div class="rdj-card"><h4>${__("Machine")}</h4>${machine}</div>
