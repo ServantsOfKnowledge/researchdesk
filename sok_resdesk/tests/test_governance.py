@@ -30,6 +30,7 @@ class TestGovernance(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		frappe.db.delete("RD Item Scope", {"item": ("like", "rdgovtest%")})
 		frappe.db.delete("RD Item", {"name": ("like", "rdgovtest%")})
+		frappe.db.delete("RD Clearance Department", {"parent": self.USER})
 		frappe.db.delete("RD Clearance", {"name": self.USER})
 		frappe.db.delete("RD Department", {"name": ("like", "RD Test %")})
 		frappe.db.delete("User", {"name": self.USER})
@@ -50,7 +51,8 @@ class TestGovernance(IntegrationTestCase):
 
 	def clear(self, level, *departments):
 		frappe.local.rd_clearance = {}
-		frappe.db.delete("RD Clearance", {"name": self.USER})
+		if frappe.db.exists("RD Clearance", self.USER):  # a document delete also removes its department rows
+			frappe.delete_doc("RD Clearance", self.USER, force=True, ignore_permissions=True)
 		frappe.get_doc(
 			{
 				"doctype": "RD Clearance",
