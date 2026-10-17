@@ -171,6 +171,7 @@ services:
       RESDESK_DOCKER_API: http://monitor:2375
       # Coolify only: lets the Server page's Restart and Redeploy buttons ask Coolify's API
       # (docs/installation.md#coolify). Coolify's own COOLIFY_URL names the app, so not that name.
+      RESDESK_ON_COOLIFY: ${COOLIFY_RESOURCE_UUID:+1}
       RESDESK_COOLIFY_API: ${RESDESK_COOLIFY_API:-}
       RESDESK_COOLIFY_TOKEN: ${RESDESK_COOLIFY_TOKEN:-}
       RESDESK_COOLIFY_APP: ${RESDESK_COOLIFY_APP:-}

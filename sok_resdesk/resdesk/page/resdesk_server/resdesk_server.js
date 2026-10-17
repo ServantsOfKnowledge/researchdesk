@@ -506,13 +506,13 @@ class ResDeskServer {
 			<div class="rds-summary">
 				<div><span>${__("Research Desk")}</span><b>v${esc(d.version)}</b>${u.newer ? pill(__("{0} available", [u.latest]), "blue") : ""}</div>
 				<div><span>${__("Frappe")}</span><b>${esc(d.frappe)}</b>${u.frappe_newer ? pill(__("{0} available", [u.frappe_latest]), "blue") : ""}</div>
-				<div><span>${__("Install")}</span><b>${esc(d.mode === "native" ? __("Native") : "Docker")}</b><small class="text-muted">${esc(d.site)}</small></div>
+				<div><span>${__("Install")}</span><b>${esc({ native: __("Native"), coolify: "Coolify" }[d.setup] || "Docker")}</b><small class="text-muted">${esc(d.site)}</small></div>
 				<div><span>${__("Health")}</span><b>${bad === 1 ? __("1 problem") : bad ? __("{0} problems", [bad]) : __("All good")}</b></div>
 				<div><span>${__("Books")}</span><b>${(cap.books || 0).toLocaleString()}</b><small class="text-muted">${
 					cap.limit_books ? __("of about {0} ({1}%)", [cap.limit_books.toLocaleString(), cap.percent]) : __("no limit")
 				}</small></div>
 				<div><span>${__("Disk")}</span><b>${d.disk.percent}%</b><small class="text-muted">${gb(d.disk.free)} ${__("free")}</small></div>
-				<div><span>${__("Updater helper")}</span><b>${h.configured ? (h.connected ? __("Connected") : __("Not reporting")) : __("Off")}</b></div>
+				<div><span>${__("Updater helper")}</span><b>${h.configured ? (h.connected ? __("Connected") : __("Not reporting")) : d.setup === "coolify" ? (d.coolify.configured ? __("Via Coolify") : __("Not used on Coolify")) : __("Off")}</b></div>
 			</div>`;
 
 		const health = `<table class="table table-sm rds-table"><tbody>${d.health
@@ -663,6 +663,12 @@ class ResDeskServer {
 				${!h.connected ? `<p class="small">${__("Check it on the server:")}</p>${cmd("./resdesk.sh updater status")}` : ""}
 				${h.git && h.git.head ? `<p class="small text-muted">${__("Code on the server")}: ${esc(h.git.describe || h.git.head)}${h.git.branch ? " (" + esc(h.git.branch) + ")" : ""}</p>` : ""}
 				<p class="small text-muted">${__("It carries out upgrades, restarts and server backups started here by a System Manager, and nothing else. Turn it off on the server with")} <code>./resdesk.sh updater off</code>.</p>`
+			: d.setup === "coolify"
+			? `<p class="small">${__("This install is deployed by Coolify, which owns the containers, so the updater helper can't run.")}</p>${
+					d.coolify.configured
+						? `<p class="small">${pill(__("Via Coolify"), "green")} ${__("Restart and Redeploy on this page ask Coolify's API.")}</p>`
+						: `<p class="small">${__("To restart and redeploy from this page, set these in the Coolify resource's Environment Variables and redeploy once:")} <code>RESDESK_COOLIFY_API</code>, <code>RESDESK_COOLIFY_TOKEN</code>, <code>RESDESK_COOLIFY_APP</code>. ${__("Help → Installation → Coolify has the steps.")}</p>`
+			  }`
 			: `<p class="small">${__("Off. Upgrades and restarts are done on the server; this page shows the command. Turn the helper on once, on the server, to do them from here:")}</p>${cmd("./resdesk.sh updater on")}
 				<p class="small text-muted">${__("It is a small extra container (Docker) or process (native) that can control Docker and this install, so it is off unless you choose it.")}</p>`;
 

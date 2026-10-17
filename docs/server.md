@@ -5,6 +5,8 @@ the state of the whole installation in one place and, if you allow it, lets a Sy
 look after it without opening a terminal:
 
 - which version of Research Desk and Frappe is running, and whether a newer one is out;
+- the kind of setup this is (**Install**: Native, Docker or Coolify) and what the updater helper
+  is doing, or why it isn't used (on Coolify it can't run; restarts go through Coolify's API);
 - whether every part is working: database, cache, background workers, scheduler, search
   engine, disk space, backups;
 - backups: make one, download one, and when they are made automatically;

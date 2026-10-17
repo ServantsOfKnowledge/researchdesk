@@ -1230,6 +1230,11 @@ def status() -> dict:
 		"python": platform.python_version(),
 		"site": frappe.local.site,
 		"mode": facts.get("mode") or ("docker" if os.environ.get("RESDESK_RESOURCES") else "native"),
+		# what kind of setup this is: native, docker, or coolify (compose.yaml passes whether Coolify
+		# deployed it; the Coolify settings also say so)
+		"setup": "coolify"
+		if os.environ.get("RESDESK_ON_COOLIFY") or coolify_config()
+		else ("docker" if os.environ.get("RESDESK_RESOURCES") else "native"),
 		"updates": updates_view(),
 		"health": health(),
 		"disk": disk_usage(),

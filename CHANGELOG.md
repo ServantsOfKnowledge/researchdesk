@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.76.1 (2026-10-17): The Server page says what kind of setup this is
+
+- **Server page:** the Install tile now says Native, Docker or Coolify, and the Updater helper tile and card say why the helper isn't used: on Coolify it can't run (and shows **Via Coolify** once the three `RESDESK_COOLIFY_*` variables are set, or which ones to set), instead of a bare "Off".
+
 ## 0.76.0 (2026-10-17): Restart and redeploy from the Server page under Coolify
 
 - **Coolify:** the Server page can restart the whole resource and redeploy the latest code by asking Coolify's API, where the updater helper can't run. Set `RESDESK_COOLIFY_API`, `RESDESK_COOLIFY_TOKEN` (a token with the deploy permission) and `RESDESK_COOLIFY_APP` (the resource's uuid) in the resource's environment variables and redeploy once; see Installation → Coolify. Where the helper runs, nothing changes.
