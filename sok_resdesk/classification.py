@@ -23,7 +23,9 @@ SCOPE = "RD Item Scope"
 
 
 def classified_mode() -> bool:
-	return bool(frappe.conf.get("resdesk_classified"))
+	from sok_resdesk import classified
+
+	return classified.on()
 
 
 def _may_classify(level: str, department: str | None) -> None:
@@ -156,6 +158,9 @@ def on_clearance_change(doc, method=None) -> None:
 def check_governance_switch(doc, method=None) -> None:
 	"""RD Settings: Governance Mode cannot be switched off while classified records exist, or their
 	level and department would stop applying and they would be hidden from everyone."""
+	from sok_resdesk import classified
+
+	classified.enforce(doc)  # classified mode keeps Governance Mode and its limits on
 	if cint(doc.get("governance")):
 		return
 	was = frappe.db.get_single_value("RD Settings", "governance")

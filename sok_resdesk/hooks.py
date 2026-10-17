@@ -84,6 +84,8 @@ update_website_context = [
 # security headers on every response (security.py)
 after_request = ["sok_resdesk.security.add_headers"]
 before_request = [
+	# Classified mode: refuse outside web requests (classified.py)
+	"sok_resdesk.classified.install_guard",
 	# /iiif/…: manifests and page images for IIIF viewers (answered here, before routing)
 	"sok_resdesk.iiif.before_request",
 	# /opds: the library as an e-reader catalogue (OPDS 1.2)
@@ -98,7 +100,10 @@ before_request = [
 # Install / migrate -----------------------------------------------------------
 
 after_install = "sok_resdesk.setup.after_install"
-after_migrate = "sok_resdesk.setup.after_migrate"
+after_migrate = ["sok_resdesk.setup.after_migrate", "sok_resdesk.classified.apply"]
+before_migrate = ["sok_resdesk.classified.install_guard"]
+# Classified mode in background jobs too
+before_job = ["sok_resdesk.classified.install_guard"]
 
 # Keep the search index in sync with the catalogue ----------------------------
 

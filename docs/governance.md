@@ -167,13 +167,37 @@ For a government body, host it in the department's own data centre (in India, wi
 country), switch on **Login required** under *Visitors who are not logged in* (Settings → Access &
 Sign-up) so the whole portal is behind sign-in, and use HTTPS.
 
-**Planned**, in this order (see the [roadmap](roadmap.md)):
+### Classified mode
 
-- **Classified mode** for Secret and Top Secret: an installation that refuses every outbound
-  connection, switches off the features that talk to outside services, keeps classified content out
-  of logs, and checks at start that nothing leaks. Chosen when installing, by the question *"Will
-  this installation hold Secret or Top Secret records?"* (default no). It would be run on a separate,
-  air-gapped machine; the software cannot encrypt the disk or separate the network for you.
+For Secret and Top Secret records. Chosen when installing (`./install.sh`, the question *"Will this
+installation hold Secret or Top Secret records?"*, default no; or `--classified`), or later by
+`RESDESK_CLASSIFIED=1` in `.env` and a restart, or `bench --site NAME set-config resdesk_classified 1`
+on the host. It lives in the site configuration, outside the database, so no Desk setting can switch
+it off: turning it off means `bench set-config` on the host, and **anyone who can run code on the
+host, or enable Server Scripts in the Desk, can also change it**. It:
+
+- **refuses every outside web request and outgoing mail connection** that is not to the machine
+  itself, the search engine, the Docker monitor, or a host you name in `resdesk_allowed_hosts` (a
+  list; `.gov.example` allows that whole domain). It is a guard on the `requests` library and on
+  `smtplib`, in web requests, background jobs and migrations (not in `bench console` or `bench
+  execute`), and it checks each call, so another site on the same bench is not bound by it;
+- **keeps Governance Mode on, the portal behind sign-in, and the features that talk to outside
+  services off** (sharing, repositories, authorities, library systems, usage statistics, update
+  checks, the alert webhook), whatever Settings says: those fields are re-set on every save and migrate.
+  Scheduled ingests from archive.org, repositories and Wikisource are set to Manual;
+- **turns the updater helper off**, which fetches code and images from outside;
+- **keeps what readers searched for out of the audit log** (it records that a search was made);
+- shows **Classified mode** on the Server page's health list, with a warning if the guard is not
+  installed or the portal is not behind sign-in.
+
+What it cannot do: the guard covers what Research Desk itself sends through those two libraries,
+not IMAP, LDAP, the PDF renderer fetching a remote picture, or another program on the machine. The
+firewall and the network around it (no route to the internet), and encryption of the disk, are yours
+to set up and to confirm. This mode makes the software suitable; it does not make an installation
+approved.
+
+**Planned** (see the [roadmap](roadmap.md)):
+
 - **A public mirror**: a second, read-only Research Desk on another container or server that holds
   only what the main system has released (Unclassified, public, published), sent by the main system
   and withdrawn from the mirror the moment a record is classified, withdrawn or unpublished. The

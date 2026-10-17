@@ -151,6 +151,7 @@ services:
       # the installer's answers: kinds of institution and about how many books (Settings → Features)
       RESDESK_PROFILES: ${RESDESK_PROFILES:-}
       RESDESK_BOOKS: ${RESDESK_BOOKS:-}
+      RESDESK_CLASSIFIED: ${RESDESK_CLASSIFIED:-}
       BASE_URL: ${BASE_URL:-}
       FORCE_MIGRATE: ${FORCE_MIGRATE:-0}
       TIMEZONE: ${TIMEZONE:-Asia/Kolkata}

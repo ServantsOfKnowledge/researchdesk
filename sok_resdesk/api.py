@@ -16,7 +16,7 @@ from frappe.rate_limiter import rate_limit
 from frappe.utils import cint
 from werkzeug.wrappers import Response
 
-from sok_resdesk import access, audit
+from sok_resdesk import access, audit, classified
 from sok_resdesk.catalogue import base_url, get_record
 from sok_resdesk.core import citations, marc
 from sok_resdesk.search import PAGES_MAX_HITS, MeiliClient, SearchError, _quote
@@ -53,7 +53,7 @@ def search(q: str = "", mode: str = "books", filters=None, page: int = 1, per_pa
 	"""
 	sort = effective_sort(sort, q)
 	if q.strip():
-		audit.record("search", detail=f"{mode}: {q.strip()[:200]}")
+		audit.record("search", detail=classified.search_detail(mode, q.strip()))
 	try:
 		result = _search(
 			q,

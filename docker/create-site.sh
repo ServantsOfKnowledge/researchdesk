@@ -43,6 +43,13 @@ else
     || echo ">> WARNING: search indexes will be set up by the first ingest"
 fi
 
+# Classified mode (docs/governance.md#classified-mode): RESDESK_CLASSIFIED=1 in .env turns it on, for a
+# new site or an existing one, once; nothing here turns it off (that is `bench set-config` on the host)
+if [ "${RESDESK_CLASSIFIED:-}" = 1 ] && ! env/bin/python -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("resdesk_classified") else 1)' "sites/${SITE_NAME}/site_config.json" 2>/dev/null; then
+  bench --site "${SITE_NAME}" set-config resdesk_classified 1
+  bench --site "${SITE_NAME}" execute sok_resdesk.classified.apply
+fi
+
 stored_host() {
   env/bin/python -c 'import json,sys; print(json.load(open(sys.argv[1])).get("host_name") or "")' \
     "sites/${SITE_NAME}/site_config.json" 2>/dev/null || true

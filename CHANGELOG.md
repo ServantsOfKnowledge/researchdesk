@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.79.0 (2026-10-17): Classified mode
+
+- **Classified mode** for Secret and Top Secret records, chosen when installing (the new question, or `--classified`; `resdesk_classified` in the site configuration, which no Desk setting can change). It refuses every outside web request and outgoing mail connection except to the machine itself, the search engine and hosts named in `resdesk_allowed_hosts`; turns the updater helper off and sets archive.org, repository and Wikisource ingest schedules to Manual; keeps Governance Mode on, the portal behind sign-in and the features that talk outside off; keeps what readers searched for out of the audit log; and shows its state on the Server page. The firewall and disk encryption remain the deployment's. See [Classified mode](docs/governance.md#classified-mode).
+
 ## 0.78.3 (2026-10-17): Governance tests clean up after themselves
 
 - **Tests:** the governance test that changes a clearance now deletes the old one properly (its department rows too), so the test, not the product, no longer sees a leftover department.

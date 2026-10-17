@@ -48,6 +48,7 @@ while [ $# -gt 0 ]; do
     --profile|--profiles) PROFILES="${2:-}"; shift ;;
     --languages) LANGUAGES="${2:-}"; shift ;;
     --books) BOOKS="${2:-}"; shift ;;
+    --classified) CLASSIFIED=yes ;;
     -h|--help) sed -n '2,18p' "$0"; exit 0 ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
@@ -168,6 +169,16 @@ else
   ask PROFILES      "Kinds of institution"                               "$PROFILES"
   PROFILES=$(echo "$PROFILES" | tr ' ' ',' \
     | sed 's/1/small/g;s/2/portal/g;s/3/members/g;s/4/archive/g;s/5/repository/g;s/6/langtech/g;s/7/manuscripts/g;s/8/photos/g')
+  # Secret and Top Secret records: an installation that refuses every outside connection
+  # (docs/governance.md#classified-mode); a separate, air-gapped machine is recommended
+  if [ "$YES" != 1 ]; then
+    echo
+    echo "  Will this installation hold Secret or Top Secret records?"
+    echo "  Say yes only on a separate machine with no route to the internet: it then refuses every"
+    echo "  outside connection and switches off what talks to outside services."
+  fi
+  ask CLASSIFIED    "Hold Secret or Top Secret records (yes/no)"          "${CLASSIFIED:-no}"
+  case "$CLASSIFIED" in [Yy]*|1|true) CLASSIFIED=1 ;; *) CLASSIFIED= ;; esac
   ask LANGUAGES     "Languages of the books, for OCR (codes like kan hin, or all)" "${LANGUAGES:-all}"
   # English too: Indic books carry English titles, names and numbers
   case " $LANGUAGES " in *" eng "*|" all ") ;; *) LANGUAGES="$LANGUAGES eng" ;; esac
@@ -185,6 +196,8 @@ LIBRARY_DIR=${LIBRARY_DIR}
 RESDESK_PROFILES="${PROFILES}"
 OCR_LANGS="${LANGUAGES:-all}"
 RESDESK_BOOKS=${BOOKS:-1000}
+# Classified mode (Secret, Top Secret): refuse every outside connection. Empty = off.
+RESDESK_CLASSIFIED=${CLASSIFIED:-}
 ADMIN_PASSWORD=${ADMIN_PASSWORD}
 DB_ROOT_PASSWORD=$(secret)
 MEILI_MASTER_KEY=$(secret)$(secret)

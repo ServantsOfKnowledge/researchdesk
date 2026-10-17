@@ -100,6 +100,10 @@ def desk_control_allowed() -> bool:
 def agent_sync(token: str | None = None, facts=None, job=None) -> dict:
 	"""Called every few seconds by the updater helper: it reports what it sees and how its
 	current task is going, and gets the next task to run. Needs the shared token."""
+	from sok_resdesk import classified
+
+	if classified.on():  # it fetches code and images from outside, which classified mode never allows
+		frappe.throw(_("The updater helper is off in Classified mode."), frappe.PermissionError)
 	expected = _agent_token()
 	if not expected or not token or not hmac.compare_digest(str(token), expected):
 		frappe.throw(_("Not allowed."), frappe.PermissionError)
@@ -545,6 +549,21 @@ def health() -> list[dict]:
 
 	s = _settings()
 	out = [_check("database", _("Database"), "ok", _("answering"))]
+	from sok_resdesk import classified
+
+	if classified.on():
+		bad = classified.problems()
+		out.append(
+			_check(
+				"classified",
+				_("Classified mode"),
+				"warn" if bad else "ok",
+				" ".join(bad)
+				or _(
+					"On. Outside connections are refused. Disk encryption and the network around this machine are yours to confirm."
+				),
+			)
+		)
 	try:
 		frappe.cache.ping()
 		out.append(_check("cache", _("Cache (Redis)"), "ok", _("answering")))

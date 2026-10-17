@@ -86,6 +86,11 @@ questions (or takes `--profile`, `--languages`, `--books`):
 All three can be changed later: Settings → Features for the first, `.env` and an upgrade for the
 languages.
 
+**Secret and Top Secret records.** A fourth question, *"Hold Secret or Top Secret records?"*
+(default no; or `--classified`), makes this an installation that refuses every outside connection
+and keeps its limits fixed. Say yes only on a separate machine with no route to the internet: see
+[Classified mode](governance.md#classified-mode). It can be turned on later (`RESDESK_CLASSIFIED=1` in `.env`, then a restart); turning it off is a `bench set-config` on the host.
+
 The installer writes `.env` with random passwords (keep it private). You can re-run
 `./install.sh` safely at any time. It keeps `.env` and your data, rebuilds if needed and
 migrates the site if the code needs it ([Database migrations](operations.md#database-migrations)).
