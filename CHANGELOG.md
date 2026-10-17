@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.76.6 (2026-10-17): Documentation up to date
+
+- **Docs:** the README status, the architecture note on the updater helper and Coolify, the Background Jobs table, the Server page's stuck-task button and the source-tree map now match 0.76.
+
 ## 0.76.5 (2026-10-17): Drag and drop files onto the deposit form
 
 - **Deposit:** files can be dragged onto the Files box of the portal deposit form, as well as chosen with the button (which still works from the keyboard). Staff can deposit the same way.

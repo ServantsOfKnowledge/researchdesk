@@ -89,7 +89,7 @@ restarting, applying a resource preset) has to happen outside it, so the page re
 with the Docker socket, or a Procfile process on native installs) picks it up, runs the same
 `./upgrade.sh` or `./resdesk.sh` command a person would, and reports back. Long tasks run in a
 separate short-lived container (or a detached process), so they outlive the restarts they
-cause. Details: [Server](server.md#how-the-updater-helper-works).
+cause. Under Coolify, which owns the containers, the helper cannot run; restart and redeploy go to Coolify's API instead (`core/coolify.py`) and are recorded as the same kind of task. A task the helper never finished reporting on can be cleared from the page. Details: [Server](server.md#how-the-updater-helper-works).
 
 ## Data model (DocTypes, module *ResDesk*)
 

@@ -211,6 +211,10 @@ Without the helper, the health list still shows whether each part answers, and *
 errors, failed jobs and the log files the app can read. On the server:
 `./resdesk.sh status`, `./resdesk.sh logs queue`, `./resdesk.sh restart`.
 
+A task that stays *Running* because the helper never reported its result (an upgrade that restarted
+it, say) shows a **Clear stuck task** button; it marks the task Failed so the next upgrade or
+restart is not blocked. The latest tasks are also listed on Background Jobs.
+
 ## Backups
 
 Research Desk backs up its database every night at 02:30 (server time) by itself: Settings →

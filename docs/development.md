@@ -59,7 +59,7 @@ researchdesk/
     ├── jobs.py             Background Jobs page: see, pause, resume and stop runs and queued jobs
     ├── holding.py          held jobs (Pause All / Hold) and the @hold_when_paused job decorator
     ├── priority.py         worker CPU priority (renice) from the Desk
-    ├── server.py           the Server page: versions, health, backups, the updater helper
+    ├── server.py           the Server page: versions, health, backups, the updater helper, Coolify restarts
     ├── requirements.py     Server → Requirements: what the server has, installing what is missing
     ├── help.py             in-app help pages and each screen's Help link (from docs/*.md)
     ├── guide.py            form tours and the getting-started checklist

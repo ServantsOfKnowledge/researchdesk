@@ -164,6 +164,7 @@ is doing in the background and refreshes every 5 seconds:
 | Summary | active ingest and push runs, running, waiting and held jobs, workers, search-engine tasks, schedules on/paused | **Pause All / Resume All**, **Pause / Resume Schedules**, **Stop Everything** |
 | Ingest runs in progress | profile, progress bar, new/updated/failed counts, last progress | **Pause / Resume** · **Stop** (after the current book) · **Stop now** |
 | Metadata pushes in progress | target, progress, sent/unchanged/failed, dry run or not | **Pause / Resume** · **Stop** |
+| Server tasks | the latest five upgrades, restarts and backups asked for on the Server page, with their status | **Clear stuck task** on the [Server](server.md) page |
 | Background jobs | every queued or running ingest batch, re-index batch, bulk visibility or collection change, export, spreadsheet import and push run | **Hold** (waiting jobs) · **Cancel** / **Stop** |
 | Held jobs | jobs kept aside by Hold or Pause All | **Release** · **Discard** (one or all) |
 | Scheduled ingests | profiles set to Hourly, Daily or Weekly, with their last run | pause them all, or set a profile's Schedule to Manual |
