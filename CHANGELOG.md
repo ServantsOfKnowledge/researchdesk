@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.76.3 (2026-10-17): The page-text sender no longer trips on error 1020
+
+- **Search queue:** the sender read each book, waited for the search engine (sometimes minutes), then wrote back from the same database snapshot, so any change to the book meanwhile made MariaDB refuse the write (error 1020) even after 0.65.1's retries. The snapshot is now released before the write, and a batch is tried five times instead of three.
+
 ## 0.76.2 (2026-10-17): A stuck server task can be cleared
 
 - **Server page:** a task still shown as Running because the updater helper never reported its result (an upgrade that restarted it, say) now has a **Clear stuck task** button. It marks the task Failed so the next upgrade or restart is not blocked for the three hours it used to wait.

@@ -385,7 +385,7 @@ def send_pending(limit: int = 2000) -> int:
 			buffer.flush()  # waits for room first; clears pages_pending for what it sent
 
 		# a book changed meanwhile (error 1020) or a deadlock: read again from a fresh snapshot
-		dbretry.run(send_batch)
+		dbretry.run(send_batch, attempts=5)
 		sent += len(names)
 	return sent
 

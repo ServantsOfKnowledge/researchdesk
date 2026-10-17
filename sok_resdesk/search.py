@@ -524,6 +524,9 @@ class IndexBuffer:
 				if uid is not None:
 					for doc in chunk:
 						page_task[doc["item_id"]] = uid
+		# the waits above can last minutes: drop the snapshot the books were read in, or MariaDB refuses
+		# the write below (error 1020) when anything touched a book meanwhile
+		frappe.db.commit()
 		now = now_datetime()
 		for item_id, count in counts.items():
 			values = {"indexed_on": now} | (quality.get(item_id) or {})
