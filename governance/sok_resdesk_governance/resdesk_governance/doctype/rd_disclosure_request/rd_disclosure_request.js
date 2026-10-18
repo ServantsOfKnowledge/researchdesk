@@ -51,6 +51,8 @@ frappe.ui.form.on("RD Disclosure Request", {
 function cover_dialog(frm) {
 	const items = [...new Set(frm.doc.records.map((r) => r.item))];
 	let box = null; // the box being drawn, in percent
+	let shown = null; // the record and page whose image is on the screen; boxes are added only to that
+	let seq = 0; // the latest request for a page: an older reply that arrives late is ignored
 	const d = new frappe.ui.Dialog({
 		title: __("Cover parts of a page"),
 		size: "extra-large",
@@ -96,14 +98,29 @@ function cover_dialog(frm) {
 	function load() {
 		const item = d.get_value("item"), page = cint(d.get_value("page"));
 		if (!item || page < 1) return;
+		const mine_seq = ++seq;
+		shown = null;
+		$img.removeAttr("src"); // never the old page under a new number
 		say(__("Loading the page…"));
-		frappe.call({ method: "sok_resdesk_governance.disclosure.page_image", args: { name: frm.doc.name, item, leaf: page } }).then((r) => {
-			$img.attr("src", r.message.image);
-			say(__("Page {0} of {1}. {2} covered part(s) so far on this page.", [page, r.message.pages, mine().length]));
-			draw();
-		});
+		frappe
+			.call({ method: "sok_resdesk_governance.disclosure.page_image", args: { name: frm.doc.name, item, leaf: page }, silent: true })
+			.then((r) => {
+				if (mine_seq !== seq) return;
+				$img.attr("src", r.message.image);
+				shown = { item, page };
+				say(__("Page {0} of {1}. {2} covered part(s) so far on this page.", [page, r.message.pages, mine().length]));
+				draw();
+			})
+			.catch(() => {
+				if (mine_seq !== seq) return;
+				say(__("This page could not be shown, so no box can be added to it."));
+			});
 	}
 	function add() {
+		if (!shown || shown.item !== d.get_value("item") || shown.page !== cint(d.get_value("page"))) {
+			frappe.msgprint(__("Wait for the page to be shown: a box is added only to the page on the screen."));
+			return;
+		}
 		if (!box || box.width <= 0 || box.height <= 0 || box.left < 0 || box.top < 0 || box.left + box.width > 100.001 || box.top + box.height > 100.001) {
 			frappe.msgprint(__("Draw a box on the page, or give a left, top, width and height that stay inside it."));
 			return;

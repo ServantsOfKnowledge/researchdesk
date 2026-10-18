@@ -214,9 +214,9 @@ def page_image(name: str, item: str, leaf: int) -> dict:
 		frappe.throw(_("{0} has {1} pages.").format(item, pages))
 	if not poppler():
 		frappe.throw(_("Redaction needs poppler-utils (pdftoppm) on the server."))
-	_not_huge(path, leaf - 1, DRAW_DPI)
-	audit.record("disclosure_page_shown", item, f"{name} page {leaf}")
+	_not_huge(path, leaf - 1, DRAW_DPI, 4000)  # a page to draw on, not to print
 	png = render(path, leaf - 1, DRAW_DPI, grey=False, fmt="png")
+	audit.record("disclosure_page_shown", item, f"{name} page {leaf}")
 	return {"image": "data:image/png;base64," + base64.b64encode(png).decode(), "pages": pages}
 
 
@@ -248,12 +248,16 @@ def _page(doc, item: str, leaf: int, preview: bool = False) -> bytes:
 	)
 
 
-def _not_huge(path: str, index: int, dpi: int) -> None:
+def _not_huge(path: str, index: int, dpi: int, limit: int = MAX_SIDE) -> None:
 	"""A page whose drawing would be enormous (a huge MediaBox) is refused before it is drawn."""
 	from pypdf import PdfReader
 
-	box = PdfReader(path).pages[index].mediabox
-	if max(float(box.width), float(box.height)) / 72 * dpi > MAX_SIDE:
+	try:
+		box = PdfReader(path).pages[index].mediabox
+		side = max(float(box.width), float(box.height)) / 72 * dpi
+	except Exception as e:  # a damaged file is a refusal, not a server error
+		raise RenderError(_("This file could not be read.")) from e
+	if side > limit:
 		raise RenderError(_("A page is too large to redact."))
 
 

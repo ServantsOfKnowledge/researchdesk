@@ -3,7 +3,8 @@
 ## 0.93.0 (2026-10-18): Draw the covered parts on the page
 
 - **Redaction by drawing.** On a disclosure request, *Cover Parts of a Page* shows the page and a records officer draws the boxes with the mouse or a finger, or types left, top, width and height; the boxes go into the *Covered Parts* table as before.
-- **Only for those cleared.** Showing a page for drawing, and the preview, now refuse an officer who is not cleared for that record.
+- **Only for those cleared.** Showing a page for drawing, and the preview, now refuse an officer who is not cleared for that record. (Before, the preview of a record classified after the request was made showed its page. The Administrator holds no clearance by role, so draws and previews only what a clearance lets them.)
+- **The page on the screen is the page that is covered.** A box is added only while the page named in the dialog is the one shown; a page that fails to load shows nothing.
 - **Not yet:** a record that is not a PDF is still described in the reply, not included in the package.
 
 ## 0.92.0 (2026-10-18): A short README, and the long list in its own page
