@@ -724,8 +724,13 @@ def on_item_update(doc, method=None):
 
 
 def on_item_trash(doc, method=None):
+	# after the commit: a later hook (a legal hold) may still refuse the deletion, and the index is outside the transaction
+	frappe.db.after_commit.add(lambda: _remove_from_index(doc.item_id))
+
+
+def _remove_from_index(item_id):
 	try:
-		remove_record(doc.item_id)
+		remove_record(item_id)
 	except SearchError as e:
 		frappe.log_error("Research Desk: search index delete failed", str(e))
 

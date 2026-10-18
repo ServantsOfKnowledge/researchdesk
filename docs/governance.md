@@ -72,7 +72,7 @@ For a request that reaches a record (a search hit, a page, a file, an export, a 
 4. If any step fails, the record is **not found**: no trace in search, counts, facets, pages,
    files, exports, IIIF, OPDS, OAI-PMH, SRU or pushes.
 
-The pure rules are in `core/classification.py` (levels, `expand`, `cleared`, and the two filters
+The pure rules are in `core/classification.py` of the governance app (levels, `expand`, `cleared`, and the two filters
 built from a clearance) with unit tests; `clearance.py` applies them.
 
 ### Departments and clearances
@@ -119,7 +119,7 @@ the request came from.
 **It cannot be edited or deleted** from the Desk or the portal, and every line carries a hash of the
 line before it, keyed with a secret that is kept outside the database. If a line is changed, or
 removed, directly in the database, **Check the log** (Desk → Research Desk → **Audit Log**) says at
-which line the chain breaks. The same check is `sok_resdesk.audit.verify`. Lines are written under a
+which line the chain breaks. The same check is `sok_resdesk_governance.audit.verify`. Lines are written under a
 short database lock, so the order is the order of the numbers; a reader is never stopped because the
 log could not be written (that failure shows once a minute in the Error Log).
 

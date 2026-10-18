@@ -554,6 +554,17 @@ def health() -> list[dict]:
 
 	for key, label, state, text in seams.health_checks():  # the governance layer's lines, if installed
 		out.append(_check(key, label, state, text))
+	if seams.classified() and not frappe.get_hooks("resdesk_governed"):
+		out.append(
+			_check(
+				"classified",
+				_("Classified mode"),
+				"bad",
+				_(
+					"Classified mode is set but the governance app is not installed, so outside connections are not refused."
+				),
+			)
+		)
 	try:
 		frappe.cache.ping()
 		out.append(_check("cache", _("Cache (Redis)"), "ok", _("answering")))

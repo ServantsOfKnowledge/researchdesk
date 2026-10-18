@@ -15,7 +15,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint, now_datetime
 
-from sok_resdesk import features
+from sok_resdesk import features, seams
 from sok_resdesk.catalogue import base_url, item_to_record
 from sok_resdesk.core import metaio
 from sok_resdesk.core.marc import to_marcxml_record
@@ -34,7 +34,6 @@ from sok_resdesk.core.push import (
 from sok_resdesk.holding import hold_when_paused
 
 MANAGERS = ("System Manager", "ResDesk Manager")
-SCOPE = "RD Item Scope"
 RUN = "tabRD Push Run"
 
 
@@ -98,7 +97,7 @@ def releasable(item: str) -> bool:
 		and row.visibility == "Public"
 		and row.access_status == "Open"
 		and row.source == "Local"
-		and not frappe.db.exists(SCOPE, item)
+		and seams.scope(item) == (0, "")  # nothing classified goes to the public mirror
 	)
 
 

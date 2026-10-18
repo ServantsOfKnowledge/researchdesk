@@ -84,8 +84,6 @@ update_website_context = [
 # security headers on every response (security.py)
 after_request = ["sok_resdesk.security.add_headers"]
 before_request = [
-	# Classified mode: refuse outside web requests (classified.py)
-	"sok_resdesk.classified.install_guard",
 	# /iiif/…: manifests and page images for IIIF viewers (answered here, before routing)
 	"sok_resdesk.iiif.before_request",
 	# /opds: the library as an e-reader catalogue (OPDS 1.2)
@@ -100,16 +98,9 @@ before_request = [
 # Install / migrate -----------------------------------------------------------
 
 after_install = "sok_resdesk.setup.after_install"
-after_migrate = ["sok_resdesk.setup.after_migrate", "sok_resdesk.classified.apply"]
-before_migrate = ["sok_resdesk.classified.install_guard"]
-# Classified mode in background jobs too
-before_job = ["sok_resdesk.classified.install_guard"]
+after_migrate = ["sok_resdesk.setup.after_migrate"]
 
 # Keep the search index in sync with the catalogue ----------------------------
-
-# the audit log (Governance Mode)
-on_session_creation = ["sok_resdesk.audit.on_login", "sok_resdesk.directory.on_login"]
-on_logout = ["sok_resdesk.audit.on_logout"]
 
 # Governance Mode: the Desk's lists and forms of items show only what the person is cleared for
 permission_query_conditions = {
@@ -119,22 +110,7 @@ permission_query_conditions = {
 	"RD Review Flag": "sok_resdesk.access.review_flag_conditions",
 	"RD Ground Truth": "sok_resdesk.access.ground_truth_conditions",
 	"RD External Record": "sok_resdesk.access.external_record_conditions",
-	"RD Item Scope": "sok_resdesk.clearance.scope_conditions",
-	"RD File": "sok_resdesk.clearance.file_conditions",
-	"RD File Record": "sok_resdesk.clearance.file_record_conditions",
-	"RD File Movement": "sok_resdesk.clearance.file_movement_conditions",
-	"RD Disclosure Request": "sok_resdesk.clearance.disclosure_conditions",
-	"RD Disclosure Record": "sok_resdesk.clearance.disclosure_record_conditions",
-	"RD Disclosure Redaction": "sok_resdesk.clearance.disclosure_redaction_conditions",
 }
-# What core asks of the governance layer (sok_resdesk/seams.py); an install without it lists none of these.
-resdesk_event_sinks = ["sok_resdesk.audit.sink"]
-resdesk_governed = ["sok_resdesk.audit.on"]
-resdesk_item_cleared = ["sok_resdesk.clearance.item_cleared"]
-resdesk_item_scope = ["sok_resdesk.clearance.scope_of"]
-resdesk_cleared_sql = ["sok_resdesk.clearance.cleared_sql"]
-resdesk_search_clause = ["sok_resdesk.clearance.search_clause"]
-resdesk_health_checks = ["sok_resdesk.classified.health", "sok_resdesk.directory.health"]
 
 has_permission = {
 	"RD Item": "sok_resdesk.access.item_has_permission",
@@ -143,9 +119,6 @@ has_permission = {
 	"RD Review Flag": "sok_resdesk.access.by_item_has_permission",
 	"RD Ground Truth": "sok_resdesk.access.by_item_has_permission",
 	"RD External Record": "sok_resdesk.access.by_item_has_permission",
-	"RD Item Scope": "sok_resdesk.clearance.scope_has_permission",
-	"RD File": "sok_resdesk.clearance.file_has_permission",
-	"RD Disclosure Request": "sok_resdesk.clearance.disclosure_has_permission",
 }
 
 doc_events = {
@@ -157,7 +130,6 @@ doc_events = {
 			"sok_resdesk.review.on_item_update",
 		],
 		"on_trash": [
-			"sok_resdesk.retention.on_item_trash",  # first: a record under a legal hold is not deleted
 			"sok_resdesk.search.on_item_trash",
 			"sok_resdesk.review.on_item_trash",
 			"sok_resdesk.outbound.reconcile_soon",
@@ -173,24 +145,6 @@ doc_events = {
 			"sok_resdesk.access.super_admin_is_manager",
 		],
 	},
-	# directory sign-in: refused before Frappe tries the connection or saves the provider
-	# (again after validation: Frappe corrects the spelling of a role only then)
-	"LDAP Settings": {
-		"before_validate": "sok_resdesk.directory.check_ldap",
-		"validate": "sok_resdesk.directory.check_ldap",
-	},
-	"Social Login Key": {
-		"before_validate": "sok_resdesk.directory.check_social_key",
-		"validate": "sok_resdesk.directory.check_social_key",
-	},
-	"RD Legal Hold": {
-		"validate": "sok_resdesk.retention.on_hold_validate",
-		"on_update": "sok_resdesk.retention.on_hold_change",
-	},
-	"RD Clearance": {
-		"on_update": "sok_resdesk.classification.on_clearance_change",
-		"on_trash": "sok_resdesk.classification.on_clearance_change",
-	},
 	"RD Collection": {"on_trash": "sok_resdesk.curation.on_collection_trash"},
 	# a public note's tags and Wikidata item are searched with its book
 	"RD Annotation": {
@@ -200,7 +154,6 @@ doc_events = {
 	# a profile's portal collection (Keep in Step with archive.org)
 	"RD Ingest Profile": {"on_update": "sok_resdesk.ia_sync.on_profile_update"},
 	"RD Settings": {
-		"validate": "sok_resdesk.classification.check_governance_switch",
 		"on_update": ["sok_resdesk.ia_sync.on_settings_update", "sok_resdesk.identifiers.on_settings_change"],
 	},
 }
@@ -234,10 +187,6 @@ scheduler_events = {
 	# books that left the public are taken off the public mirror (if there is one)
 	"hourly": ["sok_resdesk.ingest.run_scheduled_hourly", "sok_resdesk.outbound.reconcile_all"],
 	"daily": [
-		# records whose retention period has ended are listed for the records officer (Governance)
-		"sok_resdesk.retention.prepare",
-		# LDAP accounts the directory no longer has are switched off (Governance)
-		"sok_resdesk.directory.sync",
 		# deposits whose embargo has ended become readable (Settings → Features → Repository deposit)
 		"sok_resdesk.deposit.release_embargoes",
 		"sok_resdesk.ingest.run_scheduled_daily",

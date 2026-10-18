@@ -113,7 +113,8 @@ frappe.listview_settings["RD Item"] = {
 			frappe.new_doc("RD Export", { scope: "Filters", filters_json: JSON.stringify(listview.get_filters_for_args()) })
 		);
 
-		listview.page.add_actions_menu_item(__("Set Classification"), () => {
+		// only where the governance app is installed
+		if ((frappe.boot.user.can_read || []).includes("RD Department")) listview.page.add_actions_menu_item(__("Set Classification"), () => {
 			const names = listview.get_checked_items(true);
 			const d = new frappe.ui.Dialog({
 				title: __("Set Classification"),
@@ -125,7 +126,7 @@ frappe.listview_settings["RD Item"] = {
 				primary_action: (v) => {
 					d.hide();
 					frappe.call({
-						method: "sok_resdesk.classification.set_classification",
+						method: "sok_resdesk_governance.classification.set_classification",
 						args: { level: v.level, department: v.department || "", names: JSON.stringify(names) },
 						freeze: true,
 						callback: (r) => frappe.show_alert({ message: r.message.message, indicator: "green" }, 7),

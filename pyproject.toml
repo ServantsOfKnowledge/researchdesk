@@ -33,5 +33,5 @@ quote-style = "double"
 indent-style = "tab"
 
 [tool.pytest.ini_options]
-testpaths = ["sok_resdesk/tests"]
+testpaths = ["sok_resdesk/tests", "governance/sok_resdesk_governance/tests"]
 python_files = ["test_core.py", "test_push.py", "test_docs.py", "unit_*.py"]

@@ -532,10 +532,10 @@ class Webhook:
 
 
 class MirrorClient:
-	"""The main system's side of the public mirror (sok_resdesk/mirror.py on the other end)."""
+	"""The main system's side of the public mirror (sok_resdesk_governance/mirror.py on the other end)."""
 
 	def __init__(self, url: str, token: str, session=None):
-		self.base = url.rstrip("/") + "/api/method/sok_resdesk.mirror."
+		self.base = url.rstrip("/") + "/api/method/sok_resdesk_governance.mirror."
 		self.session = _session(session)
 		self.session.headers["X-ResDesk-Mirror-Token"] = token
 

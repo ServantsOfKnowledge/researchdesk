@@ -91,7 +91,7 @@ only; 10 a minute.
 |---|---|
 | `sok_resdesk.api.marcxml?item_ids=["a","b"]` | MARCXML collection (≤ 500) |
 | `sok_resdesk.api.marcxml_all[?profile=<name>]` | whole catalogue or one profile (**login required**) |
-| `sok_resdesk.mirror.ping`, `sok_resdesk.mirror.receive` (`item`, `meta_xml`, files `pdf` and `thumb`, or `withdraw=1`) | only on a [public mirror](governance.md#the-public-mirror): the main system's push, with the header `X-ResDesk-Mirror-Token`; refused without the right token |
+| `sok_resdesk_governance.mirror.ping`, `sok_resdesk_governance.mirror.receive` (`item`, `meta_xml`, files `pdf` and `thumb`, or `withdraw=1`) | only on a [public mirror](governance.md#the-public-mirror): the main system's push, with the header `X-ResDesk-Mirror-Token`; refused without the right token |
 | `sok_resdesk.legacy_kannada.convert_text` (`text`, `font`, `direction`=`a2u`/`u2a`) | managers and cataloguers: text in an old Kannada font to Unicode, or back, up to 50,000 characters ([Old Kannada font text](legacy-kannada.md)) |
 | `sok_resdesk.oai.endpoint?verb=…` | OAI-PMH 2.0 (see [Koha](koha.md)) |
 
@@ -201,11 +201,11 @@ only; 10 a minute.
 | `sok_resdesk.dashboard.numbers` (`refresh`) | managers: the workspace numbers (cached five minutes) |
 | `sok_resdesk.analytics.config` | the usage statistics service portal pages load (public) |
 | `sok_resdesk.counter.reports` · `report` (`report_id`=`TR`, `begin_date`, `end_date`, `format`=`json`/`tsv`) | managers: the COUNTER style Title Master Report from the built-in page views ([Usage reports](usage-reports.md)) |
-| `sok_resdesk.audit.verify` | managers: check the audit log's hash chain, and say at which line it was tampered with ([Governance](governance.md)) |
-| `sok_resdesk.register.send` (`file`, `to_user`, `remarks`) · `receive` · `close` · `reopen` (`file`) | the file register: the holder sends a file to someone cleared for it, the addressee receives it, the holder closes it, a records officer reopens it ([Governance](governance.md#file-register)) |
-| `sok_resdesk.disclosure.decide` · `release` · `close` (`name`) · `preview` (`name`, `item`, `leaf`) | records officers: record the decision on a disclosure request, make its package in the background, close it, or preview a page as it would be released ([Governance](governance.md#disclosure-requests-and-redaction)) |
-| `sok_resdesk.retention.approve` · `cancel` (`disposal`) | records officers: approve a draft Disposal (the records are then disposed of in the background) or cancel it ([Governance](governance.md#retention-and-legal-holds)) |
-| `sok_resdesk.classification.set_classification` (`level`, `department`, `names`/`filters`) | security officers and managers, Governance Mode: set the level and department of many records, up to their own clearance ([Governance](governance.md)) |
+| `sok_resdesk_governance.audit.verify` | managers: check the audit log's hash chain, and say at which line it was tampered with ([Governance](governance.md)) |
+| `sok_resdesk_governance.register.send` (`file`, `to_user`, `remarks`) · `receive` · `close` · `reopen` (`file`) | the file register: the holder sends a file to someone cleared for it, the addressee receives it, the holder closes it, a records officer reopens it ([Governance](governance.md#file-register)) |
+| `sok_resdesk_governance.disclosure.decide` · `release` · `close` (`name`) · `preview` (`name`, `item`, `leaf`) | records officers: record the decision on a disclosure request, make its package in the background, close it, or preview a page as it would be released ([Governance](governance.md#disclosure-requests-and-redaction)) |
+| `sok_resdesk_governance.retention.approve` · `cancel` (`disposal`) | records officers: approve a draft Disposal (the records are then disposed of in the background) or cancel it ([Governance](governance.md#retention-and-legal-holds)) |
+| `sok_resdesk_governance.classification.set_classification` (`level`, `department`, `names`/`filters`) | security officers and managers, Governance Mode: set the level and department of many records, up to their own clearance ([Governance](governance.md)) |
 | `GET /sru` (`operation`, `query`, `startRecord`, `maximumRecords`, `recordSchema`) | SRU 1.2: no arguments gives the explain record; `searchRetrieve` takes CQL and returns MARCXML or Dublin Core ([SRU](sru.md)) |
 | `GET /ark:/<naan>/<name>[/n<leaf>]` | a permanent ARK: redirects to the book (with a leaf: that page in the page reader); `?info` returns its who/what/when/where record as text; a deleted book's ARK leads to its tombstone |
 | `sok_resdesk.capacity.get_status` | the book limit: books and pages in the catalogue, the limit, room left, and what the machine's CPUs, memory and disk can each hold |

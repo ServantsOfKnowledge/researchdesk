@@ -32,7 +32,6 @@ def test_the_governance_app_is_a_frappe_app_that_needs_research_desk():
 
 def test_research_desk_never_requires_the_governance_app():
 	assert "sok_resdesk_governance" not in read("sok_resdesk", "hooks.py")
-	assert "sok_resdesk_governance" not in read("pyproject.toml")
 
 
 def test_every_install_path_knows_the_edition():

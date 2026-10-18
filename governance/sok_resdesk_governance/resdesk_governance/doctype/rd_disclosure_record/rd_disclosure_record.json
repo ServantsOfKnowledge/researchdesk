@@ -1,0 +1,59 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-18 12:00:00.000000",
+ "modified": "2026-10-18 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Disclosure Record",
+ "module": "ResDesk Governance",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "field_order": [
+  "item",
+  "decision",
+  "ground",
+  "file_sha256",
+  "scope_seen"
+ ],
+ "fields": [
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Record",
+   "options": "RD Item",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "decision",
+   "fieldtype": "Select",
+   "label": "Decision",
+   "options": "\nDisclose\nDisclose redacted\nWithhold",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "ground",
+   "fieldtype": "Data",
+   "label": "Ground",
+   "in_list_view": 1,
+   "description": "The provision relied on to keep a record back or to cover part of it. Told to the applicant."
+  },
+  {
+   "fieldname": "file_sha256",
+   "fieldtype": "Data",
+   "label": "File SHA-256 When Decided",
+   "read_only": 1
+  },
+  {
+   "fieldname": "scope_seen",
+   "fieldtype": "Data",
+   "label": "Level When Decided",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "istable": 1
+}

@@ -75,9 +75,7 @@ Going back to standard is not automatic: uninstall the app first
 (`./resdesk.sh bench uninstall-app sok_resdesk_governance`, with the edition still set to governance), then change
 `.env`. Starting the stack with the edition set back while the app is installed stops with a message saying so, instead of breaking the site.
 
-**Where this is today (0.89):** the second app is installed and checked in CI, but it is still empty. The
-governance features themselves still ship inside Research Desk and move into it in 0.90; until then both
-editions have them. An existing install does not change: it stays standard unless you set the edition.
+**Where this is today (0.90):** the governance features (classification, audit log, retention and holds, file register, directory sign-in, disclosure and redaction, Classified mode) live in the second app. A standard install has none of that code, tables or menus. `--classified` implies the governance edition. There is nothing to migrate: no existing install used these features. A standard site that still has the empty tables loses them on its next update; if any held records the update says so and leaves them.
 
 ## Requirements
 

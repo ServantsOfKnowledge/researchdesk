@@ -70,7 +70,7 @@ fi
 # new site or an existing one, once; nothing here turns it off (that is `bench set-config` on the host)
 if [ "${RESDESK_CLASSIFIED:-}" = 1 ] && ! env/bin/python -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("resdesk_classified") else 1)' "sites/${SITE_NAME}/site_config.json" 2>/dev/null; then
   bench --site "${SITE_NAME}" set-config resdesk_classified 1
-  bench --site "${SITE_NAME}" execute sok_resdesk.classified.apply
+  bench --site "${SITE_NAME}" execute sok_resdesk_governance.classified.apply
 fi
 
 # Public mirror (docs/governance.md#the-public-mirror): a token in .env makes this site the read-only

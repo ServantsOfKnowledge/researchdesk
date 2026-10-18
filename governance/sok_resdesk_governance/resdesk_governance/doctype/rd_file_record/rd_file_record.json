@@ -1,0 +1,36 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-18 11:00:00.000000",
+ "modified": "2026-10-18 11:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD File Record",
+ "module": "ResDesk Governance",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "field_order": [
+  "item",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Record",
+   "options": "RD Item",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Data",
+   "label": "Note",
+   "in_list_view": 1
+  }
+ ],
+ "links": [],
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "istable": 1
+}

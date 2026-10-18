@@ -61,6 +61,11 @@ while [ $# -gt 0 ]; do
 done
 DOMAIN="${DOMAIN#http://}"; DOMAIN="${DOMAIN#https://}"; DOMAIN="${DOMAIN%%/*}"
 case "${EDITION:-standard}" in standard|governance) ;; *) echo "--edition is standard or governance"; exit 1 ;; esac
+# Classified mode is a records-office feature: it lives in the governance app
+if [ -n "${CLASSIFIED:-}" ]; then
+  [ "${EDITION:-governance}" = governance ] || { echo "--classified needs the governance edition"; exit 1; }
+  EDITION=governance
+fi
 
 bold() { printf "\033[1m%s\033[0m\n" "$*"; }
 ok()   { printf "  \033[32m✓\033[0m %s\n" "$*"; }
@@ -185,7 +190,7 @@ else
     echo "  outside connection and switches off what talks to outside services."
   fi
   ask CLASSIFIED    "Hold Secret or Top Secret records (yes/no)"          "${CLASSIFIED:-no}"
-  case "$CLASSIFIED" in [Yy]*|1|true) CLASSIFIED=1 ;; *) CLASSIFIED= ;; esac
+  case "$CLASSIFIED" in [Yy]*|1|true) CLASSIFIED=1; EDITION=governance ;; *) CLASSIFIED= ;; esac
   ask LANGUAGES     "Languages of the books, for OCR (codes like kan hin, or all)" "${LANGUAGES:-all}"
   # English too: Indic books carry English titles, names and numbers
   case " $LANGUAGES " in *" eng "*|" all ") ;; *) LANGUAGES="$LANGUAGES eng" ;; esac

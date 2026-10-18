@@ -15,7 +15,7 @@ upgrade_plan() {
     case "$f" in
       compose*.yaml | Dockerfile | docker/* | pyproject.toml | governance/pyproject.toml | install.sh)
         [ -n "$full" ] || full="$f" ;;
-      sok_resdesk/tests/* | sok_resdesk/__init__.py | governance/sok_resdesk_governance/__init__.py) ;; # the version number alone changes every release
+      sok_resdesk/tests/* | governance/sok_resdesk_governance/tests/* | sok_resdesk/__init__.py | governance/sok_resdesk_governance/__init__.py) ;; # the version number alone changes every release
       sok_resdesk/*.py | governance/*.py)
         [ -n "$workers" ] || workers="$f" ;;
     esac

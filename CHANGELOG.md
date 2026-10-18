@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.90.0 (2026-10-18): The records-office features live in their own app
+
+- **Moved.** Classification and clearances, the audit log, retention and legal holds, the file register, directory sign-in, disclosure requests and redaction, Classified mode and the public-mirror endpoints (17 doctypes, their code, hooks and tests) are now in *Research Desk Governance* (`governance/`). A standard install has none of that code, tables or hooks to review. Research Desk reaches them only through its seams; a test fails if core imports the app.
+- **Nothing to migrate.** No existing install used these features. On update, a standard site drops the empty tables; if any held records it leaves them and says so. A site that already has the governance app keeps its tables.
+- **`--classified`** installs the governance edition, since Classified mode belongs to it.
+- **Public mirrors.** A mirror site must have the governance app too: the main system now calls `sok_resdesk_governance.mirror.*`.
+- **Still listed in core:** the help page and a few menu names; they go in 0.91. The search index is told of a deletion only once it has gone through, so a book under a legal hold stays findable.
+
 ## 0.89.0 (2026-10-18): A second app for the records office, installed only when asked for
 
 - **Editions.** `./install.sh --edition governance` (or `RESDESK_EDITION=governance` in `.env`) installs *Research Desk Governance*, a second app in the `governance/` folder, next to Research Desk, on Docker (built into the image) and native installs, in new installs and in `./upgrade.sh`. The standard edition is the default and is exactly as before. See [Editions](docs/installation.md#editions).

@@ -48,7 +48,7 @@ jobs:
 
   docker-install-governance:
     # the governance edition (docs/installation.md#editions): the second app is built into the image, installed
-    # on the site, and Research Desk's own tests still pass with it present
+    # on the site, and Research Desk's own tests still pass with it present, and the governance tests run
     name: Docker install, governance edition
     runs-on: ubuntu-latest
     needs: lint-and-unit
@@ -72,6 +72,8 @@ jobs:
         run: |
           ./resdesk.sh bench set-config allow_tests true
           docker compose exec -T backend bench --site resdesk.localhost run-tests --app sok_resdesk
+      - name: Frappe tests of the governance app (audit, classification, retention, register, directory, disclosure)
+        run: docker compose exec -T backend bench --site resdesk.localhost run-tests --app sok_resdesk_governance
       - name: Logs on failure
         if: failure()
         run: docker compose logs --tail 200
