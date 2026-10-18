@@ -1,0 +1,96 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "field:user",
+ "creation": "2026-10-18 10:00:00.000000",
+ "modified": "2026-10-18 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Directory Account",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "description": "A person who signs in through the directory (LDAP or single sign-on). An LDAP account the directory no longer has is switched off by the daily check.",
+ "field_order": [
+  "user",
+  "source",
+  "column_break_a",
+  "first_seen",
+  "last_seen",
+  "missing_runs",
+  "disabled_on"
+ ],
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "Person",
+   "options": "User",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "label": "Signs In Through",
+   "options": "LDAP\nSSO",
+   "reqd": 1,
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_a",
+   "fieldtype": "Column Break",
+   "label": ""
+  },
+  {
+   "fieldname": "first_seen",
+   "fieldtype": "Datetime",
+   "label": "First Signed In",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_seen",
+   "fieldtype": "Datetime",
+   "label": "Last Signed In",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "missing_runs",
+   "fieldtype": "Int",
+   "label": "Checks That Missed Them",
+   "read_only": 1,
+   "description": "Consecutive daily checks that did not find this person in the directory; two switch the account off."
+  },
+  {
+   "fieldname": "disabled_on",
+   "fieldtype": "Datetime",
+   "label": "Switched Off On",
+   "read_only": 1,
+   "in_list_view": 1
+  }
+ ],
+ "links": [],
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 0,
+ "permissions": [
+  {
+   "role": "SOK Super Admin",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "ResDesk Security Officer",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  }
+ ]
+}

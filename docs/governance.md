@@ -172,6 +172,59 @@ certificate says so); a public book that is destroyed still leaves its tombstone
 address answers; a direct database deletion bypasses a hold. A destroyed record is gone: take the
 backup and the approval seriously.
 
+### Directory sign-in
+
+People sign in with the department's own accounts instead of passwords kept here: **LDAP** (Active
+Directory, OpenLDAP or another) or **single sign-on** through an OpenID Connect or OAuth 2 provider
+(Keycloak, AD FS, Azure AD, or a government identity service that speaks OpenID Connect). Frappe does
+the signing in (Desk → Administration → **LDAP Settings** and **Social Login Keys**; the sign-in page
+shows the buttons by itself). Research Desk adds the rules below. The protocol details here come from
+reading Frappe's own source; check them against the Frappe version you run.
+
+- **A directory proves who someone is; it does not make them an officer.** Mapping a directory group
+  to **System Manager, SOK Super Admin, ResDesk Security Officer, ResDesk Records Officer** or a
+  scripting or website administration role (or making one the default role) is refused when the
+  settings are saved, however the role is spelt. Give those duties in the Desk (People & Roles). A
+  site that really wants a group to carry one names it in `resdesk_directory_roles_allowed` in the site
+  configuration. Ordinary roles (reader, depositor, proofreader, cataloguer, manager) may be mapped,
+  and *Default User Type: System User* with a Desk role gives the Desk to everyone in the directory:
+  leave it on Website User.
+- **A directory cannot sign in as an officer who was not made through it.** LDAP matches an existing
+  account by email; a sign-in into an account that carries one of those duties, and that the directory
+  did not create, is refused. Such accounts keep their own password. The directory's settings are
+  checked again at every directory sign-in, which is refused while they break the rules.
+- **Clearances never come from a directory.** A person from the directory sees what any member sees until
+  a security officer grants a clearance.
+- **LDAP must be encrypted and the server checked**: `ldaps://` or StartTLS, and *Require Trusted
+  Certificate* set to Yes, or the settings are not saved (the check runs before Frappe tries the
+  connection with the service password).
+- **Single sign-on providers use https** (a provider on this machine may use http), and the options
+  that let a provider's email claim take over an existing account (*trust email without a verified
+  claim*, *trust any tenant*) are refused.
+- **Leavers.** Every person who signs in through the directory is listed under **Directory Sign-ins**.
+  Each night Research Desk looks each LDAP account up with the same filter used to sign in (with
+  the user name, and with the email); one the directory no longer has for **two checks in a row** is
+  switched off and signed out, and the audit log says so. Nothing is changed when the directory cannot
+  be reached, when its user search answers as though empty, or when the check would switch off more
+  than a fifth of everyone at once (that is more likely a wrong filter than a thousand leavers: it is
+  written to the Error Log instead). The built-in Administrator and the last enabled system manager
+  (the Administrator is not counted) are never switched off, and a person switched off is brought back
+  by an administrator, not by signing in again. Sign-ins through the directory are marked in the audit log.
+- **The Server page** shows the directory and warns if a setting no longer meets these rules (for
+  instance after a change made directly in the database).
+
+What it does not do. **SAML** is not part of Frappe: put a bridge that speaks OpenID Connect in front
+of a SAML identity provider (Keycloak and similar do). Frappe maps LDAP groups to roles but not
+single sign-on claims, so single sign-on people get their roles in the Desk. A single sign-on
+leaver is not found by the nightly check (the provider has no directory to ask): shorten the session
+life (System Settings) and disable the account at the provider. LDAP is not covered by the Classified
+mode guard, which watches web requests and mail only, so in Classified mode the settings are refused
+unless the directory and the provider's addresses are the machine itself or hosts named in
+`resdesk_allowed_hosts`. With two-factor sign-in on, an LDAP sign-in goes through Frappe's second
+step and is not noted, so that person is not in the nightly check: switch them off by hand. After an
+upgrade, existing Social Login Keys may carry the trust options Frappe sets on upgrade; they must be
+cleared before the key can be saved.
+
 ## Where it is enforced
 
 | Surface | How |
@@ -275,6 +328,6 @@ secret: rotate it by changing both ends.
 
 ## What comes next
 
-Single sign-on and directory sync, a file register, records intake, signature
+A file register, records intake, signature
 checks, a disclosure-request workflow, redaction, conversion of old Kannada font text to Unicode,
 and an offline install bundle are planned: see the [roadmap](roadmap.md).

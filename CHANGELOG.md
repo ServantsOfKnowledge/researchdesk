@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.82.0 (2026-10-18): Directory sign-in: LDAP and single sign-on
+
+- **Directory sign-in** through Frappe's LDAP Settings and Social Login Keys (OpenID Connect), with the rules a government installation needs: a directory cannot hand out the governance duties (system manager, super admin, security officer, records officer); LDAP must be encrypted with a checked certificate; providers use https and cannot take over accounts by email; clearances never come from a directory. Directory sign-ins are listed (Directory Sign-ins) and marked in the audit log, and a **nightly check switches off and signs out an LDAP account the directory no longer has** (two misses in a row; never the Administrator or the last system manager). A directory cannot sign in as an officer it did not create, and a night's check that would switch off more than a fifth of everyone, or finds an empty directory, changes nothing. The Server page shows the directory and warns when a setting breaks the rules. See [Directory sign-in](docs/governance.md#directory-sign-in).
 ## 0.81.1 (2026-10-18): Retention test uses a year an item accepts
 
 - **Tests:** the retention test for a record not yet due used the year 2999, which a record refuses; it now uses this year.

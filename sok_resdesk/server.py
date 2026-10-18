@@ -564,6 +564,13 @@ def health() -> list[dict]:
 				),
 			)
 		)
+	from sok_resdesk import directory
+
+	if line := directory.summary():
+		bad = directory.problems()
+		out.append(
+			_check("directory", _("Directory sign-in"), "warn" if bad else "ok", " ".join(bad) or line)
+		)
 	try:
 		frappe.cache.ping()
 		out.append(_check("cache", _("Cache (Redis)"), "ok", _("answering")))

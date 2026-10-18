@@ -108,7 +108,7 @@ before_job = ["sok_resdesk.classified.install_guard"]
 # Keep the search index in sync with the catalogue ----------------------------
 
 # the audit log (Governance Mode)
-on_session_creation = ["sok_resdesk.audit.on_login"]
+on_session_creation = ["sok_resdesk.audit.on_login", "sok_resdesk.directory.on_login"]
 on_logout = ["sok_resdesk.audit.on_logout"]
 
 # Governance Mode: the Desk's lists and forms of items show only what the person is cleared for
@@ -155,6 +155,16 @@ doc_events = {
 			# a super admin is also a manager, so every screen and permission a manager has is theirs
 			"sok_resdesk.access.super_admin_is_manager",
 		],
+	},
+	# directory sign-in: refused before Frappe tries the connection or saves the provider
+	# (again after validation: Frappe corrects the spelling of a role only then)
+	"LDAP Settings": {
+		"before_validate": "sok_resdesk.directory.check_ldap",
+		"validate": "sok_resdesk.directory.check_ldap",
+	},
+	"Social Login Key": {
+		"before_validate": "sok_resdesk.directory.check_social_key",
+		"validate": "sok_resdesk.directory.check_social_key",
 	},
 	"RD Legal Hold": {
 		"validate": "sok_resdesk.retention.on_hold_validate",
@@ -209,6 +219,8 @@ scheduler_events = {
 	"daily": [
 		# records whose retention period has ended are listed for the records officer (Governance)
 		"sok_resdesk.retention.prepare",
+		# LDAP accounts the directory no longer has are switched off (Governance)
+		"sok_resdesk.directory.sync",
 		# deposits whose embargo has ended become readable (Settings → Features → Repository deposit)
 		"sok_resdesk.deposit.release_embargoes",
 		"sok_resdesk.ingest.run_scheduled_daily",
