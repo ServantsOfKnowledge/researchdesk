@@ -267,8 +267,10 @@ officer (and the Super Admin) work with them.
 - **A decision for each record**: *Disclose* (the whole file), *Disclose redacted* (parts covered), or
   *Withhold*. Keeping back or covering anything needs the **ground** relied on, which is told to the
   applicant. Parts to cover are rows in *Covered Parts*: record, page, and a box in percent of the
-  page (from the left, from the top, width, height) with an optional reason. **Preview a Page** shows
-  a page as it would be released.
+  page (from the left, from the top, width, height) with an optional reason. **Cover Parts of a Page**
+  shows a page and lets you draw the boxes on it with the mouse or a finger (or type the four numbers,
+  which the box follows); *Add This Box* puts it in the table, and *Save* keeps it. Only an officer cleared
+  for the record is shown its page. **Preview a Page** shows a page as it would be released.
 - **Decide, then make the package.** *Decide* checks that every record has a decision and a ground where
   one is needed, that every covered part lies on its page, and that boxes belong only to records set
   to *Disclose redacted*, and that no box is on a page the record does not have (such a box would cover
@@ -289,8 +291,7 @@ officer (and the Super Admin) work with them.
   again. It needs `pdftoppm` (poppler-utils) on the server; without it redaction is refused rather than done
   loosely.
 
-What it does not do yet: boxes are entered as numbers (there is no drawing on the page yet: use the
-preview to check them); text found on a page cannot be covered by searching for it; a record that is
+What it does not do yet: text found on a page cannot be covered by searching for it; a record that is
 not a PDF (a photograph, a recording) is described in the reply but its file is not included; and
 redaction covers the PDF only, not the catalogue entry, page text or notes of the record. Whether
 a ground applies is the officer's decision, not the software's.

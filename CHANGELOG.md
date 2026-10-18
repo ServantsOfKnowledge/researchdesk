@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.93.0 (2026-10-18): Draw the covered parts on the page
+
+- **Redaction by drawing.** On a disclosure request, *Cover Parts of a Page* shows the page and a records officer draws the boxes with the mouse or a finger, or types left, top, width and height; the boxes go into the *Covered Parts* table as before.
+- **Only for those cleared.** Showing a page for drawing, and the preview, now refuse an officer who is not cleared for that record.
+- **Not yet:** a record that is not a PDF is still described in the reply, not included in the package.
+
 ## 0.92.0 (2026-10-18): A short README, and the long list in its own page
 
 - **README.** The front page is now about 60 lines: what it is, how to install it, where the documentation is. Nothing was dropped. The full list of what Research Desk does is a new page, [What Research Desk does](docs/features.md) (also in the in-app Help); "How it fits together", with its picture, is in [Architecture](docs/architecture.md); the install, ingest, upgrade and updater commands were already in Installation, Getting started and Ingesting.

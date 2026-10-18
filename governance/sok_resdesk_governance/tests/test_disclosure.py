@@ -132,6 +132,21 @@ class TestDisclosure(IntegrationTestCase):
 		assert doc.name not in frappe.get_list("RD Disclosure Request", pluck="name")
 		assert not frappe.has_permission("RD Disclosure Request", "read", doc)
 
+	def test_a_page_to_draw_on_is_refused_to_one_not_cleared_for_the_record(self):
+		doc = self.request([{"item": self.item(8, classify=True), "decision": "Disclose redacted"}])
+		frappe.set_user("Administrator")
+		frappe.local.rd_clearance = {}
+		# the Administrator holds no clearance by role: a classified record's page is not shown either
+		with self.assertRaises((frappe.PermissionError, frappe.ValidationError)):
+			disclosure.page_image(doc.name, doc.records[0].item, 1)
+
+	def test_a_page_outside_the_request_is_refused(self):
+		doc = self.request([{"item": self.item(9), "decision": "Disclose"}])
+		with self.assertRaises(frappe.ValidationError):
+			disclosure.page_image(doc.name, "rddisctest-not-on-it", 1)
+		with self.assertRaises(frappe.ValidationError):
+			disclosure.page_image(doc.name, doc.records[0].item, 0)
+
 	def test_a_request_is_never_deleted(self):
 		doc = self.request([{"item": self.item(8), "decision": "Disclose"}])
 		with self.assertRaises(frappe.ValidationError):

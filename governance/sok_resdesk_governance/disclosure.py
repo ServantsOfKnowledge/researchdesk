@@ -26,6 +26,7 @@ DT = "RD Disclosure Request"
 OFFICERS = ("ResDesk Records Officer", "SOK Super Admin")
 KEPT = ("status", "due_on", "decided_by", "decided_on", "released_on", "release_file", "release_hash")
 DPI = 200  # a readable page that stays a reasonable size
+DRAW_DPI = 100  # the page boxes are drawn on, on screen
 MAX_PAGES = 400  # redacted pages in one package: each is drawn, burned and encoded on its own
 MAX_BYTES = 200 * 1024 * 1024
 STALE_HOURS = 2  # a package still "Preparing" after this long died with its worker: release again
@@ -186,15 +187,44 @@ def close(name: str, reason: str = "") -> None:
 	audit.record("disclosure_closed", detail=f"{name}: {(reason or '')[:200]}")
 
 
-@frappe.whitelist(methods=["POST"])
-def preview(name: str, item: str, leaf: int) -> str:
-	"""One page of a record as it would be released, as a data URL, for checking the boxes."""
+def _page_of_request(name: str, item: str, leaf: int):
+	"""The request, when this officer may look at that page of that record of it."""
 	_only_officers()
 	doc = frappe.get_doc(DT, name)
 	doc.check_permission("read")
-	leaf = cint(leaf)
 	if leaf < 1 or item not in {r.item for r in doc.records}:
 		frappe.throw(_("Not a page of a record on this request."))
+	if not _may_see(item):  # an officer sees only what their own clearance shows
+		frappe.throw(_("You are not cleared for this record."), frappe.PermissionError)
+	return doc
+
+
+@frappe.whitelist(methods=["POST"])
+def page_image(name: str, item: str, leaf: int) -> dict:
+	"""One page of a record as it is, for drawing the boxes on: a data URL and the record's page count."""
+	from sok_resdesk.pdfs import pdf_path
+
+	leaf = cint(leaf)
+	_page_of_request(name, item, leaf)
+	path = pdf_path(item)
+	if not path:
+		frappe.throw(_("{0} has no file to cover parts of.").format(item))
+	pages = page_count(path)
+	if leaf > pages:
+		frappe.throw(_("{0} has {1} pages.").format(item, pages))
+	if not poppler():
+		frappe.throw(_("Redaction needs poppler-utils (pdftoppm) on the server."))
+	_not_huge(path, leaf - 1, DRAW_DPI)
+	audit.record("disclosure_page_shown", item, f"{name} page {leaf}")
+	png = render(path, leaf - 1, DRAW_DPI, grey=False, fmt="png")
+	return {"image": "data:image/png;base64," + base64.b64encode(png).decode(), "pages": pages}
+
+
+@frappe.whitelist(methods=["POST"])
+def preview(name: str, item: str, leaf: int) -> str:
+	"""One page of a record as it would be released, as a data URL, for checking the boxes."""
+	leaf = cint(leaf)
+	doc = _page_of_request(name, item, leaf)
 	audit.record("disclosure_preview", item, f"{name} page {leaf}")
 	return "data:image/png;base64," + base64.b64encode(_page(doc, item, leaf, preview=True)).decode()
 
