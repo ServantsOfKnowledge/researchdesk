@@ -228,6 +228,43 @@ def file_movement_conditions(user=None):
 	return _of_file("RD File Movement", user)
 
 
+def _unseen_items(request: str, user: str | None) -> str:
+	"""SQL: the request (named by `request`) lists a record this person may not see."""
+	seen = item_condition("i", user)
+	return (
+		"exists (select 1 from `tabRD Disclosure Record` r join `tabRD Item` i on i.name = r.item "
+		f"where r.parent = {request} and not ({seen}))"
+	)
+
+
+def disclosure_conditions(user=None):
+	"""A disclosure request is seen only by someone who may see every record it names."""
+	return f"not {_unseen_items('`tabRD Disclosure Request`.name', user)}"
+
+
+def disclosure_has_permission(doc, ptype=None, user=None):
+	return all(
+		frappe.db.exists("RD Item", r.item) and is_cleared(*scope_of(r.item), user=user)
+		for r in doc.get("records") or []
+	)
+
+
+def _of_request(table: str, user: str | None) -> str:
+	"""A request's rows are read only with the request (Frappe checks a child table by role alone)."""
+	return (
+		f"`tab{table}`.parent in (select q.name from `tabRD Disclosure Request` q "
+		f"where not {_unseen_items('q.name', user)})"
+	)
+
+
+def disclosure_record_conditions(user=None):
+	return _of_request("RD Disclosure Record", user)
+
+
+def disclosure_redaction_conditions(user=None):
+	return _of_request("RD Disclosure Redaction", user)
+
+
 def _by_item(table: str, user: str | None) -> str:
 	"""A doctype that hangs off an item (its page text, notes, flags…): hidden with a classified item."""
 	cleared = _cleared_sql("it.name", user) if governed() else "1=0"

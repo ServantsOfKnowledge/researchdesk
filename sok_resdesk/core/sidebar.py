@@ -83,6 +83,7 @@ STRUCTURE: list = [
 			("Retention Rules", D, "RD Retention Rule"),
 			("Legal Holds", D, "RD Legal Hold"),
 			("Disposals", D, "RD Disposal"),
+			("Disclosure Requests", D, "RD Disclosure Request"),
 			("Open Portal", "URL", "/"),
 			("Settings", D, "RD Settings"),
 			("About Page", D, "RD About Page"),

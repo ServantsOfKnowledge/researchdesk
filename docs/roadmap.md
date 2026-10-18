@@ -109,8 +109,8 @@
 - [ ] **Government and institutional use** ([Governance](governance.md)): the audit log is done (0.77);
       classification levels, departments and clearances are done (0.78), and Classified mode for
       Secret and Top Secret (0.79), and a read-only public mirror on a second server governed by the
-      main system (0.80), and retention rules, legal holds and disposal (0.81), and directory sign-in with LDAP and single sign-on (0.82), and a file register (0.83); still to come: records intake,
-      signature checks, a disclosure-request workflow, redaction
+      main system (0.80), and retention rules, legal holds and disposal (0.81), and directory sign-in with LDAP and single sign-on (0.82), and a file register (0.83), and disclosure requests with redaction (0.86); still to come: records intake,
+      signature checks, drawing boxes on the page for redaction
       and an offline install bundle; old Kannada font text is converted to Unicode when a PDF is read (0.84)
 - [ ] **Accessibility** (details and the full plan: [Accessibility](accessibility.md)): testing with
       blind and low-vision readers using NVDA and TalkBack with Indic voices; later DAISY talking

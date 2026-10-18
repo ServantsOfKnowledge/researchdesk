@@ -187,7 +187,9 @@
   "alert_webhook_url",
   "alert_disk_percent",
   "governance_section",
-  "governance"
+  "governance",
+  "disclosure_days",
+  "disclosure_appeal_note"
  ],
  "fields": [
   {
@@ -1460,6 +1462,22 @@
    "default": "0",
    "permlevel": 1,
    "description": "Records who viewed, downloaded, searched and changed what, in a log that cannot be edited or deleted from the Desk and shows any tampering (Audit Log). Meant for a government or institutional deployment; off, nothing is recorded."
+  },
+  {
+   "fieldname": "disclosure_days",
+   "fieldtype": "Int",
+   "label": "Days to Reply to a Disclosure Request",
+   "default": "30",
+   "non_negative": 1,
+   "permlevel": 1,
+   "description": "How many days after a request for records arrives the reply is owed (Disclosure Requests). Set it to what the law or the office's rules say."
+  },
+  {
+   "fieldname": "disclosure_appeal_note",
+   "fieldtype": "Small Text",
+   "label": "Appeal Note for Disclosure Replies",
+   "permlevel": 1,
+   "description": "Printed at the end of every reply to a disclosure request: who the applicant may appeal to, and within how long."
   }
  ],
  "links": [],

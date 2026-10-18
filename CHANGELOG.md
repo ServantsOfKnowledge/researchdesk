@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.86.0 (2026-10-18): Disclosure requests, and redaction that really removes
+
+- **Disclosure requests** (Desk → Running the Library): a request to see records, with the day the reply is owed (new setting *Days to Reply to a Disclosure Request*), a decision for each record (disclose, disclose redacted, or withhold, with the ground relied on) and a records officer's *Decide*. A request is seen only by someone who may see every record it lists, and is never deleted.
+- **Redaction**: boxes (in percent of the page) are burned into a picture of each page, so nothing under a box is left in the file; *Preview a Page* shows the result. *Make the Package* builds, in the background, a ZIP with the files, the redacted copies and a `reply.txt` listing each decision and ground (and the new *Appeal Note*), kept as a private file with its SHA-256 and in the audit log. A box on a page the record lacks is refused; a changed file or level after the decision stops the package; a withheld record is named by number only. See [Disclosure requests and redaction](docs/governance.md#disclosure-requests-and-redaction).
+
 ## 0.85.2 (2026-10-18): Classifying a record clears its review flags
 
 - A record's open review questions no longer linger when it is classified; they were kept until the next nightly scan. The 0.85.1 test, which found this, passes only with the fix.

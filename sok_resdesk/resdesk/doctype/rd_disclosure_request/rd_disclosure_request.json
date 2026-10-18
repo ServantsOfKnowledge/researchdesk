@@ -1,0 +1,185 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-18 12:00:00.000000",
+ "modified": "2026-10-18 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Disclosure Request",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "field_order": [
+  "applicant",
+  "contact",
+  "subject",
+  "column_break_d",
+  "received_on",
+  "due_on",
+  "status",
+  "section_records",
+  "records",
+  "redactions",
+  "decision_note",
+  "section_done",
+  "decided_by",
+  "decided_on",
+  "column_break_r",
+  "released_on",
+  "release_file",
+  "release_hash",
+  "release_error",
+  "closed_note"
+ ],
+ "fields": [
+  {
+   "fieldname": "applicant",
+   "fieldtype": "Data",
+   "label": "Applicant",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "contact",
+   "fieldtype": "Small Text",
+   "label": "Contact",
+   "description": "Where the reply is sent. Not by e-mail from here: hand over the package."
+  },
+  {
+   "fieldname": "subject",
+   "fieldtype": "Small Text",
+   "label": "What is asked for",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_d",
+   "fieldtype": "Column Break",
+   "label": ""
+  },
+  {
+   "fieldname": "received_on",
+   "fieldtype": "Date",
+   "label": "Received On",
+   "reqd": 1,
+   "default": "Today",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "due_on",
+   "fieldtype": "Date",
+   "label": "Reply Due By",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Received\nIn review\nDecided\nPreparing\nReleased\nClosed",
+   "default": "Received",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_records",
+   "fieldtype": "Section Break",
+   "label": "Records and decisions"
+  },
+  {
+   "fieldname": "records",
+   "fieldtype": "Table",
+   "label": "Records",
+   "options": "RD Disclosure Record"
+  },
+  {
+   "fieldname": "redactions",
+   "fieldtype": "Table",
+   "label": "Covered Parts",
+   "options": "RD Disclosure Redaction"
+  },
+  {
+   "fieldname": "decision_note",
+   "fieldtype": "Small Text",
+   "label": "Reasons Given to the Applicant"
+  },
+  {
+   "fieldname": "section_done",
+   "fieldtype": "Section Break",
+   "label": "Decision and package"
+  },
+  {
+   "fieldname": "decided_by",
+   "fieldtype": "Link",
+   "label": "Decided By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "decided_on",
+   "fieldtype": "Datetime",
+   "label": "Decided On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_r",
+   "fieldtype": "Column Break",
+   "label": ""
+  },
+  {
+   "fieldname": "released_on",
+   "fieldtype": "Datetime",
+   "label": "Released On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "release_file",
+   "fieldtype": "Attach",
+   "label": "Package",
+   "read_only": 1
+  },
+  {
+   "fieldname": "release_hash",
+   "fieldtype": "Data",
+   "label": "Package SHA-256",
+   "read_only": 1
+  },
+  {
+   "fieldname": "release_error",
+   "fieldtype": "Small Text",
+   "label": "Last Problem Preparing",
+   "read_only": 1
+  },
+  {
+   "fieldname": "closed_note",
+   "fieldtype": "Small Text",
+   "label": "Closed Because",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "autoname": "format:DR-{YYYY}-{####}",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1,
+ "description": "A request to see records. Each record is decided on (disclose, disclose with parts covered, or withhold) with the ground relied on; the package is made from those decisions and only after the records officer has decided.",
+ "permissions": [
+  {
+   "role": "ResDesk Records Officer",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "SOK Super Admin",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1
+  }
+ ]
+}

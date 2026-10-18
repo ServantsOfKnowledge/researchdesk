@@ -60,6 +60,7 @@ SCREEN_HELP = {
 	"RD Retention Rule": ("governance", "retention-and-legal-holds"),
 	"RD Legal Hold": ("governance", "retention-and-legal-holds"),
 	"RD Disposal": ("governance", "retention-and-legal-holds"),
+	"RD Disclosure Request": ("governance", "disclosure-requests-and-redaction"),
 	"RD Annotation": ("staff-guide", "readers-notes"),
 	"RD Research Group": ("staff-guide", "readers-notes"),
 	"RD Page Text": ("staff-guide", "proofreading-and-re-ocr"),

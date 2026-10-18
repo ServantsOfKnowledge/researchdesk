@@ -123,6 +123,9 @@ permission_query_conditions = {
 	"RD File": "sok_resdesk.access.file_conditions",
 	"RD File Record": "sok_resdesk.access.file_record_conditions",
 	"RD File Movement": "sok_resdesk.access.file_movement_conditions",
+	"RD Disclosure Request": "sok_resdesk.access.disclosure_conditions",
+	"RD Disclosure Record": "sok_resdesk.access.disclosure_record_conditions",
+	"RD Disclosure Redaction": "sok_resdesk.access.disclosure_redaction_conditions",
 }
 has_permission = {
 	"RD Item": "sok_resdesk.access.item_has_permission",
@@ -133,6 +136,7 @@ has_permission = {
 	"RD External Record": "sok_resdesk.access.by_item_has_permission",
 	"RD Item Scope": "sok_resdesk.access.scope_has_permission",
 	"RD File": "sok_resdesk.access.file_has_permission",
+	"RD Disclosure Request": "sok_resdesk.access.disclosure_has_permission",
 }
 
 doc_events = {

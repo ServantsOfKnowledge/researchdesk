@@ -251,6 +251,50 @@ step and is not noted, so that person is not in the nightly check: switch them o
 upgrade, existing Social Login Keys may carry the trust options Frappe sets on upgrade; they must be
 cleared before the key can be saved.
 
+### Disclosure requests and redaction
+
+Desk → Research Desk → Running the Library → **Disclosure Requests**. For a request to see records (a
+right-to-information application, a court or audit request, an internal one). Only the records
+officer (and the Super Admin) work with them.
+
+- **A request** has the applicant, what is asked for, the day it arrived and the day the reply is
+  owed (the arrival day plus *Days to Reply to a Disclosure Request* in Settings, 30 by default; set it
+  to what the law says), and the records it concerns. A request is never deleted. The list view shows when each is due.
+- **Need-to-know.** A request is seen only by someone who may see **every record it lists**, and nobody
+  lists a record they may not see (the answer is the same for a missing record). It is the same rule
+  as for a file. Creating a request, previewing a page, deciding, starting the package and
+  closing are in the audit log.
+- **A decision for each record**: *Disclose* (the whole file), *Disclose redacted* (parts covered), or
+  *Withhold*. Keeping back or covering anything needs the **ground** relied on, which is told to the
+  applicant. Parts to cover are rows in *Covered Parts*: record, page, and a box in percent of the
+  page (from the left, from the top, width, height) with an optional reason. **Preview a Page** shows
+  a page as it would be released.
+- **Decide, then make the package.** *Decide* checks that every record has a decision and a ground where
+  one is needed, that every covered part lies on its page, and that boxes belong only to records set
+  to *Disclose redacted*, and that no box is on a page the record does not have (such a box would cover
+  nothing, so it is refused). It also notes the fingerprint of each file and its level. Changing the
+  records, boxes or reasons after that puts the request back in review, and so does a changed file or
+  level before the package is made (decide again). *Make the Package* then builds, in the background, a ZIP: whole files as they are, a **redacted copy** of
+  each covered record, and `reply.txt`, which lists each record, the decision, the ground, your
+  reasons. A withheld record is named by its number only, not its title, since the title may be
+  what is withheld; a covered box carries the record's *ground* in small white letters (a box's own
+  *Internal Note* is never printed) and the *Appeal Note* from Settings. The package is a private file on the request with its
+  SHA-256, and its making is in the audit log. Hand it over yourself: Research Desk sends no e-mail
+  about requests.
+- **Redaction is real.** A redacted copy is a picture of each page (200 dpi) with the boxes burned
+  in, assembled into a PDF: nothing under a box, not text, not image data, is in the file. The price is
+  that the copy has no text layer (so it cannot be searched or read aloud) and is larger than the
+  original; at most 400 redacted pages go in one package (split a larger request), and a page too
+  large to draw is refused. A package that is still *Preparing* after two hours (its worker died) can be made
+  again. It needs `pdftoppm` (poppler-utils) on the server; without it redaction is refused rather than done
+  loosely.
+
+What it does not do yet: boxes are entered as numbers (there is no drawing on the page yet: use the
+preview to check them); text found on a page cannot be covered by searching for it; a record that is
+not a PDF (a photograph, a recording) is described in the reply but its file is not included; and
+redaction covers the PDF only, not the catalogue entry, page text or notes of the record. Whether
+a ground applies is the officer's decision, not the software's.
+
 ## Where it is enforced
 
 | Surface | How |
@@ -361,4 +405,4 @@ secret: rotate it by changing both ends.
 ## What comes next
 
 Records intake, signature
-checks, a disclosure-request workflow, redaction, and an offline install bundle are planned: see the [roadmap](roadmap.md).
+checks and an offline install bundle are planned: see the [roadmap](roadmap.md).
