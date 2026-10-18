@@ -121,9 +121,13 @@ class OpsTestCase(IntegrationTestCase):
 		frappe.db.delete("RD Ingest Run", {"profile": ("like", "rdtest%")})
 		frappe.db.delete("RD Ingest Profile", {"name": ("like", "rdtest%")})
 		frappe.db.set_single_value("RD Settings", {k: v for k, v in self._saved.items()})
-		for k, v in self._defaults.items():
-			frappe.db.set_default(k, v or "")
-		frappe.db.commit()
+		from sok_resdesk import dbretry
+
+		def restore():  # the quiet-hours job writes the same defaults: a deadlock between the two is transient
+			for k, v in self._defaults.items():
+				frappe.db.set_default(k, v or "")
+
+		dbretry.run(restore)
 		frappe.clear_document_cache("RD Settings", "RD Settings")
 
 

@@ -180,11 +180,11 @@ box(
 	520,
 	240,
 	134,
-	"Governance Mode (optional)",
+	"Governance app (optional)",
 	(
 		"levels, departments, clearances",
 		"tamper-evident audit log",
-		"public mirror, Classified mode",
+		"disclosure and redaction",
 		"retention, file register, LDAP/SSO",
 	),
 	colour=AMBER,
@@ -281,7 +281,7 @@ svg = (
 	'<desc id="d">Books and material come in from archive.org, folders, Calibre, repositories, Wikisource and deposits. '
 	"Ingest jobs, proofreading, machine drafts, preservation and review work on them. They are kept in Frappe and MariaDB "
 	"and found through Meilisearch, and go out to readers, open standards, Wikimedia and other systems, and offline copies. "
-	"Governance Mode, when switched on, adds classification levels, departments, clearances and an audit log.</desc>"
+	"The optional governance app, installed only when asked for, adds classification levels, departments, clearances, an audit log, retention and disclosure with redaction.</desc>"
 	f'<defs><marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="{LINE}"/></marker></defs>'
 	+ "".join(parts)
 	+ "</svg>\n"

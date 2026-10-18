@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.95.0 (2026-10-18): The overview picture names the governance app
+
+- A test that put back the quiet-hours settings is retried when MariaDB picks it as a deadlock victim (it failed twice in CI, only against the quiet-hours job).
+- "How it fits together" now says *Governance app (optional)* and lists disclosure and redaction, as the architecture does.
+
 ## 0.94.0 (2026-10-18): Photographs and recordings in a disclosure package
 
 - A photograph, a recording or a bundle of leaf images that is *disclosed* now goes into the package with its files as they are kept (before, only its description was in the reply). Covering parts of such a record is refused with a clear message: disclose it whole or withhold it.
