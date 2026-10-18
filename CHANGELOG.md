@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.86.1 (2026-10-18): The disclosure test names the refusal it gets
+
+- Test only: an officer who may not see a record is refused by the permission rule before the check on save; the test now accepts either.
+
 ## 0.86.0 (2026-10-18): Disclosure requests, and redaction that really removes
 
 - **Disclosure requests** (Desk → Running the Library): a request to see records, with the day the reply is owed (new setting *Days to Reply to a Disclosure Request*), a decision for each record (disclose, disclose redacted, or withhold, with the ground relied on) and a records officer's *Decide*. A request is seen only by someone who may see every record it lists, and is never deleted.

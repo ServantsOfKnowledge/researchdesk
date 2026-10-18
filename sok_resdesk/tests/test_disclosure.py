@@ -121,7 +121,8 @@ class TestDisclosure(IntegrationTestCase):
 	def test_an_officer_not_cleared_cannot_list_a_classified_record(self):
 		secret = self.item(6, classify=True)
 		frappe.set_user(self.USER)
-		with self.assertRaises(frappe.ValidationError):
+		# refused either by the permission rule (it names a record they cannot see) or by the check on save
+		with self.assertRaises((frappe.ValidationError, frappe.PermissionError)):
 			self.request([{"item": secret, "decision": "Disclose"}])
 
 	def test_a_request_naming_a_classified_record_is_hidden_from_an_officer_not_cleared(self):
