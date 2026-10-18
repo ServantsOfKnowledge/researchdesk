@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.84.0 (2026-10-18): Old Kannada font text, and a Keycloak page
+
+- **Old Kannada font text to Unicode**, with the Sanchaya Kannada Font Converter (its engine is copied unmodified into `sok_resdesk/vendor/kannada_font_converter`, GPL-3.0-or-later, and run as a separate Node program; the rest stays MIT). New setting **Convert Old Kannada Fonts in PDF Text**: when a PDF's text layer is read, pages in Nudi, Baraha, ShreeLipi and twelve other old fonts are converted so the book can be searched; and a Desk screen **Convert Old Kannada Text** for one text at a time. Never stops an ingest. See [Old Kannada font text](docs/legacy-kannada.md).
+- **Single sign-on with Keycloak**: a setup page for Keycloak as the library's sign-in, also in front of LDAP, Active Directory or a SAML identity provider. See [Single sign-on with Keycloak](docs/keycloak.md).
+
 ## 0.83.0 (2026-10-18): The file register
 
 - **File register**: numbered files (the department's own number, or `F-year-number`) with a subject, level, department and place, the records in each, who has it, and every movement. Files follow the same need-to-know rules as records (hidden from people not cleared, never sent to one, never less restricted than the records in them); a file is sent, received, closed and reopened through checked steps, never by editing who holds it; every step is in the audit log; files are closed, not deleted. See [File register](docs/governance.md#file-register).

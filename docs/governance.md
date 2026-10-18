@@ -240,7 +240,7 @@ reading Frappe's own source; check them against the Frappe version you run.
   instance after a change made directly in the database).
 
 What it does not do. **SAML** is not part of Frappe: put a bridge that speaks OpenID Connect in front
-of a SAML identity provider (Keycloak and similar do). Frappe maps LDAP groups to roles but not
+of a SAML identity provider (Keycloak does: see [Single sign-on with Keycloak](keycloak.md)). Frappe maps LDAP groups to roles but not
 single sign-on claims, so single sign-on people get their roles in the Desk. A single sign-on
 leaver is not found by the nightly check (the provider has no directory to ask): shorten the session
 life (System Settings) and disable the account at the provider. LDAP is not covered by the Classified
@@ -355,5 +355,4 @@ secret: rotate it by changing both ends.
 ## What comes next
 
 Records intake, signature
-checks, a disclosure-request workflow, redaction, conversion of old Kannada font text to Unicode,
-and an offline install bundle are planned: see the [roadmap](roadmap.md).
+checks, a disclosure-request workflow, redaction, and an offline install bundle are planned: see the [roadmap](roadmap.md).

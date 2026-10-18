@@ -89,6 +89,7 @@ STRUCTURE: list = [
 			("People & Roles", P, "resdesk-people"),
 			("Reader Profiles", D, "RD Reader Profile"),
 			("Portal Translations", P, "resdesk-translations"),
+			("Convert Old Kannada Text", P, "resdesk-kannada-converter"),
 			("Help", P, "resdesk-help"),
 		],
 	),

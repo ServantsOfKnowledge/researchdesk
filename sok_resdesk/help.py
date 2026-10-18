@@ -42,6 +42,7 @@ SCREEN_HELP = {
 	"resdesk-server": ("server", "the-server-page"),
 	"resdesk-people": ("staff-guide", "people-and-roles"),
 	"resdesk-connections": ("connections", "the-kinds"),
+	"resdesk-kannada-converter": ("legacy-kannada", "converting-text-by-hand"),
 	"resdesk-translations": ("staff-guide", "the-portal-in-other-languages"),
 	"resdesk-authorities": ("staff-guide", "authors-and-subjects"),
 	"resdesk-review": ("staff-guide", "the-review-queue"),

@@ -90,6 +90,7 @@
   "column_break_ia",
   "batch_size",
   "cache_page_text",
+  "legacy_kannada_font",
   "pause_scheduled_ingest",
   "pause_background",
   "held_jobs",
@@ -754,6 +755,14 @@
    "label": "Keep a Local Copy of Page Text",
    "default": "1",
    "description": "Stores compressed OCR text on disk (about 20–60 KB per book) so re-indexing never needs to download from archive.org again."
+  },
+  {
+   "fieldname": "legacy_kannada_font",
+   "fieldtype": "Select",
+   "label": "Convert Old Kannada Fonts in PDF Text",
+   "options": "Off\nNudi / Baraha\nShreeLipi (KAN-850)\nPrakashak (Praja)\nAkruti (Mono)\nSurabhi (KND-series)\nISM (KNTT-Nandi)\nDharma ILs\nJanna Mono\nSriLipi 850\nShree Deccan\nSurabhi KN\nSuchi Kan\nISM (KNB TT-Nandi)\nAkruti Bi\nWinKey KanEng",
+   "default": "Off",
+   "description": "For books whose PDF text is in an old Kannada font (Nudi, Baraha, ShreeLipi…) and reads as accented Latin letters: pick that font and the text is converted to Unicode as the book is read in, so it can be searched. Pages already in Unicode are left alone. Re-ingest a book to convert one already in the library."
   },
   {
    "fieldname": "pause_scheduled_ingest",

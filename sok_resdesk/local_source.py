@@ -175,7 +175,9 @@ def pdf_text(store: ItemStore, item_id: str, loc: str, pdf: str) -> tuple[list[d
 	except Exception:  # damaged, or not a PDF after all
 		return [], "", 0
 	if has_text_layer(pages):
-		return pages, "PDF text layer", len(pages)
+		from sok_resdesk.legacy_kannada import fix_pages
+
+		return fix_pages(pages), "PDF text layer", len(pages)
 	ocrd = read_ocr_pages(item_id)
 	if ocrd is not None:
 		return ocrd, "OCR here", len(pages)

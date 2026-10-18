@@ -429,6 +429,7 @@ Every setting:
 | Collection for Uploads to archive.org | Where books sent to archive.org from here are filed. People who send their own work always use this one; staff can choose another collection they may add to when they send. Everything sent is public. |
 | Books per Background Batch | Large ingests are split into batches that run in parallel, one per queue worker. Add workers with QUEUE_WORKERS in .env. |
 | Keep a Local Copy of Page Text | Stores compressed OCR text on disk (about 20–60 KB per book) so re-indexing never needs to download from archive.org again. |
+| Convert Old Kannada Fonts in PDF Text | For books whose PDF text is in an old Kannada font (Nudi, Baraha, ShreeLipi…) and reads as accented Latin letters: pick that font and the text is converted to Unicode as the book is read in, so it can be searched. Pages already in Unicode are left alone. Re-ingest a book to convert one already in the library. Choices: *Off*, *Nudi / Baraha*, *ShreeLipi (KAN-850)*, *Prakashak (Praja)*, *Akruti (Mono)*, *Surabhi (KND-series)*, *ISM (KNTT-Nandi)*, *Dharma ILs*, *Janna Mono*, *SriLipi 850*, *Shree Deccan*, *Surabhi KN*, *Suchi Kan*, *ISM (KNB TT-Nandi)*, *Akruti Bi*, *WinKey KanEng*. |
 | Pause Scheduled Ingests | Stops Hourly/Daily/Weekly profiles and the daily sync with archive.org from starting new runs. Manual runs still work. Also on the Background Jobs page. |
 | Pause All Background Work | Set from the Background Jobs page: runs are paused and queued jobs held until you press Resume All there. |
 

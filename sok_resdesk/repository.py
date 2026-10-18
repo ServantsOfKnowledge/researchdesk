@@ -256,7 +256,9 @@ def read_pdf(url: str) -> tuple[list[dict], int, str]:
 	except Exception:  # a damaged PDF: the book is catalogued without its text
 		return [], 0, ""
 	if has_text_layer(pages):
-		return pages, len(pages), "PDF text layer"
+		from sok_resdesk.legacy_kannada import fix_pages
+
+		return fix_pages(pages), len(pages), "PDF text layer"
 	return [], len(pages), SCAN
 
 
