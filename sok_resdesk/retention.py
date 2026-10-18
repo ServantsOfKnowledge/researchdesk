@@ -11,7 +11,7 @@ import frappe
 from frappe import _
 from frappe.utils import getdate, now_datetime, nowdate
 
-from sok_resdesk import audit
+from sok_resdesk import audit, clearance
 from sok_resdesk.core import classification as levels
 from sok_resdesk.core import retention as rules
 
@@ -238,8 +238,6 @@ def execute(disposal: str) -> None:
 	"""Background. Every record is checked again just before it is dealt with, against the live data:
 	still due under an enabled rule, not under a hold (one placed since the list was made wins), and
 	within what the approver is cleared for (a record they cannot see is left for an officer who can)."""
-	from sok_resdesk import access
-
 	frappe.flags.rd_retention = True
 	doc = frappe.get_doc("RD Disposal", disposal)
 	if doc.status != "Approved":
@@ -248,12 +246,12 @@ def execute(disposal: str) -> None:
 	done = {"Disposed": 0, "Transferred": 0, "Kept": 0}
 	try:
 		for n, row in enumerate([r for r in doc.items if r.outcome == "Pending"], 1):
-			rank, department = access.scope_of(row.item)
+			rank, department = clearance.scope_of(row.item)
 			if held([row.item]):
 				row.outcome, row.why = "Kept", "legal hold"
 			elif row.item not in still_due:
 				row.outcome, row.why = "Kept", "no longer due"
-			elif not access.is_cleared(rank, department, doc.approved_by):
+			elif not clearance.is_cleared(rank, department, doc.approved_by):
 				row.outcome, row.why = "Kept", "needs an officer cleared for it"
 			elif doc.action == "Destroy":
 				try:

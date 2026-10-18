@@ -13,7 +13,7 @@ from frappe import _
 from frappe.model.naming import make_autoname
 from frappe.utils import cstr, getdate, now_datetime, nowdate
 
-from sok_resdesk import access, audit
+from sok_resdesk import audit, clearance
 from sok_resdesk.classification import _may_classify
 from sok_resdesk.core import classification as levels
 
@@ -59,8 +59,8 @@ def _check_records(doc) -> None:
 	"""A file is at least as restricted as what is in it, and nobody files what they cannot see."""
 	inside = levels.expand([doc.department], _parents()) if doc.department else set()
 	for r in doc.records or []:
-		rank, department = access.scope_of(r.item)
-		if not frappe.db.exists("RD Item", r.item) or not access.is_cleared(rank, department):
+		rank, department = clearance.scope_of(r.item)
+		if not frappe.db.exists("RD Item", r.item) or not clearance.is_cleared(rank, department):
 			frappe.throw(_("{0} is not a record you may file.").format(r.item))  # the same answer for both
 		if rank > doc.class_rank or (department and department not in inside):
 			frappe.throw(
@@ -159,9 +159,9 @@ def send(file: str, to_user: str, remarks: str = "") -> None:
 	ok = bool(frappe.db.get_value("User", to_user, "enabled")) and bool(
 		set(frappe.get_roles(to_user)) & set(DESK)
 	)
-	ok = ok and access.is_cleared(doc.class_rank, doc.department, to_user)
+	ok = ok and clearance.is_cleared(doc.class_rank, doc.department, to_user)
 	for r in doc.records or []:  # and for what is in it
-		ok = ok and access.is_cleared(*access.scope_of(r.item), to_user)
+		ok = ok and clearance.is_cleared(*clearance.scope_of(r.item), to_user)
 	if not ok:
 		frappe.throw(_("{0} cannot receive this file.").format(to_user))
 	doc.append(

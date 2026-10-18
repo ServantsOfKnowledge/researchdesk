@@ -9,10 +9,9 @@ import frappe
 from frappe import _
 from frappe.utils import cint
 
-from sok_resdesk import features
+from sok_resdesk import features, seams
 from sok_resdesk.catalogue import settings
 from sok_resdesk.core import access as core
-from sok_resdesk.core import classification as levels
 from sok_resdesk.core.access import LOGIN_TO_FIND, LOGIN_TO_READ, PUBLIC, VISIBILITIES  # noqa: F401
 from sok_resdesk.holding import hold_when_paused
 
@@ -86,48 +85,7 @@ def can_use_text(visibility: str | None, user: str | None = None) -> bool:
 
 
 def governed() -> bool:
-	from sok_resdesk import audit
-
-	return audit.on()  # Governance Mode is one switch: the audit log and the classification
-
-
-def clearance(user: str | None = None) -> tuple[int, set[str] | None]:
-	"""(highest level number, departments incl. the offices below them). None = every department.
-	Nobody holds a clearance by role: not even a System Manager. Only the built-in Administrator
-	sees all, and that is in the audit log. No clearance record: Unclassified, no department."""
-	user = user or frappe.session.user
-	if user == "Administrator":
-		return len(levels.LEVELS) - 1, None
-	cache = getattr(frappe.local, "rd_clearance", None)
-	if cache is None:
-		cache = frappe.local.rd_clearance = {}
-	if user not in cache:
-		row = frappe.db.get_value("RD Clearance", user, "name") if user != "Guest" else None
-		if not row:
-			cache[user] = (0, set())
-		else:
-			doc = frappe.get_doc("RD Clearance", user)  # not cached: a revoked clearance must stop at once
-			parents = dict(
-				frappe.db.sql(
-					"select name, parent_department from `tabRD Department` where ifnull(parent_department, '') != ''"
-				)
-			)
-			cache[user] = (
-				levels.rank(doc.level),
-				levels.expand([d.department for d in doc.departments], parents),
-			)
-	return cache[user]
-
-
-def scope_of(item: str | None) -> tuple[int, str]:
-	"""(level number, department) of a classified record; (0, "") when it has no line in RD Item Scope."""
-	row = frappe.db.get_value("RD Item Scope", item, ["class_rank", "department"]) if item else None
-	return (cint(row[0]), row[1] or "") if row else (0, "")
-
-
-def is_cleared(class_rank, department, user: str | None = None) -> bool:
-	rank, departments = clearance(user)
-	return levels.cleared(rank, departments, cint(class_rank), department)
+	return seams.governed()  # Governance Mode is one switch: the audit log and the classification
 
 
 def effective(visibility: str | None, item: str | None = None) -> str | None:
@@ -136,16 +94,9 @@ def effective(visibility: str | None, item: str | None = None) -> str | None:
 	plain rules never show."""
 	if visibility != core.CLEARED_ONLY:
 		return visibility
-	if frappe.session.user != "Guest" and is_member() and is_cleared(*scope_of(item)):
+	if frappe.session.user != "Guest" and is_member() and seams.cleared(item):
 		return core.LOGIN_TO_FIND
 	return visibility
-
-
-def _cleared_sql(item_expr: str, user: str | None = None) -> str:
-	"""SQL: the item (named by `item_expr`) has a scope this person is cleared for."""
-	rank, departments = clearance(user)
-	mine = levels.sql_clause(rank, departments, "s.", frappe.db.escape)
-	return f"exists (select 1 from `tabRD Item Scope` s where s.name = {item_expr} and {mine})"
 
 
 def search_filter(kind: str) -> str | None:
@@ -157,8 +108,8 @@ def search_filter(kind: str) -> str | None:
 	hidden = f'NOT visibility = "{core.CLEARED_ONLY}"'
 	clause = hidden
 	if governed() and frappe.session.user != "Guest" and is_member():
-		rank, departments = clearance()
-		clause = f"({hidden} OR {levels.meili_clause(rank, departments)})"
+		extra = seams.search_clause()
+		clause = f"({hidden} OR {extra})" if extra else hidden
 	return f"{base} AND {clause}" if base else clause
 
 
@@ -169,7 +120,7 @@ def sql_condition(column: str = "visibility") -> str:
 	hidden = f"ifnull({column}, '') != '{core.CLEARED_ONLY}'"
 	if governed() and frappe.session.user != "Guest" and is_member():
 		prefix = column.rsplit(".", 1)[0] + "." if "." in column else ""
-		hidden = f"({hidden} or {_cleared_sql(prefix + 'name')})"
+		hidden = f"({hidden} or {seams.cleared_sql(prefix + 'name')})"
 	return f"({base}) and {hidden}"
 
 
@@ -179,7 +130,7 @@ def item_condition(alias: str = "`tabRD Item`", user: str | None = None) -> str:
 	hidden = f"ifnull({alias}.visibility, '') != '{core.CLEARED_ONLY}'"
 	if not governed():
 		return hidden
-	return f"({hidden} or {_cleared_sql(alias + '.name', user)})"
+	return f"({hidden} or {seams.cleared_sql(alias + '.name', user)})"
 
 
 def item_query_conditions(user: str | None = None) -> str:
@@ -187,87 +138,9 @@ def item_query_conditions(user: str | None = None) -> str:
 	return item_condition("`tabRD Item`", user)
 
 
-def scope_conditions(user: str | None = None) -> str:
-	"""The Desk's list of classified records is itself only what the person is cleared for."""
-	if not governed():
-		return "1=0"
-	rank, departments = clearance(user)
-	return levels.sql_clause(rank, departments, "`tabRD Item Scope`.", frappe.db.escape)
-
-
-def scope_has_permission(doc, ptype=None, user=None):
-	if not (governed() and is_cleared(doc.get("class_rank"), doc.get("department"), user)):
-		return False
-	return None
-
-
-def file_conditions(user: str | None = None) -> str:
-	"""The file register: a person sees the files they are cleared for (whether or not Governance Mode is
-	on: a file with a level or a department stays hidden from anyone without a clearance)."""
-	rank, departments = clearance(user)
-	return levels.sql_clause(rank, departments, "`tabRD File`.", frappe.db.escape)
-
-
-def file_has_permission(doc, ptype=None, user=None):
-	return bool(is_cleared(doc.get("class_rank"), doc.get("department"), user))
-
-
-def _of_file(table: str, user: str | None) -> str:
-	"""The rows of a file's tables (records, movements) are read only with the file: Frappe checks a
-	child table against its parent's role alone, so the file's own rule is repeated here."""
-	rank, departments = clearance(user)
-	cleared = levels.sql_clause(rank, departments, "f.", frappe.db.escape)
-	return f"`tab{table}`.parent in (select f.name from `tabRD File` f where {cleared})"
-
-
-def file_record_conditions(user=None):
-	return _of_file("RD File Record", user)
-
-
-def file_movement_conditions(user=None):
-	return _of_file("RD File Movement", user)
-
-
-def _unseen_items(request: str, user: str | None) -> str:
-	"""SQL: the request (named by `request`) lists a record this person may not see."""
-	seen = item_condition("i", user)
-	return (
-		"exists (select 1 from `tabRD Disclosure Record` r join `tabRD Item` i on i.name = r.item "
-		f"where r.parent = {request} and not ({seen}))"
-	)
-
-
-def disclosure_conditions(user=None):
-	"""A disclosure request is seen only by someone who may see every record it names."""
-	return f"not {_unseen_items('`tabRD Disclosure Request`.name', user)}"
-
-
-def disclosure_has_permission(doc, ptype=None, user=None):
-	return all(
-		frappe.db.exists("RD Item", r.item) and is_cleared(*scope_of(r.item), user=user)
-		for r in doc.get("records") or []
-	)
-
-
-def _of_request(table: str, user: str | None) -> str:
-	"""A request's rows are read only with the request (Frappe checks a child table by role alone)."""
-	return (
-		f"`tab{table}`.parent in (select q.name from `tabRD Disclosure Request` q "
-		f"where not {_unseen_items('q.name', user)})"
-	)
-
-
-def disclosure_record_conditions(user=None):
-	return _of_request("RD Disclosure Record", user)
-
-
-def disclosure_redaction_conditions(user=None):
-	return _of_request("RD Disclosure Redaction", user)
-
-
 def _by_item(table: str, user: str | None) -> str:
 	"""A doctype that hangs off an item (its page text, notes, flags…): hidden with a classified item."""
-	cleared = _cleared_sql("it.name", user) if governed() else "1=0"
+	cleared = seams.cleared_sql("it.name", user) if governed() else "1=0"
 	return (
 		f"`tab{table}`.item not in (select it.name from `tabRD Item` it "
 		f"where ifnull(it.visibility, '') = '{core.CLEARED_ONLY}' and not {cleared})"
@@ -298,7 +171,7 @@ def by_item_has_permission(doc, ptype=None, user=None):
 	"""The same for one document: refused when its item is classified and the person is not cleared."""
 	item = doc.get("item")
 	if frappe.db.get_value("RD Item", item, "visibility") == core.CLEARED_ONLY:
-		if not (governed() and is_cleared(*scope_of(item), user)):
+		if not (governed() and seams.cleared(item, user)):
 			return False
 	return None
 
@@ -306,7 +179,7 @@ def by_item_has_permission(doc, ptype=None, user=None):
 def item_has_permission(doc, ptype=None, user=None):
 	"""Only ever a refusal: the roles' own permissions still decide everything else."""
 	if doc.get("visibility") == core.CLEARED_ONLY:
-		if not (governed() and is_cleared(*scope_of(doc.get("name")), user)):
+		if not (governed() and seams.cleared(doc.get("name"), user)):
 			return False
 	return None
 
@@ -388,9 +261,7 @@ def apply_visibility(names: list[str], visibility: str, set_by: str = "Bulk", wa
 			{"v": visibility, "by": set_by[:140], "names": tuple(chunk)},
 		)
 		frappe.db.commit()
-	from sok_resdesk import audit
-
-	audit.record("visibility", detail=f"{len(names)} items set to {visibility} ({set_by})")
+	seams.emit("visibility", detail=f"{len(names)} items set to {visibility} ({set_by})")
 	from sok_resdesk.outbound import reconcile_soon
 
 	reconcile_soon()  # a book no longer Public leaves the public mirror
@@ -453,7 +324,7 @@ def select_items(*args, **kwargs) -> list[str]:
 	names = _select_items(*args, **kwargs)
 	if not names or not governed() or frappe.session.user == "Administrator":
 		return names
-	mine = _cleared_sql("`tabRD Item`.name")
+	mine = seams.cleared_sql("`tabRD Item`.name")
 	ok: set[str] = set()
 	for i in range(0, len(names), 1000):
 		ok.update(

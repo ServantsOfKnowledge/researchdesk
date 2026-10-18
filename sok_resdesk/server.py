@@ -100,9 +100,9 @@ def desk_control_allowed() -> bool:
 def agent_sync(token: str | None = None, facts=None, job=None) -> dict:
 	"""Called every few seconds by the updater helper: it reports what it sees and how its
 	current task is going, and gets the next task to run. Needs the shared token."""
-	from sok_resdesk import classified
+	from sok_resdesk import seams
 
-	if classified.on():  # it fetches code and images from outside, which classified mode never allows
+	if seams.classified():  # it fetches code and images from outside, which classified mode never allows
 		frappe.throw(_("The updater helper is off in Classified mode."), frappe.PermissionError)
 	expected = _agent_token()
 	if not expected or not token or not hmac.compare_digest(str(token), expected):
@@ -549,28 +549,10 @@ def health() -> list[dict]:
 
 	s = _settings()
 	out = [_check("database", _("Database"), "ok", _("answering"))]
-	from sok_resdesk import classified
+	from sok_resdesk import seams
 
-	if classified.on():
-		bad = classified.problems()
-		out.append(
-			_check(
-				"classified",
-				_("Classified mode"),
-				"warn" if bad else "ok",
-				" ".join(bad)
-				or _(
-					"On. Outside connections are refused. Disk encryption and the network around this machine are yours to confirm."
-				),
-			)
-		)
-	from sok_resdesk import directory
-
-	if line := directory.summary():
-		bad = directory.problems()
-		out.append(
-			_check("directory", _("Directory sign-in"), "warn" if bad else "ok", " ".join(bad) or line)
-		)
+	for key, label, state, text in seams.health_checks():  # the governance layer's lines, if installed
+		out.append(_check(key, label, state, text))
 	try:
 		frappe.cache.ping()
 		out.append(_check("cache", _("Cache (Redis)"), "ok", _("answering")))

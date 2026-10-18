@@ -14,7 +14,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint, now_datetime
 
-from sok_resdesk import access, audit
+from sok_resdesk import access, audit, clearance
 from sok_resdesk.core import classification as levels
 from sok_resdesk.core.access import CLEARED_ONLY, LOGIN_TO_FIND
 
@@ -38,7 +38,7 @@ def _may_classify(level: str, department: str | None) -> None:
 		return
 	if not set(frappe.get_roles()) & set(CLASSIFIERS):
 		frappe.throw(_("Only a security officer or a manager can classify records."), frappe.PermissionError)
-	rank, departments = access.clearance()
+	rank, departments = clearance.clearance()
 	if levels.rank(level) > rank or (
 		department and departments is not None and department not in departments
 	):

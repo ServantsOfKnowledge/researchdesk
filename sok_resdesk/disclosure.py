@@ -17,7 +17,7 @@ import frappe
 from frappe import _
 from frappe.utils import add_to_date, cint, cstr, getdate, now_datetime, nowdate
 
-from sok_resdesk import access, audit
+from sok_resdesk import audit, clearance
 from sok_resdesk.core import disclosure as rules
 from sok_resdesk.core.pdfrender import RenderError, page_count, poppler, render
 from sok_resdesk.core.redact import MAX_SIDE, burn, pdf_of
@@ -49,8 +49,8 @@ def _rows(table, fields) -> list[tuple]:
 
 
 def _may_see(item: str) -> bool:
-	rank, department = access.scope_of(item)
-	return bool(frappe.db.exists("RD Item", item)) and access.is_cleared(rank, department)
+	rank, department = clearance.scope_of(item)
+	return bool(frappe.db.exists("RD Item", item)) and clearance.is_cleared(rank, department)
 
 
 def on_validate(doc) -> None:
@@ -101,7 +101,7 @@ def _state(item: str) -> tuple[str, str]:
 		with open(path, "rb") as f:
 			for chunk in iter(lambda: f.read(1 << 20), b""):
 				sha.update(chunk)
-	rank, department = access.scope_of(item)
+	rank, department = clearance.scope_of(item)
 	return (sha.hexdigest() if path else "", f"{rank}:{department}")
 
 

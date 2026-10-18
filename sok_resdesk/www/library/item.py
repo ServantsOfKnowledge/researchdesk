@@ -3,7 +3,7 @@ import json
 import frappe
 from frappe.utils import cint
 
-from sok_resdesk import access, audit
+from sok_resdesk import access, seams
 from sok_resdesk.catalogue import base_url, get_record, settings
 from sok_resdesk.core import citations, licence
 
@@ -27,7 +27,7 @@ def get_context(context):
 			raise frappe.Redirect
 		raise frappe.PageDoesNotExistError
 
-	audit.record("view", item_id)
+	seams.emit("view", item_id)
 	root = base_url()
 	s = settings()
 	context.no_cache = 1

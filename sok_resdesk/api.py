@@ -16,7 +16,7 @@ from frappe.rate_limiter import rate_limit
 from frappe.utils import cint
 from werkzeug.wrappers import Response
 
-from sok_resdesk import access, audit, classified
+from sok_resdesk import access, seams
 from sok_resdesk.catalogue import base_url, get_record
 from sok_resdesk.core import citations, marc
 from sok_resdesk.search import PAGES_MAX_HITS, MeiliClient, SearchError, _quote
@@ -53,7 +53,7 @@ def search(q: str = "", mode: str = "books", filters=None, page: int = 1, per_pa
 	"""
 	sort = effective_sort(sort, q)
 	if q.strip():
-		audit.record("search", detail=classified.search_detail(mode, q.strip()))
+		seams.emit("search", detail=f"{mode}: {q.strip()[:200]}")
 	try:
 		result = _search(
 			q,
@@ -523,7 +523,7 @@ def file(item_id: str, name: str):
 			raise frappe.PageDoesNotExistError
 		if doc.access_status != "Open" or not access.can_read(doc.visibility):
 			raise frappe.PermissionError
-		audit.record_download(item_id, name)
+		seams.emit("download", item_id, name)
 		return _private(
 			send_file(
 				found[1], frappe.local.request.environ, conditional=True, max_age=86400, download_name=name
@@ -542,7 +542,7 @@ def file(item_id: str, name: str):
 	if name != doc.local_thumb and (doc.access_status != "Open" or not access.can_read(doc.visibility)):
 		raise frappe.PermissionError
 	if name != doc.local_thumb:
-		audit.record_download(item_id, name)
+		seams.emit("download", item_id, name)
 	store = store_for_item(frappe.get_doc("RD Item", item_id))
 	if store is None:
 		raise frappe.PageDoesNotExistError

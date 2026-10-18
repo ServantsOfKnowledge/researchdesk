@@ -57,6 +57,13 @@ class TestClassified(IntegrationTestCase):
 		self.assertEqual((doc.governance, doc.guest_access, doc.feature_sharing), (1, "Login required", 0))
 
 	def test_a_search_is_logged_without_its_words(self):
-		self.assertEqual(classified.search_detail("books", "secret plan"), "books")
-		frappe.conf.pop("resdesk_classified")
-		self.assertEqual(classified.search_detail("books", "plan"), "books: plan")
+		from unittest import mock
+
+		from sok_resdesk import audit
+
+		with mock.patch("sok_resdesk.audit.record") as record:
+			audit.sink("search", "", "books: secret plan")
+			record.assert_called_with("search", "", "books")
+			frappe.conf.pop("resdesk_classified")
+			audit.sink("search", "", "books: plan")
+			record.assert_called_with("search", "", "books: plan")

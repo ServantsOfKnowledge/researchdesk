@@ -33,7 +33,9 @@ class ClassifiedModeError(requests.exceptions.RequestException):
 
 
 def on() -> bool:
-	return bool(frappe.conf.get("resdesk_classified") or os.environ.get("RESDESK_CLASSIFIED") == "1")
+	from sok_resdesk import seams
+
+	return seams.classified()
 
 
 def allowed() -> list[str]:
@@ -112,11 +114,6 @@ def apply() -> None:
 	frappe.db.commit()
 
 
-def search_detail(mode: str, words: str) -> str:
-	"""What the audit log keeps of a search: the words only when this is not a classified installation."""
-	return mode if on() else f"{mode}: {words[:200]}"
-
-
 def problems() -> list[str]:
 	"""What the Server page should still warn about."""
 	out = []
@@ -127,3 +124,21 @@ def problems() -> list[str]:
 	if frappe.db.get_single_value("RD Settings", "guest_access") != "Login required":
 		out.append(_("The portal is not behind sign-in."))
 	return out
+
+
+def health() -> list[tuple]:
+	"""Hook resdesk_health_checks: a line for the Server page when this is a classified installation."""
+	if not on():
+		return []
+	bad = problems()
+	return [
+		(
+			"classified",
+			_("Classified mode"),
+			"warn" if bad else "ok",
+			" ".join(bad)
+			or _(
+				"On. Outside connections are refused. Disk encryption and the network around this machine are yours to confirm."
+			),
+		)
+	]

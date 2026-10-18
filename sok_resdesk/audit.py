@@ -86,12 +86,19 @@ def record(event: str, item: str = "", detail: str = "") -> None:
 			frappe.db.sql("select release_lock(%s)", (LOCK,))
 
 
-def record_download(item: str, name: str) -> None:
-	"""A file served to a reader. A viewer asking for the rest of a file it began is not a new download."""
-	rng = frappe.local.request.headers.get("Range") if frappe.local.request else None
-	if rng and not rng.replace(" ", "").startswith("bytes=0-"):
-		return
-	record("download", item, name)
+def sink(event: str, item: str = "", detail: str = "") -> None:
+	"""Hook resdesk_event_sinks: what core reports (seams.emit), shaped as the log keeps it."""
+	if event == "download":
+		# a viewer asking for the rest of a file it began is not a new download
+		rng = frappe.local.request.headers.get("Range") if frappe.local.request else None
+		if rng and not rng.replace(" ", "").startswith("bytes=0-"):
+			return
+	elif event == "search":
+		from sok_resdesk import classified
+
+		if classified.on():  # the words only when this is not a classified installation
+			detail = detail.split(":", 1)[0]
+	record(event, item, detail)
 
 
 def on_login(login_manager=None) -> None:

@@ -3,7 +3,7 @@
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from sok_resdesk import access, classification
+from sok_resdesk import access, classification, clearance
 
 
 class TestGovernance(IntegrationTestCase):
@@ -78,11 +78,11 @@ class TestGovernance(IntegrationTestCase):
 
 	def test_a_head_office_is_cleared_for_its_district_not_the_reverse(self):
 		self.clear("Confidential", "RD Test Head")
-		self.assertTrue(access.is_cleared(2, "RD Test District", self.USER))
-		self.assertFalse(access.is_cleared(3, "RD Test District", self.USER))
-		self.assertFalse(access.is_cleared(0, "RD Test Other", self.USER))
+		self.assertTrue(clearance.is_cleared(2, "RD Test District", self.USER))
+		self.assertFalse(clearance.is_cleared(3, "RD Test District", self.USER))
+		self.assertFalse(clearance.is_cleared(0, "RD Test Other", self.USER))
 		self.clear("Restricted", "RD Test District")
-		self.assertFalse(access.is_cleared(1, "RD Test Head", self.USER))
+		self.assertFalse(clearance.is_cleared(1, "RD Test Head", self.USER))
 
 	def test_nobody_has_a_clearance_by_role_and_a_guest_sees_nothing_classified(self):
 		self.scope(self.item(2).name, "Restricted", None)

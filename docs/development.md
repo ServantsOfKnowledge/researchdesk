@@ -37,7 +37,9 @@ researchdesk/
     ├── local_source.py     IA-style item folders on disk / NAS / web server
     ├── search.py           Meilisearch adapter, indexing, search (romanised words, OR, federated)
     ├── search_queue.py     the search engine's queue: books first, page text held or paced
-    ├── access.py           who can see what: members, bulk visibility, reader sign-up, clearance (Governance Mode)
+    ├── access.py           who can see what: members, bulk visibility, reader sign-up
+    ├── seams.py            the only way core asks the governance layer (hooks resdesk_*); answers "off" when none is installed
+    ├── clearance.py        Governance Mode: who is cleared for a classified record, and the permission rules for scopes, files and disclosure
     ├── classification.py   Governance Mode: levels and departments on records, Set Classification, clearance audit
     ├── audit.py            Governance Mode: the tamper-evident audit log (views, downloads, searches, changes)
     ├── people.py           People & Roles page: roles, invitations, accounts, sign-ups
@@ -123,6 +125,31 @@ the list (a unit test fails if they differ); before 16.50 `sidebar.refresh()` re
 Sidebar. Switched-off features' screens are taken out of what the Desk is sent (`features.trim_boot`),
 and the Desk-only scope trims it too (`deskscope.trim_boot`); both handle either payload. When Frappe
 changes how the Desk is built, CI (which installs the newest Frappe 16) is where it shows first.
+
+## The governance seam
+
+Governance (the audit log, classification and clearances, Classified mode, retention, the file
+register, directory sign-in, disclosure) is a special case, not the general product, and it is being
+made separable so that a library which does not use it has none of it to review. The rule:
+**core never imports a governance module.** It asks through `sok_resdesk/seams.py`, whose answers
+come from the hooks the installed apps list in `hooks.py`:
+
+| Hook | What core asks | With no governance installed |
+|---|---|---|
+| `resdesk_event_sinks` | "this happened" (a view, a download, a search, a visibility change) | nothing is kept |
+| `resdesk_governed` | is the governance layer switched on | no |
+| `resdesk_item_cleared` · `resdesk_item_scope` · `resdesk_cleared_sql` · `resdesk_search_clause` | is this person cleared for a classified record, its level and department, and the same as SQL and as a search filter | nobody is: a classified record stays hidden |
+| `resdesk_health_checks` | lines for the Server page | none |
+
+`tests/unit_boundaries.py` lists the governance modules and fails when any other module imports one,
+even lazily inside a function. To add a governance module, add it to that list; to let core react to
+something governance cares about, add an event to `seams.emit` and handle it in `audit.sink`, rather
+than importing. The clearance rules live in `clearance.py`; `access.py` keeps the general rules.
+
+Only one app should provide the clearance hooks (the first listed wins); the others are combined. A failing event sink is logged and does not stop the reader; the other hooks are not caught, so an error there fails closed.
+
+Still to come (0.88): moving the governance modules and doctypes into their own app, and the Desk
+sidebar, help and feature lists, which still name governance screens as data.
 
 ## Workflow
 
@@ -210,6 +237,8 @@ OCR).
 | Browser tests | `sok_resdesk/tests/ui`, `scripts/ui-tests.sh`, the CI job *Browser tests* | the About me page, typing in your own language, the proofreading language picker and the page reader's slow-image notice, in Chromium with axe-core |
 | Review subagents | `.claude/agents/security-reviewer.md`, `docs-sync-reviewer.md` | read-only reviewers Claude Code calls (`/release` asks both before a push): one for security and privacy faults in a change, one for missing or extra documentation |
 | Vendored libraries | `scripts/check_vendored.py`, `.github/workflows/vendored.yml` | once a week, compares each library copied into the app (jquery.ime) with its latest release and opens one issue when it is behind |
+| Imports test | `sok_resdesk/tests/unit_imports.py` | fails if a `from sok_resdesk.x import name` names something x no longer has |
+| Governance boundary test | `sok_resdesk/tests/unit_boundaries.py` | fails if a module outside the governance list imports a governance module |
 | Email policy test | `sok_resdesk/tests/unit_mail_policy.py` | fails if code other than the listed account-message senders sends email |
 | pre-commit | `.pre-commit-config.yaml` | the same checks before a commit and a push (optional) |
 

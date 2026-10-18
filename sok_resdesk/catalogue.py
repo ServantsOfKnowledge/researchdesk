@@ -26,9 +26,9 @@ def portal_title() -> str:
 
 
 def _scope(item: str) -> tuple[int, str]:
-	from sok_resdesk.access import scope_of
+	from sok_resdesk import seams
 
-	return scope_of(item)
+	return seams.scope(item)
 
 
 def item_to_record(doc) -> dict:

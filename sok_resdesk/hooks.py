@@ -119,14 +119,23 @@ permission_query_conditions = {
 	"RD Review Flag": "sok_resdesk.access.review_flag_conditions",
 	"RD Ground Truth": "sok_resdesk.access.ground_truth_conditions",
 	"RD External Record": "sok_resdesk.access.external_record_conditions",
-	"RD Item Scope": "sok_resdesk.access.scope_conditions",
-	"RD File": "sok_resdesk.access.file_conditions",
-	"RD File Record": "sok_resdesk.access.file_record_conditions",
-	"RD File Movement": "sok_resdesk.access.file_movement_conditions",
-	"RD Disclosure Request": "sok_resdesk.access.disclosure_conditions",
-	"RD Disclosure Record": "sok_resdesk.access.disclosure_record_conditions",
-	"RD Disclosure Redaction": "sok_resdesk.access.disclosure_redaction_conditions",
+	"RD Item Scope": "sok_resdesk.clearance.scope_conditions",
+	"RD File": "sok_resdesk.clearance.file_conditions",
+	"RD File Record": "sok_resdesk.clearance.file_record_conditions",
+	"RD File Movement": "sok_resdesk.clearance.file_movement_conditions",
+	"RD Disclosure Request": "sok_resdesk.clearance.disclosure_conditions",
+	"RD Disclosure Record": "sok_resdesk.clearance.disclosure_record_conditions",
+	"RD Disclosure Redaction": "sok_resdesk.clearance.disclosure_redaction_conditions",
 }
+# What core asks of the governance layer (sok_resdesk/seams.py); an install without it lists none of these.
+resdesk_event_sinks = ["sok_resdesk.audit.sink"]
+resdesk_governed = ["sok_resdesk.audit.on"]
+resdesk_item_cleared = ["sok_resdesk.clearance.item_cleared"]
+resdesk_item_scope = ["sok_resdesk.clearance.scope_of"]
+resdesk_cleared_sql = ["sok_resdesk.clearance.cleared_sql"]
+resdesk_search_clause = ["sok_resdesk.clearance.search_clause"]
+resdesk_health_checks = ["sok_resdesk.classified.health", "sok_resdesk.directory.health"]
+
 has_permission = {
 	"RD Item": "sok_resdesk.access.item_has_permission",
 	"RD Page Text": "sok_resdesk.access.by_item_has_permission",
@@ -134,9 +143,9 @@ has_permission = {
 	"RD Review Flag": "sok_resdesk.access.by_item_has_permission",
 	"RD Ground Truth": "sok_resdesk.access.by_item_has_permission",
 	"RD External Record": "sok_resdesk.access.by_item_has_permission",
-	"RD Item Scope": "sok_resdesk.access.scope_has_permission",
-	"RD File": "sok_resdesk.access.file_has_permission",
-	"RD Disclosure Request": "sok_resdesk.access.disclosure_has_permission",
+	"RD Item Scope": "sok_resdesk.clearance.scope_has_permission",
+	"RD File": "sok_resdesk.clearance.file_has_permission",
+	"RD Disclosure Request": "sok_resdesk.clearance.disclosure_has_permission",
 }
 
 doc_events = {

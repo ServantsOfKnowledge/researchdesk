@@ -296,3 +296,12 @@ def summary() -> str | None:
 	if keys:
 		parts.append(_("single sign-on: {0}").format(", ".join(k for k in keys if k)))
 	return "; ".join(parts) or None
+
+
+def health() -> list[tuple]:
+	"""Hook resdesk_health_checks: a line for the Server page when directory sign-in is set up."""
+	line = summary()
+	if not line:
+		return []
+	bad = problems()
+	return [("directory", _("Directory sign-in"), "warn" if bad else "ok", " ".join(bad) or line)]

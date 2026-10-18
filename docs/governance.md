@@ -73,7 +73,7 @@ For a request that reaches a record (a search hit, a page, a file, an export, a 
    files, exports, IIIF, OPDS, OAI-PMH, SRU or pushes.
 
 The pure rules are in `core/classification.py` (levels, `expand`, `cleared`, and the two filters
-built from a clearance) with unit tests; `access.py` applies them.
+built from a clearance) with unit tests; `clearance.py` applies them.
 
 ### Departments and clearances
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.87.0 (2026-10-18): Core no longer reaches into governance
+
+- **No change for users.** Governance (the audit log, classification and clearances, Classified mode, retention, the file register, directory sign-in, disclosure) is being made separable, so a library that does not use it has none of it to review. The general code now asks for it only through `seams.py` and the hooks the governance layer lists in `hooks.py`; the clearance rules moved from `access.py` to their own module, `clearance.py`; and two new tests fail if any other module imports a governance module (`unit_boundaries.py`) or imports a name its module no longer has (`unit_imports.py`). With governance not installed, nothing is logged and a classified record stays hidden. See [Development](docs/development.md#the-governance-seam).
+
 ## 0.86.1 (2026-10-18): The disclosure test names the refusal it gets
 
 - Test only: an officer who may not see a record is refused by the permission rule before the check on save; the test now accepts either.

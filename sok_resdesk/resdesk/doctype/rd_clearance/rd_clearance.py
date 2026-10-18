@@ -18,9 +18,9 @@ class RDClearance(Document):
 			)
 		# nobody grants beyond their own clearance or edits their own (the built-in Administrator can)
 		if frappe.session.user != "Administrator":
-			from sok_resdesk import access
+			from sok_resdesk import clearance
 
-			rank, departments = access.clearance()
+			rank, departments = clearance.clearance()
 			if self.user == frappe.session.user:
 				frappe.throw(_("You cannot change your own clearance."))
 			if levels.rank(self.level) > rank:
