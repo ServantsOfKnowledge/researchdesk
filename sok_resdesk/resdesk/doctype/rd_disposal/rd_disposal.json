@@ -1,0 +1,114 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-18 09:00:00.000000",
+ "modified": "2026-10-18 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Disposal",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "field_order": [
+  "rule",
+  "action",
+  "status",
+  "column_break_d",
+  "prepared_on",
+  "approved_by",
+  "done_on",
+  "section_items",
+  "items",
+  "certificate"
+ ],
+ "fields": [
+  {
+   "fieldname": "rule",
+   "fieldtype": "Link",
+   "label": "Rule",
+   "options": "RD Retention Rule",
+   "reqd": 1,
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "action",
+   "fieldtype": "Data",
+   "label": "Action",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nApproved\nDone\nCancelled",
+   "default": "Draft",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_d",
+   "fieldtype": "Column Break",
+   "label": ""
+  },
+  {
+   "fieldname": "prepared_on",
+   "fieldtype": "Datetime",
+   "label": "Prepared On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "approved_by",
+   "fieldtype": "Link",
+   "label": "Approved By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "done_on",
+   "fieldtype": "Datetime",
+   "label": "Done On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_items",
+   "fieldtype": "Section Break",
+   "label": "Records"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Records",
+   "options": "RD Disposal Item"
+  },
+  {
+   "fieldname": "certificate",
+   "fieldtype": "Small Text",
+   "label": "Certificate",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "description": "A list of records whose retention period has ended. Nothing is done until the records officer approves it; a record under a legal hold is always kept.",
+ "autoname": "hash",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "ResDesk Records Officer",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "SOK Super Admin",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  }
+ ]
+}

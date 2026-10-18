@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.81.0 (2026-10-18): Retention rules and legal holds
+
+- **Retention rules** (how long records are kept, counted from the year of the record or the day added, for a department or collection; the longest period governs), a **daily list** of what is due, and **Disposals**: nothing is destroyed or transferred until a records officer approves the list, and each record is checked again first. **Legal holds** keep records out of every list and make them impossible to delete until released. New role **ResDesk Records Officer**; new Desk screens Retention Rules, Legal Holds and Disposals. See [Retention and legal holds](docs/governance.md#retention-and-legal-holds).
+
 ## 0.80.0 (2026-10-17): The public mirror
 
 - **A public mirror**: a second, read-only Research Desk on another container or server, fed only by the main system. The new push target **Public mirror** sends a book (record, PDF, cover) only when it is published, Public, Open, the library's own, and unclassified, and takes it off the mirror within a minute of it being classified, unpublished, made less than public or deleted (and in an hourly pass). The mirror never connects to the main system; its token is `RESDESK_MIRROR_TOKEN` in `.env`, kept in the site configuration. It stays available in Classified mode. See [The public mirror](docs/governance.md#the-public-mirror).

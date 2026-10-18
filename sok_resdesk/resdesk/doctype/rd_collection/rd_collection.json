@@ -218,6 +218,10 @@
    "print": 1,
    "email": 1,
    "share": 1
+  },
+  {
+   "role": "ResDesk Records Officer",
+   "read": 1
   }
  ],
  "autoname": "field:slug",

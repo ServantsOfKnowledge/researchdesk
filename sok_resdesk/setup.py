@@ -10,10 +10,17 @@ ROLES = {
 	"ResDesk Reader": "Logged-in reader: can find and read members-only books on the portal.",
 	"ResDesk Depositor": "Deposits their own work on the portal (Deposit), for the library to review.",
 	"ResDesk Security Officer": "Governance Mode: grants clearances, keeps the departments and classifies records. Holds no other power over the catalogue.",
+	"ResDesk Records Officer": "Retention rules, legal holds and disposal: approves what is disposed of when its period ends. Holds no clearance by role.",
 	"ResDesk Proofreader": "Corrects the page text of books on the portal (Page & text → Proofread), and runs OCR on parts of a page.",
 }
 # roles that work in the Desk; readers only use the portal
-DESK_ROLES = ("SOK Super Admin", "ResDesk Manager", "ResDesk Cataloguer", "ResDesk Security Officer")
+DESK_ROLES = (
+	"SOK Super Admin",
+	"ResDesk Manager",
+	"ResDesk Cataloguer",
+	"ResDesk Security Officer",
+	"ResDesk Records Officer",
+)
 
 SAMPLE_PROFILES = [
 	{

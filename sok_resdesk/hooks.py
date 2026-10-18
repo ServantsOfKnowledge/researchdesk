@@ -140,6 +140,7 @@ doc_events = {
 			"sok_resdesk.review.on_item_update",
 		],
 		"on_trash": [
+			"sok_resdesk.retention.on_item_trash",  # first: a record under a legal hold is not deleted
 			"sok_resdesk.search.on_item_trash",
 			"sok_resdesk.review.on_item_trash",
 			"sok_resdesk.outbound.reconcile_soon",
@@ -154,6 +155,10 @@ doc_events = {
 			# a super admin is also a manager, so every screen and permission a manager has is theirs
 			"sok_resdesk.access.super_admin_is_manager",
 		],
+	},
+	"RD Legal Hold": {
+		"validate": "sok_resdesk.retention.on_hold_validate",
+		"on_update": "sok_resdesk.retention.on_hold_change",
 	},
 	"RD Clearance": {
 		"on_update": "sok_resdesk.classification.on_clearance_change",
@@ -202,6 +207,8 @@ scheduler_events = {
 	# books that left the public are taken off the public mirror (if there is one)
 	"hourly": ["sok_resdesk.ingest.run_scheduled_hourly", "sok_resdesk.outbound.reconcile_all"],
 	"daily": [
+		# records whose retention period has ended are listed for the records officer (Governance)
+		"sok_resdesk.retention.prepare",
 		# deposits whose embargo has ended become readable (Settings → Features → Repository deposit)
 		"sok_resdesk.deposit.release_embargoes",
 		"sok_resdesk.ingest.run_scheduled_daily",

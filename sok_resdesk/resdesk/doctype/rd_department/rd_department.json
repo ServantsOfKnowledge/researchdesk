@@ -62,6 +62,10 @@
   {
    "role": "ResDesk Manager",
    "read": 1
+  },
+  {
+   "role": "ResDesk Records Officer",
+   "read": 1
   }
  ]
 }

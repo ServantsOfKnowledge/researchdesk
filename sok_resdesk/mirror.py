@@ -129,7 +129,11 @@ def ingest_one(item: str) -> None:
 def _withdraw(item: str, folder: str) -> dict:
 	"""The book may no longer be public: gone from the portal, the search engine and the disk."""
 	from sok_resdesk.ingest import _cache_path
+	from sok_resdesk.retention import held
 	from sok_resdesk.search import remove_record
+
+	if held([item]):  # nothing is taken from a record under a legal hold
+		frappe.throw(_("{0} is under a legal hold.").format(item))
 
 	remove_record(item)  # raises if the search engine cannot be reached: the main system tries again
 	try:

@@ -201,6 +201,7 @@ only; 10 a minute.
 | `sok_resdesk.analytics.config` | the usage statistics service portal pages load (public) |
 | `sok_resdesk.counter.reports` · `report` (`report_id`=`TR`, `begin_date`, `end_date`, `format`=`json`/`tsv`) | managers: the COUNTER style Title Master Report from the built-in page views ([Usage reports](usage-reports.md)) |
 | `sok_resdesk.audit.verify` | managers: check the audit log's hash chain, and say at which line it was tampered with ([Governance](governance.md)) |
+| `sok_resdesk.retention.approve` · `cancel` (`disposal`) | records officers: approve a draft Disposal (the records are then disposed of in the background) or cancel it ([Governance](governance.md#retention-and-legal-holds)) |
 | `sok_resdesk.classification.set_classification` (`level`, `department`, `names`/`filters`) | security officers and managers, Governance Mode: set the level and department of many records, up to their own clearance ([Governance](governance.md)) |
 | `GET /sru` (`operation`, `query`, `startRecord`, `maximumRecords`, `recordSchema`) | SRU 1.2: no arguments gives the explain record; `searchRetrieve` takes CQL and returns MARCXML or Dublin Core ([SRU](sru.md)) |
 | `GET /ark:/<naan>/<name>[/n<leaf>]` | a permanent ARK: redirects to the book (with a leaf: that page in the page reader); `?info` returns its who/what/when/where record as text; a deleted book's ARK leads to its tombstone |

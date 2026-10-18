@@ -70,6 +70,8 @@ def on_scope_validate(doc) -> None:
 	old = doc.get_doc_before_save()
 	if old:  # no one reclassifies what they are not cleared for
 		_may_classify(old.classification, old.department)
+		if (old.department or "") != (doc.department or ""):
+			_not_held([doc.item])
 	if not doc.visibility_before:
 		current = frappe.db.get_value("RD Item", doc.item, "visibility")
 		doc.visibility_before = current if current != CLEARED_ONLY else LOGIN_TO_FIND
@@ -83,8 +85,18 @@ def apply_to_item(item: str) -> None:
 	_reindex([item])
 
 
+def _not_held(names: list[str]) -> None:
+	"""A legal hold can follow a record's department, so the department is not changed under it."""
+	from sok_resdesk.retention import held
+
+	under = held(names)
+	if under:
+		frappe.throw(_("{0} is under a legal hold: release the hold first.").format(", ".join(sorted(under))))
+
+
 def release_item(doc) -> None:
 	"""The scope line is deleted: the record has the visibility it had before."""
+	_not_held([doc.item])
 	if frappe.db.get_value("RD Item", doc.item, "visibility") == CLEARED_ONLY:
 		frappe.db.set_value(
 			"RD Item", doc.item, "visibility", doc.visibility_before or LOGIN_TO_FIND, update_modified=False
@@ -107,7 +119,11 @@ def set_classification(level: str, department: str = "", names=None, filters=Non
 	if department and not frappe.db.exists("RD Department", department):
 		frappe.throw(_("Unknown department: {0}").format(department))
 	_may_classify(level, department)
+	from sok_resdesk.retention import held
+
 	selected = access.select_items(names=names, filters=filters)
+	under_hold = held(selected)  # a held record keeps its department and level until the hold is released
+	selected = [n for n in selected if n not in under_hold]
 	rank = levels.rank(level)
 	user, now = frappe.session.user, now_datetime()
 	for i in range(0, len(selected), 500):

@@ -109,7 +109,7 @@
 - [ ] **Government and institutional use** ([Governance](governance.md)): the audit log is done (0.77);
       classification levels, departments and clearances are done (0.78), and Classified mode for
       Secret and Top Secret (0.79), and a read-only public mirror on a second server governed by the
-      main system (0.80); still to come: retention rules and legal holds, single sign-on, a file register, records intake,
+      main system (0.80), and retention rules, legal holds and disposal (0.81); still to come: single sign-on, a file register, records intake,
       signature checks, a disclosure-request workflow, redaction, old Kannada font text to Unicode
       and an offline install bundle
 - [ ] **Accessibility** (details and the full plan: [Accessibility](accessibility.md)): testing with

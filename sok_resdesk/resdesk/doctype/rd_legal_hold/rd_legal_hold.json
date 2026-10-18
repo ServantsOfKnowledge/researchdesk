@@ -1,0 +1,139 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-18 09:00:00.000000",
+ "modified": "2026-10-18 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Legal Hold",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "field_order": [
+  "hold_name",
+  "status",
+  "reference",
+  "reason",
+  "column_break_h",
+  "department",
+  "placed_by",
+  "placed_on",
+  "released_by",
+  "released_on",
+  "section_items",
+  "items"
+ ],
+ "fields": [
+  {
+   "fieldname": "hold_name",
+   "fieldtype": "Data",
+   "label": "Name",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Active\nReleased",
+   "default": "Active",
+   "in_list_view": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "reference",
+   "fieldtype": "Data",
+   "label": "Order / File Reference",
+   "reqd": 1,
+   "description": "The court order, notice or file number that requires the hold."
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Small Text",
+   "label": "Reason"
+  },
+  {
+   "fieldname": "column_break_h",
+   "fieldtype": "Column Break",
+   "label": ""
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Whole Department",
+   "options": "RD Department",
+   "description": "Holds every record of this office and the offices below it, including records added later."
+  },
+  {
+   "fieldname": "placed_by",
+   "fieldtype": "Link",
+   "label": "Placed By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "placed_on",
+   "fieldtype": "Datetime",
+   "label": "Placed On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "released_by",
+   "fieldtype": "Link",
+   "label": "Released By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "released_on",
+   "fieldtype": "Datetime",
+   "label": "Released On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_items",
+   "fieldtype": "Section Break",
+   "label": "Records"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Records",
+   "options": "RD Legal Hold Item"
+  }
+ ],
+ "links": [],
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "description": "Records that must not be disposed of or deleted while a case, audit or inquiry is open.",
+ "autoname": "field:hold_name",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "ResDesk Records Officer",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "SOK Super Admin",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "delete": 0
+  }
+ ]
+}

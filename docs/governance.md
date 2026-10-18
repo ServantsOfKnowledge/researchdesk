@@ -20,7 +20,8 @@ are for the people running it; [How it works](#how-it-works) and
 | **Classification** | each record has a level (Unclassified, Restricted, Confidential; Secret and Top Secret on a Classified-mode installation) and optionally a department |
 | **Need-to-know** | a person sees a record only with a clearance: a level, and the departments (and the offices below them) they belong to |
 | **Audit log** | every view, download, search, change of visibility or classification, clearance granted, sign-in and sign-out, in a log that cannot be edited and shows any tampering |
-| **Separation of duties** | the role **ResDesk Security Officer** grants clearances and classifies; a system administrator holds no clearance by role; the department tree belongs to the super admin |
+| **Separation of duties** | the role **ResDesk Security Officer** grants clearances and classifies; the role **ResDesk Records Officer** approves disposal and legal holds; a system administrator holds no clearance by role; the department tree belongs to the super admin |
+| **Retention** | retention rules, a daily list of what is due, disposal only on a records officer's approval, and legal holds that nobody can override |
 
 It does not make an installation *approved*. That is for your security officers and an audit
 (for an Indian government body, normally by a CERT-In empanelled auditor before it goes live), and
@@ -133,6 +134,44 @@ words. Search words and addresses are personal data in many places (in India, th
 Data Protection Act 2023): decide how long you keep the log and who may read it; a retention policy
 for the log is on the [roadmap](roadmap.md).
 
+### Retention and legal holds
+
+Desk → Research Desk → Running the Library: **Retention Rules**, **Legal Holds**, **Disposals**.
+These need the role **ResDesk Records Officer**; they do not depend on Governance Mode (the department
+choices only mean something with it). Research Desk **never disposes of anything on its own**.
+
+- **A retention rule** says how many years records are kept, counted from the *year of the record* or
+  the day it was *added*, optionally for one department (and the offices below it) or one collection,
+  and what then happens: *Review only*, *Transfer to archives* or *Destroy*. When several rules match a
+  record the **longest period governs** (on a tie, the more cautious action), so a new rule cannot
+  shorten a record's life by accident. A record with no year is not dated on the first basis.
+- **The daily list.** Each day, for every rule with records due, a draft **Disposal** is made: the
+  records and when each fell due (not their titles or levels, so nothing about a classified record
+  is shown to someone who cannot see it). A record under a legal hold is never listed, and one that was
+  kept is not listed again for 30 days. A record that any matching rule cannot date (no year) is left
+  alone. Up to 2,000 records per list; there is one open list per rule. Only Research Desk makes or
+  changes a Disposal: it cannot be created, edited or deleted by hand, and cancelling is for drafts only.
+- **Approval.** The records officer reads the list and approves it (or cancels it). Only then are the
+  records dealt with, in the background. Each is checked again just before it is dealt with, against the
+  live data: a hold placed since the list was made wins, the record must still be due under an enabled
+  rule, and a record the approver is not cleared for is left for an officer who is. *Destroy*
+  removes the catalogue record, its search entries and its page text; *Transfer to archives* marks it
+  transferred on the list (the physical or file transfer is yours, and the list is the manifest);
+  *Review only* just records that someone looked. The finished Disposal carries a certificate line and
+  is kept, and approval and completion are in the audit log.
+- **A legal hold** (a court order, an audit, an inquiry) names records, a whole department, or both,
+  with the order's reference and the reason. While it is active its records are never listed for
+  disposal and **cannot be deleted by anyone**, the built-in Administrator included: the hold must be
+  released first. A held record's department cannot be changed, nor its classification removed, until
+  then. A hold is never deleted, a released hold cannot be edited, and placing, changing (with the
+  records taken off it) and releasing are in the audit log. A department hold covers the records that
+  have a department (a record with none is covered only if named).
+
+What it does not do: *Destroy* does not erase the files in the library's storage or in a backup (the
+certificate says so); a public book that is destroyed still leaves its tombstone, so its permanent
+address answers; a direct database deletion bypasses a hold. A destroyed record is gone: take the
+backup and the approval seriously.
+
 ## Where it is enforced
 
 | Surface | How |
@@ -236,7 +275,6 @@ secret: rotate it by changing both ends.
 
 ## What comes next
 
-Retention rules and legal holds (with a configurable schedule per department and transfer to the
-state archives), single sign-on and directory sync, a file register, records intake, signature
+Single sign-on and directory sync, a file register, records intake, signature
 checks, a disclosure-request workflow, redaction, conversion of old Kannada font text to Unicode,
 and an offline install bundle are planned: see the [roadmap](roadmap.md).
