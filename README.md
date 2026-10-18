@@ -21,6 +21,24 @@ asked for. [Everything it does](docs/features.md).
 > Status: before 1.0. It works end to end and is tested against live Servants of Knowledge data.
 > What changed: [CHANGELOG](CHANGELOG.md). What comes next: [roadmap](docs/roadmap.md).
 
+![How SOK Research Desk fits together: material comes in from archive.org, folders, Calibre, repositories, Wikisource and deposits; ingest, proofreading, machine drafts, preservation and review work on it; it is kept in Frappe and MariaDB and found through Meilisearch; and it goes out to readers, open standards, Wikimedia and other systems, and offline copies](sok_resdesk/public/images/how-it-fits.svg)
+
+<table>
+<tr>
+<td width="50%"><a href="docs/reader-guide.md"><img src="sok_resdesk/public/images/guide/portal-about.png" alt="The public portal: search the full text of every page, read online, cite"></a><br><sub><b>The portal</b>: search inside every page, read, cite, keep a reading list</sub></td>
+<td width="50%"><a href="docs/staff-guide.md"><img src="sok_resdesk/public/images/guide/desk-workspace.png" alt="The Desk: your library today, with books, readers, notes, proofreading and preservation at a glance"></a><br><sub><b>The Desk</b>: your library at a glance, ingest, proofreading, preservation</sub></td>
+</tr>
+</table>
+
+<details>
+<summary>For governments and institutions: classified records, audit, retention, disclosure</summary>
+
+![Governance: every request passes the access rules, then classification and clearance; every view is written to a tamper-evident audit log](sok_resdesk/public/images/governance.svg)
+
+[Government and institutional use](docs/governance.md)
+
+</details>
+
 ## Install
 
 About 20 minutes, mostly waiting. Needs 4 GB of free memory and 10 GB of disk, and
