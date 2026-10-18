@@ -3,6 +3,7 @@
 ## 0.94.0 (2026-10-18): Photographs and recordings in a disclosure package
 
 - A photograph, a recording or a bundle of leaf images that is *disclosed* now goes into the package with its files as they are kept (before, only its description was in the reply). Covering parts of such a record is refused with a clear message: disclose it whole or withhold it.
+- The files of such a record are part of what is decided: if they change after the decision, it must be decided again. Only files in the record's own folder are taken.
 - The roadmap is brought up to date.
 
 ## 0.93.0 (2026-10-18): Draw the covered parts on the page

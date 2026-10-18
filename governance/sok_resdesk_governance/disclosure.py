@@ -94,17 +94,24 @@ def on_validate(doc) -> None:
 
 
 def _state(item: str) -> tuple[str, str]:
-	"""(SHA-256 of the record's PDF or "", its level and department)."""
+	"""(SHA-256 of the record's PDF, or of the files that would go instead, or ""; its level and department)."""
 	from sok_resdesk.pdfs import pdf_path
 
 	path = pdf_path(item)
 	sha = hashlib.sha256()
-	if path:
-		with open(path, "rb") as f:
+	paths = [path] if path else []
+	if (
+		not path
+	):  # the files that would be released: their names and contents, so other ones need a new decision
+		for n, p in _originals(item):
+			sha.update(n.encode() + b"\0")
+			paths.append(p)
+	for p in paths:
+		with open(p, "rb") as f:
 			for chunk in iter(lambda: f.read(1 << 20), b""):
 				sha.update(chunk)
 	rank, department = clearance.scope_of(item)
-	return (sha.hexdigest() if path else "", f"{rank}:{department}")
+	return (sha.hexdigest() if paths else "", f"{rank}:{department}")
 
 
 def _check_pages(doc) -> None:
@@ -281,11 +288,17 @@ def _originals(item: str) -> list[tuple[str, str]]:
 		return []
 	names = [line.partition("|")[0] for line in cstr(row.media_files).splitlines()]
 	names += cstr(row.local_images).splitlines()
+	try:
+		folder = store._path(store._folder(row.local_path))  # the record's own folder
+	except (AttributeError, Exception):  # a store of another kind: nothing is taken from it
+		return []
 	found = []
 	for name in dict.fromkeys(n for n in names if n):  # each once, in order
+		if os.path.basename(name) != name:  # a bare name: nothing from another folder
+			continue
 		path = store.file_path(row.local_path, name)
-		if path:
-			found.append((os.path.basename(name), path))
+		if path and os.path.dirname(path) == folder:  # not through a link into another record's folder
+			found.append((name, path))
 	return found
 
 
