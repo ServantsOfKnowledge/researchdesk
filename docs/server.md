@@ -293,6 +293,7 @@ on, because it can control Docker and change the Research Desk folder.
 ```bash
 ./resdesk.sh updater on        # turn it on (once)
 ./resdesk.sh updater status    # is it running? its last lines
+./resdesk.sh updater doctor    # why isn't it working? (--fix puts right what is safe to)
 ./resdesk.sh updater off       # turn it off again
 ```
 
@@ -326,12 +327,36 @@ kept in `.env` and the site config. Long tasks run apart from the helper (in a s
 container on Docker, a detached process on native), so they carry on while the restart they
 cause replaces the helper itself.
 
+### When the helper stops working
+
+The most common cause is not the helper but its token. It is kept in two places: `.env` (what the helper
+signs in with) and the site configuration (what the Server page checks to offer upgrades and restarts).
+Restoring a backup or re-creating the site loses the second copy, and then the Server page says the
+helper is off while the helper is refused, and restarting the stack changes nothing. Three things put it
+right by themselves:
+
+- **The helper does** (every ten minutes at most): when the site refuses its token, it puts the token
+  from `.env` back in the site configuration and says so in its log.
+- **Starting the stack does** (Docker): `create-site` puts it back whenever it differs, on `up` and on every
+  upgrade. `docker compose restart` does not run it.
+- **`./resdesk.sh updater doctor`** looks at everything the helper depends on, for the kind of install you
+  have, and says in plain words what is wrong. With `--fix` it repairs what is safe: a value in `.env`, the
+  token in the site configuration, the helper's container. An upgrade runs the fixes that need no restart.
+
+| Install | What `doctor` checks |
+|---|---|
+| Docker | `RESDESK_AGENT_TOKEN` in `.env`; `updater` in `COMPOSE_PROFILES`; `RESDESK_DIR` is this folder (not moved); the Docker socket, and `DOCKER_GID` for a helper that does not run as root; the helper's container exists and runs; the token in the site configuration matches; the helper's address reaches the site |
+| Native | `UPDATER=1`; the bench's Procfile starts the helper; its process runs; the token matches; the site answers |
+| Coolify | says the helper is not used there: restarts and redeploys go through Coolify's API |
+
+It never prints the token. `RESDESK_CLASSIFIED=1` switches the helper off on purpose, and `doctor` says so.
+
 ### Troubleshooting the helper
 
 | Problem | Try |
 |---|---|
-| *Not reporting* on the Server page | `./resdesk.sh updater status`; `./resdesk.sh updater on` again |
-| "The site refused the token" in its log | `./resdesk.sh updater on` (makes a new token for both sides) |
+| *Not reporting* on the Server page, or it says the helper is *off* when you turned it on | `./resdesk.sh updater doctor --fix` |
+| "The site refused the token" in its log | it repairs this itself; if it keeps saying so, `./resdesk.sh updater doctor --fix`, or `./resdesk.sh updater on` (makes a new token for both sides) |
 | An upgrade says there are local code changes | someone edited files in the Research Desk folder: `git status`, then commit or `git stash` them |
 | A task stays *Running* | the helper stopped reporting; after three hours the task is marked failed. Its log is in `logs/upgrade-<date>.log` on the server |
 

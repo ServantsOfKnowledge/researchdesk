@@ -16,6 +16,7 @@ researchdesk/
 │   ├── native-procfile.sh  Procfile for native runs (gunicorn, Meilisearch, extra workers)
 │   ├── dev-setup.sh        bench setup for developers
 │   ├── gen_docs.py         the generated parts of docs/ (./resdesk.sh docs)
+│   ├── updater_doctor.py   why the updater helper isn't working, and the safe fixes (./resdesk.sh updater doctor)
 │   ├── screenshots.py      retake the pictures in docs/ (./resdesk.sh screenshots)
 │   ├── gen_overview.py     draw the README's "How it fits together" picture (sok_resdesk/public/images/how-it-fits.svg)
 │   ├── gen_ime.py          vendor jquery.ime and its input methods (sok_resdesk/public/vendor/jquery.ime)

@@ -57,6 +57,14 @@ if [ -n "${RESDESK_MIRROR_TOKEN:-}" ] && ! env/bin/python -c 'import json,sys; s
   bench --site "${SITE_NAME}" set-config resdesk_mirror_token "${RESDESK_MIRROR_TOKEN}"
 fi
 
+# The updater helper's token (./resdesk.sh updater on): .env is where it is kept, the site configuration is
+# where the Desk reads it. A restored backup or a recreated site loses the second copy, and then the
+# Server page says the helper is off while the helper is refused; put it back whenever the stack comes up
+if [ -n "${RESDESK_AGENT_TOKEN:-}" ] && ! env/bin/python -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("resdesk_agent_token") == sys.argv[2] else 1)' "sites/${SITE_NAME}/site_config.json" "${RESDESK_AGENT_TOKEN}" 2>/dev/null; then
+  echo ">> Putting the updater helper's token back in the site configuration"
+  bench --site "${SITE_NAME}" set-config resdesk_agent_token "${RESDESK_AGENT_TOKEN}"
+fi
+
 stored_host() {
   env/bin/python -c 'import json,sys; print(json.load(open(sys.argv[1])).get("host_name") or "")' \
     "sites/${SITE_NAME}/site_config.json" 2>/dev/null || true

@@ -154,6 +154,8 @@ services:
       RESDESK_CLASSIFIED: ${RESDESK_CLASSIFIED:-}
       # a public mirror (docs/governance.md#the-public-mirror): the token the main system sends
       RESDESK_MIRROR_TOKEN: ${RESDESK_MIRROR_TOKEN:-}
+      # the updater helper's token (./resdesk.sh updater on): put back in the site configuration if it is lost
+      RESDESK_AGENT_TOKEN: ${RESDESK_AGENT_TOKEN:-}
       BASE_URL: ${BASE_URL:-}
       FORCE_MIGRATE: ${FORCE_MIGRATE:-0}
       TIMEZONE: ${TIMEZONE:-Asia/Kolkata}

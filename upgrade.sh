@@ -354,6 +354,8 @@ PORT="${HTTP_PORT:-8080}"
 BASE="${RESDESK_HEALTH_URL:-http://localhost:$PORT}"
 for _ in $(seq 1 40); do curl -fs -o /dev/null "$BASE/library" && break; sleep 3; done
 curl -fs -o /dev/null "$BASE/library" && ok "Portal answers on http://localhost:$PORT/library" || { warn "Portal is not answering"; false; }
+# the updater helper's token and settings in .env can drift (a restored backup, a moved folder): put right what is safe to
+[ -n "${RESDESK_AGENT_TOKEN:-}" ] && { python3 scripts/updater_doctor.py --fix --no-restart --quiet || true; }
 STATS="$(curl -fs "$BASE/api/method/sok_resdesk.api.stats" || true)"
 echo "$STATS" | grep -q '"search":"ok"' && ok "Search engine OK" || warn "Search engine not answering yet: check ./resdesk.sh logs"
 # -- the workers (--gentle) -----------------------------------------------------------------------

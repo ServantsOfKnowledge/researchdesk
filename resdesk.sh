@@ -372,8 +372,13 @@ PY
       status)
         if [ -z "${RESDESK_AGENT_TOKEN:-}" ]; then echo "Updater helper: off (turn on: ./resdesk.sh updater on)"; exit 0; fi
         if [ "$MODE" = native ]; then pgrep -f "scripts/agent.py" >/dev/null && echo "Updater helper: running" || echo "Updater helper: on, but not running (./resdesk.sh restart)"
-        else docker compose ps updater; echo; docker compose logs --tail 10 updater; fi ;;
-      *) echo "Usage: ./resdesk.sh updater on|off|status"; exit 1 ;;
+        else docker compose ps updater; echo; docker compose logs --tail 10 updater; fi
+        echo; echo "Not working as it should? ./resdesk.sh updater doctor" ;;
+      doctor)
+        # why it isn't working, for this kind of install; --fix puts right what is safe to (docs/server.md)
+        shift || true
+        exec python3 scripts/updater_doctor.py "$@" ;;
+      *) echo "Usage: ./resdesk.sh updater on|off|status|doctor [--fix]"; exit 1 ;;
     esac ;;
 
   password)
@@ -443,7 +448,7 @@ Maintenance
   ./resdesk.sh move-to USER@HOST [--with-library]   export, copy over SSH and import in one go
   ./resdesk.sh coolify import FILE          on a Coolify server: load an export (also: list, export, bench)
   ./resdesk.sh update [v0.4.0]          upgrade (same as ./upgrade.sh; --check to just look)
-  ./resdesk.sh updater on|off|status    let the Server page in the Desk upgrade, restart and back up
+  ./resdesk.sh updater on|off|status|doctor   let the Server page in the Desk upgrade, restart and back up
   ./resdesk.sh requirements             how well this server is equipped: every tool, found or missing
   ./resdesk.sh requirements install python|ocr   install Python packages, or Tesseract + models (native)
   ./resdesk.sh password [new]           reset the Administrator password

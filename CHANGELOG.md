@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.88.0 (2026-10-18): The updater helper looks after its own token, and a doctor says why it is not working
+
+- **If the Server page says the updater helper is off (or not reporting) and restarting the stack changes nothing**, the usual cause is that the helper's token, kept in `.env` and in the site configuration, differs between the two (a restored backup or a re-created site loses the second). Now the helper puts the token from `.env` back when the site refuses it (at most every ten minutes, and it says so in its log), and on Docker installs starting the stack does the same (`create-site`; `docker compose restart` does not run it).
+- **`./resdesk.sh updater doctor [--fix]`** says in plain words what is wrong, for a Docker, native or Coolify install: the values in `.env` (the token, `COMPOSE_PROFILES`, `RESDESK_DIR` after the folder was moved, `DOCKER_GID`), the helper's container or process, the token in the site configuration, and whether the helper can reach the site. `--fix` repairs what is safe; an upgrade runs the fixes that need no restart. The Server page now points to it. See [Server](docs/server.md#when-the-helper-stops-working).
+
 ## 0.87.0 (2026-10-18): Core no longer reaches into governance
 
 - **No change for users.** Governance (the audit log, classification and clearances, Classified mode, retention, the file register, directory sign-in, disclosure) is being made separable, so a library that does not use it has none of it to review. The general code now asks for it only through `seams.py` and the hooks the governance layer lists in `hooks.py`; the clearance rules moved from `access.py` to their own module, `clearance.py`; and two new tests fail if any other module imports a governance module (`unit_boundaries.py`) or imports a name its module no longer has (`unit_imports.py`). With governance not installed, nothing is logged and a classified record stays hidden. See [Development](docs/development.md#the-governance-seam).

@@ -781,7 +781,7 @@ Maintenance
   ./resdesk.sh move-to USER@HOST [--with-library]   export, copy over SSH and import in one go
   ./resdesk.sh coolify import FILE          on a Coolify server: load an export (also: list, export, bench)
   ./resdesk.sh update [v0.4.0]          upgrade (same as ./upgrade.sh; --check to just look)
-  ./resdesk.sh updater on|off|status    let the Server page in the Desk upgrade, restart and back up
+  ./resdesk.sh updater on|off|status|doctor   let the Server page in the Desk upgrade, restart and back up
   ./resdesk.sh requirements             how well this server is equipped: every tool, found or missing
   ./resdesk.sh requirements install python|ocr   install Python packages, or Tesseract + models (native)
   ./resdesk.sh password [new]           reset the Administrator password

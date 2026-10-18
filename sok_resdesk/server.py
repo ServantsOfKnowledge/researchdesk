@@ -103,7 +103,8 @@ def agent_sync(token: str | None = None, facts=None, job=None) -> dict:
 	from sok_resdesk import seams
 
 	if seams.classified():  # it fetches code and images from outside, which classified mode never allows
-		frappe.throw(_("The updater helper is off in Classified mode."), frappe.PermissionError)
+		# not translated: the helper and its doctor recognise this text
+		frappe.throw("The updater helper is off in Classified mode.", frappe.PermissionError)
 	expected = _agent_token()
 	if not expected or not token or not hmac.compare_digest(str(token), expected):
 		frappe.throw(_("Not allowed."), frappe.PermissionError)
@@ -696,7 +697,7 @@ def health() -> list[dict]:
 					"helper",
 					_("Updater helper"),
 					"bad",
-					_("not reporting: is it running? ./resdesk.sh updater status"),
+					_("not reporting: on the server, run ./resdesk.sh updater doctor"),
 				)
 			)
 	elif coolify_config():
@@ -706,7 +707,12 @@ def health() -> list[dict]:
 	else:
 		out.append(
 			_check(
-				"helper", _("Updater helper"), "off", _("off: upgrades and restarts are done on the server")
+				"helper",
+				_("Updater helper"),
+				"off",
+				_(
+					"off: upgrades and restarts are done on the server (if you turned the helper on: ./resdesk.sh updater doctor)"
+				),
 			)
 		)
 

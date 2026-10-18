@@ -29,6 +29,9 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # also when loaded by something else
+import updater_doctor as doctor  # noqa: E402  (next to this file; its judgement is shared with the doctor)
+
 AGENT_VERSION = "1"
 ROOT = os.environ.get("RESDESK_DIR") or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATE = os.path.join(ROOT, "logs", ".updater-task.json")
@@ -63,11 +66,11 @@ def env_file() -> dict:
 	return out
 
 
-def run(cmd, timeout=60, env=None) -> tuple[int, str]:
+def run(cmd, timeout=60, env=None, cwd=None) -> tuple[int, str]:
 	try:
 		p = subprocess.run(
 			cmd,
-			cwd=ROOT,
+			cwd=cwd or ROOT,
 			capture_output=True,
 			text=True,
 			timeout=timeout,
@@ -202,6 +205,28 @@ def sync(url: str, site: str, token: str, facts: dict, job: dict | None) -> dict
 	)
 	with urllib.request.urlopen(req, timeout=20) as r:
 		return json.loads(r.read().decode()).get("message") or {}
+
+
+def heal_token(env: dict, site: str, token: str) -> str:
+	"""The site refuses the token in .env. .env is the truth on this machine, so put it back in the site
+	configuration, which is what a restored backup or a re-created site loses."""
+	fresh = env_file().get("RESDESK_AGENT_TOKEN") or ""
+	if (
+		not fresh or fresh != token
+	):  # `updater off` or a new `updater on` since this loop began: not ours to undo
+		return "the token in .env has changed meanwhile: nothing done"
+	cmd = ["bench", "--site", site, "set-config", "resdesk_agent_token", token]
+	cwd = None
+	if env.get("INSTALL_MODE") == "native":
+		cwd = env.get("BENCH_DIR") or os.path.expanduser("~/researchdesk-bench")
+	else:
+		cmd = ["docker", "compose", "exec", "-T", "backend", *cmd]
+	code, out = run(cmd, timeout=120, env=compose_env(env), cwd=cwd)
+	return (
+		"token put back in the site configuration"
+		if not code
+		else f"could not do that: {out.replace(token, '***')[-200:]}"
+	)
 
 
 # -- tasks -----------------------------------------------------------------------------------------
@@ -418,12 +443,16 @@ def inline_task(task: dict, env: dict) -> dict:
 
 def main() -> None:
 	me = os.path.abspath(__file__)
-	started_mtime = os.path.getmtime(me)
+
+	def stamp():  # this file and the one it shares its judgement with
+		return (os.path.getmtime(me), os.path.getmtime(doctor.__file__))
+
+	started_mtime = stamp()
 	env = env_file()
 	site = env.get("SITE_NAME") or "resdesk.localhost"
 	url = os.environ.get("RESDESK_AGENT_URL") or f"http://127.0.0.1:{env.get('HTTP_PORT') or '8000'}"
 	log(f"Research Desk updater helper for {site} ({'docker' if IN_DOCKER else 'native'}) talking to {url}")
-	slow, releases, pending_report, extra = 0.0, 0.0, None, {}
+	slow, releases, pending_report, extra, last_heal = 0.0, 0.0, None, {}, 0.0
 	facts = {}
 	while True:
 		env = env_file()
@@ -489,14 +518,27 @@ def main() -> None:
 						start_detached(task["name"], cmd, env)
 				continue  # report straight away
 		except urllib.error.HTTPError as e:
-			if e.code == 403:
-				log("The site refused the token: run ./resdesk.sh updater on again.")
+			why = doctor.classify_refusal(e.code, e.read().decode("utf-8", "replace")[:2000])
+			if why == "classified":
+				log("The site is in Classified mode, which switches the helper off: it will not work here.")
+				time.sleep(300)
+			elif why == "token":
+				if time.time() - last_heal > 600:  # at most every ten minutes
+					last_heal = time.time()
+					log(
+						"The site refused the token: putting the one from .env back in the site configuration"
+					)
+					log(heal_token(env, site, token))
+				else:
+					log(
+						"The site still refuses the token: run ./resdesk.sh updater doctor --fix on the server."
+					)
 				time.sleep(30)
 			else:
 				log(f"site answered {e.code}")
 		except (urllib.error.URLError, OSError, ValueError) as e:
 			log(f"site not reachable ({e}); trying again")  # normal while it restarts
-		if os.path.getmtime(me) != started_mtime and not load_state():
+		if stamp() != started_mtime and not load_state():
 			log("new version of the helper: restarting it")
 			os.execv(sys.executable, [sys.executable, me])
 		time.sleep(INTERVAL)
