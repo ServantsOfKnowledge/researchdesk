@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.94.0 (2026-10-18): Photographs and recordings in a disclosure package
+
+- A photograph, a recording or a bundle of leaf images that is *disclosed* now goes into the package with its files as they are kept (before, only its description was in the reply). Covering parts of such a record is refused with a clear message: disclose it whole or withhold it.
+- The roadmap is brought up to date.
+
 ## 0.93.0 (2026-10-18): Draw the covered parts on the page
 
 - **Redaction by drawing.** On a disclosure request, *Cover Parts of a Page* shows the page and a records officer draws the boxes with the mouse or a finger, or types left, top, width and height; the boxes go into the *Covered Parts* table as before.

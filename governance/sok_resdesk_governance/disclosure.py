@@ -11,6 +11,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import io
+import os
 import zipfile
 
 import frappe
@@ -114,7 +115,11 @@ def _check_pages(doc) -> None:
 	for item in {r.item for r in doc.redactions or []}:
 		path = pdf_path(item)
 		if not path:
-			frappe.throw(_("{0} has no file to cover parts of.").format(item))
+			frappe.throw(
+				_(
+					"{0} has no PDF to cover parts of: a photograph or recording can be disclosed whole or withheld."
+				).format(item)
+			)
 		counts[item] = page_count(path)
 	boxes = [{"item": r.item, "page": r.page} for r in doc.redactions or []]
 	found = rules.pages_off(boxes, counts)
@@ -261,6 +266,29 @@ def _not_huge(path: str, index: int, dpi: int, limit: int = MAX_SIDE) -> None:
 		raise RenderError(_("A page is too large to redact."))
 
 
+def _originals(item: str) -> list[tuple[str, str]]:
+	"""(name, path) of the files of a record that is not a PDF: a recording's media files, or the images
+	of a photograph or a bundle of leaf images, as they are kept (a folder source only)."""
+	from sok_resdesk.local_source import store_for_item
+
+	row = frappe.db.get_value(
+		"RD Item", item, ["source", "local_path", "media_files", "local_images"], as_dict=True
+	)
+	if not row or row.source != "Local":
+		return []
+	store = store_for_item(frappe.get_doc("RD Item", item))
+	if store is None or not hasattr(store, "file_path"):
+		return []
+	names = [line.partition("|")[0] for line in cstr(row.media_files).splitlines()]
+	names += cstr(row.local_images).splitlines()
+	found = []
+	for name in dict.fromkeys(n for n in names if n):  # each once, in order
+		path = store.file_path(row.local_path, name)
+		if path:
+			found.append((os.path.basename(name), path))
+	return found
+
+
 def _catalogue(item: str) -> str:
 	title, year = frappe.db.get_value("RD Item", item, ["title", "year"]) or (item, None)
 	return f"{item}: {title}" + (f" ({year})" if year else "")
@@ -279,7 +307,6 @@ def build(name: str, user: str) -> None:
 
 
 def _build(name: str) -> None:
-	import os
 	import tempfile
 
 	from sok_resdesk.pdfs import pdf_path
@@ -317,7 +344,20 @@ def _build(name: str) -> None:
 				line += f". Ground: {r.ground}"
 			path = pdf_path(r.item)
 			if not path:
-				index.append(line + ". (No file held: the entry above is all there is.)")
+				others = _originals(r.item) if r.decision == rules.DISCLOSE else []
+				for n, p in others:  # a photograph or recording goes whole, as it is kept
+					total += os.path.getsize(p)
+					if total > MAX_BYTES:
+						raise ValueError("The package is too large: split the request.")
+					z.write(p, f"{r.item}/{n}")
+				index.append(
+					line
+					+ (
+						f". {len(others)} file(s) as kept."
+						if others
+						else ". (No file held: the entry above is all there is.)"
+					)
+				)
 				continue
 			if r.decision == rules.DISCLOSE:
 				total += os.path.getsize(path)

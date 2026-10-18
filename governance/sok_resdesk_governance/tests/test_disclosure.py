@@ -147,6 +147,14 @@ class TestDisclosure(IntegrationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			disclosure.page_image(doc.name, doc.records[0].item, 0)
 
+	def test_parts_of_a_record_with_no_pdf_cannot_be_covered(self):
+		item = self.item(10)  # no file at all, as a photograph or recording would not have a PDF either
+		doc = self.request([{"item": item, "decision": "Disclose redacted", "ground": "g"}])
+		doc.append("redactions", {"item": item, "page": 1, "left": 10, "top": 10, "width": 20, "height": 5})
+		doc.save()
+		with self.assertRaises(frappe.ValidationError):
+			disclosure.decide(doc.name)
+
 	def test_a_request_is_never_deleted(self):
 		doc = self.request([{"item": self.item(8), "decision": "Disclose"}])
 		with self.assertRaises(frappe.ValidationError):

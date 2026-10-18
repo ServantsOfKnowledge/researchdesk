@@ -109,9 +109,8 @@
 - [ ] **Government and institutional use** ([Governance](governance.md)): the audit log is done (0.77);
       classification levels, departments and clearances are done (0.78), and Classified mode for
       Secret and Top Secret (0.79), and a read-only public mirror on a second server governed by the
-      main system (0.80), and retention rules, legal holds and disposal (0.81), and directory sign-in with LDAP and single sign-on (0.82), and a file register (0.83), and disclosure requests with redaction (0.86); still to come: records intake,
-      signature checks, drawing boxes on the page for redaction
-      and an offline install bundle; old Kannada font text is converted to Unicode when a PDF is read (0.84)
+      main system (0.80), and retention rules, legal holds and disposal (0.81), and directory sign-in with LDAP and single sign-on (0.82), and a file register (0.83), and disclosure requests with redaction (0.86, boxes drawn on the page 0.93, photographs and recordings disclosed whole 0.94); still to come: records intake,
+      signature checks and an offline install bundle; old Kannada font text is converted to Unicode when a PDF is read (0.84)
 - [ ] **Accessibility** (details and the full plan: [Accessibility](accessibility.md)): testing with
       blind and low-vision readers using NVDA and TalkBack with Indic voices; later DAISY talking
       books, and sharing with Sugamya Pustakalaya under the Marrakesh Treaty and Copyright Act
@@ -126,7 +125,7 @@
 - [x] Collection pictures from archive.org, shown whole, an admin's own never overwritten (0.44)
 - [x] Help pictures that follow upgrades; every OCR language model in the image (0.44)
 - [x] Features and institution profiles: what kind of institution this is (profiles that
-      combine), eighteen features that can be switched off and are then not collected, and
+      combine), nineteen features that can be switched off and are then not collected, and
       suggestions when data arrives that a switched-off feature would handle (0.45)
 - [x] The installer asks the kind of institution, the books' languages and about how many
       books (0.46)

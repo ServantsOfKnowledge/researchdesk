@@ -291,8 +291,8 @@ officer (and the Super Admin) work with them.
   again. It needs `pdftoppm` (poppler-utils) on the server; without it redaction is refused rather than done
   loosely.
 
-What it does not do yet: text found on a page cannot be covered by searching for it; a record that is
-not a PDF (a photograph, a recording) is described in the reply but its file is not included; and
+What it does not do yet: text found on a page cannot be covered by searching for it; parts of a photograph or a recording
+cannot be covered (it is disclosed whole, with its files as kept, or withheld); and
 redaction covers the PDF only, not the catalogue entry, page text or notes of the record. Whether
 a ground applies is the officer's decision, not the software's.
 

@@ -1,1 +1,1 @@
-__version__ = "0.93.0"  # always the same as sok_resdesk's (tests/unit_editions.py checks)
+__version__ = "0.94.0"  # always the same as sok_resdesk's (tests/unit_editions.py checks)
