@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.85.2 (2026-10-18): Classifying a record clears its review flags
+
+- A record's open review questions no longer linger when it is classified; they were kept until the next nightly scan. The 0.85.1 test, which found this, passes only with the fix.
+
 ## 0.85.1 (2026-10-18): The classification-gap test scans the way the nightly scan does
 
 - Test only: it passed the classified record to the scan by name; the nightly scan leaves such records out, and the test now checks that.

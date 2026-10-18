@@ -81,6 +81,7 @@ def on_scope_validate(doc) -> None:
 def apply_to_item(item: str) -> None:
 	"""After the scope is saved: the record becomes Cleared only, at once in search too."""
 	frappe.db.set_value("RD Item", item, "visibility", CLEARED_ONLY, update_modified=False)
+	frappe.db.delete("RD Review Flag", {"item": item})  # a classified record is not in the review queue
 	level, department = frappe.db.get_value(SCOPE, item, ["classification", "department"])
 	audit.record("classification", item, f"{level} {department or ''}".strip())
 	_reindex([item])
