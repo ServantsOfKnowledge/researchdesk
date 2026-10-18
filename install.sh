@@ -12,6 +12,9 @@
 #                            what kind of institution (they combine): small, portal, members,
 #                            archive, repository, langtech; the books' languages for OCR (or
 #                            all); about how many books. Settings → Features can change it later
+#  ./install.sh --edition governance
+#                            the records-office app as well (audit log, classification, retention,
+#                            file register…). Standard is the default; needs a local image build
 #  ./install.sh --domain library.example.org [--email you@example.org]
 #                            a server with a DNS name: the portal's address, with HTTPS from
 #                            Let's Encrypt (Docker; --no-https if you have your own proxy)
@@ -33,6 +36,7 @@ CHECK_ONLY=0
 PROFILES=""
 LANGUAGES=""
 BOOKS=""
+EDITION=""   # standard (default) or governance: the records-office app as well
 while [ $# -gt 0 ]; do
   case "$1" in
     -y|--yes) YES=1 ;;
@@ -49,12 +53,14 @@ while [ $# -gt 0 ]; do
     --languages) LANGUAGES="${2:-}"; shift ;;
     --books) BOOKS="${2:-}"; shift ;;
     --classified) CLASSIFIED=yes ;;
-    -h|--help) sed -n '2,18p' "$0"; exit 0 ;;
+    --edition) EDITION="${2:-}"; shift ;;
+    -h|--help) sed -n '2,21p' "$0"; exit 0 ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
   shift
 done
 DOMAIN="${DOMAIN#http://}"; DOMAIN="${DOMAIN#https://}"; DOMAIN="${DOMAIN%%/*}"
+case "${EDITION:-standard}" in standard|governance) ;; *) echo "--edition is standard or governance"; exit 1 ;; esac
 
 bold() { printf "\033[1m%s\033[0m\n" "$*"; }
 ok()   { printf "  \033[32m✓\033[0m %s\n" "$*"; }
@@ -140,6 +146,7 @@ echo
 bold "2/5  Settings"
 if [ -f .env ]; then
   ok "Found existing .env — keeping your settings and passwords"
+  [ -n "$EDITION" ] && warn "--edition is read only on a first install: add RESDESK_EDITION=$EDITION to .env and run ./upgrade.sh"
   # shellcheck disable=SC1091
   set -a; . ./.env; set +a
 else
@@ -198,6 +205,8 @@ OCR_LANGS="${LANGUAGES:-all}"
 RESDESK_BOOKS=${BOOKS:-1000}
 # Classified mode (Secret, Top Secret): refuse every outside connection. Empty = off.
 RESDESK_CLASSIFIED=${CLASSIFIED:-}
+# standard, or governance for the records-office app as well (built into the image; native installs link it)
+RESDESK_EDITION=${EDITION:-standard}
 ADMIN_PASSWORD=${ADMIN_PASSWORD}
 DB_ROOT_PASSWORD=$(secret)
 MEILI_MASTER_KEY=$(secret)$(secret)
@@ -210,6 +219,9 @@ EOF
   set -a; . ./.env; set +a
 fi
 HTTP_PORT=${HTTP_PORT:-8080}
+if [ "${RESDESK_EDITION:-standard}" = governance ] && [ -n "${RESDESK_IMAGE:-}" ]; then
+  die "The governance edition is built here, not pulled: unset RESDESK_IMAGE in .env (or use the standard edition)."
+fi
 
 if [ "$MODE" = native ]; then
   # 3–4. Native: system packages, bench, site (see scripts/install-native.sh) -------------

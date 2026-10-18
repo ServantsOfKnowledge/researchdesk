@@ -53,6 +53,32 @@ attention, with the advice. On a Coolify server it asks before carrying on.
 Data lives in Docker volumes (`db-data`, `meili-data`, `sites`, …), so stopping or updating
 containers never deletes it. Only `./resdesk.sh uninstall` removes volumes.
 
+## Editions
+
+Research Desk comes in two editions. Pick one when you install. `--edition` is read only on a first install; to change an existing install, put `RESDESK_EDITION=governance` in `.env` and run `./upgrade.sh`.
+
+| Edition | What is installed | Use it for |
+|---|---|---|
+| **standard** (the default) | Research Desk: the catalogue, portal, search, reader, OCR, preservation, connectors | a library, archive or repository |
+| **governance** | Research Desk **and** *Research Desk Governance*, a second app for a records office | an office that needs classification, an audit log, retention and holds, a file register, directory sign-in, disclosure requests |
+
+```bash
+./install.sh --edition governance     # Docker or --native
+```
+
+It is written to `.env` as `RESDESK_EDITION`. Research Desk never needs the second app, so a standard
+install has none of it to run or to review. On Docker the governance app is built into the image, so use
+the local build (not a prebuilt `RESDESK_IMAGE`); the installer and `./upgrade.sh` install it on the site if
+it is missing, and a native install links it from this checkout's `governance/` folder.
+
+Going back to standard is not automatic: uninstall the app first
+(`./resdesk.sh bench uninstall-app sok_resdesk_governance`, with the edition still set to governance), then change
+`.env`. Starting the stack with the edition set back while the app is installed stops with a message saying so, instead of breaking the site.
+
+**Where this is today (0.89):** the second app is installed and checked in CI, but it is still empty. The
+governance features themselves still ship inside Research Desk and move into it in 0.90; until then both
+editions have them. An existing install does not change: it stays standard unless you set the edition.
+
 ## Requirements
 
 | | Minimum | Comfortable for 100k books |

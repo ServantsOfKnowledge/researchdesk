@@ -57,6 +57,16 @@ RUN rm -rf apps/sok_resdesk/.git \
  && bench build --app sok_resdesk \
  && cp -r sites/assets assets && rm -rf sites/assets
 
+# 2b. The governance app (docs/installation.md#editions): only in the "governance" edition, built from the
+#     governance/ folder of the same checkout. Its own layer, after the app above, so the standard
+#     edition is exactly as before. (No assets yet: nothing to build.)
+ARG RESDESK_EDITION=standard
+RUN if [ "${RESDESK_EDITION}" = governance ]; then \
+      mv apps/sok_resdesk/governance apps/sok_resdesk_governance \
+      && uv pip install --python env/bin/python -e apps/sok_resdesk_governance \
+      && sed -i -e '$a\' sites/apps.txt && echo "sok_resdesk_governance" >> sites/apps.txt ; \
+    else rm -rf apps/sok_resdesk/governance ; fi
+
 # (built assets stay in the image, in assets/; the entrypoint links them into the sites volume)
 # declared last: changes made inside a volume after it is declared would be lost
 VOLUME ["/home/frappe/frappe-bench/sites", "/home/frappe/frappe-bench/logs"]

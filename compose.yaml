@@ -22,6 +22,8 @@ x-image: &image
       # Tesseract language models in the image: all of them, or a list (OCR_LANGS in .env; the
       # upgrade rebuilds that layer only when it changes)
       OCR_LANGS: ${OCR_LANGS:-all}
+      # "standard", or "governance" for the records-office app as well (./install.sh --edition governance)
+      RESDESK_EDITION: ${RESDESK_EDITION:-standard}
   restart: unless-stopped
 
 # Resource caps (./resdesk.sh resources). "0" or empty means no limit.
@@ -152,6 +154,7 @@ services:
       RESDESK_PROFILES: ${RESDESK_PROFILES:-}
       RESDESK_BOOKS: ${RESDESK_BOOKS:-}
       RESDESK_CLASSIFIED: ${RESDESK_CLASSIFIED:-}
+      RESDESK_EDITION: ${RESDESK_EDITION:-standard}
       # a public mirror (docs/governance.md#the-public-mirror): the token the main system sends
       RESDESK_MIRROR_TOKEN: ${RESDESK_MIRROR_TOKEN:-}
       # the updater helper's token (./resdesk.sh updater on): put back in the site configuration if it is lost

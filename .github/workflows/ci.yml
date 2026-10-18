@@ -21,9 +21,9 @@ jobs:
       - run: pip install ruff pytest requests pillow pypdf markdown
       - name: Tesseract with the Kannada model (the OCR engine's test reads a rendered page)
         run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends tesseract-ocr tesseract-ocr-kan tesseract-ocr-eng fonts-knda
-      - run: ruff check sok_resdesk scripts
-      - name: "Code is formatted (fix with: ruff format sok_resdesk scripts)"
-        run: ruff format --check sok_resdesk scripts
+      - run: ruff check sok_resdesk governance scripts
+      - name: "Code is formatted (fix with: ruff format sok_resdesk governance scripts)"
+        run: ruff format --check sok_resdesk governance scripts
       # every pure test: test_core, test_push, test_docs and unit_* (pyproject.toml lists them)
       - run: pytest -q
       - name: Docs match the code (see docs/development.md → Keeping the docs current)
@@ -45,6 +45,36 @@ jobs:
       - run: playwright install --with-deps chromium
       - name: "Pages in a real browser, behaviour and WCAG 2.2 A/AA (scripts/ui-tests.sh)"
         run: scripts/ui-tests.sh
+
+  docker-install-governance:
+    # the governance edition (docs/installation.md#editions): the second app is built into the image, installed
+    # on the site, and Research Desk's own tests still pass with it present
+    name: Docker install, governance edition
+    runs-on: ubuntu-latest
+    needs: lint-and-unit
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the governance edition with the same script librarians use
+        run: ./install.sh --yes --no-sample --edition governance
+      - name: Both apps are installed on the site
+        run: |
+          apps=$(docker compose exec -T backend bench --site resdesk.localhost list-apps)
+          echo "$apps"
+          grep -q '^sok_resdesk_governance' <<<"$apps"
+          grep -q '^sok_resdesk ' <<<"$apps"
+      - name: Upgrading it again leaves both installed (create-site runs on every up)
+        run: |
+          docker compose up -d
+          apps=$(docker compose exec -T backend bench --site resdesk.localhost list-apps)
+          grep -q '^sok_resdesk_governance' <<<"$apps"
+      - name: Frappe integration tests with the governance app present
+        run: |
+          ./resdesk.sh bench set-config allow_tests true
+          docker compose exec -T backend bench --site resdesk.localhost run-tests --app sok_resdesk
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs --tail 200
 
   docker-install:
     name: Docker install + integration tests

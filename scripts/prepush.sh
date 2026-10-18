@@ -21,9 +21,9 @@ fail=0
 step() { printf '\n== %s\n' "$1"; }
 
 step "ruff check"
-ruff check sok_resdesk scripts || fail=1
+ruff check sok_resdesk governance scripts || fail=1
 step "ruff format --check"
-ruff format --check sok_resdesk scripts || fail=1
+ruff format --check sok_resdesk governance scripts || fail=1
 step "docs match the code (test_docs: pages, anchors, API, doctypes, changelog = version)"
 python3 -m pytest -q sok_resdesk/tests/test_docs.py || fail=1
 step "shell scripts parse"

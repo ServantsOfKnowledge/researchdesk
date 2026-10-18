@@ -13,6 +13,7 @@ top=$(grep -m1 '^## ' CHANGELOG.md | awk '{print $2}')
 [ "$top" = "$V" ] || { echo "CHANGELOG.md must start with a '## $V (date): …' entry (it starts with $top)."; exit 1; }
 
 sed -i.bak "s/^__version__ = \".*\"/__version__ = \"$V\"/" sok_resdesk/__init__.py && rm -f sok_resdesk/__init__.py.bak
+sed -i.bak "s/^__version__ = \"[^\"]*\"/__version__ = \"$V\"/" governance/sok_resdesk_governance/__init__.py && rm -f governance/sok_resdesk_governance/__init__.py.bak
 python3 scripts/gen_docs.py
 if command -v pytest >/dev/null 2>&1; then
   pytest -q sok_resdesk/tests/test_docs.py sok_resdesk/tests/test_core.py sok_resdesk/tests/test_push.py

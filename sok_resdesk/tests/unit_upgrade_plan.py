@@ -43,3 +43,9 @@ def test_images_and_services_restart_everything():
 
 def test_no_change_at_all_is_web():
 	assert plan().startswith("web:")
+
+
+def test_the_governance_app_is_planned_like_the_main_one():
+	assert plan("governance/sok_resdesk_governance/audit.py").startswith("roll:")
+	assert plan("governance/sok_resdesk_governance/__init__.py").startswith("web:")  # the version alone
+	assert plan("governance/pyproject.toml").startswith("full:")

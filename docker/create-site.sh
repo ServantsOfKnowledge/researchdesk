@@ -43,6 +43,29 @@ else
     || echo ">> WARNING: search indexes will be set up by the first ingest"
 fi
 
+# The governance edition (docs/installation.md#editions): the second app is in the image when it was built
+# with RESDESK_EDITION=governance; install it on the site if it is not there yet (a new site or an old one)
+if [ "${RESDESK_EDITION:-standard}" = governance ]; then
+  if ! grep -qx sok_resdesk_governance sites/apps.txt; then
+    echo ">> RESDESK_EDITION=governance, but this image has no governance app: build it here (unset RESDESK_IMAGE, then ./upgrade.sh)"
+    exit 1
+  fi
+  APPS_ON_SITE="$(bench --site "${SITE_NAME}" list-apps 2>/dev/null || true)"
+  if ! grep -q '^sok_resdesk_governance' <<<"${APPS_ON_SITE}"; then
+    echo ">> Installing Research Desk Governance"
+    bench --site "${SITE_NAME}" install-app sok_resdesk_governance
+  fi
+fi
+
+if [ "${RESDESK_EDITION:-standard}" != governance ] && [ -d "sites/${SITE_NAME}" ]; then
+  APPS_ON_SITE="$(bench --site "${SITE_NAME}" list-apps 2>/dev/null || true)"
+  if grep -q '^sok_resdesk_governance' <<<"${APPS_ON_SITE}"; then
+    echo ">> This site has the governance app installed, but RESDESK_EDITION is not governance."
+    echo ">> Set RESDESK_EDITION=governance again, or uninstall the app first: bench --site ${SITE_NAME} uninstall-app sok_resdesk_governance"
+    exit 1
+  fi
+fi
+
 # Classified mode (docs/governance.md#classified-mode): RESDESK_CLASSIFIED=1 in .env turns it on, for a
 # new site or an existing one, once; nothing here turns it off (that is `bench set-config` on the host)
 if [ "${RESDESK_CLASSIFIED:-}" = 1 ] && ! env/bin/python -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("resdesk_classified") else 1)' "sites/${SITE_NAME}/site_config.json" 2>/dev/null; then

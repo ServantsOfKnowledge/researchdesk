@@ -10,6 +10,7 @@ researchdesk/
 ├── compose.yaml            full stack
 ├── compose.dev.yaml        developer mode: mounts this folder into the containers
 ├── docker/                 Dockerfile, entrypoint, gunicorn start, create-site
+├── governance/             the second app, Research Desk Governance (records-office features; its own pyproject and hooks), installed only in the governance edition
 ├── scripts/
 │   ├── upgrade-plan.sh     what a release changed → restart the web part, roll the workers, or everything (gentle upgrades)
 │   ├── install-native.sh   native install: packages, Python 3.14 (uv), Node 24 (nvm), bench, site
@@ -149,7 +150,7 @@ than importing. The clearance rules live in `clearance.py`; `access.py` keeps th
 
 Only one app should provide the clearance hooks (the first listed wins); the others are combined. A failing event sink is logged and does not stop the reader; the other hooks are not caught, so an error there fails closed.
 
-Still to come (0.88): moving the governance modules and doctypes into their own app, and the Desk
+The second app exists since 0.89 (`governance/`, installed with `./install.sh --edition governance`, kept at the same version by `scripts/release.sh`); still to come (0.90): moving the governance modules and doctypes into it, and the Desk
 sidebar, help and feature lists, which still name governance screens as data.
 
 ## Workflow

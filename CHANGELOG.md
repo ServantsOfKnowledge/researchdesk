@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.89.0 (2026-10-18): A second app for the records office, installed only when asked for
+
+- **Editions.** `./install.sh --edition governance` (or `RESDESK_EDITION=governance` in `.env`) installs *Research Desk Governance*, a second app in the `governance/` folder, next to Research Desk, on Docker (built into the image) and native installs, in new installs and in `./upgrade.sh`. The standard edition is the default and is exactly as before. See [Editions](docs/installation.md#editions).
+- **No change for you yet.** The second app is empty; the governance features move into it in 0.90. An existing install stays standard. CI now also installs the governance edition and runs Research Desk's tests with both apps present.
+
 ## 0.88.0 (2026-10-18): The updater helper looks after its own token, and a doctor says why it is not working
 
 - **If the Server page says the updater helper is off (or not reporting) and restarting the stack changes nothing**, the usual cause is that the helper's token, kept in `.env` and in the site configuration, differs between the two (a restored backup or a re-created site loses the second). Now the helper puts the token from `.env` back when the site refuses it (at most every ten minutes, and it says so in its log), and on Docker installs starting the stack does the same (`create-site`; `docker compose restart` does not run it).

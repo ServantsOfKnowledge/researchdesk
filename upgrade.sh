@@ -217,6 +217,14 @@ if [ "$MODE" = native ]; then
     uv pip install --python env/bin/python -e apps/sok_resdesk >/dev/null
     ok "Research Desk's Python package"
   fi
+  # the governance edition: link and install its package when it is asked for and not there yet (or changed)
+  if [ "${RESDESK_EDITION:-standard}" = governance ]; then
+    [ -e apps/sok_resdesk_governance ] || ln -sfn "$APP_DIR/governance" apps/sok_resdesk_governance
+    env/bin/python -c 'import sok_resdesk_governance' 2>/dev/null \
+      || uv pip install --python env/bin/python -e apps/sok_resdesk_governance >/dev/null
+    grep -qx sok_resdesk_governance sites/apps.txt || { [ -n "$(tail -c1 sites/apps.txt)" ] && echo >> sites/apps.txt; echo sok_resdesk_governance >> sites/apps.txt; }
+    ok "Research Desk Governance's Python package"
+  fi
   bold "4/5  Database migrations and assets"
   # migrations need Redis and Meilisearch up
   redis-server config/redis_cache.conf --daemonize yes >/dev/null
@@ -228,6 +236,10 @@ if [ "$MODE" = native ]; then
     ok "No migrate needed: $WHY"
   else
     bench --site "$SITE" migrate --skip-search-index
+  fi
+  if [ "${RESDESK_EDITION:-standard}" = governance ]; then
+    APPS_ON_SITE="$(bench --site "$SITE" list-apps 2>/dev/null || true)"
+    grep -q '^sok_resdesk_governance' <<<"$APPS_ON_SITE" || bench --site "$SITE" install-app sok_resdesk_governance
   fi
   bench --site "$SITE" execute sok_resdesk.search.setup_indexes >/dev/null || warn "Search index settings will be applied on the next ingest"
   if [ "$FRAPPE_CHANGED" = 1 ]; then bench build >/dev/null; else bench build --app sok_resdesk >/dev/null; fi
@@ -257,6 +269,7 @@ else
     false
   fi
   if [ -n "${RESDESK_IMAGE:-}" ]; then
+    [ "${RESDESK_EDITION:-standard}" = governance ] && die "RESDESK_EDITION=governance needs the local build: unset RESDESK_IMAGE in .env."
     docker compose pull
   else
     # Frappe: rebuild it (10 minutes or more) only when a newer v16 *release* is out than the one

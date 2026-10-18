@@ -127,6 +127,16 @@ if ! grep -qx sok_resdesk sites/apps.txt; then
   [ -n "$(tail -c1 sites/apps.txt)" ] && echo >> sites/apps.txt
   echo sok_resdesk >> sites/apps.txt
 fi
+# the governance edition: the app in this checkout's governance/ folder, linked in like the main one
+if [ "${RESDESK_EDITION:-standard}" = governance ]; then
+  [ -e apps/sok_resdesk_governance ] || ln -sfn "$APP_DIR/governance" apps/sok_resdesk_governance
+  env/bin/python -c 'import sok_resdesk_governance' 2>/dev/null \
+    || uv pip install --python env/bin/python -e apps/sok_resdesk_governance >/dev/null
+  if ! grep -qx sok_resdesk_governance sites/apps.txt; then
+    [ -n "$(tail -c1 sites/apps.txt)" ] && echo >> sites/apps.txt
+    echo sok_resdesk_governance >> sites/apps.txt
+  fi
+fi
 ok "Frappe $(cd apps/frappe && git describe --tags --abbrev=0 2>/dev/null || echo "$FRAPPE_BRANCH") + Research Desk"
 
 # Procfile = what `bench start` runs: web, workers, scheduler, redis, and here also Meilisearch
@@ -176,6 +186,9 @@ if site_apps | grep -q '^sok_resdesk'; then
   bench --site "$SITE" migrate
 else
   bench --site "$SITE" install-app sok_resdesk
+fi
+if [ "${RESDESK_EDITION:-standard}" = governance ] && ! site_apps | grep -q '^sok_resdesk_governance'; then
+  bench --site "$SITE" install-app sok_resdesk_governance
 fi
 bench --site "$SITE" execute sok_resdesk.setup.complete_setup_wizard \
   --kwargs "{'timezone': '${TIMEZONE:-Asia/Kolkata}', 'country': '${COUNTRY:-India}', 'currency': '${CURRENCY:-INR}'}" >/dev/null
