@@ -125,7 +125,7 @@ sidebar is a `Sidebar` document an app ships as a file and no longer edits on a 
 `python scripts/make_sidebar_json.py` writes `resdesk/sidebar/research_desk/research_desk.json` from
 the list (a unit test fails if they differ); before 16.50 `sidebar.refresh()` rewrites the Workspace
 Sidebar. Switched-off features' screens are taken out of what the Desk is sent (`features.trim_boot`),
-and the Desk-only scope trims it too (`deskscope.trim_boot`); both handle either payload. When Frappe
+and the Desk-only scope trims it too (`deskscope.trim_boot`); both handle either payload. The records office's own entries are not in the list: the governance app adds them in `desk.add_menu` (hook `boot_session`) when the Desk loads, for people who may open the screens. When Frappe
 changes how the Desk is built, CI (which installs the newest Frappe 16) is where it shows first.
 
 ## The governance seam
@@ -142,16 +142,16 @@ come from the hooks the installed apps list in `hooks.py`:
 | `resdesk_governed` | is the governance layer switched on | no |
 | `resdesk_item_cleared` · `resdesk_item_scope` · `resdesk_cleared_sql` · `resdesk_search_clause` | is this person cleared for a classified record, its level and department, and the same as SQL and as a search filter | nobody is: a classified record stays hidden |
 | `resdesk_health_checks` | lines for the Server page | none |
+| `resdesk_roles` · `resdesk_screen_help` | the roles and Help buttons an add-on app brings (read with `seams.merged`) | none |
 
-`tests/unit_boundaries.py` lists the governance modules and fails when any other module imports one,
-even lazily inside a function. To add a governance module, add it to that list; to let core react to
-something governance cares about, add an event to `seams.emit` and handle it in `audit.sink`, rather
-than importing. The clearance rules live in `clearance.py`; `access.py` keeps the general rules.
+`tests/unit_boundaries.py` fails when a core module imports `sok_resdesk_governance`, even lazily inside
+a function. To let core react to something governance cares about, add an event to `seams.emit` and
+handle it in `audit.sink`, rather than importing. The clearance rules live in the governance app's
+`clearance.py`; `access.py` keeps the general rules.
 
 Only one app should provide the clearance hooks (the first listed wins); the others are combined. A failing event sink is logged and does not stop the reader; the other hooks are not caught, so an error there fails closed.
 
-The second app exists since 0.89 (`governance/`, installed with `./install.sh --edition governance`, kept at the same version by `scripts/release.sh`); still to come (0.90): moving the governance modules and doctypes into it, and the Desk
-sidebar, help and feature lists, which still name governance screens as data.
+The second app exists since 0.89 (`governance/`, installed with `./install.sh --edition governance`, kept at the same version by `scripts/release.sh`). Since 0.90 the modules and doctypes live in the second app; since 0.91 its roles, Help buttons and Desk menu entries come from it too. The feature list may still name governance screens (not checked).
 
 ## Workflow
 
