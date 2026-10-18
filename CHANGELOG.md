@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.85.1 (2026-10-18): The classification-gap test scans the way the nightly scan does
+
+- Test only: it passed the classified record to the scan by name; the nightly scan leaves such records out, and the test now checks that.
+
 ## 0.85.0 (2026-10-18): Classified records no longer leak through the Desk's counts and queues
 
 - The workspace numbers, the cataloguer's review queue and its duplicate list now leave out records a person is not cleared for; a record cannot be classified below a file that holds it; the leaver check refuses to run on a broken LDAP setup. Still open, and said so in [Governance](docs/governance.md): archival units and deposits cannot be classified, and the Server page's page total counts classified pages.

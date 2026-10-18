@@ -58,8 +58,9 @@ class TestGaps(IntegrationTestCase):
 		assert dashboard.count("RD Item", {"published": 1}) == before + 1
 
 	def test_a_classified_record_is_not_checked_or_queued(self):
-		a, b = self.item(3), self.item(4, classify=True)
-		review.scan([a, b])
+		self.item(3)
+		b = self.item(4, classify=True)
+		review.scan()  # the nightly scan: classified records are left out
 		queue = review.overview()
 		assert all(r["item_id"] != b for r in queue["rows"])
 
