@@ -23,6 +23,13 @@ def add_menu(bootinfo) -> None:
 	keeps sidebars: before and after 16.50), for the people who may open them."""
 	if frappe.session.user == "Guest":
 		return
+	try:
+		_add_menu(bootinfo)
+	except Exception:  # a menu entry must never stop anyone signing in
+		frappe.log_error(title="Research Desk Governance: the Desk menu was not extended")
+
+
+def _add_menu(bootinfo) -> None:
 	links = [
 		layout._link(label, kind, target, child=1)
 		for label, kind, target in desk.MENU
@@ -31,9 +38,13 @@ def add_menu(bootinfo) -> None:
 	if not links:
 		return
 	for payload in ("workspace_sidebar_item", "module_sidebars"):
-		for key, sidebar in (bootinfo.get(payload) or {}).items():
+		sidebars = bootinfo.get(payload) or {}
+		for key, sidebar in list(sidebars.items()):
+			if not isinstance(sidebar, dict):
+				continue
 			if str(key).lower() == layout.TITLE.lower() or sidebar.get("title") == layout.TITLE:
-				sidebar["items"] = desk.inserted(list(sidebar.get("items") or []), links)
+				# a copy, as core's own trims make: the dict may be shared between requests
+				sidebars[key] = {**sidebar, "items": desk.inserted(list(sidebar.get("items") or []), links)}
 
 
 def create_roles() -> None:

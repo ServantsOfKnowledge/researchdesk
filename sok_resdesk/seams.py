@@ -31,7 +31,10 @@ def merged(hook: str) -> dict:
 	"""What add-on apps contribute under `hook` (each hook returns a dict); empty with none."""
 	out: dict = {}
 	for fn in _fns(hook):
-		out.update(fn())
+		try:
+			out.update(fn())
+		except Exception:  # one add-on's fault must not stop the Desk
+			frappe.log_error(title="Research Desk: an add-on's contribution failed")
 	return out
 
 

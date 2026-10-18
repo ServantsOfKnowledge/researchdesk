@@ -2,7 +2,7 @@
 
 ## 0.91.0 (2026-10-18): Core no longer names the records office
 
-- **Out of core.** The Security Officer and Records Officer roles, the records-office entries of the Desk menu and their Help buttons now come from the governance app; a standard install creates and shows none of them. Core asks through two hooks (`resdesk_roles`, `resdesk_screen_help`).
+- **Out of core.** The Security Officer and Records Officer roles, the records-office entries of the Desk menu and their Help buttons now come from the governance app; a standard install creates and shows none of them. (The Records Officer role still appears in the role list of a standard site, unused, because the Collection form lists it as a reader.) Core asks through two hooks (`resdesk_roles`, `resdesk_screen_help`).
 - **For an auditor.** `python3 scripts/review_scope.py` counts the code of each edition.
 - **Same for the governance edition.** The menu entries are added when the Desk loads, only for people who may open the screens.
 - **Not yet verified on a live Desk.** The menu entries are added to Frappe's sidebar data as it loads; this is tested on sample data here, and CI cannot open the Desk, so look at the Research Desk menu after updating a governance install.
