@@ -9,8 +9,6 @@ ROLES = {
 	"ResDesk Cataloguer": "Edits catalogue records.",
 	"ResDesk Reader": "Logged-in reader: can find and read members-only books on the portal.",
 	"ResDesk Depositor": "Deposits their own work on the portal (Deposit), for the library to review.",
-	"ResDesk Security Officer": "Governance Mode: grants clearances, keeps the departments and classifies records. Holds no other power over the catalogue.",
-	"ResDesk Records Officer": "Retention rules, legal holds and disposal: approves what is disposed of when its period ends. Holds no clearance by role.",
 	"ResDesk Proofreader": "Corrects the page text of books on the portal (Page & text → Proofread), and runs OCR on parts of a page.",
 }
 # roles that work in the Desk; readers only use the portal
@@ -18,8 +16,6 @@ DESK_ROLES = (
 	"SOK Super Admin",
 	"ResDesk Manager",
 	"ResDesk Cataloguer",
-	"ResDesk Security Officer",
-	"ResDesk Records Officer",
 )
 
 SAMPLE_PROFILES = [
@@ -239,11 +235,23 @@ def after_migrate():
 		frappe.log_error("Research Desk: could not record the migrated code version")
 
 
+def roles() -> tuple[dict, tuple]:
+	"""(role -> description, the roles that work in the Desk): ours and an add-on app's."""
+	from sok_resdesk import seams
+
+	extra = seams.merged("resdesk_roles")  # role -> (description, works in the Desk)
+	return (
+		{**ROLES, **{r: d for r, (d, _desk) in extra.items()}},
+		(*DESK_ROLES, *(r for r, (_d, desk) in extra.items() if desk)),
+	)
+
+
 def create_roles():
 	# DocType sync may already have created these roles (they appear in DocPerms),
 	# so fill in missing properties rather than only creating.
-	for role, desc in ROLES.items():
-		desk = 1 if role in DESK_ROLES else 0
+	all_roles, desk_roles = roles()
+	for role, desc in all_roles.items():
+		desk = 1 if role in desk_roles else 0
 		if not frappe.db.exists("Role", role):
 			frappe.get_doc({"doctype": "Role", "role_name": role, "desk_access": desk}).insert(
 				ignore_permissions=True
@@ -263,7 +271,7 @@ def create_roles():
 			doc.save(ignore_permissions=True)
 	# Administrator should be able to run everything from day one
 	admin = frappe.get_doc("User", "Administrator")
-	missing = [r for r in DESK_ROLES if r not in {x.role for x in admin.roles}]
+	missing = [r for r in desk_roles if r not in {x.role for x in admin.roles}]
 	if missing:
 		admin.add_roles(*missing)
 

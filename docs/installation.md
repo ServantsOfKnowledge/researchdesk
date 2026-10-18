@@ -75,7 +75,9 @@ Going back to standard is not automatic: uninstall the app first
 (`./resdesk.sh bench uninstall-app sok_resdesk_governance`, with the edition still set to governance), then change
 `.env`. Starting the stack with the edition set back while the app is installed stops with a message saying so, instead of breaking the site.
 
-**Where this is today (0.90):** the governance features (classification, audit log, retention and holds, file register, directory sign-in, disclosure and redaction, Classified mode) live in the second app. A standard install has none of that code, tables or menus. `--classified` implies the governance edition. There is nothing to migrate: no existing install used these features. A standard site that still has the empty tables loses them on its next update; if any held records the update says so and leaves them.
+`python3 scripts/review_scope.py` counts the code files and lines of each edition, for whoever has to review them.
+
+**Where this is today (0.91):** the governance features (classification, audit log, retention and holds, file register, directory sign-in, disclosure and redaction, Classified mode) live in the second app. A standard install has none of that code, tables or menus. The officer roles, the records-office menu entries and their Help buttons also come with the governance app. `--classified` implies the governance edition. There is nothing to migrate: no existing install used these features. A standard site that still has the empty tables loses them on its next update; if any held records the update says so and leaves them.
 
 ## Requirements
 

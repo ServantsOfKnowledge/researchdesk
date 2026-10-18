@@ -78,3 +78,10 @@ scheduler_events = {
 		"sok_resdesk_governance.directory.sync",
 	]
 }
+
+# the records office in the Desk: roles, Help buttons, sidebar entries (desk.py)
+resdesk_roles = ["sok_resdesk_governance.desk.roles"]
+resdesk_screen_help = ["sok_resdesk_governance.desk.screen_help"]
+boot_session = ["sok_resdesk_governance.desk.add_menu"]
+after_install = "sok_resdesk_governance.desk.create_roles"
+after_migrate = [*after_migrate, "sok_resdesk_governance.desk.create_roles"]

@@ -11,6 +11,7 @@ from pathlib import Path
 import frappe
 from frappe import _
 
+from sok_resdesk import seams
 from sok_resdesk.core import helpdocs
 
 STAFF = ("System Manager", "ResDesk Manager", "ResDesk Cataloguer")
@@ -51,16 +52,6 @@ SCREEN_HELP = {
 	"RD Library Record": ("koha", "option-e-bring-the-librarys-catalogue-in-link-it-send-the-links-back"),
 	"RD Server Task": ("server", "upgrading-from-the-desk"),
 	"RD Tombstone": ("preservation", "tombstones"),
-	"RD Audit Event": ("governance", "the-audit-log"),
-	"RD Department": ("governance", "departments-and-clearances"),
-	"RD Item Scope": ("governance", "where-the-level-and-department-live"),
-	"RD Clearance": ("governance", "departments-and-clearances"),
-	"RD File": ("governance", "file-register"),
-	"RD Directory Account": ("governance", "directory-sign-in"),
-	"RD Retention Rule": ("governance", "retention-and-legal-holds"),
-	"RD Legal Hold": ("governance", "retention-and-legal-holds"),
-	"RD Disposal": ("governance", "retention-and-legal-holds"),
-	"RD Disclosure Request": ("governance", "disclosure-requests-and-redaction"),
 	"RD Annotation": ("staff-guide", "readers-notes"),
 	"RD Research Group": ("staff-guide", "readers-notes"),
 	"RD Page Text": ("staff-guide", "proofreading-and-re-ocr"),
@@ -243,6 +234,9 @@ def boot_session(bootinfo):
 	from sok_resdesk.guide import TOURS
 
 	bootinfo.resdesk_help = {
-		"screens": {k: f"{DESK}/{slug}#{anchor}" for k, (slug, anchor) in SCREEN_HELP.items()},
+		"screens": {
+			k: f"{DESK}/{slug}#{anchor}"
+			for k, (slug, anchor) in {**SCREEN_HELP, **seams.merged("resdesk_screen_help")}.items()
+		},
 		"tours": sorted(TOURS),
 	}

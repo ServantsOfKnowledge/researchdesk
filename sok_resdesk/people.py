@@ -15,7 +15,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint, get_fullname
 
-from sok_resdesk.setup import DESK_ROLES, ROLES
+from sok_resdesk.setup import roles as known_roles
 
 MANAGERS = ("System Manager", "ResDesk Manager")
 SYSTEM = "System Manager"
@@ -36,7 +36,7 @@ def _privileged() -> tuple[str, ...]:
 
 def managed_roles() -> list[str]:
 	"""The roles this person may give: the installation's own roles only if they hold one."""
-	return [r for r in [*ROLES, SYSTEM] if r == SYSTEM or r not in _privileged() or _is_super()]
+	return [r for r in [*known_roles()[0], SYSTEM] if r == SYSTEM or r not in _privileged() or _is_super()]
 
 
 def _check_manager() -> None:
@@ -77,14 +77,15 @@ def overview() -> dict:
 	_check_manager()
 	enabled = set(frappe.get_all("User", filters={"enabled": 1}, pluck="name"))
 	roles = []
+	role_text, desk_roles = known_roles()
 	for role in managed_roles():
 		people = [u for u in _holders(role) if u in enabled and u not in PROTECTED]
 		roles.append(
 			{
 				"role": role,
-				"description": ROLES.get(role)
+				"description": role_text.get(role)
 				or _("Everything in the Desk, including upgrades, restarts and backups."),
-				"desk": role in DESK_ROLES or role == SYSTEM,
+				"desk": role in desk_roles or role == SYSTEM,
 				"count": len(people),
 				"can_grant": role != SYSTEM or SYSTEM in frappe.get_roles(),
 			}

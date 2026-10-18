@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.91.0 (2026-10-18): Core no longer names the records office
+
+- **Out of core.** The Security Officer and Records Officer roles, the records-office entries of the Desk menu and their Help buttons now come from the governance app; a standard install creates and shows none of them. Core asks through two hooks (`resdesk_roles`, `resdesk_screen_help`).
+- **For an auditor.** `python3 scripts/review_scope.py` counts the code of each edition.
+- **Same for the governance edition.** The menu entries are added when the Desk loads, only for people who may open the screens.
+- **Not yet verified on a live Desk.** The menu entries are added to Frappe's sidebar data as it loads; this is tested on sample data here, and CI cannot open the Desk, so look at the Research Desk menu after updating a governance install.
+
 ## 0.90.0 (2026-10-18): The records-office features live in their own app
 
 - **Moved.** Classification and clearances, the audit log, retention and legal holds, the file register, directory sign-in, disclosure requests and redaction, Classified mode and the public-mirror endpoints (17 doctypes, their code, hooks and tests) are now in *Research Desk Governance* (`governance/`). A standard install has none of that code, tables or hooks to review. Research Desk reaches them only through its seams; a test fails if core imports the app.

@@ -27,6 +27,14 @@ def _fns(hook: str) -> list:
 	return [frappe.get_attr(path) for path in frappe.get_hooks(hook) or []]
 
 
+def merged(hook: str) -> dict:
+	"""What add-on apps contribute under `hook` (each hook returns a dict); empty with none."""
+	out: dict = {}
+	for fn in _fns(hook):
+		out.update(fn())
+	return out
+
+
 def emit(event: str, item: str = "", detail: str = "") -> None:
 	for fn in _fns("resdesk_event_sinks"):
 		try:
