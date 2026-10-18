@@ -173,6 +173,7 @@ PAGES = [
 	),
 	Page("koha", "koha.md", "Koha & interoperability", "staff", "For library staff"),
 	Page("iiif", "iiif.md", "IIIF: books in any viewer", "staff", "For library staff"),
+	Page("features", "features.md", "What Research Desk does", "staff", "For library staff"),
 	Page(
 		"getting-started", "getting-started.md", "Getting started (installing)", "staff", "For administrators"
 	),
@@ -278,6 +279,8 @@ def rewrite(md: str, page_url, image_url=lambda name: f"{IMAGE_URL}/{name}") -> 
 		if bang:
 			if path.startswith("../" + IMAGE_DIR + "/"):
 				return f"{bang}[{text}]({image_url(name)}{title})"
+			if path.startswith("../sok_resdesk/public/images/"):  # a picture beside the guide's own
+				return f"{bang}[{text}](/assets/sok_resdesk/images/{path.rsplit('public/images/', 1)[-1]}{title})"
 			return m.group(0)
 		if path.endswith(".md") and "/" not in path.replace("./", ""):
 			page = BY_FILE.get(name)

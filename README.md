@@ -5,298 +5,62 @@
 **An open-source digital library, archive and research platform for books, manuscripts,
 photographs and recordings: made for Indian languages, open to every language.**
 
-Research Desk takes in material from the Internet Archive, your own folders and servers,
-Calibre, institutional repositories, Wikisource and people's own deposits. It makes it
-**searchable down to the page** (in Kannada, Hindi, Tamil and more, typed in the script or in
-Latin letters), **readable and citable** (a page-by-page reader, notes, reading lists, every
-citation format), **correctable** (proofreading, re-OCR, machine drafts for people to check) and
-**kept safe** (permanent links, checked copies, a second copy that repairs itself). It shares
-what it holds through open standards (OAI-PMH, IIIF, OPDS, SRU, COUNTER) and gives back to
-Wikidata, Wikisource, Commons and the Internet Archive under each person's own account.
+Bring in material from the Internet Archive, your own folders, Calibre, institutional
+repositories, Wikisource and people's deposits. Research Desk makes it **searchable down to the
+page** (in the script or in Latin letters), **readable and citable**, **correctable** by
+proofreading, and **kept safe** with checked copies and permanent links. It shares what it holds
+through open standards and gives back to Wikidata, Wikisource and Commons. It runs on
+[Frappe](https://frappe.io) and is free software (MIT).
 
 It is built for institutions: roles and members-only access, reviewed deposits, archival
-description (ISAD(G), EAD3), accessibility checked in every release (WCAG 2.2 AA), a Server page
-with health checks, backups, alerts and gentle upgrades, and one-command installation, from a
-laptop to a server holding tens of thousands of books. It runs on the
-[Frappe](https://frappe.io) framework and is free software (MIT).
+description, accessibility checked in every release (WCAG 2.2 AA), a Server page with health
+checks, backups and upgrades, and an optional **governance edition** for government records
+(classification, audit log, retention, disclosure and redaction) that is installed only when
+asked for. [Everything it does](docs/features.md).
 
-Research Desk is one link in a chain Servants of Knowledge builds in the open, from scanner to
-reader: **TTScribe**, open book-scanning hardware; **Repub**, free software that crops,
-straightens, flattens and reads each scan and exports a searchable PDF, text and the images
-([github.com/servantsofknowledge/repub](https://github.com/servantsofknowledge/repub)); and
-Research Desk, which makes the books searchable to the page, citable, correctable and kept safe.
-Books can go to archive.org, to Research Desk, or to both. **OpenScribe**, the last module of
-the digitisation workflow, is in progress.
+> Status: before 1.0. It works end to end and is tested against live Servants of Knowledge data.
+> What changed: [CHANGELOG](CHANGELOG.md). What comes next: [roadmap](docs/roadmap.md).
 
-## What it does
+## Install
 
-Choose a collection, a search or a list of items on archive.org, or point it at your own
-folders, and Research Desk will:
-
-- ingest from **archive.org** (a whole collection is listed on the portal within minutes, from
-  archive.org's search records in bulk, or from a **metadata file** made with the `ia` tool;
-  page text follows in the background) *or* from
-  **IA-style item folders** on your own disk, NAS or web
-  server, with a drop folder that picks up new and changed books automatically, *or* from
-  **institutional repositories** (DSpace, EPrints and any other that offers OAI-PMH), their
-  PDFs' text read page by page
-- bring in **your own material**: books and loose PDFs from folders, **manuscripts and palm
-  leaves** (a folder of leaf photographs, with leaf labels such as 1a, 1b and transcription from
-  blank), **photographs** (EXIF, who and where, tagged with Wikidata, a checksum of the original),
-  **audio and video** (a player with a time-coded transcript), a **Calibre library** read in
-  place, **Wikisource** books with their proofread pages, and **deposits** that people make
-  themselves and a reviewer accepts (licence and embargo included)
-- **serve a government or institution** (Governance Mode, off by default): records with a level and a department, a clearance per person, offices that see downward, a tamper-evident audit log of who viewed, downloaded and changed what, a Classified mode for Secret and Top Secret records, a read-only public mirror on another server, retention rules with legal holds, a file register, and LDAP and single sign-on
-- **describe archives** as archivists do: fonds, series, file and item (ISAD(G)), browsable on
-  the portal, exported as **EAD3**, with digitised items placed in the hierarchy
-- **stay in step with archive.org** by itself: every day, books added to a collection come in,
-  changed ones are refreshed and removed ones are unpublished, and every archive.org collection
-  the books belong to (sub-collections too) gets a portal page that keeps itself up to date
-- **catalogue** the books, cleaning up messy metadata (languages, dates, authors, subjects), with a
-  **review queue** of records that need a cataloguer's eye (no year, a language that doesn't
-  match the title's script, possible duplicates…) and **authority control**: authors matched to
-  Wikidata and VIAF, subjects to Library of Congress Subject Headings
-- **index the full OCR text page by page**, so people can search *inside* 88,000+ books,
-  in Kannada, Hindi, Konkani, Tamil, English and more, typing in the script or **in Latin
-  letters** (`kanakadasa` finds ಕನಕದಾಸ), with "phrases", `OR` and `-words`
-- give each book a **public page** with two readers (archive.org's book reader, and **Page &
-  text**: each page image beside its text), search inside the book, and **one Cite window** for
-  the book or the page: BibTeX, BibLaTeX, RIS, CSL-JSON, APA, MLA and Chicago, with a link
-- let readers keep **notes on pages** (highlights, comments, tags, questions, links, OCR error
-  reports; private, shared with a research group, or public after review), following the W3C Web
-  Annotation model, exported with page citations, linked to **Wikidata** (pages about a person,
-  place or work gathered on one page), and open to other annotation tools through the **W3C Web
-  Annotation Protocol**
-- **improve the text over time**: an OCR quality score for every page and book; proofreading
-  beside the page image, validated by a second person, every version kept; **re-OCR** with
-  Tesseract's Indic models, **several languages at once** (the book's languages and English, or a
-  language of its own for a verse or footnote), a page part by part (columns, headings) or whole
-  books worst first; **machine drafts** (speech to text for recordings, handwriting recognition
-  for manuscripts) for people to correct; and share the corrected pages as **open OCR ground
-  truth**, each page only if its proofreaders released it under an open licence of their own
-  choosing, after a person has reviewed the set
-- **link the library's own catalogue**: Koha's (or any library system's) records matched to the
-  books here, and *Read online* links sent back into them
-- give books **DOIs** from DataCite for chosen collections (optional, for DataCite members)
-- give every book and page a **permanent ARK** (on once the library's NAAN is assigned), with
-  tombstones so no link ever dies
-- **keep its own checked copies** of the books (OCFL, SHA-256, nightly fixity checks, PREMIS-style
-  events), a **second copy** in another folder or an S3-compatible bucket with **automatic
-  repair** from the good one, books kept on the portal **from our copy** when archive.org drops
-  them, and **BagIt** exports for handing books to another archive
-- show every book, photograph, manuscript and recording in any **IIIF** viewer (manifests and an
-  image service with deep zoom), and offer the library in **e-reader apps** over **OPDS**
-- **give back to Wikimedia** under each person's own account: names and author links to
-  Wikidata, corrected pages to Wikisource, photographs to Commons, each reviewed before it is sent
-- **take the library away**: an offline copy of a collection for USB sticks, phones and **Kiwix**
-  (ZIM), a small **Calibre** collection, and this documentation as one EPUB
-- fit the institution: tell the installer what kind it is (a small library, a research portal, an
-  archive, a manuscript library, a photograph archive…; they combine) and switch any of **nineteen
-  features** off, so what is off is not collected
-- work with **Zotero, Google Scholar and reference managers** (embedded citation metadata)
-- work **alongside Koha** and other library systems (OAI-PMH harvesting and MARCXML import),
-  or on its own
-- **give a book to archive.org** from the portal or the Desk, under the sender's own archive.org
-  account (always public, reviewed before it goes), and see every outside connection (Internet
-  Archive, Wikimedia, library systems, repositories, e-readers, open standards, imports and
-  exports) by kind, with its status and who may use it, on one **Connections** screen
-- answer **SRU** for Z39.50 gateways and older library systems, and give funders a **COUNTER**
-  style usage report; keep **Page & text** and the text downloads for logged-in members, to look
-  after bandwidth and make scraping harder
-- keep the installation safe in a librarian's hands: a **super admin** role for Servants of
-  Knowledge holds the installation's own settings, the Server page, security setup and
-  credentials, while librarians keep the manager role
-- **send sign-in and sign-up email** from a mailbox set on one screen (Resend, Gmail, Microsoft 365
-  and more, with a test), let readers fill in an optional **About me** (volunteer to review or
-  proofread; private support needs for blind, low-vision or other readers), and keep the server
-  tidy with **Log QA**, folding Server sections and **gentle upgrades** that restart only what a
-  release needs
-- let readers keep a **reading list**, export it as a bibliography, and share it as a link
-- keep some books (or everything) **for logged-in readers**: members-only books, a public
-  catalogue with reading for members, or an internal library; readers sign up, are approved,
-  or are added by staff, and books can be switched in bulk by collection, filter or search
-- carry **your library's logo and name** on the portal, the admin bar and the browser tab, with
-  an **About page** introducing the library and how to use it, edited in the Desk
-- let staff build **curated collections** (by hand, in bulk or by rules), each with its own
-  portal page and OAI-PMH set, and **correct catalogue details** that survive re-ingest
-- **export metadata** as a spreadsheet, JSON, Dublin Core, MODS, MARCXML, JSON-LD, BibTeX/RIS or
-  Internet Archive upload files, and **edit many books at once** by importing an edited spreadsheet
-- **push metadata** to the Internet Archive, Koha, Wikidata or any web service (webhook), with a
-  dry run first and automatic updates when a book is edited
-- be **accessible**: keyboard and screen readers throughout, Kannada and other Indian-language
-  text marked so screen readers use the right voice, pages read aloud, notes and proofreading
-  without a mouse (WCAG 2.2 AA and GIGW 3.0; see [Accessibility](docs/accessibility.md))
-- offer the portal **in Kannada and other languages**: a language switch for readers, and every
-  portal phrase (and the library's own words: its name, About page, collections) translated on
-  one Desk page or in a spreadsheet
-- let readers **type in Kannada, Hindi, Tamil and 20 more languages on any keyboard** in search
-  boxes and proofreading (jquery.ime), and pick languages in proofreading by typing a code
-- **help on every screen**: the documentation is built into the portal (for readers) and the
-  Desk (for staff), with step-by-step tours of the main forms, a getting-started checklist for
-  a new library, and first-visit tips for readers
-- manage **people and roles** on one Desk page (give or take a role with a tick, invite by
-  email, approve sign-ups), see **the library at a glance** on the Desk (books, readers, logins,
-  notes, proofreading, preservation, portal use), and count **portal use** privately (built in,
-  or PostHog, Plausible or Umami; no cookies)
-- **keep the machine usable**: resource presets for a laptop, desktop or server, low-priority
-  background work, quiet hours that pause heavy work during the day, and a **book limit** worked
-  out from the machine's CPUs, memory and disk, so it never takes on more than it can hold
-- **move in one file** to another server, or between Docker and a native install
-- **see, pause and stop background work** from the Desk: every ingest run, metadata push, queued
-  job and schedule on one page; pause a run or everything and carry on later, hold single jobs,
-  or stop them
-- **look after the server from the Desk**: versions and new releases with their notes, the
-  health of every part, **what the server has** (every library and native tool it needs, with
-  versions, and installing what is missing from the Desk), nightly backups to download, errors and logs, and alerts by Desk
-  notification, email or webhook. With the optional updater helper, upgrade (or go back),
-  restart parts and apply resource presets from the Desk too
-- go on a server with its own name and **HTTPS from Let's Encrypt** set up by the installer, and
-  change the portal's address with one command
-- run **in Docker or directly on the computer** (macOS or Ubuntu/Debian), and **upgrade with one
-  command** (or one button) that backs up first and tells you how to roll back
-
-It's built to install with one command, for librarians, educators, archivists and
-anyone else who can open a terminal. It scales to tens of thousands of books on one server
-([measured](docs/scaling.md)).
-
-> Status: **v0.76**, before 1.0. It works end to end and is tested against live Servants of
-> Knowledge data, but expect changes before 1.0. What changed: [CHANGELOG](CHANGELOG.md); what
-> comes next: [the roadmap](docs/roadmap.md).
-
----
-
-## Quick start (about 20 minutes, mostly waiting)
+About 20 minutes, mostly waiting. Needs 4 GB of free memory and 10 GB of disk, and
+[Docker](https://www.docker.com/products/docker-desktop/) (or macOS/Ubuntu for a native install).
 
 ```bash
 git clone https://github.com/ServantsOfKnowledge/researchdesk.git
 cd researchdesk
-./install.sh --check      # optional: looks at this machine and advises how to install
-./install.sh              # asks: Docker (recommended) or directly on this computer
-./install.sh --native     # no Docker: macOS (Homebrew) or Ubuntu/Debian (apt)
-./install.sh --domain library.example.org   # on a server: its address, with HTTPS from Let's Encrypt
+./install.sh                                 # asks a few questions; press Enter for the defaults
+./install.sh --domain library.example.org    # on a server: its address, with HTTPS
+./install.sh --edition governance            # also the records-office app
 ```
 
-Docker needs [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Mac or Windows)
-or Docker Engine (Linux). Native needs Homebrew or apt. Either way: 4 GB of free memory and 10 GB of disk.
-
-The installer checks your computer and asks a few questions (you can press Enter to accept
-each default). It then builds everything, creates the site and offers to load 20 sample
-Kannada books. When it finishes it prints:
-
-```
-Portal (public):   http://localhost:8080/
-Admin (Desk):      http://localhost:8080/app/research-desk
-Login:             Administrator
-Password:          ••••••••    (also in the .env file)
-```
-
-Moving it to a server with a DNS name later, or changing its address:
-
-```bash
-./resdesk.sh url https://library.example.org     # the address used in links and citations
-./resdesk.sh https on library.example.org        # a free Let's Encrypt certificate, renewed by itself
-```
-
-Keep it up to date with one command. It backs up first and rolls back cleanly:
-
-```bash
-./upgrade.sh --check      # anything new?
-./upgrade.sh              # upgrade to the latest release
-```
-
-Or from the browser: **Research Desk → Server** shows when a new release is out, the health of
-every part and the backups. Turn on the updater helper once and upgrades, restarts and resource
-presets are a button there too ([Server](docs/server.md)):
-
-```bash
-./resdesk.sh updater on
-```
-
-## Choose what to ingest
-
-**In the browser:** Desk → Research Desk → **Ingest Profiles** → New:
-
-| Choose by | Example |
-|---|---|
-| Collection | `ServantsOfKnowledge`, narrowed with `language:(kan OR Kannada)` |
-| Search query | `collection:ServantsOfKnowledge AND subject:vachana` |
-| Identifier list | one archive.org identifier per line |
-
-Click **Check Count** to see how many items match, set **Maximum Items**, then **Run Ingest**.
-After that first run the profile keeps itself in step with archive.org: new books come in each
-day, changed ones are refreshed, removed ones are unpublished
-([more](docs/ingesting.md#keeping-in-step-with-archiveorg)).
-
-**From the terminal:**
-
-```bash
-./resdesk.sh count  --collection ServantsOfKnowledge --filter "language:kan"
-./resdesk.sh ingest --collection ServantsOfKnowledge --filter "language:kan" --limit 100
-./resdesk.sh ingest --collection KannadaUniversity --limit 50
-./resdesk.sh help
-```
+It prints the portal and Desk addresses and the administrator's password. Then choose what to
+ingest (Desk → Ingest Profiles, or `./resdesk.sh ingest`), and keep it current with
+`./upgrade.sh`. [Installation](docs/installation.md) · [Getting started](docs/getting-started.md) ·
+[Choosing & ingesting books](docs/ingesting.md)
 
 ## Documentation
 
 | For | Read |
 |---|---|
-| Readers | [Using the library](docs/reader-guide.md) · [Searching](docs/searching.md) · [Citations & reading lists](docs/citations.md) |
-| Library staff | [Staff guide: a tour of the Desk](docs/staff-guide.md) |
-| Librarians & educators | [Getting started](docs/getting-started.md) · [Choosing & ingesting books](docs/ingesting.md) · [Your own folders & servers](docs/local-folders.md) · [Repositories (DSpace, EPrints)](docs/repositories.md) · [Wikisource](docs/wikisource.md) · [Calibre](docs/calibre.md) |
-| Archives & special collections | [Archival description](docs/archival-description.md) · [Manuscripts & palm leaves](docs/manuscripts.md) · [Photographs](docs/photographs.md) · [Audio & video](docs/audio-video.md) · [Repository deposit](docs/deposit.md) |
-| Library managers | [Who can see what: members-only books & reader accounts](docs/access.md) · [Collections, metadata, exports & pushing](docs/collections-and-metadata.md) · [Permanent links, preservation & OCR quality](docs/preservation.md) · [Giving back to Wikimedia](docs/wikimedia.md) · [Offline copies & Kiwix](docs/offline.md) |
-| Library systems staff | [Koha & interoperability](docs/koha.md) · [IIIF](docs/iiif.md) · [OPDS](docs/opds.md) · [SRU](docs/sru.md) · [Usage reports](docs/usage-reports.md) · [API](docs/api.md) |
-| Government & institutions | [Government and institutional use](docs/governance.md): classification, clearances by department, the tamper-evident audit log, Classified mode, the public mirror, retention and legal holds, the file register, directory sign-in |
-| System administrators | [Installation](docs/installation.md) · [Server: updates, health & backups](docs/server.md) · [Operations](docs/operations.md) · [Moving to another server](docs/moving.md) · [Scaling to 50k books](docs/scaling.md) |
-| Developers | [Architecture](docs/architecture.md) · [Technology map](docs/technology.md) ([PDF](https://github.com/ServantsOfKnowledge/researchdesk/releases/latest) and the whole guide as an EPUB, with every release) · [Development](docs/development.md) · [Roadmap](docs/roadmap.md) |
+| Readers | [Using the library](docs/reader-guide.md) · [Searching](docs/searching.md) · [Citations](docs/citations.md) |
+| Library staff | [Staff guide](docs/staff-guide.md) · [Ingesting](docs/ingesting.md) · [Collections & metadata](docs/collections-and-metadata.md) |
+| Archives | [Archival description](docs/archival-description.md) · [Manuscripts](docs/manuscripts.md) · [Photographs](docs/photographs.md) · [Audio & video](docs/audio-video.md) |
+| Government & institutions | [Governance](docs/governance.md) · [Who can see what](docs/access.md) |
+| Administrators | [Installation](docs/installation.md) · [Server](docs/server.md) · [Operations](docs/operations.md) · [Scaling](docs/scaling.md) |
+| Developers | [Architecture](docs/architecture.md) · [Technology map](docs/technology.md) · [Development](docs/development.md) · [API](docs/api.md) |
 
-## How it fits together
+All pages: [docs index](docs/README.md). They are also inside the app, under **Help**.
 
-![How SOK Research Desk fits together: material comes in from archive.org, folders, Calibre, repositories, Wikisource and deposits; ingest, proofreading, machine drafts, preservation and review work on it; it is kept in Frappe and MariaDB and found through Meilisearch; and it goes out to readers, open standards, Wikimedia and other systems, and offline copies](sok_resdesk/public/images/how-it-fits.svg)
+## Part of a chain
 
-<details>
-<summary>The same, in text, with every connection</summary>
-
-```
- archive.org · folders (books, leaf images, photographs, recordings) · a Calibre library ·
- repositories (OAI-PMH) · Wikisource · deposits ──(metadata+text)▶ Ingest jobs ──▶ Frappe / MariaDB
-                                                        │                  (catalogue, notes, page texts,
-                                                        │                   archival units)
-                                                        └──────▶ Meilisearch       (books + pages)
-  Proofreaders ──▶ corrections, re-OCR (Tesseract) ──▶ page text versions ──▶ search, reader, citations
-  Machine drafts (Whisper, Kraken) ──▶ "Machine" versions ──▶ people proofread them
-  Preservation ──▶ OCFL copies + fixity ──▶ second copy (folder or S3) ⇄ repair · BagIt exports
-                                                                        │
-  Readers ◀── /  (search, read, cite, browse the archive, deposit) ◀── Frappe web + API ◀──┘
-  IIIF viewers, e-reader apps ◀── /iiif (manifests, image service) · /opds
-  Older library systems ◀── /sru (SRU 1.2, MARCXML or Dublin Core)
-  Koha, VuFind, aggregators ◀── OAI-PMH / MARCXML / exports (MODS, Dublin Core, JSON-LD, EAD3)
-  archive.org, Koha, Wikidata, webhooks ◀── push targets
-  Wikidata, Wikisource, Commons ◀── each person's own Wikimedia account, after a review
-  Wikidata, VIAF, LCSH ⇄ Desk → Authorities (matches in; names and links given back)
-  Cataloguers ◀── Desk → Review Queue ◀── nightly checks of every record
-  daily: new / changed / removed books from archive.org ──▶ Ingest jobs ──▶ mirrored collections
-  Desk (one sidebar) → Server ◀── health, backups, alerts ──▶ updater helper (optional)
-  USB sticks, phones, Kiwix ◀── offline copy (zip, ZIM) · Calibre library · the guide as EPUB
-  Zotero, Google Scholar ◀── citation_* meta tags, JSON-LD, COinS
-```
-
-</details>
-
-Material from your own folders or web server (books with `meta.xml` + OCR text + PDF, loose
-PDFs, leaf images, photographs, recordings) or from a Calibre library goes through the same
-pipeline; its files are streamed from your disk and never copied unless you choose to preserve
-them.
-
-The search engine is sent only what changed (a re-ingested book with the same text, or an edit
-that changes nothing searchable, costs it nothing), and its share of the machine can be capped:
-see [Operations](docs/operations.md#the-search-engine-is-always-busy).
-
-Scans stay on the Internet Archive and are shown through its reader. Research Desk keeps the
-catalogue and the search index, so a laptop can hold tens of thousands of books; preservation
-copies of the books the library chooses are kept on its own storage.
+Servants of Knowledge builds the path from scanner to reader in the open: **TTScribe**, open
+book-scanning hardware; [**Repub**](https://github.com/servantsofknowledge/repub), which crops,
+straightens and reads each scan and exports a searchable PDF, text and the images; and Research Desk, which makes the
+books searchable, citable, correctable and kept safe. **OpenScribe**, the last step, is in
+progress.
 
 ## Licence
 
-MIT. See [LICENSE](LICENSE). Book content belongs to its rights holders; each record shows
-its licence as published on the Internet Archive.
+MIT. See [LICENSE](LICENSE). Book content belongs to its rights holders; each record shows its
+licence as published on the Internet Archive.

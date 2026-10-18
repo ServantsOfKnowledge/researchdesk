@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.92.0 (2026-10-18): A short README, and the long list in its own page
+
+- **README.** The front page is now about 60 lines: what it is, how to install it, where the documentation is. Nothing was dropped. The full list of what Research Desk does is a new page, [What Research Desk does](docs/features.md) (also in the in-app Help); "How it fits together", with its picture, is in [Architecture](docs/architecture.md); the install, ingest, upgrade and updater commands were already in Installation, Getting started and Ingesting.
+- **Architecture** says that the records-office doctypes, code and hooks are a second app, and how core reaches it.
+
 ## 0.91.0 (2026-10-18): Core no longer names the records office
 
 - **Out of core.** The Security Officer and Records Officer roles, the records-office entries of the Desk menu and their Help buttons now come from the governance app; a standard install creates and shows none of them. (The Records Officer role still appears in the role list of a standard site, unused, because the Collection form lists it as a reader.) Core asks through two hooks (`resdesk_roles`, `resdesk_screen_help`).

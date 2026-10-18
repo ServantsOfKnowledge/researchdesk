@@ -44,6 +44,52 @@ offline or sending to partners; `python3 scripts/docs_pdf.py` makes one from the
    `sok_resdesk/core/` with no Frappe imports, so they are unit-tested in milliseconds and
    reusable elsewhere.
 
+## How it fits together
+
+![How SOK Research Desk fits together: material comes in from archive.org, folders, Calibre, repositories, Wikisource and deposits; ingest, proofreading, machine drafts, preservation and review work on it; it is kept in Frappe and MariaDB and found through Meilisearch; and it goes out to readers, open standards, Wikimedia and other systems, and offline copies](../sok_resdesk/public/images/how-it-fits.svg)
+
+<details>
+<summary>The same, in text, with every connection</summary>
+
+```
+ archive.org · folders (books, leaf images, photographs, recordings) · a Calibre library ·
+ repositories (OAI-PMH) · Wikisource · deposits ──(metadata+text)▶ Ingest jobs ──▶ Frappe / MariaDB
+                                                        │                  (catalogue, notes, page texts,
+                                                        │                   archival units)
+                                                        └──────▶ Meilisearch       (books + pages)
+  Proofreaders ──▶ corrections, re-OCR (Tesseract) ──▶ page text versions ──▶ search, reader, citations
+  Machine drafts (Whisper, Kraken) ──▶ "Machine" versions ──▶ people proofread them
+  Preservation ──▶ OCFL copies + fixity ──▶ second copy (folder or S3) ⇄ repair · BagIt exports
+                                                                        │
+  Readers ◀── /  (search, read, cite, browse the archive, deposit) ◀── Frappe web + API ◀──┘
+  IIIF viewers, e-reader apps ◀── /iiif (manifests, image service) · /opds
+  Older library systems ◀── /sru (SRU 1.2, MARCXML or Dublin Core)
+  Koha, VuFind, aggregators ◀── OAI-PMH / MARCXML / exports (MODS, Dublin Core, JSON-LD, EAD3)
+  archive.org, Koha, Wikidata, webhooks ◀── push targets
+  Wikidata, Wikisource, Commons ◀── each person's own Wikimedia account, after a review
+  Wikidata, VIAF, LCSH ⇄ Desk → Authorities (matches in; names and links given back)
+  Cataloguers ◀── Desk → Review Queue ◀── nightly checks of every record
+  daily: new / changed / removed books from archive.org ──▶ Ingest jobs ──▶ mirrored collections
+  Desk (one sidebar) → Server ◀── health, backups, alerts ──▶ updater helper (optional)
+  USB sticks, phones, Kiwix ◀── offline copy (zip, ZIM) · Calibre library · the guide as EPUB
+  Zotero, Google Scholar ◀── citation_* meta tags, JSON-LD, COinS
+```
+
+</details>
+
+Material from your own folders or web server (books with `meta.xml` + OCR text + PDF, loose
+PDFs, leaf images, photographs, recordings) or from a Calibre library goes through the same
+pipeline; its files are streamed from your disk and never copied unless you choose to preserve
+them.
+
+The search engine is sent only what changed (a re-ingested book with the same text, or an edit
+that changes nothing searchable, costs it nothing), and its share of the machine can be capped:
+see [Operations](operations.md#the-search-engine-is-always-busy).
+
+Scans stay on the Internet Archive and are shown through its reader. Research Desk keeps the
+catalogue and the search index, so a laptop can hold tens of thousands of books; preservation
+copies of the books the library chooses are kept on its own storage.
+
 ## Components
 
 The full list of software, what each part is configured for and which features need it is the [Technology map](technology.md).
@@ -57,7 +103,7 @@ The full list of software, what each part is configured for and which features n
 │                             │  api.py           search · cite · marc · stats · media  │
 │                             │  oai.py  iiif.py  OAI-PMH · IIIF manifests + image      │
 │                             │  opds.py          e-reader catalogue (OPDS 1.2)         │
-│                             │  audit.py classification.py  Governance Mode            │
+│                             │  seams.py         hooks for the governance app          │
 │                             │  Desk             one sidebar: DocTypes, forms, pages   │
 │                             ▼                                                         │
 │  MariaDB  ◀── catalogue ── Frappe ORM ──▶ search.py ──▶ Meilisearch                   │
@@ -93,6 +139,8 @@ separate short-lived container (or a detached process), so they outlive the rest
 cause. Under Coolify, which owns the containers, the helper cannot run; restart and redeploy go to Coolify's API instead (`core/coolify.py`) and are recorded as the same kind of task. A task the helper never finished reporting on can be cleared from the page. Details: [Server](server.md#how-the-updater-helper-works).
 
 ## Data model (DocTypes, module *ResDesk*)
+
+The seventeen records-office doctypes (audit event, department, clearance, item scope, file register, directory account, retention rule, legal hold, disposal, disclosure request, record and redaction, and their child tables) are in the second app, module *ResDesk Governance*, and exist only on the governance edition.
 
 | DocType | Purpose | Key fields |
 |---|---|---|
@@ -466,6 +514,8 @@ view, download, search and change goes into a tamper-evident audit log. A classi
 *Cleared only*: the plain access rules never show it, and only `access.effective()` lets the cleared
 through, so a surface that was never taught about classification fails closed. The whole design,
 with its diagram, is in [Government and institutional use](governance.md).
+
+**It is a second app.** Everything above lives in `sok_resdesk_governance` (the `governance/` folder), installed only by `./install.sh --edition governance` ([Editions](installation.md#editions)), so a standard install has none of that code to run or to review. Core never imports it: it asks through `sok_resdesk/seams.py`, whose answers come from hooks the governance app lists (events to the audit log, is this person cleared, a classified record's level, extra roles, Help buttons, health lines), and with no governance app those answers are "nobody is cleared, nothing is kept". A test fails if core imports the app. `scripts/review_scope.py` counts each edition's code for an auditor. Dependency rules and the hook table: [Development](development.md#the-governance-seam).
 
 ## Access control
 

@@ -9,6 +9,8 @@
 
 The same pages are inside the app: **Help** on the portal (for readers) and **Help** in the Desk (everything).
 
+- [What Research Desk does](features.md): the whole list of what it can do
+
 1. [Getting started](getting-started.md): install, load sample books, search and cite (for everyone)
 2. [Installation](installation.md): Docker or native install (macOS, Ubuntu/Debian), prebuilt images, a server with a domain and HTTPS from Let's Encrypt (also [step by step on a server that already runs nginx](installation.md#step-by-step-a-new-linux-server-that-already-runs-nginx)), changing the portal's address, Coolify, developer mode, upgrading
 3. [Choosing & ingesting books](ingesting.md): profiles, archive.org search syntax, the Servants of Knowledge sub-collections, keeping in step with archive.org (new, changed and removed books; mirrored collections), schedules

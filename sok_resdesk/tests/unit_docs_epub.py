@@ -49,3 +49,9 @@ def test_links_between_pages_and_pictures_resolve_inside_the_book(book):
 			assert "OEBPS/" + target in names, (name, target)
 			if anchor:
 				assert f'id="{anchor}"' in z.read("OEBPS/" + target).decode(), (name, target, anchor)
+
+
+def test_a_picture_beside_the_guides_own_is_served_from_the_apps_images():
+	md = "![x](../sok_resdesk/public/images/how-it-fits.svg)"
+	out = helpdocs.rewrite(md, lambda page, anchor: None)
+	assert out == "![x](/assets/sok_resdesk/images/how-it-fits.svg)"

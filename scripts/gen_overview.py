@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Draw the "How it fits together" picture for the README (sok_resdesk/public/images/how-it-fits.svg).
+"""Draw the "How it fits together" picture of docs/architecture.md (sok_resdesk/public/images/how-it-fits.svg).
 
     python3 scripts/gen_overview.py
 
