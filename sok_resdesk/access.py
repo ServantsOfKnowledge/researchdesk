@@ -173,12 +173,18 @@ def sql_condition(column: str = "visibility") -> str:
 	return f"({base}) and {hidden}"
 
 
-def item_query_conditions(user: str | None = None) -> str:
-	"""The Desk's lists of items: a person sees what they are cleared for (the Administrator sees all)."""
-	hidden = f"ifnull(`tabRD Item`.visibility, '') != '{core.CLEARED_ONLY}'"
+def item_condition(alias: str = "`tabRD Item`", user: str | None = None) -> str:
+	"""SQL for the records a person may see in a staff list: all but the classified ones they are not
+	cleared for (the Administrator sees all). `alias` is how the query names the item table."""
+	hidden = f"ifnull({alias}.visibility, '') != '{core.CLEARED_ONLY}'"
 	if not governed():
 		return hidden
-	return f"({hidden} or {_cleared_sql('`tabRD Item`.name', user)})"
+	return f"({hidden} or {_cleared_sql(alias + '.name', user)})"
+
+
+def item_query_conditions(user: str | None = None) -> str:
+	"""The Desk's lists of items: a person sees what they are cleared for (the Administrator sees all)."""
+	return item_condition("`tabRD Item`", user)
 
 
 def scope_conditions(user: str | None = None) -> str:

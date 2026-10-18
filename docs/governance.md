@@ -246,7 +246,7 @@ leaver is not found by the nightly check (the provider has no directory to ask):
 life (System Settings) and disable the account at the provider. LDAP is not covered by the Classified
 mode guard, which watches web requests and mail only, so in Classified mode the settings are refused
 unless the directory and the provider's addresses are the machine itself or hosts named in
-`resdesk_allowed_hosts`. With two-factor sign-in on, an LDAP sign-in goes through Frappe's second
+`resdesk_allowed_hosts`, a directory sign-in is refused while they are not, and the nightly check does not run. With two-factor sign-in on, an LDAP sign-in goes through Frappe's second
 step and is not noted, so that person is not in the nightly check: switch them off by hand. After an
 upgrade, existing Social Login Keys may carry the trust options Frappe sets on upgrade; they must be
 cleared before the key can be saved.
@@ -269,14 +269,20 @@ cleared before the key can be saved.
 
 ### What this does not cover yet
 
-Staff screens that read records directly rather than through the Desk's permissions (the review
-queue's list, the usage reports' counts, the dashboard's counts, and the number of page documents
-in the search engine on the Server page) can still show counts or titles of classified records to
-staff. Treat those counts as unclassified information until they are closed.
+**Counts on staff screens.** The workspace dashboard leaves classified records, and the notes and page
+text of them, out of every number. The review queue lists, counts and checks only the records the
+reviewer is cleared for. The one number that still includes them is the *page documents* count of the
+search engine on the Server page (a total for the whole index, with no titles): treat it as
+unclassified information.
 
-Units of archival description and deposits are not classified. A classified book's public notes and
-its archival units are hidden from the portal for everyone (failing closed), so cleared people do not
-see them there either.
+**Archival units and deposits cannot be classified.** Do not enter classified material in them. A
+classified book's public notes and its archival units are hidden from the portal for everyone (failing
+closed), so cleared people do not see them there either. A deposit, once accepted, becomes a record that
+can be classified like any other.
+
+**A file and its records.** Classifying a record above the file it is filed in (or in an office the file
+is not in or above) is refused, with the number of files to raise first; lowering a record's level
+leaves the file as it is.
 
 ## Deploying it
 

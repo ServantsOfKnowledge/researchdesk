@@ -240,6 +240,10 @@ def sync() -> dict:
 	if not accounts:
 		return result
 	ldap = frappe.get_doc("LDAP Settings")
+	problems = _ldap_problems(ldap)
+	if problems:  # settings that no longer meet the rules (an outside host in Classified mode…)
+		frappe.log_error(title="Research Desk: the directory check did not run", message="; ".join(problems))
+		return {**result, "skipped": problems}
 	try:
 		conn = ldap.connect_to_ldap(ldap.base_dn, ldap.get_password(raise_exception=False))
 		conn.search(

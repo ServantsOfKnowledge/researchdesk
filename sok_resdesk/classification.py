@@ -72,6 +72,7 @@ def on_scope_validate(doc) -> None:
 		_may_classify(old.classification, old.department)
 		if (old.department or "") != (doc.department or ""):
 			_not_held([doc.item])
+	_not_below_files([doc.item], doc.class_rank, doc.department)
 	if not doc.visibility_before:
 		current = frappe.db.get_value("RD Item", doc.item, "visibility")
 		doc.visibility_before = current if current != CLEARED_ONLY else LOGIN_TO_FIND
@@ -83,6 +84,20 @@ def apply_to_item(item: str) -> None:
 	level, department = frappe.db.get_value(SCOPE, item, ["classification", "department"])
 	audit.record("classification", item, f"{level} {department or ''}".strip())
 	_reindex([item])
+
+
+def _not_below_files(names: list[str], rank: int, department: str | None) -> None:
+	"""A record cannot be classified above the file it is filed in: raise the file first."""
+	from sok_resdesk.register import files_below
+
+	if rank or department:
+		n = files_below(names, rank, department)
+		if n:
+			frappe.throw(
+				_(
+					"{0} files hold this record at a lower level or in another office: raise those files first (File Register)."
+				).format(n)
+			)
 
 
 def _not_held(names: list[str]) -> None:
@@ -125,6 +140,7 @@ def set_classification(level: str, department: str = "", names=None, filters=Non
 	under_hold = held(selected)  # a held record keeps its department and level until the hold is released
 	selected = [n for n in selected if n not in under_hold]
 	rank = levels.rank(level)
+	_not_below_files(selected, rank, department)
 	user, now = frappe.session.user, now_datetime()
 	for i in range(0, len(selected), 500):
 		chunk = tuple(selected[i : i + 500])

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.85.0 (2026-10-18): Classified records no longer leak through the Desk's counts and queues
+
+- The workspace numbers, the cataloguer's review queue and its duplicate list now leave out records a person is not cleared for; a record cannot be classified below a file that holds it; the leaver check refuses to run on a broken LDAP setup. Still open, and said so in [Governance](docs/governance.md): archival units and deposits cannot be classified, and the Server page's page total counts classified pages.
+
 ## 0.84.0 (2026-10-18): Old Kannada font text, and a Keycloak page
 
 - **Old Kannada font text to Unicode**, with the Sanchaya Kannada Font Converter (its engine is copied unmodified into `sok_resdesk/vendor/kannada_font_converter`, GPL-3.0-or-later, and run as a separate Node program; the rest stays MIT). New setting **Convert Old Kannada Fonts in PDF Text**: when a PDF's text layer is read, pages in Nudi, Baraha, ShreeLipi and twelve other old fonts are converted so the book can be searched; and a Desk screen **Convert Old Kannada Text** for one text at a time. Never stops an ingest. See [Old Kannada font text](docs/legacy-kannada.md).

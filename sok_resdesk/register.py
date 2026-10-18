@@ -70,6 +70,25 @@ def _check_records(doc) -> None:
 			)
 
 
+def files_below(items: list[str], rank: int, department: str | None) -> int:
+	"""How many files hold one of `items` while less restricted than a record of this level and department
+	would need (the file must be at least as restricted, in the same office or above)."""
+	if not items:
+		return 0
+	parents = _parents()
+	below = 0
+	for f in frappe.db.sql(
+		"""select distinct f.name, f.class_rank, f.department from `tabRD File Record` r
+		join `tabRD File` f on f.name = r.parent where r.item in %s""",
+		(tuple(items),),
+		as_dict=True,
+	):
+		inside = levels.expand([f.department], parents) if f.department else set()
+		if rank > (f.class_rank or 0) or (department and department not in inside):
+			below += 1
+	return below
+
+
 def on_validate(doc, method=None) -> None:
 	doc.class_rank = levels.rank(doc.classification)
 	if doc.department and not frappe.db.exists("RD Department", doc.department):

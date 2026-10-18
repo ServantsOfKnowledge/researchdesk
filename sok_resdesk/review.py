@@ -16,6 +16,7 @@ from frappe.utils import cint, now_datetime
 
 from sok_resdesk import features
 from sok_resdesk.core import review as core
+from sok_resdesk.core.access import like_literal
 
 DT = "RD Review Flag"
 EDITORS = ("System Manager", "ResDesk Manager", "ResDesk Cataloguer")
@@ -125,7 +126,7 @@ def _duplicates() -> dict[str, list[str]]:
 		"""select i.name as item_id, i.title, i.year,
 			(select coalesce(c.name_as_given, c.creator) from `tabRD Item Creator` c
 			 where c.parent = i.name and c.parenttype = 'RD Item' order by c.idx limit 1) as first
-		from `tabRD Item` i where i.published = 1""",
+		from `tabRD Item` i where i.published = 1 and ifnull(i.visibility, '') != 'Cleared only'""",
 		as_dict=True,
 	)
 	return core.duplicates([{**r, "creators": [r.first or ""]} for r in rows])
@@ -135,7 +136,15 @@ def scan(names: list[str] | None = None) -> dict:
 	"""Check these books (default: every published book) and bring their flags up to date."""
 	dups = _duplicates()
 	if names is None:
-		names = frappe.get_all("RD Item", filters={"published": 1}, pluck="name", order_by="name")
+		names = frappe.get_all(
+			"RD Item",
+			filters={
+				"published": 1,
+				"visibility": ("!=", "Cleared only"),
+			},  # classified records are not checked here
+			pluck="name",
+			order_by="name",
+		)
 	counts = {"books": 0, "flagged": 0}
 	for start in range(0, len(names), CHUNK):
 		chunk = names[start : start + CHUNK]
@@ -193,16 +202,22 @@ def on_item_trash(doc, method=None) -> None:
 def overview(check: str = "", q: str = "", start: int = 0) -> dict:
 	"""Counts of open questions by check, and one page of books with theirs (most important first)."""
 	frappe.only_for(EDITORS)
+	from sok_resdesk import access
+
+	seen = access.item_condition("i")  # a reviewer sees flags only of the records they are cleared for
 	counts = dict(
-		frappe.db.sql(f"select `check`, count(*) from `tab{DT}` where status = 'Open' group by `check`")
+		frappe.db.sql(
+			f"""select f.`check`, count(*) from `tab{DT}` f join `tabRD Item` i on i.name = f.item
+			where f.status = 'Open' and {seen} group by f.`check`"""
+		)
 	)
-	cond, args = ["f.status = 'Open'"], {"start": cint(start)}
+	cond, args = ["f.status = 'Open'", seen], {"start": cint(start)}
 	if check:
 		cond.append("f.`check` = %(check)s")
 		args["check"] = check
 	if q:
 		cond.append("(i.title like %(q)s or i.name like %(q)s)")
-		args["q"] = f"%{q}%"
+		args["q"] = f"%{like_literal(q)}%"
 	items = frappe.db.sql(
 		f"""select f.item, min(f.weight) as w from `tab{DT}` f join `tabRD Item` i on i.name = f.item
 		where {" and ".join(cond)} group by f.item order by w, f.item limit 25 offset %(start)s""",
@@ -220,11 +235,14 @@ def overview(check: str = "", q: str = "", start: int = 0) -> dict:
 	):
 		if f.check == "duplicate":
 			others = [x.strip() for x in (f.detail or "").split(",") if x.strip()]
-			f.others = frappe.get_all(
-				"RD Item",
-				filters={"name": ("in", others or [""])},
-				fields=["name", "title", "year", "published"],
+			f.others = (
+				frappe.get_list(  # with the reviewer's own permissions: a classified duplicate is not named
+					"RD Item",
+					filters={"name": ("in", others or [""])},
+					fields=["name", "title", "year", "published"],
+				)
 			)
+			f.detail = ", ".join(o.name for o in f.others)  # not the ids of records the reviewer can't see
 		flags.setdefault(f.item, []).append(f)
 	rows = []
 	for n in names:
@@ -232,8 +250,8 @@ def overview(check: str = "", q: str = "", start: int = 0) -> dict:
 		if b:
 			rows.append({**b, "subjects": bool(b["subjects"]), "flags": flags.get(n, [])})
 	languages = frappe.db.sql(
-		"""select language, max(language_label) from `tabRD Item`
-		where ifnull(language, '') != '' group by language order by count(*) desc limit 80"""
+		f"""select language, max(language_label) from `tabRD Item`
+		where ifnull(language, '') != '' and {access.item_condition("`tabRD Item`")} group by language order by count(*) desc limit 80"""
 	)
 	return {
 		"counts": {code: counts.get(code, 0) for code in core.CHECKS},
@@ -275,6 +293,8 @@ def save(item: str, values) -> dict:
 def ignore(name: str) -> dict:
 	"""This is right: the question is answered and not asked again."""
 	frappe.only_for(EDITORS)
+	flag = frappe.get_doc(DT, name)
+	frappe.get_doc("RD Item", flag.item).check_permission("write")  # not for a record they can't see
 	frappe.db.set_value(
 		DT, name, {"status": "Ignored", "resolved_by": frappe.session.user, "resolved_on": now_datetime()}
 	)

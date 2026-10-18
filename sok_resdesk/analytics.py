@@ -89,5 +89,10 @@ def page_views(days: int = 7) -> dict | None:
 	)
 	for t in top:
 		t.item = t.path.split("library/item/", 1)[-1].split("/")[0].split("?")[0]
-		t.title = frappe.db.get_value("RD Item", t.item, "title") or t.item
+		t.title, t.visibility = frappe.db.get_value("RD Item", t.item, ["title", "visibility"]) or (
+			t.item,
+			"",
+		)
+	# the card is kept for every manager, so a classified book is not named on it
+	top = [t for t in top if t.visibility != "Cleared only"]
 	return {"views": views, "visitors": unique, "top": top}

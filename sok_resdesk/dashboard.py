@@ -39,15 +39,31 @@ def _logins(since) -> int:
 	)
 
 
+CLEARED_ONLY = "Cleared only"
+NOT_CLASSIFIED = f"ifnull(visibility, '') != '{CLEARED_ONLY}'"
+
+
+def count(doctype: str, filters: dict | None = None) -> int:
+	"""A count for the dashboard, which is kept for everyone: classified records are not in any number
+	(they are not on the portal), nor are the notes and page text that belong to them."""
+	filters = dict(filters or {})
+	if doctype == "RD Item":
+		filters["visibility"] = ("!=", CLEARED_ONLY)
+	elif doctype in ("RD Annotation", "RD Page Text"):
+		hidden = frappe.get_all("RD Item", filters={"visibility": CLEARED_ONLY}, pluck="name")
+		if hidden:
+			filters["item"] = ("not in", hidden)
+	return frappe.db.count(doctype, filters)
+
+
 def compute() -> dict:
 	week, month = add_days(nowdate(), -7), add_days(nowdate(), -30)
-	count = frappe.db.count
 	books = count("RD Item", {"published": 1})
 	quality = frappe.db.sql(
-		"select avg(ocr_quality) from `tabRD Item` where published = 1 and ocr_quality > 0"
+		f"select avg(ocr_quality) from `tabRD Item` where published = 1 and ocr_quality > 0 and {NOT_CLASSIFIED}"
 	)[0][0]
 	pages = frappe.db.sql(
-		"select sum(page_count) from `tabRD Item` where published = 1 and has_page_text = 1"
+		f"select sum(page_count) from `tabRD Item` where published = 1 and has_page_text = 1 and {NOT_CLASSIFIED}"
 	)[0][0]
 	groups = [
 		{
