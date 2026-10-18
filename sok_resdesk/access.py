@@ -195,6 +195,33 @@ def scope_has_permission(doc, ptype=None, user=None):
 	return None
 
 
+def file_conditions(user: str | None = None) -> str:
+	"""The file register: a person sees the files they are cleared for (whether or not Governance Mode is
+	on: a file with a level or a department stays hidden from anyone without a clearance)."""
+	rank, departments = clearance(user)
+	return levels.sql_clause(rank, departments, "`tabRD File`.", frappe.db.escape)
+
+
+def file_has_permission(doc, ptype=None, user=None):
+	return bool(is_cleared(doc.get("class_rank"), doc.get("department"), user))
+
+
+def _of_file(table: str, user: str | None) -> str:
+	"""The rows of a file's tables (records, movements) are read only with the file: Frappe checks a
+	child table against its parent's role alone, so the file's own rule is repeated here."""
+	rank, departments = clearance(user)
+	cleared = levels.sql_clause(rank, departments, "f.", frappe.db.escape)
+	return f"`tab{table}`.parent in (select f.name from `tabRD File` f where {cleared})"
+
+
+def file_record_conditions(user=None):
+	return _of_file("RD File Record", user)
+
+
+def file_movement_conditions(user=None):
+	return _of_file("RD File Movement", user)
+
+
 def _by_item(table: str, user: str | None) -> str:
 	"""A doctype that hangs off an item (its page text, notes, flags…): hidden with a classified item."""
 	cleared = _cleared_sql("it.name", user) if governed() else "1=0"

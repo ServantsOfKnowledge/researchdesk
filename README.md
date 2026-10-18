@@ -46,7 +46,7 @@ folders, and Research Desk will:
   **audio and video** (a player with a time-coded transcript), a **Calibre library** read in
   place, **Wikisource** books with their proofread pages, and **deposits** that people make
   themselves and a reviewer accepts (licence and embargo included)
-- **serve a government or institution** (Governance Mode, off by default): records with a level and a department, a clearance per person, offices that see downward, and a tamper-evident audit log of who viewed, downloaded and changed what
+- **serve a government or institution** (Governance Mode, off by default): records with a level and a department, a clearance per person, offices that see downward, a tamper-evident audit log of who viewed, downloaded and changed what, a Classified mode for Secret and Top Secret records, a read-only public mirror on another server, retention rules with legal holds, a file register, and LDAP and single sign-on
 - **describe archives** as archivists do: fonds, series, file and item (ISAD(G)), browsable on
   the portal, exported as **EAD3**, with digitised items placed in the hierarchy
 - **stay in step with archive.org** by itself: every day, books added to a collection come in,
@@ -246,7 +246,7 @@ day, changed ones are refreshed, removed ones are unpublished
 | Archives & special collections | [Archival description](docs/archival-description.md) · [Manuscripts & palm leaves](docs/manuscripts.md) · [Photographs](docs/photographs.md) · [Audio & video](docs/audio-video.md) · [Repository deposit](docs/deposit.md) |
 | Library managers | [Who can see what: members-only books & reader accounts](docs/access.md) · [Collections, metadata, exports & pushing](docs/collections-and-metadata.md) · [Permanent links, preservation & OCR quality](docs/preservation.md) · [Giving back to Wikimedia](docs/wikimedia.md) · [Offline copies & Kiwix](docs/offline.md) |
 | Library systems staff | [Koha & interoperability](docs/koha.md) · [IIIF](docs/iiif.md) · [OPDS](docs/opds.md) · [SRU](docs/sru.md) · [Usage reports](docs/usage-reports.md) · [API](docs/api.md) |
-| Government & institutions | [Government and institutional use](docs/governance.md): classification, clearances by department, the tamper-evident audit log |
+| Government & institutions | [Government and institutional use](docs/governance.md): classification, clearances by department, the tamper-evident audit log, Classified mode, the public mirror, retention and legal holds, the file register, directory sign-in |
 | System administrators | [Installation](docs/installation.md) · [Server: updates, health & backups](docs/server.md) · [Operations](docs/operations.md) · [Moving to another server](docs/moving.md) · [Scaling to 50k books](docs/scaling.md) |
 | Developers | [Architecture](docs/architecture.md) · [Technology map](docs/technology.md) ([PDF](https://github.com/ServantsOfKnowledge/researchdesk/releases/latest) and the whole guide as an EPUB, with every release) · [Development](docs/development.md) · [Roadmap](docs/roadmap.md) |
 

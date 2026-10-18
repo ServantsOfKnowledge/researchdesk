@@ -78,6 +78,7 @@ STRUCTURE: list = [
 			("Classified Records", D, "RD Item Scope"),
 			("Departments", D, "RD Department"),
 			("Clearances", D, "RD Clearance"),
+			("File Register", D, "RD File"),
 			("Directory Sign-ins", D, "RD Directory Account"),
 			("Retention Rules", D, "RD Retention Rule"),
 			("Legal Holds", D, "RD Legal Hold"),

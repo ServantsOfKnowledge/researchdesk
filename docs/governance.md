@@ -172,6 +172,32 @@ certificate says so); a public book that is destroyed still leaves its tombstone
 address answers; a direct database deletion bypasses a hold. A destroyed record is gone: take the
 backup and the approval seriously.
 
+### File register
+
+Desk → Research Desk → Running the Library → **File Register**. A **file** is what an office keeps
+together: it has a number (the department's own, for example `ED 12 SLB 2026`, or `F-2026-00001` if
+left empty; numbers starting `F-` are Research Desk's own), a subject, a level and a department, where it is (*Place*), who has it, the records in
+it, and its movements. It works for paper files and for digital ones.
+
+- **Same need-to-know as a record.** A file with a level or a department is seen only by people
+  cleared for it, in lists, forms and reports, whether or not Governance Mode is on. A file is
+  classified by the same people as a record (security officers and managers) and never above their
+  clearance, and so are its records and its movements (also when read through the API). A file must be
+  **at least as restricted as every record in it**, in the same office or above, and nobody files a
+  record they cannot see. That is checked when the file is saved: a record classified higher later does
+  not change the file, so raise the file's level too (a file cannot be sent to someone who is not
+  cleared for the records in it).
+- **Movement.** The person who has a file (or a records officer) **sends** it to a colleague, with
+  remarks; it stays with the sender until the colleague **receives** it, which makes them the holder.
+  A file cannot be sent to a person who is not cleared for it (or for what is in it), or who has no
+  Desk role, and not while it is still on its way; the answer is the same in each case. Every send and receive is a line in the file's *Movement* table and in the
+  audit log.
+- **The holder and the movements are not editable.** They change only through send, receive, close
+  and reopen. Only the holder or a records officer edits an open file. **Close** it when the work is
+  done (a closed file is read-only); only a records officer **reopens** it.
+- **Never deleted.** A file is closed, not removed: the register is the record. (It does not yet feed
+  the retention rules, which count from a record's year or the day it was added.)
+
 ### Directory sign-in
 
 People sign in with the department's own accounts instead of passwords kept here: **LDAP** (Active
@@ -328,6 +354,6 @@ secret: rotate it by changing both ends.
 
 ## What comes next
 
-A file register, records intake, signature
+Records intake, signature
 checks, a disclosure-request workflow, redaction, conversion of old Kannada font text to Unicode,
 and an offline install bundle are planned: see the [roadmap](roadmap.md).

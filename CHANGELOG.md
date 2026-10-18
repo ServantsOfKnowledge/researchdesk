@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.83.0 (2026-10-18): The file register
+
+- **File register**: numbered files (the department's own number, or `F-year-number`) with a subject, level, department and place, the records in each, who has it, and every movement. Files follow the same need-to-know rules as records (hidden from people not cleared, never sent to one, never less restricted than the records in them); a file is sent, received, closed and reopened through checked steps, never by editing who holds it; every step is in the audit log; files are closed, not deleted. See [File register](docs/governance.md#file-register).
+
 ## 0.82.0 (2026-10-18): Directory sign-in: LDAP and single sign-on
 
 - **Directory sign-in** through Frappe's LDAP Settings and Social Login Keys (OpenID Connect), with the rules a government installation needs: a directory cannot hand out the governance duties (system manager, super admin, security officer, records officer); LDAP must be encrypted with a checked certificate; providers use https and cannot take over accounts by email; clearances never come from a directory. Directory sign-ins are listed (Directory Sign-ins) and marked in the audit log, and a **nightly check switches off and signs out an LDAP account the directory no longer has** (two misses in a row; never the Administrator or the last system manager). A directory cannot sign in as an officer it did not create, and a night's check that would switch off more than a fifth of everyone, or finds an empty directory, changes nothing. The Server page shows the directory and warns when a setting breaks the rules. See [Directory sign-in](docs/governance.md#directory-sign-in).

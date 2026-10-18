@@ -120,6 +120,9 @@ permission_query_conditions = {
 	"RD Ground Truth": "sok_resdesk.access.ground_truth_conditions",
 	"RD External Record": "sok_resdesk.access.external_record_conditions",
 	"RD Item Scope": "sok_resdesk.access.scope_conditions",
+	"RD File": "sok_resdesk.access.file_conditions",
+	"RD File Record": "sok_resdesk.access.file_record_conditions",
+	"RD File Movement": "sok_resdesk.access.file_movement_conditions",
 }
 has_permission = {
 	"RD Item": "sok_resdesk.access.item_has_permission",
@@ -129,6 +132,7 @@ has_permission = {
 	"RD Ground Truth": "sok_resdesk.access.by_item_has_permission",
 	"RD External Record": "sok_resdesk.access.by_item_has_permission",
 	"RD Item Scope": "sok_resdesk.access.scope_has_permission",
+	"RD File": "sok_resdesk.access.file_has_permission",
 }
 
 doc_events = {

@@ -54,6 +54,7 @@ SCREEN_HELP = {
 	"RD Department": ("governance", "departments-and-clearances"),
 	"RD Item Scope": ("governance", "where-the-level-and-department-live"),
 	"RD Clearance": ("governance", "departments-and-clearances"),
+	"RD File": ("governance", "file-register"),
 	"RD Directory Account": ("governance", "directory-sign-in"),
 	"RD Retention Rule": ("governance", "retention-and-legal-holds"),
 	"RD Legal Hold": ("governance", "retention-and-legal-holds"),

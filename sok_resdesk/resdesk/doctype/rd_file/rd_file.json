@@ -1,0 +1,185 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-18 11:00:00.000000",
+ "modified": "2026-10-18 11:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD File",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "field_order": [
+  "file_number",
+  "subject",
+  "status",
+  "column_break_f",
+  "classification",
+  "class_rank",
+  "department",
+  "section_where",
+  "held_by",
+  "location",
+  "opened_on",
+  "closed_on",
+  "section_records",
+  "records",
+  "notes",
+  "section_moves",
+  "movements"
+ ],
+ "fields": [
+  {
+   "fieldname": "file_number",
+   "fieldtype": "Data",
+   "label": "File Number",
+   "unique": 1,
+   "in_list_view": 1,
+   "set_only_once": 1,
+   "description": "The department's own number (for example ED 12 SLB 2026). Empty: Research Desk numbers it F-year-number."
+  },
+  {
+   "fieldname": "subject",
+   "fieldtype": "Data",
+   "label": "Subject",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Open\nClosed",
+   "default": "Open",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_f",
+   "fieldtype": "Column Break",
+   "label": ""
+  },
+  {
+   "fieldname": "classification",
+   "fieldtype": "Select",
+   "label": "Level",
+   "options": "Unclassified\nRestricted\nConfidential\nSecret\nTop Secret",
+   "default": "Unclassified",
+   "reqd": 1
+  },
+  {
+   "fieldname": "class_rank",
+   "fieldtype": "Int",
+   "label": "Level Number",
+   "hidden": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "RD Department",
+   "description": "Only people cleared for this office (and the offices above it) can see the file."
+  },
+  {
+   "fieldname": "section_where",
+   "fieldtype": "Section Break",
+   "label": "Where it is"
+  },
+  {
+   "fieldname": "held_by",
+   "fieldtype": "Link",
+   "label": "With",
+   "options": "User",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "Place",
+   "description": "The room, almirah or shelf, when there is a paper file."
+  },
+  {
+   "fieldname": "opened_on",
+   "fieldtype": "Date",
+   "label": "Opened On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "closed_on",
+   "fieldtype": "Date",
+   "label": "Closed On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_records",
+   "fieldtype": "Section Break",
+   "label": "Records in the file"
+  },
+  {
+   "fieldname": "records",
+   "fieldtype": "Table",
+   "label": "Records",
+   "options": "RD File Record"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "section_moves",
+   "fieldtype": "Section Break",
+   "label": "Movement"
+  },
+  {
+   "fieldname": "movements",
+   "fieldtype": "Table",
+   "label": "Movement",
+   "options": "RD File Movement"
+  }
+ ],
+ "links": [],
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "description": "A file in the register: its number, subject, level and department, where it is and who has it, the records in it, and every movement.",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "ResDesk Records Officer",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "write": 1,
+   "create": 1
+  },
+  {
+   "role": "SOK Super Admin",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "write": 1,
+   "create": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "write": 1,
+   "create": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "write": 1,
+   "create": 1
+  }
+ ],
+ "autoname": "field:file_number"
+}

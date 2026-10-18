@@ -182,10 +182,10 @@ box(
 	134,
 	"Governance Mode (optional)",
 	(
-		"levels and departments: records",
-		"hidden from anyone not cleared",
-		"a clearance per person",
+		"levels, departments, clearances",
 		"tamper-evident audit log",
+		"public mirror, Classified mode",
+		"retention, file register, LDAP/SSO",
 	),
 	colour=AMBER,
 	fill="#fbf3e8",

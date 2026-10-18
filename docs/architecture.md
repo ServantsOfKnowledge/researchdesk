@@ -131,6 +131,7 @@ cause. Under Coolify, which owns the containers, the helper cannot run; restart 
 | **RD Clearance** | what a person may see under Governance Mode: up to a level, for some departments and the offices below them | user, level, departments |
 | **RD Clearance Department** | one row of a clearance | department |
 | **RD Item Scope** | the level and department of one classified record (none: unclassified); kept apart from the item, whose table is full | item, classification, class_rank, department, visibility_before |
+| **RD File** | a file in the register | file_number (the name), subject, status (Open / Closed), level and department, held_by, location, opened_on, closed_on, records (child table RD File Record: record, note), notes, movements (child table RD File Movement: from, to, sent, received, remarks) |
 | **RD Directory Account** | a person who signs in through the directory, for the nightly leaver check | user, source (LDAP / SSO), first and last signed in, checks that missed them, switched off on |
 | **RD Retention Rule** | how long records are kept and what then happens | rule_name, years, counted from (year of the record / date added), then (review only / transfer to archives / destroy), department, collection, enabled |
 | **RD Legal Hold** | records that must not be disposed of or deleted | hold_name, status (Active / Released), order reference, reason, department, records (child table RD Legal Hold Item), who and when it was placed and released |
