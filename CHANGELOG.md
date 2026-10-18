@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.81.1 (2026-10-18): Retention test uses a year an item accepts
+
+- **Tests:** the retention test for a record not yet due used the year 2999, which a record refuses; it now uses this year.
+
 ## 0.81.0 (2026-10-18): Retention rules and legal holds
 
 - **Retention rules** (how long records are kept, counted from the year of the record or the day added, for a department or collection; the longest period governs), a **daily list** of what is due, and **Disposals**: nothing is destroyed or transferred until a records officer approves the list, and each record is checked again first. **Legal holds** keep records out of every list and make them impossible to delete until released. New role **ResDesk Records Officer**; new Desk screens Retention Rules, Legal Holds and Disposals. See [Retention and legal holds](docs/governance.md#retention-and-legal-holds).

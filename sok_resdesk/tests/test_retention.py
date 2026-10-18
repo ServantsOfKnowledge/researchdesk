@@ -104,7 +104,7 @@ class TestRetention(IntegrationTestCase):
 		assert frappe.db.get_value("RD Disposal", d.name, "status") == "Done"
 
 	def test_a_record_not_yet_due_is_not_listed(self):
-		self.item(4, year=2999)
+		self.item(4, year=frappe.utils.now_datetime().year)  # an Item refuses a year far ahead
 		self.rule()
 		assert retention.prepare() == 0
 
