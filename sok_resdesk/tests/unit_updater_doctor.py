@@ -47,6 +47,9 @@ class Probe:
 	def site_answer(self):
 		return self.v["answer"]
 
+	def rate_limit(self):
+		return self.v.get("rate_limit")
+
 	def procfile_has_agent(self):
 		return self.v["procfile"]
 
@@ -220,3 +223,21 @@ def test_the_token_never_shows_in_a_failed_commands_output(monkeypatch):
 	out = agent.heal_token({}, "s", "secret-token")
 	assert "secret-token" not in out and "***" in out
 	assert _hide("x secret-token y", {"RESDESK_AGENT_TOKEN": "secret-token"}) == "x *** y"
+
+
+def test_a_site_answering_429_is_named_as_rate_limiting_not_as_starting_up():
+	found = diagnose(
+		good_env(), Probe(answer=(429, "Too Many Requests"), rate_limit='{"limit": 5, "window": 60}'), HERE
+	)
+	reach = next(f for f in found if f["id"] == "reach")
+	assert reach["level"] == "bad" and "rate limit" in reach["text"] and '"limit": 5' in reach["text"]
+	assert reach["fix"] is None  # a limit someone set is theirs to change
+
+
+def test_a_429_with_no_rate_limit_in_the_configuration_points_at_what_is_in_front():
+	reach = next(f for f in diagnose(good_env(), Probe(answer=(429, "")), HERE) if f["id"] == "reach")
+	assert "in front of the site" in reach["text"]
+
+
+def test_429_means_limited():
+	assert classify_refusal(429) == "limited"

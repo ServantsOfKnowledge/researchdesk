@@ -522,6 +522,11 @@ def main() -> None:
 			if why == "classified":
 				log("The site is in Classified mode, which switches the helper off: it will not work here.")
 				time.sleep(300)
+			elif why == "limited":
+				log(
+					"The site answers 429 (too many requests): waiting a minute. ./resdesk.sh updater doctor says more."
+				)
+				time.sleep(60)
 			elif why == "token":
 				if time.time() - last_heal > 600:  # at most every ten minutes
 					last_heal = time.time()

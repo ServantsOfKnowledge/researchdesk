@@ -567,9 +567,9 @@ Every setting:
 
 | Setting | What it does |
 |---|---|
-| Governance Mode | Records who viewed, downloaded, searched and changed what, in a log that cannot be edited or deleted from the Desk and shows any tampering (Audit Log). Meant for a government or institutional deployment; off, nothing is recorded. |
-| Days to Reply to a Disclosure Request | How many days after a request for records arrives the reply is owed (Disclosure Requests). Set it to what the law or the office's rules say. |
-| Appeal Note for Disclosure Replies | Printed at the end of every reply to a disclosure request: who the applicant may appeal to, and within how long. |
+| Governance Mode | Governance edition only. Records who viewed, downloaded, searched and changed what, in a log that cannot be edited or deleted from the Desk and shows any tampering (Audit Log). Meant for a government or institutional deployment; off, nothing is recorded. |
+| Days to Reply to a Disclosure Request | Governance edition only. How many days after a request for records arrives the reply is owed (Disclosure Requests). Set it to what the law or the office's rules say. |
+| Appeal Note for Disclosure Replies | Governance edition only. Printed at the end of every reply to a disclosure request: who the applicant may appeal to, and within how long. |
 <!-- /generated:settings -->
 
 ## Users and roles

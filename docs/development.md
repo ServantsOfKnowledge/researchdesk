@@ -20,6 +20,8 @@ researchdesk/
 │   ├── updater_doctor.py   why the updater helper isn't working, and the safe fixes (./resdesk.sh updater doctor)
 │   ├── screenshots.py      retake the pictures in docs/ (./resdesk.sh screenshots)
 │   ├── gen_overview.py     draw the "How it fits together" picture of docs/architecture.md (sok_resdesk/public/images/how-it-fits.svg)
+│   ├── make-bundle.sh      an offline install bundle: the checkout and every Docker image in one archive (`./install.sh --offline`)
+│   ├── review_scope.py     count each edition's code, for a reviewer
 │   ├── gen_ime.py          vendor jquery.ime and its input methods (sok_resdesk/public/vendor/jquery.ime)
 │   ├── release.sh          check docs + changelog, set the version, tag
 │   └── publish.sh          put the newest release on GitHub's main (and push the tags)
@@ -27,7 +29,7 @@ researchdesk/
 ├── .github/workflows/      CI (lint, unit, Docker install + integration) and image publishing
 └── sok_resdesk/            the Frappe app
     ├── hooks.py            routes, doc events, scheduler, install hooks
-    ├── core/               pure Python, no Frappe:  ia.py  folder.py  normalize.py  citations.py  marc.py  oai.py  access.py  classification.py  audit.py
+    ├── core/               pure Python, no Frappe:  ia.py  folder.py  normalize.py  citations.py  marc.py  oai.py  access.py
     │                                           mail.py (outgoing email presets, plain-words errors)  known_errors.py (Log QA: which release fixed which error)
     │                                           helpdocs.py (docs as help pages)  collections.py (rules, slugs)  metaio.py (export formats, spreadsheet)  push.py (IA, Koha, Wikidata, webhook clients)
     │                                           ark.py (ARKs, check character)  ocfl.py (preservation copies)  replica.py (second copy: folder, S3)  bagit.py (BagIt bags)
@@ -41,9 +43,6 @@ researchdesk/
     ├── search_queue.py     the search engine's queue: books first, page text held or paced
     ├── access.py           who can see what: members, bulk visibility, reader sign-up
     ├── seams.py            the only way core asks the governance layer (hooks resdesk_*); answers "off" when none is installed
-    ├── clearance.py        Governance Mode: who is cleared for a classified record, and the permission rules for scopes, files and disclosure
-    ├── classification.py   Governance Mode: levels and departments on records, Set Classification, clearance audit
-    ├── audit.py            Governance Mode: the tamper-evident audit log (views, downloads, searches, changes)
     ├── people.py           People & Roles page: roles, invitations, accounts, sign-ups
     ├── identifiers.py      ARKs: minting, resolver, tombstones
     ├── preservation.py     preservation copies, fixity, second copy, repair, serving from copy, BagIt
@@ -131,8 +130,8 @@ changes how the Desk is built, CI (which installs the newest Frappe 16) is where
 ## The governance seam
 
 Governance (the audit log, classification and clearances, Classified mode, retention, the file
-register, directory sign-in, disclosure) is a special case, not the general product, and it is being
-made separable so that a library which does not use it has none of it to review. The rule:
+register, directory sign-in, disclosure) is a special case, not the general product, and it is a second app
+(`governance/sok_resdesk_governance/`: clearance, classification, audit, disclosure, retention…) so that a library which does not use it has none of it to review. The rule:
 **core never imports a governance module.** It asks through `sok_resdesk/seams.py`, whose answers
 come from the hooks the installed apps list in `hooks.py`:
 
@@ -151,7 +150,7 @@ handle it in `audit.sink`, rather than importing. The clearance rules live in th
 
 Only one app should provide the clearance hooks (the first listed wins); the others are combined. A failing event sink is logged and does not stop the reader; the other hooks are not caught, so an error there fails closed.
 
-The second app exists since 0.89 (`governance/`, installed with `./install.sh --edition governance`, kept at the same version by `scripts/release.sh`). Since 0.90 the modules and doctypes live in the second app; since 0.91 its roles, Help buttons and Desk menu entries come from it too. The feature list may still name governance screens (not checked).
+The second app exists since 0.89 (`governance/`, installed with `./install.sh --edition governance`, kept at the same version by `scripts/release.sh`). Since 0.90 the modules and doctypes live in the second app; since 0.91 its roles, Help buttons and Desk menu entries come from it too.
 
 ## Workflow
 
@@ -240,11 +239,11 @@ OCR).
 | Review subagents | `.claude/agents/security-reviewer.md`, `docs-sync-reviewer.md` | read-only reviewers Claude Code calls (`/release` asks both before a push): one for security and privacy faults in a change, one for missing or extra documentation |
 | Vendored libraries | `scripts/check_vendored.py`, `.github/workflows/vendored.yml` | once a week, compares each library copied into the app (jquery.ime) with its latest release and opens one issue when it is behind |
 | Imports test | `sok_resdesk/tests/unit_imports.py` | fails if a `from sok_resdesk.x import name` names something x no longer has |
-| Governance boundary test | `sok_resdesk/tests/unit_boundaries.py` | fails if a module outside the governance list imports a governance module |
+| Governance boundary test | `sok_resdesk/tests/unit_boundaries.py` | fails if a core module imports `sok_resdesk_governance` |
 | Email policy test | `sok_resdesk/tests/unit_mail_policy.py` | fails if code other than the listed account-message senders sends email |
 | pre-commit | `.pre-commit-config.yaml` | the same checks before a commit and a push (optional) |
 
-The rules these enforce are in `CLAUDE.md`.
+The rules these enforce are in `CLAUDE.md`, which the maintainers keep on their own machines (it is not in the repository).
 
 ## Keeping the docs current
 

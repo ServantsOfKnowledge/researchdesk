@@ -3,7 +3,7 @@
 Research Desk can be a fully open library, a public catalogue with reading for members, an
 internal library for one organisation, or anything in between. You decide per book, per
 collection or for the whole site. Logged-in **readers** and staff always see every published
-book.
+book (except records the governance edition has classified: see [Government and institutional use](governance.md)).
 
 ## The three choices for a book
 

@@ -45,7 +45,7 @@ Every Research Desk screen has a **Help** menu at the top:
 
 - **Help for this screen** opens this documentation at the right section, inside the Desk.
 - **Take the tour** (on the main forms: ingest profiles, books, collections, settings, exports,
-  imports, push targets, research groups, annotations and page texts) walks through the
+  imports, push targets, research groups, annotations, ground-truth sets and page texts) walks through the
   important fields one at a time. Press **Next** to move on, or **Close** to stop.
 - **All help pages** lists everything, for staff and for readers.
 
@@ -455,7 +455,7 @@ changes: roles still decide that, and everything staff need (People & Roles, Use
 Jobs, Server) is linked from Research Desk.
 
 The sidebar lists **every Research Desk screen** in sections (Catalogue, Exchange, Readers and
-Research, Keeping, Running the Library), each shown only to those who may open it, and the screens
+Research, Keeping, Running the Library; on the governance edition also the records-office screens), each shown only to those who may open it, and the screens
 of a switched-off feature are not listed. For System Managers, including the built-in
 **Administrator** account, an **Administration** section adds Frappe's own tools an administrator
 needs: Users, Roles, User Permissions, the Permission Manager, System Settings, Email Accounts,

@@ -87,8 +87,8 @@ def install_kind(env: dict) -> str:
 def classify_refusal(status, body: str = "") -> str:
 	"""What an answer from the site (status, or None/"ERR" when there was none) means for the helper:
 	ok, token (refused: it is not the one in the site configuration), classified (off by design),
-	site (this address is not Research Desk or not this site), down (the site is starting or failing),
-	unreachable."""
+	site (this address is not Research Desk or not this site), limited (the site is rate-limiting
+	the helper: 429), down (the site is starting or failing), unreachable."""
 	if status in (None, "ERR"):
 		return "unreachable"
 	status = int(status)
@@ -98,6 +98,8 @@ def classify_refusal(status, body: str = "") -> str:
 		return "classified" if "Classified mode" in body else "token"
 	if status == 404:
 		return "site"
+	if status == 429:
+		return "limited"
 	return "down"
 
 
@@ -240,6 +242,23 @@ def diagnose(env: dict, probe, here: str) -> list[dict]:
 				BAD,
 				"The address answers but is not this Research Desk site: check SITE_NAME and HTTP_PORT in .env.",
 			)
+		elif why == "limited":
+			limit = probe.rate_limit()
+			add(
+				"reach",
+				BAD,
+				"The site answers the helper with 429, too many requests, so no task gets through. "
+				+ (
+					f"The site configuration sets a site-wide rate limit ({limit}): Frappe adds up the seconds the "
+					"site spends answering and refuses everything once a window is used up. Raise it or take it "
+					'out: ./resdesk.sh bench set-config rate_limit \'{"limit": 3600, "window": 3600}\' '
+					"(or remove the rate_limit line from sites/<site>/site_config.json)."
+					if limit
+					else "No site-wide rate_limit is set in the site configuration, so it comes from something in "
+					"front of the site (a proxy, Cloudflare, Coolify) or from the web service: look at "
+					"./resdesk.sh logs and at the proxy's limits."
+				),
+			)
 		elif why == "down":
 			add(
 				"reach",
@@ -348,6 +367,33 @@ class RealProbe:
 				]
 			)
 		return None if code else out.strip()
+
+	def rate_limit(self):
+		"""The site-wide rate_limit of the site or common configuration, if one is set."""
+		script = (
+			"import json,sys\n"
+			"for p in sys.argv[1:]:\n"
+			"    try: v = json.load(open(p)).get('rate_limit')\n"
+			"    except Exception: continue\n"
+			"    if v: print(json.dumps(v)); break\n"
+		)
+		if self.docker:
+			code, out = self._compose(
+				"exec", "-T", "backend", "python3", "-c", script,
+				f"sites/{self.site}/site_config.json", "sites/common_site_config.json",
+			)  # fmt: skip
+		else:
+			bench = self.env.get("BENCH_DIR") or os.path.expanduser("~/researchdesk-bench")
+			code, out = run(
+				[
+					sys.executable,
+					"-c",
+					script,
+					os.path.join(bench, "sites", self.site, "site_config.json"),
+					os.path.join(bench, "sites", "common_site_config.json"),
+				]
+			)
+		return None if code or not out.strip() else out.strip()
 
 	def site_answer(self):
 		if self.docker:

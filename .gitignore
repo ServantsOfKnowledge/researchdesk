@@ -16,3 +16,8 @@ library/*
 logs/
 dist/
 .cache/
+bundle/
+
+# Claude Code instructions: kept on the maintainers' machines only
+CLAUDE.md
+CLAUDE.local.md

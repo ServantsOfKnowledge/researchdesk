@@ -77,7 +77,7 @@ Going back to standard is not automatic: uninstall the app first
 
 `python3 scripts/review_scope.py` counts the code files and lines of each edition, for whoever has to review them.
 
-**Where this is today (0.91):** the governance features (classification, audit log, retention and holds, file register, directory sign-in, disclosure and redaction, Classified mode) live in the second app. A standard install has none of that code, tables or menus. The officer roles, the records-office menu entries and their Help buttons also come with the governance app. `--classified` implies the governance edition. There is nothing to migrate: no existing install used these features. A standard site that still has the empty tables loses them on its next update; if any held records the update says so and leaves them.
+**What the governance app holds:** the governance features (classification, audit log, retention and holds, file register, directory sign-in, disclosure and redaction, Classified mode) live in the second app. A standard install has none of that code, tables or menus. The officer roles, the records-office menu entries and their Help buttons also come with the governance app. `--classified` implies the governance edition. There is nothing to migrate: no existing install used these features. A standard site that still has the empty tables loses them on its next update; if any held records the update says so and leaves them.
 
 ## Requirements
 
@@ -114,7 +114,7 @@ languages.
 
 **Secret and Top Secret records.** A fourth question, *"Hold Secret or Top Secret records?"*
 (default no; or `--classified`), makes this an installation that refuses every outside connection
-and keeps its limits fixed. Say yes only on a separate machine with no route to the internet: see
+and keeps its limits fixed, and installs the governance edition. Say yes only on a separate machine with no route to the internet: see
 [Classified mode](governance.md#classified-mode). It can be turned on later (`RESDESK_CLASSIFIED=1` in `.env`, then a restart); turning it off is a `bench set-config` on the host.
 
 The installer writes `.env` with random passwords (keep it private). You can re-run
@@ -411,6 +411,42 @@ rebuilding search. `./resdesk.sh coolify bench ...` runs any bench command on th
 `bench set-admin-password NEW`), and `./resdesk.sh coolify export` makes an export from it. With
 more than one Research Desk on the server, add `--project ID` (from `list`). See
 [Moving](moving.md).
+
+## Offline install bundle
+
+For a machine with no internet (a locked-down network, a records office). On a machine that has Docker,
+the internet and a git checkout of Research Desk:
+
+```bash
+scripts/make-bundle.sh                      # the standard edition
+scripts/make-bundle.sh --edition governance # the records-office app as well
+```
+
+It builds the image of that edition, pulls the database, cache and search images, and writes
+`dist/resdesk-bundle-<version>-<edition>-<arch>.tar`: the committed checkout, every image
+(`bundle/images.tar.gz`), a manifest and checksums. Copy the file across (a USB stick will do), then on
+the offline machine, which needs Docker and Compose but no internet:
+
+```bash
+tar -xf resdesk-bundle-….tar && cd researchdesk
+./install.sh --offline
+```
+
+`--offline` checks the checksums and that the bundle fits this machine (amd64 and arm64 bundles are not
+interchangeable), loads the images instead of building or pulling them, takes the edition from the
+bundle, and leaves out what needs the internet: the sample books and HTTPS from Let's Encrypt. The
+bundle holds no `.env` and no data; the installer makes the passwords on the offline machine.
+
+What still needs the internet and so does nothing there: ingesting from archive.org, repositories and
+Wikisource, the Server page's check for new releases, and giving back to Wikimedia. Books come in from
+your own folders ([Local folders](local-folders.md)). For Secret and Top Secret records use
+`--edition governance` and `--classified` ([Classified mode](governance.md#classified-mode)).
+
+**To update an offline install**, make a newer bundle, unpack it over the same folder (your `.env` is
+not in it and stays) and run `./install.sh --offline` again: it loads the new images and migrates the
+site. The Docker volumes with your data are not touched. `./upgrade.sh` needs a git checkout and the
+internet, so it is not used here. The helper that restarts and upgrades from the Desk is not part of a
+bundle. Native installs have no bundle: copy the checkout and its packages by hand.
 
 ## Developer mode (Docker, code from this folder)
 

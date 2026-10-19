@@ -106,11 +106,21 @@
 
 ## Next
 
-- [ ] **Government and institutional use** ([Governance](governance.md)): the audit log is done (0.77);
-      classification levels, departments and clearances are done (0.78), and Classified mode for
-      Secret and Top Secret (0.79), and a read-only public mirror on a second server governed by the
-      main system (0.80), and retention rules, legal holds and disposal (0.81), and directory sign-in with LDAP and single sign-on (0.82), and a file register (0.83), and disclosure requests with redaction (0.86, boxes drawn on the page 0.93, photographs and recordings disclosed whole 0.94); still to come: records intake,
-      signature checks and an offline install bundle; old Kannada font text is converted to Unicode when a PDF is read (0.84)
+- [x] **Government and institutional use** ([Governance](governance.md)): the audit log (0.77); levels,
+      departments and clearances (0.78); Classified mode (0.79); a read-only public mirror (0.80);
+      retention, legal holds and disposal (0.81); directory sign-in with LDAP and single sign-on
+      (0.82); a file register (0.83); disclosure requests with redaction (0.86), boxes drawn on the
+      page (0.93), photographs and recordings disclosed whole (0.94)
+- [x] Old Kannada font text converted to Unicode when a PDF is read (0.84); known classification gaps closed (0.85)
+- [x] **A second app for the records office**: the governance code, doctypes, roles and menu are in
+      `sok_resdesk_governance`, installed only with `--edition governance`, so a library that does not
+      need them has none of it to review (0.87 to 0.91)
+- [x] The updater helper looks after its own token, and `./resdesk.sh updater doctor` says why it is not working (0.88)
+- [x] A short README, with the long list of what it does in [What Research Desk does](features.md) (0.92)
+- [x] An offline install bundle for machines with no internet: `scripts/make-bundle.sh`, then `./install.sh --offline` (0.96)
+- [ ] Governance, still open: records intake and signature checks; archival units and deposits cannot be
+      classified; the Server page's page total counts classified pages; destroying a record does not
+      yet erase its files from storage and backups (see *On hold, and why*)
 - [ ] **Accessibility** (details and the full plan: [Accessibility](accessibility.md)): testing with
       blind and low-vision readers using NVDA and TalkBack with Indic voices; later DAISY talking
       books, and sharing with Sugamya Pustakalaya under the Marrakesh Treaty and Copyright Act
@@ -164,6 +174,28 @@
 - [x] Self-healing for the other Research Desk jobs: a dead job's record is cleared and logged (0.74)
 - [x] Re-sending failed emails by itself: the watchdog puts failed emails of the last twelve hours back in the queue; older ones stay failed, because a stale sign-in link is better replaced with **Send a new link** (0.74)
 - [x] A public contributors page (/library/contributors) for people who chose to be named in About me (0.74)
+
+## On hold, and why
+
+Things we decided not to do yet, so nobody wonders whether they were forgotten.
+
+| What | Why it waits |
+|---|---|
+| An OpenSearch adapter (ICU analysers, sharding) | Meilisearch is measured to 50,000 books on one server ([Scaling](scaling.md)); nothing needs more yet, and a second search backend doubles the testing. It starts when a library asks for a size Meilisearch cannot give. |
+| OpenScribe, the last digitisation module | It is built at Servants of Knowledge outside this repository; Research Desk takes what it exports as it does Repub's. |
+| Machine drafts for Portal Translations | Needs a choice of translation service: IndicTrans2 run here (heavy, GPU) or an outside service (cannot be used in Classified mode, licence and privacy questions). A person would check every draft in any case. |
+| Testing with blind and low-vision readers (NVDA, TalkBack, Indic voices); DAISY books; sharing with Sugamya Pustakalaya | Needs readers and a partner agreement under the Marrakesh Treaty, not code. The automated checks (WCAG 2.2 AA) run on every release. |
+| Records intake and signature checks | Needs a design with a real records office: what counts as a received record, and which signatures (digital signature certificates, e-sign) must be checked under Indian law. We will not guess the legal rules. |
+| Classifying archival units and deposits | They are not items, so the clearance rules do not reach them yet; they need either their own scope rows or a rule that they hang off an item. A design choice before any code. |
+| Erasing a destroyed record's files from storage and backups; protecting the end of the audit log | Backups are the library's own and hold older copies by design; the end of the log is protected only if its last line is written down somewhere else. Both need a policy from the institution, then a small feature. |
+| Single sign-on leavers, two-factor login | Cannot be tested without a real provider; Keycloak ([Keycloak](keycloak.md)) is the planned reference. |
+| Archival authority records and accessions | Wait for a partner archive that needs them; ISAD(G) and EAD3 cover description today. |
+| A machine-draft engine bundled in the image | Whisper and Kraken models are large; a bundled engine would double the image for libraries that never transcribe. Today it is chosen in Settings. |
+| Circulation, acquisitions and patrons | Deliberately left to the library system (Koha): [Koha](koha.md#what-stays-in-the-library-system). |
+| DOIs and permanent links for everyone | ARKs need the library's NAAN and DOIs need a DataCite membership: both are the library's to obtain; the software is ready. |
+| Help pictures for members-only libraries; retaken portal pictures with real covers | Need a library with real books; `./resdesk.sh screenshots` takes them. |
+| A browser test of the Desk's dialogs (drawing covered parts, the governance menu) | CI cannot open a Desk against a live site yet; a small Playwright test against the Docker install is the plan. |
+| Verifying the legal facts of the government guide for India and Karnataka, and an audit by a CERT-In empanelled auditor | Needs the institution's legal and security officers; the software cannot do it. |
 
 ## v1.0: library-grade
 

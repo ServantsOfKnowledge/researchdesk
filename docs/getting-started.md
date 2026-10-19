@@ -38,6 +38,7 @@ The installer asks:
 | Web address | On your own computer: leave it empty. On a server with a DNS name pointing at it: the name, e.g. `research.example.org`. The installer then gets an HTTPS certificate from Let's Encrypt, through the server's nginx if it has one ([step by step](installation.md#step-by-step-a-new-linux-server-that-already-runs-nginx)) |
 | Port | `8080` unless something else already uses it |
 | Internal site name | Keep the default |
+| Secret or Top Secret records | `no` unless this is a separate machine with no route to the internet: `yes` installs the governance edition in Classified mode ([Governance](governance.md#classified-mode)) |
 | Kind of institution | Every number that fits (they combine): `1` small library or school, `2` public research portal, `3` members-only institution, `4` archive, `5` university or repository front, `6` language-technology partner, `7` manuscript library or archive, `8` photograph archive. It decides which of the nineteen features start on ([Installation](installation.md#docker-one-command)). Leave it empty to start with everything on |
 | Languages of the books | Tesseract codes for OCR such as `kan hin` (English is added), or `all` |
 | About how many books | A number: from 50,000 books the installer chooses the server preset |

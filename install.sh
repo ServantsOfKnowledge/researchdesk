@@ -15,6 +15,8 @@
 #  ./install.sh --edition governance
 #                            the records-office app as well (audit log, classification, retention,
 #                            file register…). Standard is the default; needs a local image build
+#  ./install.sh --offline    no internet: install from an unpacked bundle (scripts/make-bundle.sh makes one);
+#                            Docker only, no sample books, no HTTPS from Let's Encrypt
 #  ./install.sh --domain library.example.org [--email you@example.org]
 #                            a server with a DNS name: the portal's address, with HTTPS from
 #                            Let's Encrypt (Docker; --no-https if you have your own proxy)
@@ -28,6 +30,7 @@ cd "$(dirname "$0")"
 
 YES=0
 SAMPLE=""
+OFFLINE=0
 MODE=""
 DOMAIN=""
 EMAIL=""
@@ -44,6 +47,7 @@ while [ $# -gt 0 ]; do
     --native) MODE=native ;;
     --sample) SAMPLE=1 ;;
     --no-sample) SAMPLE=0 ;;
+    --offline) OFFLINE=1; SAMPLE=0; WANT_HTTPS=0 ;;
     --domain) DOMAIN="${2:-}"; shift ;;
     --email) EMAIL="${2:-}"; shift ;;
     --https) WANT_HTTPS=1 ;;
@@ -87,6 +91,18 @@ secret() { # random URL-safe string
 echo
 bold "SOK Research Desk installer"
 echo
+
+# An offline install takes what is in bundle/ (scripts/make-bundle.sh): its edition is the bundle's
+if [ "$OFFLINE" = 1 ]; then
+  [ "$MODE" != native ] || die "An offline bundle is for Docker installs."
+  [ -f bundle/MANIFEST ] && [ -f bundle/images.tar.gz ] \
+    || die "--offline needs the unpacked bundle: bundle/MANIFEST and bundle/images.tar.gz next to install.sh (made by scripts/make-bundle.sh)."
+  BUNDLE_EDITION=$(sed -n 's/^edition=//p' bundle/MANIFEST)
+  [ -z "$EDITION" ] || [ "$EDITION" = "$BUNDLE_EDITION" ] \
+    || die "This bundle holds the ${BUNDLE_EDITION} edition: ${EDITION} cannot be made from it."
+  EDITION=$BUNDLE_EDITION
+  ok "Offline: the ${BUNDLE_EDITION} edition from the bundle"
+fi
 
 # Look at the machine first: Docker, Coolify, a web server on 80/443, ports, memory, network
 if [ "$CHECK_ONLY" = 1 ]; then
@@ -248,13 +264,25 @@ else
   # 3. Build / pull ------------------------------------------------------------------
   echo
   bold "3/5  Preparing the software (first time: 10–20 minutes)"
-  if [ -n "${RESDESK_IMAGE:-}" ]; then
-    docker compose pull || die "Could not download ${RESDESK_IMAGE}:${RESDESK_TAG:-latest}"
+  if [ "$OFFLINE" = 1 ]; then
+    [ -z "${RESDESK_IMAGE:-}" ] || die "An offline install uses the images in the bundle: unset RESDESK_IMAGE in .env."
+    [ "${RESDESK_EDITION:-standard}" = "$BUNDLE_EDITION" ] \
+      || die "This bundle holds the ${BUNDLE_EDITION} edition but .env says ${RESDESK_EDITION:-standard}."
+    [ "$(sed -n 's/^arch=//p' bundle/MANIFEST)" = "$(docker version --format '{{.Server.Arch}}')" ] \
+      || die "This bundle is for $(sed -n 's/^arch=//p' bundle/MANIFEST) machines; this one is $(docker version --format '{{.Server.Arch}}')."
+    if command -v sha256sum >/dev/null 2>&1; then SUMS="sha256sum -c --quiet"; else SUMS="shasum -a 256 -c --quiet"; fi
+    (cd bundle && $SUMS SHA256SUMS) || die "The bundle is damaged (a checksum does not match): copy it again."
+    docker load -i bundle/images.tar.gz >/dev/null || die "Could not load the images from the bundle."
+    ok "Images loaded from the bundle"
   else
-    docker compose build || die "Build failed. Check your internet connection and run ./install.sh again."
+    if [ -n "${RESDESK_IMAGE:-}" ]; then
+      docker compose pull || die "Could not download ${RESDESK_IMAGE}:${RESDESK_TAG:-latest}"
+    else
+      docker compose build || die "Build failed. Check your internet connection and run ./install.sh again."
+    fi
+    docker compose pull db redis-cache redis-queue meilisearch --quiet 2>/dev/null || true
+    ok "Images ready"
   fi
-  docker compose pull db redis-cache redis-queue meilisearch --quiet 2>/dev/null || true
-  ok "Images ready"
 
   # 4. Start ---------------------------------------------------------------------------
   echo

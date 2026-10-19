@@ -50,7 +50,7 @@ a Procfile (`bench start`), with MariaDB, Redis and Meilisearch installed by Hom
 | Component | What it is for | Configured by | Needed by |
 |---|---|---|---|
 | **Tesseract** (+ language models) | reading page images: OCR of scans, re-OCR by zone, handwriting drafts with the OCR models | `OCR_LANGS` (all models, or a list) in `.env`; Server → Requirements says which are missing | OCR, re-OCR, draft leaves |
-| **poppler** (`pdftoppm`) | drawing PDF pages as images for *Page & text*, proofreading and OCR | in the image; Server → Requirements | books with a PDF and no archive.org scan |
+| **poppler** (`pdftoppm`) | drawing PDF pages as images for *Page & text*, proofreading and OCR | in the image; Server → Requirements | books with a PDF and no archive.org scan; redacted disclosure copies (governance edition) |
 | **pypdf** | the text layer of a PDF, page by page; the embedded image of a scanned page when poppler is absent | part of Frappe's environment | PDFs, repositories, deposits |
 | **Pillow** | page and photograph images: scaling, tiles, regions and rotation for IIIF level 2, EXIF | part of Frappe's environment | the reader, IIIF, photographs |
 | **mutagen** / **ffprobe** | the length of an audio or video file (mutagen first, ffprobe as the fallback) | `pyproject.toml`; ffprobe optional | recordings |
@@ -61,6 +61,7 @@ a Procfile (`bench start`), with MariaDB, Redis and Meilisearch installed by Hom
 | **zimwriterfs** (optional, `zim-tools`) | packaging an offline copy as a ZIM file for Kiwix | found on the server's path | offline copies |
 | **Meilisearch client** (`search.py`) | a small wrapper, so another engine can replace Meilisearch | Settings → Search | search |
 | **jquery.ime** (MIT or GPL, Wikimedia; vendored in `public/vendor/jquery.ime`, with the input methods of 23 languages) | typing Kannada, Hindi, Tamil and others on any keyboard in search boxes and the proofreading text; loaded only when a reader turns it on. `scripts/gen_ime.py` refreshes it; a weekly check (`scripts/check_vendored.py`) says when a newer release exists | the reader's choice, kept in the browser (`ime.js`) | the portal |
+| **Sanchaya Kannada Font Converter** (GPL-3.0-or-later; vendored in `sok_resdesk/vendor/kannada_font_converter`, run as a separate program, not linked) | text typed in old fonts (Nudi, Baraha, ShreeLipi…) in a PDF, converted to Unicode so it can be searched | Settings → Convert Old Kannada Fonts in PDF Text; Desk → Convert Old Kannada Text | PDFs in old Kannada fonts |
 | **Portal front end** | Jinja templates with vanilla JavaScript and CSS (no framework, no build step): the readers, notes, proofreading, zoom viewer, media player | `public/js`, `public/css`, `www/library` | the portal |
 
 ## 3. Files and where they live

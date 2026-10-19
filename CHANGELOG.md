@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.96.0 (2026-10-19): An offline install bundle, a doctor for "429", a roadmap that says what waits
+
+- **Offline install bundle.** `scripts/make-bundle.sh [--edition governance]` writes one archive with the checkout and every Docker image; on a machine with no internet, `tar -xf` it and run `./install.sh --offline`. The installer checks the checksums and the machine type, loads the images, takes the edition from the bundle, and skips what needs the internet (sample books, Let's Encrypt). See [Offline install bundle](docs/installation.md#offline-install-bundle).
+- **Updater helper and "429".** When the site answers the helper with 429 (too many requests), the doctor now says so, shows a site-wide `rate_limit` if the site configuration has one, and otherwise points at what is in front of the site; the helper waits a minute instead of asking every five seconds.
+- **Roadmap.** Brought up to date, with a new section, *On hold, and why*.
+- **Help pages brought up to date** for the governance edition: Governance (edition, roles, Classified mode), Installation, Getting started, Development, Technology (the Kannada converter, poppler for redaction), Access, Staff guide, Architecture. The Governance Mode box in Settings is hidden where the governance app is not installed.
+- **`CLAUDE.md` is no longer in the repository.** It stays on the maintainers' machines (it is in `.gitignore`); earlier releases still contain it.
+
 ## 0.95.0 (2026-10-18): The overview picture names the governance app
 
 - A test that put back the quiet-hours settings is retried when MariaDB picks it as a deadlock victim (it failed twice in CI, only against the quiet-hours job).

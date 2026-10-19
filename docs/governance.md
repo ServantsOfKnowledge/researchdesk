@@ -1,13 +1,12 @@
 # Government and institutional use
 
 For a ministry, department, court, council or any institution that must be able to show **who may
-see what, and who did see what**. Everything here is switched on with one setting and is off
-otherwise, so an open library pays nothing for it.
+see what, and who did see what**. Everything here belongs to the *governance edition* ([Editions](installation.md#editions)): a standard install has none of it. On that edition it is switched on with one setting and is off otherwise, so an open library pays nothing for it.
 
 ![Governance Mode: the decision on every request, offices read downward, the audit chain, and where it is enforced](../sok_resdesk/public/images/governance.svg)
 
 **Governance Mode** is in Desk → Research Desk → **Settings** → *Government and institutional use*.
-Only an administrator (System Manager or SOK Super Admin) can change it.
+Only an administrator (System Manager or SOK Super Admin) can change it. The box is shown on every install but does nothing on a standard one.
 
 This page is the whole design. [What you get](#what-you-get) and [Setting it up](#setting-it-up)
 are for the people running it; [How it works](#how-it-works) and
@@ -30,6 +29,7 @@ your legal and records officers.
 
 ## Setting it up
 
+0. **Install the governance edition**: `./install.sh --edition governance`, or `RESDESK_EDITION=governance` in `.env` and `./upgrade.sh`. The Security Officer and Records Officer roles below exist only on this edition.
 1. **Switch on** Governance Mode (Settings → *Government and institutional use*).
 2. **Departments** (Desk → Research Desk → Running the Library): enter the tree, top first. Each
    office has the office it reports to. A super admin keeps this.
@@ -338,7 +338,7 @@ Sign-up) so the whole portal is behind sign-in, and use HTTPS.
 
 ### Classified mode
 
-For Secret and Top Secret records. Chosen when installing (`./install.sh`, the question *"Will this
+For Secret and Top Secret records, and part of the governance edition: `--classified` installs that edition, and `install.sh` refuses `--classified` with `--edition standard`. On an existing standard install, set `RESDESK_EDITION=governance` and run `./upgrade.sh` first. Chosen when installing (`./install.sh`, the question *"Will this
 installation hold Secret or Top Secret records?"*, default no; or `--classified`), or later by
 `RESDESK_CLASSIFIED=1` in `.env` and a restart, or `bench --site NAME set-config resdesk_classified 1`
 on the host. It lives in the site configuration, outside the database, so no Desk setting can switch
