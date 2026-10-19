@@ -448,6 +448,35 @@ site. The Docker volumes with your data are not touched. `./upgrade.sh` needs a 
 internet, so it is not used here. The helper that restarts and upgrades from the Desk is not part of a
 bundle. Native installs have no bundle: copy the checkout and its packages by hand.
 
+### Checking a bundle before you rely on it
+
+Do this once on a machine you control, from a clean checkout (`git status --short` prints nothing). It
+takes about half an hour, mostly the image build.
+
+```bash
+# 1. make it (needs the internet)
+scripts/make-bundle.sh --out /tmp/bundle
+ls -lh /tmp/bundle                  # resdesk-bundle-<version>-standard-<arch>.tar, several GB
+
+# 2. look inside
+mkdir /tmp/unpack && tar -xf /tmp/bundle/resdesk-bundle-*.tar -C /tmp/unpack
+cat /tmp/unpack/researchdesk/bundle/MANIFEST        # version, edition, arch and the five images
+(cd /tmp/unpack/researchdesk/bundle && sha256sum -c SHA256SUMS)    # both lines say OK
+ls /tmp/unpack/researchdesk/.env 2>&1               # must not exist: a bundle holds no secrets
+
+# 3. install with no internet: remove the images first so only the bundle can supply them,
+#    then take the machine off the network (from the console, not over SSH)
+docker compose down -v
+docker rmi $(grep '^images=' /tmp/unpack/researchdesk/bundle/MANIFEST | cut -d= -f2-)
+cd /tmp/unpack/researchdesk && ./install.sh --offline
+```
+
+It should load the images (no `docker pull`, no `docker build`), say it leaves out the sample books and
+HTTPS, print the portal address and the administrator's password, and `docker compose ps` should show
+every service healthy. Then two checks that it refuses what it should: change one byte of
+`bundle/images.tar.gz` (it must stop with a checksum error), and change `arch=` in `bundle/MANIFEST` (it
+must stop and name the mismatch). Repeat step 1 with `--edition governance` to check that edition.
+
 ## Developer mode (Docker, code from this folder)
 
 The easiest way to keep developing: no Python, MariaDB or Node needed on your computer.

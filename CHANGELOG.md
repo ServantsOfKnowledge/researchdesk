@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.98.1 (2026-10-19): How to check an offline bundle
+
+- **Installation** has a short section, *Checking a bundle before you rely on it*: the commands to make a bundle, look inside it, install from it with no network, and confirm that a damaged or wrong-machine bundle is refused.
+
 ## 0.98.0 (2026-10-19): The redaction dialog is tested in a browser
 
 - **Browser test of "Cover parts of a page".** The Desk dialog's own script now runs in Chromium in CI (`sok_resdesk/tests/ui/ui_cover_dialog.py`): drawing a box with the pointer gives percentages of the page, a box cannot be added before the page is on the screen or when it leaves the page, and a late reply for an old page is ignored. It runs against a stand-in for the Desk, not a live one.
