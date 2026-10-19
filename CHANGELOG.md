@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.98.0 (2026-10-19): The redaction dialog is tested in a browser
+
+- **Browser test of "Cover parts of a page".** The Desk dialog's own script now runs in Chromium in CI (`sok_resdesk/tests/ui/ui_cover_dialog.py`): drawing a box with the pointer gives percentages of the page, a box cannot be added before the page is on the screen or when it leaves the page, and a late reply for an old page is ignored. It runs against a stand-in for the Desk, not a live one.
+
 ## 0.97.0 (2026-10-19): A rate limit that cannot get stuck
 
 - **Fixed: an endpoint answering 429 for good.** Frappe's `rate_limit` can re-create a counter without an expiry when a request lands just as the old one expires; the count then only grows and the endpoint refuses everyone from that address. This is what blocked the updater helper (`agent_sync`). Research Desk now uses its own `sok_resdesk.ratelimit.rate_limit`, which counts first and sets the expiry whenever it is missing, and an upgrade removes counters already stuck.

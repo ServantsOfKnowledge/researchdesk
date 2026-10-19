@@ -194,7 +194,7 @@ Things we decided not to do yet, so nobody wonders whether they were forgotten.
 | Circulation, acquisitions and patrons | Deliberately left to the library system (Koha): [Koha](koha.md#what-stays-in-the-library-system). |
 | DOIs and permanent links for everyone | ARKs need the library's NAAN and DOIs need a DataCite membership: both are the library's to obtain; the software is ready. |
 | Help pictures for members-only libraries; retaken portal pictures with real covers | Need a library with real books; `./resdesk.sh screenshots` takes them. |
-| A browser test of the Desk's dialogs (drawing covered parts, the governance menu) | CI cannot open a Desk against a live site yet; a small Playwright test against the Docker install is the plan. |
+| A browser test against a live Desk (the governance menu, the dialogs with real data) | The cover-parts dialog is tested in a browser against a stand-in for the Desk (0.98); a test against a live Desk needs a seeded Docker site in CI. |
 | Verifying the legal facts of the government guide for India and Karnataka, and an audit by a CERT-In empanelled auditor | Needs the institution's legal and security officers; the software cannot do it. |
 
 ## v1.0: library-grade
