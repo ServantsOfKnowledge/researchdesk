@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.97.0 (2026-10-19): A rate limit that cannot get stuck
+
+- **Fixed: an endpoint answering 429 for good.** Frappe's `rate_limit` can re-create a counter without an expiry when a request lands just as the old one expires; the count then only grows and the endpoint refuses everyone from that address. This is what blocked the updater helper (`agent_sync`). Research Desk now uses its own `sok_resdesk.ratelimit.rate_limit`, which counts first and sets the expiry whenever it is missing, and an upgrade removes counters already stuck.
+
 ## 0.96.0 (2026-10-19): An offline install bundle, a doctor for "429", a roadmap that says what waits
 
 - **Offline install bundle.** `scripts/make-bundle.sh [--edition governance]` writes one archive with the checkout and every Docker image; on a machine with no internet, `tar -xf` it and run `./install.sh --offline`. The installer checks the checksums and the machine type, loads the images, takes the edition from the bundle, and skips what needs the internet (sample books, Let's Encrypt). See [Offline install bundle](docs/installation.md#offline-install-bundle).

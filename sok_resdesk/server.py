@@ -19,12 +19,12 @@ from pathlib import Path
 
 import frappe
 from frappe import _
-from frappe.rate_limiter import rate_limit
 from frappe.utils import add_to_date, cint, get_datetime, now_datetime
 
 from sok_resdesk import access
 from sok_resdesk.core import coolify
 from sok_resdesk.core import updates as upd
+from sok_resdesk.ratelimit import rate_limit
 
 MANAGERS = ("System Manager", "ResDesk Manager")
 ADMINS = access.SUPER_ROLES  # upgrades, restarts and resources change the installation

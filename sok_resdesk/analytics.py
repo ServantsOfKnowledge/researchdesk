@@ -16,7 +16,8 @@ from urllib.parse import urlparse
 
 import frappe
 from frappe import _
-from frappe.rate_limiter import rate_limit
+
+from sok_resdesk.ratelimit import rate_limit
 
 PROVIDERS = ("Off", "Built-in", "PostHog", "Plausible", "Umami")
 EXTERNAL = ("PostHog", "Plausible", "Umami")

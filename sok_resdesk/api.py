@@ -12,13 +12,13 @@ import json
 
 import frappe
 from frappe import _
-from frappe.rate_limiter import rate_limit
 from frappe.utils import cint
 from werkzeug.wrappers import Response
 
 from sok_resdesk import access, seams
 from sok_resdesk.catalogue import base_url, get_record
 from sok_resdesk.core import citations, marc
+from sok_resdesk.ratelimit import rate_limit
 from sok_resdesk.search import PAGES_MAX_HITS, MeiliClient, SearchError, _quote
 from sok_resdesk.search import search as _search
 

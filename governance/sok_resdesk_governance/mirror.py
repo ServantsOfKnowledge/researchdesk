@@ -21,10 +21,10 @@ import shutil
 
 import frappe
 from frappe import _
-from frappe.rate_limiter import rate_limit
 from frappe.utils import cint
 
 from sok_resdesk.core.folder import META_SUFFIX, StoreError, parse_meta_xml
+from sok_resdesk.ratelimit import rate_limit
 
 PROFILE = "Public mirror"
 ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,98}$")

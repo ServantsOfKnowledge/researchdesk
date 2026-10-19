@@ -18,10 +18,10 @@ from pathlib import Path
 
 import frappe
 from frappe import _
-from frappe.rate_limiter import rate_limit
 from frappe.utils import cint
 
 from sok_resdesk.core import phrases as core
+from sok_resdesk.ratelimit import rate_limit
 
 MANAGERS = ("System Manager", "ResDesk Manager", "ResDesk Cataloguer")
 APP = Path(__file__).resolve().parent

@@ -21,13 +21,13 @@ import hashlib
 import json
 
 import frappe
-from frappe.rate_limiter import rate_limit
 from frappe.utils import cint
 from werkzeug.wrappers import Response
 
 from sok_resdesk import access
 from sok_resdesk import annotations as notes
 from sok_resdesk.core import annotations as core
+from sok_resdesk.ratelimit import rate_limit
 
 ENDPOINT = "sok_resdesk.annotation_protocol.annotations"
 PROFILE = 'application/ld+json; profile="http://www.w3.org/ns/anno.jsonld"'

@@ -9,11 +9,11 @@ above it are published, and visible to the reader as books are (public, or for l
 from __future__ import annotations
 
 import frappe
-from frappe.rate_limiter import rate_limit
 
 from sok_resdesk import access, features
 from sok_resdesk.catalogue import portal_title
 from sok_resdesk.core import archival
+from sok_resdesk.ratelimit import rate_limit
 
 DT = "RD Archival Unit"
 FIELDS = [

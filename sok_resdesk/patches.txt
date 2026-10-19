@@ -31,3 +31,4 @@ sok_resdesk.patches.v0_73.scoring_index
 sok_resdesk.patches.v0_74.quiet_frappe_mail
 sok_resdesk.patches.v0_75.default_logo
 sok_resdesk.patches.v0_90.drop_governance_doctypes
+sok_resdesk.patches.v0_97.clear_stuck_rate_limits

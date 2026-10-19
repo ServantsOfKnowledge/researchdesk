@@ -15,12 +15,12 @@ from __future__ import annotations
 
 import frappe
 from frappe import _
-from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, get_fullname
 
 from sok_resdesk import access, features
 from sok_resdesk.core import annotations as core
 from sok_resdesk.core import wikidata
+from sok_resdesk.ratelimit import rate_limit
 
 DT = "RD Annotation"
 MANAGERS = ("System Manager", "ResDesk Manager")

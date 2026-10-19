@@ -8,10 +8,10 @@ from __future__ import annotations
 
 import frappe
 from frappe import _
-from frappe.rate_limiter import rate_limit
 
 from sok_resdesk.core import legacy_kannada as rules
 from sok_resdesk.core.legacy_kannada import ConverterError, convert
+from sok_resdesk.ratelimit import rate_limit
 
 MAX_TEXT = 50_000  # one text by hand (the engine needs about 0.2 s per thousand characters at worst)
 BATCH_CHARS = 250_000  # characters per call (core.legacy_kannada.MAX_CHARS is the most one call takes)

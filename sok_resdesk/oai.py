@@ -13,7 +13,6 @@ from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
 
 import frappe
-from frappe.rate_limiter import rate_limit
 from frappe.utils import get_system_timezone
 from werkzeug.wrappers import Response
 
@@ -21,6 +20,7 @@ from sok_resdesk import features
 from sok_resdesk.catalogue import base_url, item_to_record, portal_title, settings
 from sok_resdesk.core.access import like_literal
 from sok_resdesk.core.oai import Repository
+from sok_resdesk.ratelimit import rate_limit
 
 
 def _tz() -> ZoneInfo:

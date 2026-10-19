@@ -15,11 +15,11 @@ import os
 
 import frappe
 from frappe import _
-from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, get_fullname, now_datetime
 
 from sok_resdesk import features
 from sok_resdesk.core import groundtruth as core
+from sok_resdesk.ratelimit import rate_limit
 
 DT = "RD Ground Truth"
 MANAGERS = ("System Manager", "ResDesk Manager")
