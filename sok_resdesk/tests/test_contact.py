@@ -6,6 +6,7 @@ bench --site <site> run-tests --app sok_resdesk --module sok_resdesk.tests.test_
 import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, now_datetime
+from frappe.utils.password import set_encrypted_password
 
 from sok_resdesk import contact
 
@@ -62,7 +63,7 @@ class TestContact(IntegrationTestCase):
 
 	def test_telegram_is_told_only_that_a_message_came(self):
 		self.set_up_settings(telegram_chat_id="12345")
-		frappe.get_single("RD Settings").set_password("telegram_bot_token", "123:abc")
+		set_encrypted_password("RD Settings", "RD Settings", "123:abc", "telegram_bot_token")
 		contact.send(message="My private words about page nine.")
 		contact.tell_telegram(frappe.get_last_doc("RD Message").name)
 		self.assertEqual(len(self.posts), 1)

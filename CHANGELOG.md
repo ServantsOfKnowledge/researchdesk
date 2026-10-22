@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.99.1 (2026-10-22): The Telegram test sets its token the Frappe way
+
+- The integration test for the Telegram alert stored the bot token with a method Settings does not have. It now uses Frappe's own password storage. No change to the feature.
+
 ## 0.99.0 (2026-10-22): Messages from visitors
 
 - **Contact us.** A public page, `/library/contact` (linked from the home page), where anyone can write to the library; name and email are optional. Messages arrive in the Desk under **Messages** with a status (New, Read, Replied, Done, Spam) and a note for staff, and managers get an alert in the Desk bell. Research Desk sends no email for them.
