@@ -17,7 +17,8 @@ class TestContact(IntegrationTestCase):
 		super().setUpClass()
 		cls.settings = frappe.get_single("RD Settings")
 		cls.saved = {
-			k: cls.settings.get(k) for k in ("contact_enabled", "contact_keep_days", "telegram_chat_id")
+			k: cls.settings.get(k)
+			for k in ("contact_enabled", "contact_keep_days", "telegram_chat_id", "guest_access")
 		}
 
 	def setUp(self):
@@ -46,6 +47,18 @@ class TestContact(IntegrationTestCase):
 		)
 		row = frappe.get_last_doc("RD Message")
 		self.assertEqual((row.status, row.full_name), ("New", "Asha"))
+
+	def test_a_guest_can_use_the_form_unless_the_library_asks_for_sign_in(self):
+		frappe.set_user("Guest")
+		try:
+			self.assertTrue(contact.enabled())
+			frappe.db.set_single_value("RD Settings", "guest_access", "Login required")
+			frappe.clear_cache(doctype="RD Settings")
+			self.assertFalse(contact.enabled())
+		finally:
+			frappe.set_user("Administrator")
+			frappe.db.set_single_value("RD Settings", "guest_access", self.saved["guest_access"])
+			frappe.clear_cache(doctype="RD Settings")
 
 	def test_a_robot_gets_thanks_and_nothing_is_kept(self):
 		self.assertEqual(contact.send(message="A fine message here.", rd_hp="http://spam"), {"sent": 1})

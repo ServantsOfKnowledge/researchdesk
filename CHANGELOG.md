@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.99.2 (2026-10-22): The home page works again for guests
+
+- **Fixed (0.99.0 and 0.99.1): the home page and search answered "500" to signed-out visitors.** The new *Write to the library* link asked whether the library requires sign-in with a name that does not exist in that module. Signed-in people were not affected, which is why the tests did not see it; there is now a test as a guest.
+
 ## 0.99.1 (2026-10-22): The Telegram test sets its token the Frappe way
 
 - The integration test for the Telegram alert stored the bot token with a method Settings does not have. It now uses Frappe's own password storage. No change to the feature.

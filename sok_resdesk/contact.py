@@ -11,7 +11,7 @@ import requests
 from frappe import _
 from frappe.utils import add_days, add_to_date, cint, now_datetime
 
-from sok_resdesk import access, core, seams
+from sok_resdesk import access, seams
 from sok_resdesk.catalogue import base_url, portal_title, settings
 from sok_resdesk.core import contact as rules
 from sok_resdesk.ratelimit import rate_limit
@@ -25,7 +25,7 @@ def enabled() -> bool:
 	Classified mode, and a guest cannot use them where the library asks people to sign in."""
 	if seams.classified():
 		return False
-	if frappe.session.user == "Guest" and access.guest_mode() == core.GUEST_NONE:
+	if access.viewer().get("login_required"):
 		return False
 	value = settings().get("contact_enabled")
 	return value in (None, "") or bool(cint(value))
