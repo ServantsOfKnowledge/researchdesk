@@ -564,6 +564,16 @@ or change it; it is never shown in the Desk's lists, logs or error messages. If 
 set up. A failed alert never loses a message: the message is already in the Desk. It is not used in
 Classified mode, which allows no outside connection.
 
+### A "Message us on Telegram" button
+
+Some visitors would rather chat than fill in a form. Put a public Telegram username in Settings →
+**Messages from Visitors → Telegram Name Visitors Can Message** (like `SOKLibrary`; `@SOKLibrary` and
+`t.me/SOKLibrary` are accepted too) and the Contact us page shows a **Message us on Telegram** button
+that opens it. Use the username of an account the library owns, a channel or a group: **never a phone
+number**, and a personal account shows its owner's Telegram name. Chats that start this way live in
+Telegram, not in the Desk's Messages, so someone must watch that account. The button never appears in
+Classified mode. It is separate from the alert: you can have either or both.
+
 ## Usage statistics
 
 Settings → **Usage Statistics** counts how readers use the portal. The Desk is never counted,

@@ -27,6 +27,9 @@ class RDSettings(Document):
 		from sok_resdesk.datacite import validate_settings as validate_dois
 
 		validate_dois(self)
+		from sok_resdesk.contact import validate_settings as validate_contact
+
+		validate_contact(self)
 		from sok_resdesk.setup import validate_machine
 
 		validate_machine(self)

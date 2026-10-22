@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.101.0 (2026-10-22): Message us on Telegram
+
+- **A *Message us on Telegram* button** on the Contact us page, when Settings → *Messages from Visitors* has a public Telegram username (the library's own account, a channel or a group: a username, never a phone number). `@name` and `t.me/name` are accepted and saved plain; anything else is refused. Not shown in Classified mode. Chats started there live in Telegram, not in the Desk's Messages.
+- Help: *A "Message us on Telegram" button* in the Staff guide; the Technology map, Governance page, reader guide and feature list say the same.
+
 ## 0.100.0 (2026-10-22): Telegram as a connection you can test
 
 - **Send a Test Telegram Message.** Settings → *Messages* sends one message to the saved chat, and says in plain words what to fix if it is refused: a wrong token, a chat the bot cannot write to, a server that cannot reach Telegram. The token never appears in the answer, the logs or the Error Log.

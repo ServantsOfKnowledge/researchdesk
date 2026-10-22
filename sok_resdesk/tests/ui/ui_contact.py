@@ -6,9 +6,16 @@ FAIL = "window.fetch = () => Promise.resolve({ json: () => Promise.resolve({ exc
 OK = "window.fetch = (u, o) => { window.sent = JSON.parse(o.body); return Promise.resolve({ json: () => Promise.resolve({ message: { sent: 1 } }) }); };"
 
 
-def _open(page, site, fetch):
-	body, script = render_template("contact.html", intro="", keep_days=365, max_message=2000)
-	page.goto(site.write("contact.html", page_shell(body, f"<script>{STUB_GLOBALS}{fetch}</script>{script}")))
+def _open(page, site, fetch, telegram_link=""):
+	body, script = render_template(
+		"contact.html", intro="", keep_days=365, max_message=2000, telegram_link=telegram_link
+	)
+	page.goto(
+		site.write(
+			f"contact_{bool(telegram_link)}.html",
+			page_shell(body, f"<script>{STUB_GLOBALS}{fetch}</script>{script}"),
+		)
+	)
 
 
 def test_no_wcag_problems(page, site, axe_js):
@@ -53,3 +60,14 @@ def test_the_form_fits_a_phone_and_the_trap_is_out_of_the_way(page, site):
 	page.set_viewport_size({"width": 360, "height": 800})
 	assert not page.evaluate("document.documentElement.scrollWidth > innerWidth")
 	assert page.evaluate("document.querySelector('[name=rd_hp]').getBoundingClientRect().left") < 0
+
+
+def test_the_telegram_button_is_there_only_when_a_name_is_set_and_passes_axe(page, site, axe_js):
+	_open(page, site, OK)
+	assert page.locator(".rd-contact-tg").count() == 0
+	_open(page, site, OK, "https://t.me/SOKLibrary")
+	link = page.locator(".rd-contact-tg a")
+	assert link.get_attribute("href") == "https://t.me/SOKLibrary"
+	assert "noopener" in link.get_attribute("rel")
+	assert link.bounding_box()["height"] >= 44
+	assert axe_violations(page, axe_js) == []

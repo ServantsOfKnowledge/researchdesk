@@ -60,3 +60,20 @@ def test_each_telegram_refusal_says_what_to_do():
 
 def test_the_test_message_says_it_is_a_test():
 	assert "works" in contact.test_text("The Library")
+
+
+def test_a_telegram_username_is_cleaned_or_refused():
+	for text in ("SOKLibrary", "@SOKLibrary", "t.me/SOKLibrary", "https://t.me/SOKLibrary/", " @SOKLibrary "):
+		assert contact.clean_username(text) == "SOKLibrary"
+	for text in (
+		"",
+		"abc",
+		"9lives_library",
+		"has space",
+		"+91 98765 43210",
+		"https://evil.example/SOKLibrary",
+		"a" * 40,
+	):
+		assert contact.clean_username(text) == ""
+	assert contact.telegram_link("@SOKLibrary") == "https://t.me/SOKLibrary"
+	assert contact.telegram_link("nonsense here") == ""

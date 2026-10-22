@@ -21,6 +21,7 @@ def get_context(context):
 	context.intro = tr(s.get("contact_intro") or "")
 	days = s.get("contact_keep_days")
 	context.keep_days = contact.KEEP_DAYS if days in (None, "") else cint(days)
+	context.telegram_link = contact.public_telegram_link()
 	context.max_message = contact.rules.MAX_MESSAGE
 	context.metatags = {"title": context.title, "description": frappe._("Write to the library")}
 	return context

@@ -7,6 +7,7 @@
 	<nav class="rd-crumbs"><a href="{{ library_url() }}">← {{ portal_title }}</a></nav>
 	<h1 class="rd-page-title">{{ _("Contact us") }}</h1>
 	<p id="rd-ct-intro" class="rd-muted">{{ intro or _("Write to the library: a question, a correction, a book you would like us to have, or an offer to help. A person reads every message.") }}</p>
+	{% if telegram_link %}<p class="rd-contact-tg"><a class="rd-btn" href="{{ telegram_link }}" rel="noopener noreferrer" target="_blank">{{ _("Message us on Telegram") }}<span class="rd-sr-only"> {{ _("(opens Telegram in a new tab)") }}</span></a> <span class="rd-muted">{{ _("or write below.") }}</span></p>{% endif %}
 	<form id="rd-ct" class="rd-form" aria-describedby="rd-ct-intro rd-ct-keep" novalidate>
 		<p><label>{{ _("Your name (optional)") }} <input name="full_name" maxlength="140" autocomplete="name" style="width:100%"></label></p>
 		<p><label>{{ _("Your email, so we can reply (optional)") }} <input name="contact" type="email" maxlength="140" autocomplete="email" style="width:100%"></label></p>

@@ -512,3 +512,6 @@ html[data-rd-colours="dark"] .rd-error:not(:empty) { color: #ff9b9b; border-colo
 .rd-chip:hover, .rd-chip:focus-visible { border-color: var(--rd-accent); }
 .rd-proof__langs input { max-width: 11em; }
 .imeselector { display: none; }
+
+/* Message us on Telegram: a 44 px target (WCAG 2.2) */
+.rd-contact-tg .rd-btn { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }

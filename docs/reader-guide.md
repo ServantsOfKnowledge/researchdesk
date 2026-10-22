@@ -227,7 +227,8 @@ the optional **About me** page (volunteering, support needs), see
 ## Writing to the library
 
 The link *Write to the library* on the home page opens a form for a question, a correction or a book you
-would like us to have. Your name and email are optional; only the library's staff read the message.
+would like us to have. Your name and email are optional; only the library's staff read the message. If the library has a public Telegram account, the page also
+has a **Message us on Telegram** button.
 
 ## Help and tips
 

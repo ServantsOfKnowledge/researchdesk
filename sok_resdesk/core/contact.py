@@ -53,6 +53,7 @@ def alert_text(portal: str, url: str) -> str:
 	return f"{portal}: a visitor sent a message. Read it in the Desk: {url}"
 
 
+_NAME = re.compile(r"^[A-Za-z][A-Za-z0-9_]{4,31}$")
 _TOKEN = re.compile(r"^\d{5,}:[A-Za-z0-9_-]{20,}$")
 
 
@@ -81,3 +82,19 @@ def telegram_problem(status: int, description: str = "") -> str:
 	if status == 429:
 		return "Telegram asks us to slow down. Try again in a minute."
 	return f"Telegram refused the message (code {status}). Check the token and the chat ID."
+
+
+def clean_username(name) -> str:
+	"""A Telegram username as people write it (`@name`, `t.me/name` or `https://t.me/name`), or "" if it
+	is not one: 5 to 32 letters, digits or underscores, starting with a letter."""
+	text = str(name or "").strip()
+	for prefix in ("https://t.me/", "http://t.me/", "t.me/", "@"):
+		if text.lower().startswith(prefix):
+			text = text[len(prefix) :]
+	text = text.strip("/ ")
+	return text if _NAME.match(text) else ""
+
+
+def telegram_link(name) -> str:
+	user = clean_username(name)
+	return f"https://t.me/{user}" if user else ""

@@ -66,6 +66,28 @@ def after_message(doc) -> None:
 	)
 
 
+def public_telegram_link() -> str:
+	"""The Message us on Telegram link for the Contact us page: the library's own public username, or ''
+	when none is set. Never in Classified mode, which sends no one to an outside service."""
+	if seams.classified():
+		return ""
+	return rules.telegram_link(settings().get("telegram_username"))
+
+
+def validate_settings(doc) -> None:
+	"""RD Settings: the public Telegram name is saved in its plain form, or refused."""
+	name = (doc.get("telegram_username") or "").strip()
+	if not name:
+		return
+	if not rules.clean_username(name):
+		frappe.throw(
+			_(
+				"The Telegram username must be 5 to 32 letters, digits or underscores, starting with a letter (like SOKLibrary)."
+			)
+		)
+	doc.telegram_username = rules.clean_username(name)
+
+
 def telegram_ready() -> bool:
 	"""Token and chat ID are both set (RD Settings), and Classified mode is not on."""
 	if seams.classified():

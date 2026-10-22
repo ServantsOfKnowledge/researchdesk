@@ -81,6 +81,7 @@
   "contact_keep_days",
   "telegram_bot_token",
   "telegram_chat_id",
+  "telegram_username",
   "analytics_section",
   "analytics_provider",
   "analytics_host",
@@ -1527,6 +1528,13 @@
    "label": "Telegram Chat ID",
    "depends_on": "contact_enabled",
    "description": "The number of the chat the alert goes to (a group's is negative): press Start on your bot, write to it, then open https://api.telegram.org/botTOKEN/getUpdates (your token in place of TOKEN) and read chat → id. Your own phone number is never used or shown."
+  },
+  {
+   "fieldname": "telegram_username",
+   "fieldtype": "Data",
+   "label": "Telegram Name Visitors Can Message",
+   "depends_on": "contact_enabled",
+   "description": "Optional. A public Telegram username of the library's own account, a channel or a group, like SOKLibrary (not a phone number). The Contact us page then offers a Message us on Telegram button that opens it. Those chats live in Telegram, not in the Desk's Messages. Not shown in Classified mode."
   }
  ],
  "links": [],

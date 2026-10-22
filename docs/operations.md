@@ -580,6 +580,7 @@ Every setting:
 | Days to Keep Messages | Messages older than this are deleted every night. 0 keeps them for good. |
 | Telegram Bot Token | Optional. Make a bot with @BotFather on Telegram and paste its token here. Together with the chat ID below, Telegram then tells you privately that a visitor wrote, with a link to the Desk, never the message itself. Save, then use Messages → Send a Test Telegram Message. Not used in Classified mode. |
 | Telegram Chat ID | The number of the chat the alert goes to (a group's is negative): press Start on your bot, write to it, then open https://api.telegram.org/botTOKEN/getUpdates (your token in place of TOKEN) and read chat → id. Your own phone number is never used or shown. |
+| Telegram Name Visitors Can Message | Optional. A public Telegram username of the library's own account, a channel or a group, like SOKLibrary (not a phone number). The Contact us page then offers a Message us on Telegram button that opens it. Those chats live in Telegram, not in the Desk's Messages. Not shown in Classified mode. |
 <!-- /generated:settings -->
 
 ## Users and roles

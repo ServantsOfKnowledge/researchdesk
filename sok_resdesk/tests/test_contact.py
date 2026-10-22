@@ -18,7 +18,13 @@ class TestContact(IntegrationTestCase):
 		cls.settings = frappe.get_single("RD Settings")
 		cls.saved = {
 			k: cls.settings.get(k)
-			for k in ("contact_enabled", "contact_keep_days", "telegram_chat_id", "guest_access")
+			for k in (
+				"contact_enabled",
+				"contact_keep_days",
+				"telegram_chat_id",
+				"guest_access",
+				"telegram_username",
+			)
 		}
 
 	def setUp(self):
@@ -62,6 +68,15 @@ class TestContact(IntegrationTestCase):
 			frappe.set_user("Administrator")
 			frappe.db.set_single_value("RD Settings", "guest_access", self.saved["guest_access"])
 			frappe.clear_cache(doctype="RD Settings")
+
+	def test_the_public_telegram_name_is_saved_plain_or_refused(self):
+		self.set_up_settings(telegram_username="https://t.me/SOKLibrary")
+		self.assertEqual(frappe.get_single("RD Settings").telegram_username, "SOKLibrary")
+		self.assertEqual(contact.public_telegram_link(), "https://t.me/SOKLibrary")
+		with self.assertRaises(frappe.ValidationError):
+			self.set_up_settings(telegram_username="+91 98765 43210")
+		self.set_up_settings(telegram_username="")
+		self.assertEqual(contact.public_telegram_link(), "")
 
 	def test_a_robot_gets_thanks_and_nothing_is_kept(self):
 		self.assertEqual(contact.send(message="A fine message here.", rd_hp="http://spam"), {"sent": 1})
