@@ -83,6 +83,8 @@ folders, and Research Desk will:
   proofread; private support needs for blind, low-vision or other readers), and keep the server
   tidy with **Log QA**, folding Server sections and **gentle upgrades** that restart only what a
   release needs
+- take **messages from visitors** on a Contact us page into a Desk inbox, with an optional private
+  Telegram alert that says a message came, never what it says
 - let readers keep a **reading list**, export it as a bibliography, and share it as a link
 - keep some books (or everything) **for logged-in readers**: members-only books, a public
   catalogue with reading for members, or an internal library; readers sign up, are approved,

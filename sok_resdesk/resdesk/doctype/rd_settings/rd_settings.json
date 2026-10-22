@@ -75,6 +75,12 @@
   "access_rules",
   "desk_section",
   "desk_scope",
+  "contact_section",
+  "contact_enabled",
+  "contact_intro",
+  "contact_keep_days",
+  "telegram_bot_token",
+  "telegram_chat_id",
   "analytics_section",
   "analytics_provider",
   "analytics_host",
@@ -1479,6 +1485,48 @@
    "label": "Appeal Note for Disclosure Replies",
    "permlevel": 1,
    "description": "Governance edition only. Printed at the end of every reply to a disclosure request: who the applicant may appeal to, and within how long."
+  },
+  {
+   "fieldname": "contact_section",
+   "fieldtype": "Section Break",
+   "label": "Messages from Visitors"
+  },
+  {
+   "fieldname": "contact_enabled",
+   "fieldtype": "Check",
+   "label": "Take Messages From Visitors",
+   "default": "1",
+   "description": "Shows a Contact us page where anyone can write to the library. Messages arrive in the Desk under Messages, and managers get an alert in the Desk bell."
+  },
+  {
+   "fieldname": "contact_intro",
+   "fieldtype": "Small Text",
+   "label": "Words Above the Contact Form",
+   "depends_on": "contact_enabled",
+   "description": "Optional. Shown above the form: what to write about, how soon you answer."
+  },
+  {
+   "fieldname": "contact_keep_days",
+   "fieldtype": "Int",
+   "label": "Days to Keep Messages",
+   "default": "365",
+   "depends_on": "contact_enabled",
+   "description": "Messages older than this are deleted every night. 0 keeps them for good."
+  },
+  {
+   "fieldname": "telegram_bot_token",
+   "fieldtype": "Password",
+   "label": "Telegram Bot Token",
+   "permlevel": 1,
+   "depends_on": "contact_enabled",
+   "description": "Optional. Make a bot with @BotFather on Telegram and paste its token here. Together with the chat ID below, Telegram then tells you privately that a visitor wrote, with a link to the Desk, never the message itself. Not used in Classified mode."
+  },
+  {
+   "fieldname": "telegram_chat_id",
+   "fieldtype": "Data",
+   "label": "Telegram Chat ID",
+   "depends_on": "contact_enabled",
+   "description": "The number of the chat the alert goes to: write to your bot, then open https://api.telegram.org/botTOKEN/getUpdates (your token in place of TOKEN) and read chat → id. Your own phone number is never used or shown."
   }
  ],
  "links": [],

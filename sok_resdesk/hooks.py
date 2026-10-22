@@ -187,6 +187,8 @@ scheduler_events = {
 	# books that left the public are taken off the public mirror (if there is one)
 	"hourly": ["sok_resdesk.ingest.run_scheduled_hourly", "sok_resdesk.outbound.reconcile_all"],
 	"daily": [
+		# visitors' messages older than the days set in RD Settings are deleted
+		"sok_resdesk.contact.purge_old",
 		# deposits whose embargo has ended become readable (Settings → Features → Repository deposit)
 		"sok_resdesk.deposit.release_embargoes",
 		"sok_resdesk.ingest.run_scheduled_daily",

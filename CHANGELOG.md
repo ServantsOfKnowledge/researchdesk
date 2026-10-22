@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.99.0 (2026-10-22): Messages from visitors
+
+- **Contact us.** A public page, `/library/contact` (linked from the home page), where anyone can write to the library; name and email are optional. Messages arrive in the Desk under **Messages** with a status (New, Read, Replied, Done, Spam) and a note for staff, and managers get an alert in the Desk bell. Research Desk sends no email for them.
+- **Optional Telegram alert.** Settings → *Messages from Visitors*: a bot token and a chat ID make Telegram tell you privately that a visitor wrote, with a link to the Desk; the message itself never goes to Telegram, and your own number is never used. Off in Classified mode.
+- **Looked after.** Limited per visitor and per hour, a hidden field for robots, a pause if far too many arrive, messages deleted after the days set in Settings (365 by default), and the whole feature can be switched off.
+- Looked after (review fixes): off in Classified mode, and for guests where the library requires sign-in; the flood pause ignores messages marked Spam; messages are deleted for good (no copy kept in Deleted Documents); the hidden field has an unusual name so autofill does not trigger it.
+- Help: *Messages from visitors* in the Staff guide.
+
 ## 0.98.1 (2026-10-19): How to check an offline bundle
 
 - **Installation** has a short section, *Checking a bundle before you rely on it*: the commands to make a bundle, look inside it, install from it with no network, and confirm that a damaged or wrong-machine bundle is refused.

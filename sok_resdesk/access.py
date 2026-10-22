@@ -594,7 +594,8 @@ def on_user_insert(doc, method=None):
 		).insert(ignore_permissions=True)
 
 
-def notify_managers(request) -> None:
+def notify_managers(request, subject: str | None = None) -> None:
+	"""A Desk alert for every manager about a new request, message or the like."""
 	managers = {
 		u
 		for u in frappe.get_all(
@@ -609,9 +610,10 @@ def notify_managers(request) -> None:
 					"doctype": "Notification Log",
 					"for_user": user,
 					"type": "Alert",
-					"document_type": "RD Reader Request",
+					"document_type": request.doctype,
 					"document_name": request.name,
-					"subject": _("{0} asked for a reader account").format(request.full_name or request.email),
+					"subject": subject
+					or _("{0} asked for a reader account").format(request.full_name or request.email),
 				}
 			).insert(ignore_permissions=True)
 		except Exception:  # a missing alert must not stop the sign-up

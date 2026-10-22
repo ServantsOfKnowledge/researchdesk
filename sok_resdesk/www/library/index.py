@@ -43,6 +43,9 @@ def get_context(context):
 	from sok_resdesk import archival
 
 	context.has_archive = bool(archival.top_units())
+	from sok_resdesk import contact
+
+	context.contact_on = contact.enabled()
 	context.facet_labels = facet_labels()
 	from sok_resdesk.resdesk.doctype.rd_settings.rd_settings import DEFAULT_LOGO
 

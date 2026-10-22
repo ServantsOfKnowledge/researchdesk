@@ -1,0 +1,64 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="rd rd-contact">
+	<nav class="rd-crumbs"><a href="{{ library_url() }}">← {{ portal_title }}</a></nav>
+	<h1 class="rd-page-title">{{ _("Contact us") }}</h1>
+	<p id="rd-ct-intro" class="rd-muted">{{ intro or _("Write to the library: a question, a correction, a book you would like us to have, or an offer to help. A person reads every message.") }}</p>
+	<form id="rd-ct" class="rd-form" aria-describedby="rd-ct-intro rd-ct-keep" novalidate>
+		<p><label>{{ _("Your name (optional)") }} <input name="full_name" maxlength="140" autocomplete="name" style="width:100%"></label></p>
+		<p><label>{{ _("Your email, so we can reply (optional)") }} <input name="contact" type="email" maxlength="140" autocomplete="email" style="width:100%"></label></p>
+		<p><label>{{ _("Your message") }} <span aria-hidden="true">*</span>
+			<textarea name="message" rows="7" maxlength="{{ max_message }}" required aria-describedby="rd-ct-h-message" style="width:100%"></textarea></label>
+			<span id="rd-ct-h-message" class="rd-muted">{{ _("Up to {0} characters.").format(max_message) }}</span></p>
+		<div aria-hidden="true" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden">
+			<label>{{ _("Leave this empty") }} <input name="rd_hp" tabindex="-1" autocomplete="off"></label>
+		</div>
+		<p id="rd-ct-keep" class="rd-muted">{% if keep_days %}{{ _("Only the library's staff read your message. It is deleted after {0} days.").format(keep_days) }}{% else %}{{ _("Only the library's staff read your message.") }}{% endif %}</p>
+		<p class="rd-actions"><button class="rd-btn rd-btn--primary" type="submit">{{ _("Send") }}</button></p>
+		<p id="rd-ct-err" role="alert" tabindex="-1" class="rd-error"></p>
+	</form>
+	<section id="rd-ct-done" class="rd-card" hidden tabindex="-1" aria-labelledby="rd-ct-done-h">
+		<h2 id="rd-ct-done-h">{{ _("Thank you") }}</h2>
+		<p>{{ _("Your message has reached the library.") }}</p>
+		<p><a href="{{ library_url() }}">{{ _("Back to the library") }}</a></p>
+	</section>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+(function () {
+	const f = document.getElementById("rd-ct"), err = document.getElementById("rd-ct-err"), done = document.getElementById("rd-ct-done");
+	const T = {{ {"failed": _("The message could not be sent. Please try again."), "empty": _("Please write a message.")} | tojson }};
+	const why = (r) => {
+		try { return JSON.parse(JSON.parse(r._server_messages || "[]")[0]).message.replace(/<[^>]+>/g, ""); } catch (x) { return ""; }
+	};
+	const fail = (text) => { err.textContent = text; f.elements.message.setAttribute("aria-invalid", "true"); err.focus(); };
+	f.addEventListener("submit", (e) => {
+		e.preventDefault();
+		err.textContent = "";
+		f.elements.message.removeAttribute("aria-invalid");
+		if (!f.elements.message.value.trim()) return fail(T.empty);
+		f.setAttribute("aria-busy", "true");
+		f.querySelectorAll("button").forEach((b) => (b.disabled = true));
+		fetch("/api/method/sok_resdesk.contact.send", {
+			method: "POST", credentials: "same-origin",
+			headers: {"Content-Type": "application/json", "X-Frappe-CSRF-Token": window.csrf_token},
+			body: JSON.stringify({full_name: f.elements.full_name.value, contact: f.elements.contact.value, message: f.elements.message.value, rd_hp: f.elements.rd_hp.value})
+		}).then((r) => r.json()).then((r) => {
+			if (r.message && r.message.sent) {
+				f.hidden = true;
+				done.hidden = false;
+				done.focus();
+			} else fail(why(r) || T.failed);
+		}).catch(() => fail(T.failed)).finally(() => {
+			f.setAttribute("aria-busy", "false");
+			f.querySelectorAll("button").forEach((b) => (b.disabled = false));
+		});
+	});
+})();
+</script>
+{% endblock %}

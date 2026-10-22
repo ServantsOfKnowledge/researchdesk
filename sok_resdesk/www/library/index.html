@@ -41,6 +41,8 @@
 
 	{% if has_archive %}<p class="rd-browse"><a href="/library/archive">{{ _("Browse the archives") }} →</a></p>{% endif %}
 
+	{% if contact_on %}<p class="rd-browse"><a href="/library/contact">{{ _("Write to the library") }} →</a></p>{% endif %}
+
 	{% include "templates/includes/rd_results.html" %}
 </div>
 {% endblock %}

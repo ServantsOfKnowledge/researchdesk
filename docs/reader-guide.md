@@ -224,6 +224,11 @@ approved. Ask the library if you're not sure how to join. If the email does not 
 the optional **About me** page (volunteering, support needs), see
 [Signing in, your account and About me](signing-in.md).
 
+## Writing to the library
+
+The link *Write to the library* on the home page opens a form for a question, a correction or a book you
+would like us to have. Your name and email are optional; only the library's staff read the message.
+
 ## Help and tips
 
 **Help**, in the top bar, opens these pages. The first time you visit, a few short tips appear

@@ -36,6 +36,7 @@ SCREEN_HELP = {
 	"RD Push Run": ("collections-and-metadata", "pushing-metadata-to-other-systems"),
 	"RD External Record": ("collections-and-metadata", "pushing-metadata-to-other-systems"),
 	"RD Reader Request": ("sign-in-email", "who-may-sign-up"),
+	"RD Message": ("staff-guide", "messages-from-visitors"),
 	"RD Reader Profile": ("staff-guide", "reader-profiles-and-volunteers"),
 	"RD Creator": ("staff-guide", "authors-and-subjects"),
 	"RD Subject": ("staff-guide", "authors-and-subjects"),

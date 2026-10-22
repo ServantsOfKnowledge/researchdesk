@@ -510,6 +510,28 @@ and whether the library may name them as a contributor. It is all optional.
   managers see it; it is never shown publicly. Use it to offer large text, screen-reader help,
   audio or more time.
 
+## Messages from visitors
+
+The portal has a **Contact us** page (`/library/contact`, linked from the home page: *Write to the
+library*) where anyone, signed in or not, can send the library a message: a question, a correction, a
+book they would like us to have, an offer to help. The name and email are optional; the message is not.
+
+- **Where they arrive.** Desk → **Messages** (*Readers and Research*). Managers also get an alert in the
+  Desk bell. Set each message to *Read*, *Replied*, *Done* or *Spam*, and write a note for staff (visitors
+  never see it). If the visitor gave an email address, reply from your own mail: Research Desk does not
+  send email for this.
+- **Telegram alert (optional).** In Telegram, write to **@BotFather**, make a bot, and copy its token.
+  Write any message to your new bot, then open `https://api.telegram.org/botTOKEN/getUpdates` and
+  read `chat` → `id` (put your token in place of `TOKEN`). Put the token and the id in Settings → **Messages from Visitors**. From then on
+  Telegram tells you privately that a visitor wrote, with a link to the Desk; the message itself is
+  never sent to Telegram. Your own phone number is never used or shown. The alert is off in Classified mode.
+- **Keeping and deleting.** Messages are deleted after the days set in Settings (365 by default; 0 keeps
+  them). To delete one now, delete it in the list.
+- **Spam.** The form is limited per visitor and per hour, has a hidden field that robots fill in, and
+  refuses new messages for an hour if far too many arrive. Turn the whole feature off with **Take
+  Messages From Visitors** in Settings: the page then disappears. It is also off in Classified mode, and
+  in a library set to *Login required* only signed-in people can use it.
+
 ## Usage statistics
 
 Settings → **Usage Statistics** counts how readers use the portal. The Desk is never counted,

@@ -570,6 +570,16 @@ Every setting:
 | Governance Mode | Governance edition only. Records who viewed, downloaded, searched and changed what, in a log that cannot be edited or deleted from the Desk and shows any tampering (Audit Log). Meant for a government or institutional deployment; off, nothing is recorded. |
 | Days to Reply to a Disclosure Request | Governance edition only. How many days after a request for records arrives the reply is owed (Disclosure Requests). Set it to what the law or the office's rules say. |
 | Appeal Note for Disclosure Replies | Governance edition only. Printed at the end of every reply to a disclosure request: who the applicant may appeal to, and within how long. |
+
+**Messages from Visitors**
+
+| Setting | What it does |
+|---|---|
+| Take Messages From Visitors | Shows a Contact us page where anyone can write to the library. Messages arrive in the Desk under Messages, and managers get an alert in the Desk bell. |
+| Words Above the Contact Form | Optional. Shown above the form: what to write about, how soon you answer. |
+| Days to Keep Messages | Messages older than this are deleted every night. 0 keeps them for good. |
+| Telegram Bot Token | Optional. Make a bot with @BotFather on Telegram and paste its token here. Together with the chat ID below, Telegram then tells you privately that a visitor wrote, with a link to the Desk, never the message itself. Not used in Classified mode. |
+| Telegram Chat ID | The number of the chat the alert goes to: write to your bot, then open https://api.telegram.org/botTOKEN/getUpdates (your token in place of TOKEN) and read chat → id. Your own phone number is never used or shown. |
 <!-- /generated:settings -->
 
 ## Users and roles
