@@ -31,6 +31,16 @@ function rd_feature_suggestions(frm) {
 frappe.ui.form.on("RD Settings", {
 	refresh(frm) {
 		rd_feature_suggestions(frm);
+		frm.add_custom_button(__("Send a Test Telegram Message"), () =>
+			frm.is_dirty() ? frappe.msgprint(__("Save Settings first: the test uses the saved token and chat ID.")) : frappe.call({ method: "sok_resdesk.contact.test_telegram", freeze: true }).then((r) => {
+				const m = r.message || {};
+				frappe.msgprint({
+					title: __("Telegram"),
+					indicator: m.ok ? "green" : "red",
+					message: m.ok ? __("Sent. Look in the chat for the test message.") : frappe.utils.escape_html(m.why || __("It was not sent.")),
+				});
+			}), __("Messages")
+		);
 		frm.add_custom_button(__("Test Search Engine"), () =>
 			frappe.call({
 				method: "sok_resdesk.search.setup_indexes",

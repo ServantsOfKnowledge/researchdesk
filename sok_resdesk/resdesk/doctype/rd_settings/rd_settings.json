@@ -1519,14 +1519,14 @@
    "label": "Telegram Bot Token",
    "permlevel": 1,
    "depends_on": "contact_enabled",
-   "description": "Optional. Make a bot with @BotFather on Telegram and paste its token here. Together with the chat ID below, Telegram then tells you privately that a visitor wrote, with a link to the Desk, never the message itself. Not used in Classified mode."
+   "description": "Optional. Make a bot with @BotFather on Telegram and paste its token here. Together with the chat ID below, Telegram then tells you privately that a visitor wrote, with a link to the Desk, never the message itself. Save, then use Messages → Send a Test Telegram Message. Not used in Classified mode."
   },
   {
    "fieldname": "telegram_chat_id",
    "fieldtype": "Data",
    "label": "Telegram Chat ID",
    "depends_on": "contact_enabled",
-   "description": "The number of the chat the alert goes to: write to your bot, then open https://api.telegram.org/botTOKEN/getUpdates (your token in place of TOKEN) and read chat → id. Your own phone number is never used or shown."
+   "description": "The number of the chat the alert goes to (a group's is negative): press Start on your bot, write to it, then open https://api.telegram.org/botTOKEN/getUpdates (your token in place of TOKEN) and read chat → id. Your own phone number is never used or shown."
   }
  ],
  "links": [],

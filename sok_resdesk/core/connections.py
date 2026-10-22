@@ -94,6 +94,27 @@ CARDS: tuple[Card, ...] = (
 		(Action("Set up and test", EMAIL, "mail", True),),
 	),
 	Card(
+		"contact",
+		"people",
+		"Messages from visitors",
+		"Anyone can write to the library from the Contact us page. Messages arrive in the Desk, and managers get an alert in the Desk bell.",
+		"Managers read and answer them; anyone, signed in or not, can write.",
+		MANAGERS,
+		(
+			Action("Messages", ROUTE, _r("List", "RD Message"), True),
+			Action("The form people see", URL, "/library/contact"),
+		),
+	),
+	Card(
+		"telegram",
+		"people",
+		"Telegram alert",
+		"Telegram tells you privately that a visitor wrote, with a link to the Desk: never the message itself. Needs a bot made with @BotFather. Off in Classified mode.",
+		"Managers set it up once; the token stays in Settings.",
+		MANAGERS,
+		(Action("Set up and test", ROUTE, _r("Form", "RD Settings"), True),),
+	),
+	Card(
 		"profiles",
 		"people",
 		"Reader profiles and volunteers",

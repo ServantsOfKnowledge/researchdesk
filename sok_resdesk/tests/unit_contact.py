@@ -40,3 +40,23 @@ def test_the_flood_limit():
 def test_the_telegram_text_says_a_message_came_and_never_what_it_says():
 	text = contact.alert_text("The Library", "https://x.example/app/rd-message/MSG-00001")
 	assert "https://x.example/app/rd-message/MSG-00001" in text and "The Library" in text
+
+
+def test_a_bot_token_looks_like_one_or_it_does_not():
+	assert contact.looks_like_token("123456789:AAH-xyz_0123456789abcdefghijk")
+	assert not contact.looks_like_token("123:abc")
+	assert not contact.looks_like_token("not a token")
+	assert not contact.looks_like_token("")
+
+
+def test_each_telegram_refusal_says_what_to_do():
+	assert "token" in contact.telegram_problem(401)
+	assert "chat ID" in contact.telegram_problem(400, "Bad Request: chat not found")
+	assert "Start" in contact.telegram_problem(403, "Forbidden: bot was blocked by the user")
+	assert "api.telegram.org" in contact.telegram_problem(0)
+	assert "slow down" in contact.telegram_problem(429)
+	assert "999" in contact.telegram_problem(999)
+
+
+def test_the_test_message_says_it_is_a_test():
+	assert "works" in contact.test_text("The Library")

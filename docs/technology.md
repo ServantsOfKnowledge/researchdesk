@@ -21,7 +21,7 @@ open-source tool or service used for one job.
                                                                                   Whisper · Kraken ·
                                                                                   zimwriterfs (optional)
    Outside: archive.org · Wikidata · Wikisource · Commons · VIAF · id.loc.gov · DataCite · Koha ·
-            S3-compatible storage · PostHog/Plausible/Umami   (each optional, each switched on by the library)
+            S3-compatible storage · PostHog/Plausible/Umami · Telegram   (each optional, each switched on by the library)
 ```
 
 ## 1. Runtime services
@@ -86,6 +86,7 @@ a Procfile (`bench start`), with MariaDB, Redis and Meilisearch installed by Hom
 | **Wikimedia Commons** | photographs, uploaded under the sender's own account | Item → Send to Wikimedia Commons |
 | **VIAF**, **Library of Congress (id.loc.gov)** | authors' VIAF numbers (through Wikidata); subject headings | Settings → Catalogue → Authorities |
 | **DataCite** | DOIs for chosen collections | Settings → Sharing |
+| **Telegram Bot API** (`api.telegram.org`) | one private message when a visitor writes to the library (a link to the Desk, never the message); a bot of the library's own, its token encrypted in Settings; not used in Classified mode | Settings → Messages from Visitors |
 | **ARK / N2T** | permanent identifiers under the library's own NAAN | Settings → Sharing |
 | **Koha** and other library systems | records matched to books; links sent back | Library Systems; Push Targets |
 | **OAI-PMH** | the portal's catalogue for harvesters; DSpace, EPrints and others harvested in | always on; Ingest Profiles |

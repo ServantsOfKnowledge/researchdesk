@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.100.0 (2026-10-22): Telegram as a connection you can test
+
+- **Send a Test Telegram Message.** Settings → *Messages* sends one message to the saved chat, and says in plain words what to fix if it is refused: a wrong token, a chat the bot cannot write to, a server that cannot reach Telegram. The token never appears in the answer, the logs or the Error Log.
+- **Connections.** Two new cards under *People and sign-in*: **Messages from visitors** (how many are new) and **Telegram alert** (set up or not).
+- **Documentation.** *The Telegram alert* in the Staff guide: creating the bot, finding the chat ID, the test and its messages, and what Telegram does and does not receive; Connections, the Technology map (the Telegram Bot API) and the API page are updated, and the Governance page says the alert is off in Classified mode.
+
 ## 0.99.2 (2026-10-22): The home page works again for guests
 
 - **Fixed (0.99.0 and 0.99.1): the home page and search answered "500" to signed-out visitors.** The new *Write to the library* link asked whether the library requires sign-in with a name that does not exist in that module. Signed-in people were not affected, which is why the tests did not see it; there is now a test as a guest.

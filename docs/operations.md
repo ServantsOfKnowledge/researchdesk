@@ -578,8 +578,8 @@ Every setting:
 | Take Messages From Visitors | Shows a Contact us page where anyone can write to the library. Messages arrive in the Desk under Messages, and managers get an alert in the Desk bell. |
 | Words Above the Contact Form | Optional. Shown above the form: what to write about, how soon you answer. |
 | Days to Keep Messages | Messages older than this are deleted every night. 0 keeps them for good. |
-| Telegram Bot Token | Optional. Make a bot with @BotFather on Telegram and paste its token here. Together with the chat ID below, Telegram then tells you privately that a visitor wrote, with a link to the Desk, never the message itself. Not used in Classified mode. |
-| Telegram Chat ID | The number of the chat the alert goes to: write to your bot, then open https://api.telegram.org/botTOKEN/getUpdates (your token in place of TOKEN) and read chat → id. Your own phone number is never used or shown. |
+| Telegram Bot Token | Optional. Make a bot with @BotFather on Telegram and paste its token here. Together with the chat ID below, Telegram then tells you privately that a visitor wrote, with a link to the Desk, never the message itself. Save, then use Messages → Send a Test Telegram Message. Not used in Classified mode. |
+| Telegram Chat ID | The number of the chat the alert goes to (a group's is negative): press Start on your bot, write to it, then open https://api.telegram.org/botTOKEN/getUpdates (your token in place of TOKEN) and read chat → id. Your own phone number is never used or shown. |
 <!-- /generated:settings -->
 
 ## Users and roles

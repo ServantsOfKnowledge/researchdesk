@@ -13,6 +13,7 @@ from frappe.utils import add_days, add_to_date, cint, now_datetime
 
 from sok_resdesk import access, seams
 from sok_resdesk.catalogue import base_url, portal_title, settings
+from sok_resdesk.core import connections
 from sok_resdesk.core import contact as rules
 from sok_resdesk.ratelimit import rate_limit
 
@@ -65,35 +66,66 @@ def after_message(doc) -> None:
 	)
 
 
-def tell_telegram(name: str) -> None:
-	"""One private Telegram message to the chat in RD Settings. Never breaks the visitor's message, and
-	never in Classified mode, which allows no outside connection."""
+def telegram_ready() -> bool:
+	"""Token and chat ID are both set (RD Settings), and Classified mode is not on."""
 	if seams.classified():
-		return
+		return False
+	s = settings()
+	return bool(
+		(s.get_password("telegram_bot_token", raise_exception=False) or "").strip()
+		and (s.get("telegram_chat_id") or "").strip()
+	)
+
+
+def _send_telegram(text: str) -> tuple[bool, str]:
+	"""(sent, why not): one message to the chat in RD Settings. The token is in the address, so nothing
+	here ever logs or returns the text of an error, only its kind."""
 	s = settings()
 	token = (s.get_password("telegram_bot_token", raise_exception=False) or "").strip()
 	chat = (s.get("telegram_chat_id") or "").strip()
 	if not token or not chat:
-		return
-	url = f"{base_url()}/app/rd-message/{name}"
+		return False, _("Enter the bot token and the chat ID first, and save Settings.")
+	if not rules.looks_like_token(token):  # also keeps a stray "/" or "?" out of the address
+		return False, _("That does not look like a bot token. It is a number, a colon and a long string.")
 	try:
 		resp = requests.post(
 			f"https://api.telegram.org/bot{token}/sendMessage",
-			json={
-				"chat_id": chat,
-				"text": rules.alert_text(portal_title(), url),
-				"disable_web_page_preview": True,
-			},
+			json={"chat_id": chat, "text": text, "disable_web_page_preview": True},
 			timeout=10,
 			allow_redirects=False,
 		)
-		if resp.status_code != 200:
-			frappe.log_error(
-				title="Research Desk: the Telegram alert was refused",
-				message=f"Telegram answered {resp.status_code}",
-			)
-	except Exception as e:  # the token is in the address: log the kind of error only, never its text
+	except Exception as e:
 		frappe.log_error(title="Research Desk: the Telegram alert failed", message=type(e).__name__)
+		return False, rules.telegram_problem(0)
+	if resp.status_code == 200:
+		return True, ""
+	try:
+		said = (resp.json() or {}).get("description", "")
+	except Exception:
+		said = ""
+	frappe.log_error(
+		title="Research Desk: the Telegram alert was refused", message=f"Telegram answered {resp.status_code}"
+	)
+	return False, rules.telegram_problem(resp.status_code, said)
+
+
+def tell_telegram(name: str) -> None:
+	"""A new message: one private Telegram message, if set up. Never breaks the visitor's message, and
+	never in Classified mode, which allows no outside connection."""
+	if seams.classified():
+		return
+	_send_telegram(rules.alert_text(portal_title(), f"{base_url()}/app/rd-message/{name}"))
+
+
+@frappe.whitelist(methods=["POST"])
+@rate_limit(limit=10, seconds=600)
+def test_telegram() -> dict:
+	"""Settings → Send a Test Telegram Message: {"ok", "why"} in plain words."""
+	frappe.only_for(connections.MANAGERS)
+	if seams.classified():
+		return {"ok": False, "why": _("Telegram is not used in Classified mode.")}
+	ok, why = _send_telegram(rules.test_text(portal_title()))
+	return {"ok": ok, "why": why}
 
 
 def purge_old() -> int:

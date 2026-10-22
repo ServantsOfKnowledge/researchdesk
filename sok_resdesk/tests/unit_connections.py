@@ -16,7 +16,19 @@ def test_every_card_belongs_to_a_group_and_has_a_way_in():
 def test_every_group_has_cards_and_the_main_integrations_are_there():
 	for g in c.GROUPS:
 		assert any(x.group == g.key for x in c.CARDS), g.key
-	for key in ("ia_bring", "ia_send", "wm_account", "koha", "deposit", "calibre", "oai", "sru", "exports"):
+	for key in (
+		"ia_bring",
+		"ia_send",
+		"wm_account",
+		"koha",
+		"deposit",
+		"calibre",
+		"oai",
+		"sru",
+		"exports",
+		"contact",
+		"telegram",
+	):
 		assert c.card(key)
 
 

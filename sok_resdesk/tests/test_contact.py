@@ -25,6 +25,9 @@ class TestContact(IntegrationTestCase):
 		frappe.db.delete("RD Message")
 		self.set_up_settings(contact_enabled=1, contact_keep_days=365, telegram_chat_id="")
 		self.posts = []
+		frappe.db.delete(
+			"__Auth", {"doctype": "RD Settings", "name": "RD Settings", "fieldname": "telegram_bot_token"}
+		)
 		self._post = contact.requests.post
 		contact.requests.post = lambda url, **kw: (
 			self.posts.append((url, kw)) or type("R", (), {"status_code": 200})()
@@ -76,14 +79,43 @@ class TestContact(IntegrationTestCase):
 
 	def test_telegram_is_told_only_that_a_message_came(self):
 		self.set_up_settings(telegram_chat_id="12345")
-		set_encrypted_password("RD Settings", "RD Settings", "123:abc", "telegram_bot_token")
+		set_encrypted_password(
+			"RD Settings", "RD Settings", "123456789:AAH-xyz_0123456789abcdefghijk", "telegram_bot_token"
+		)
 		contact.send(message="My private words about page nine.")
 		contact.tell_telegram(frappe.get_last_doc("RD Message").name)
 		self.assertEqual(len(self.posts), 1)
 		url, kw = self.posts[0]
-		self.assertIn("/bot123:abc/sendMessage", url)
+		self.assertIn("/bot123456789:AAH-xyz_0123456789abcdefghijk/sendMessage", url)
 		self.assertNotIn("private words", kw["json"]["text"])
 		self.assertEqual(kw["json"]["chat_id"], "12345")
+
+	def test_the_test_button_reports_success_and_each_refusal_in_plain_words(self):
+		self.set_up_settings(telegram_chat_id="12345")
+		set_encrypted_password(
+			"RD Settings", "RD Settings", "123456789:AAH-xyz_0123456789abcdefghijk", "telegram_bot_token"
+		)
+		self.assertTrue(contact.test_telegram()["ok"])
+		contact.requests.post = lambda url, **kw: type(
+			"R", (), {"status_code": 401, "json": lambda self: {"description": "Unauthorized"}}
+		)()
+		out = contact.test_telegram()
+		self.assertFalse(out["ok"])
+		self.assertIn("token", out["why"])
+		self.assertNotIn("AAH-xyz", out["why"])
+		self.assertTrue(contact.telegram_ready())
+
+	def test_a_malformed_token_is_refused_before_any_request(self):
+		self.set_up_settings(telegram_chat_id="12345")
+		set_encrypted_password("RD Settings", "RD Settings", "bad/token?x", "telegram_bot_token")
+		out = contact.test_telegram()
+		self.assertFalse(out["ok"])
+		self.assertIn("bot token", out["why"])
+		self.assertEqual(self.posts, [])
+
+	def test_the_test_button_says_when_nothing_is_set_up(self):
+		self.assertFalse(contact.telegram_ready())
+		self.assertFalse(contact.test_telegram()["ok"])
 
 	def test_without_a_token_telegram_is_not_called(self):
 		contact.send(message="Nothing set up, so nothing sent.")

@@ -63,6 +63,17 @@ def _status(c: core.Card) -> dict:
 		if left["failed"]:
 			return {"state": "todo", "text": _("{0} emails failed to send").format(left["failed"])}
 		return {"state": "ok", "text": _("Set up")}
+	if key == "contact":
+		n = _count("RD Message", {"status": "New"})
+		return {"state": "todo" if n else "ok", "text": _("{0} new messages").format(n)}
+	if key == "telegram":
+		from sok_resdesk import contact
+
+		return (
+			{"state": "ok", "text": _("Set up")}
+			if contact.telegram_ready()
+			else {"state": "info", "text": _("Not set up: alerts reach the Desk bell only")}
+		)
 	if key == "ia_bring":
 		n = _count("RD Ingest Profile", {"source": "Internet Archive"})
 		return {"state": "ok" if n else "info", "text": _("Profiles: {0}").format(n)}

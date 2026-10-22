@@ -51,3 +51,33 @@ def too_many(count_last_hour: int, cap: int = FLOOD_PER_HOUR) -> bool:
 def alert_text(portal: str, url: str) -> str:
 	"""What Telegram is told: that a message came and where to read it, never the message itself."""
 	return f"{portal}: a visitor sent a message. Read it in the Desk: {url}"
+
+
+_TOKEN = re.compile(r"^\d{5,}:[A-Za-z0-9_-]{20,}$")
+
+
+def looks_like_token(token: str) -> bool:
+	"""A Telegram bot token is a number, a colon and a long string, like 123456789:AAH-xyz…"""
+	return bool(_TOKEN.match((token or "").strip()))
+
+
+def test_text(portal: str) -> str:
+	return f"{portal}: the Telegram alert works. You will get a message like this when a visitor writes."
+
+
+def telegram_problem(status: int, description: str = "") -> str:
+	"""Telegram's refusal in plain words, with what to do. `status` 0 means Telegram was not reached."""
+	said = (description or "").lower()
+	if status == 0:
+		return (
+			"Telegram could not be reached from this server. Check that it can open https://api.telegram.org."
+		)
+	if status == 401 or status == 404:
+		return "Telegram does not accept this bot token. Copy it again from @BotFather."
+	if status == 403:
+		return "The bot cannot write to that chat: it was blocked or removed. Open the chat, press Start, and try again."
+	if status == 400 and "chat not found" in said:
+		return "Telegram does not know that chat ID. Write any message to your bot first, then read the id again."
+	if status == 429:
+		return "Telegram asks us to slow down. Try again in a minute."
+	return f"Telegram refused the message (code {status}). Check the token and the chat ID."

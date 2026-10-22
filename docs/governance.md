@@ -345,7 +345,7 @@ on the host. It lives in the site configuration, outside the database, so no Des
 it off: turning it off means `bench set-config` on the host, and **anyone who can run code on the
 host, or enable Server Scripts in the Desk, can also change it**. It:
 
-- **refuses every outside web request and outgoing mail connection** that is not to the machine
+- **refuses every outside web request and outgoing mail connection** (the Contact us page's Telegram alert is switched off too) that is not to the machine
   itself, the search engine, the Docker monitor, or a host you name in `resdesk_allowed_hosts` (a
   list; `.gov.example` allows that whole domain). It is a guard on the `requests` library and on
   `smtplib`, in web requests, background jobs and migrations (not in `bench console` or `bench

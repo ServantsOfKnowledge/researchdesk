@@ -520,17 +520,49 @@ book they would like us to have, an offer to help. The name and email are option
   Desk bell. Set each message to *Read*, *Replied*, *Done* or *Spam*, and write a note for staff (visitors
   never see it). If the visitor gave an email address, reply from your own mail: Research Desk does not
   send email for this.
-- **Telegram alert (optional).** In Telegram, write to **@BotFather**, make a bot, and copy its token.
-  Write any message to your new bot, then open `https://api.telegram.org/botTOKEN/getUpdates` and
-  read `chat` → `id` (put your token in place of `TOKEN`). Put the token and the id in Settings → **Messages from Visitors**. From then on
-  Telegram tells you privately that a visitor wrote, with a link to the Desk; the message itself is
-  never sent to Telegram. Your own phone number is never used or shown. The alert is off in Classified mode.
+- **Telegram alert (optional).** Telegram tells you privately that a visitor wrote, with a link to the
+  Desk. Set it up as [below](#the-telegram-alert).
 - **Keeping and deleting.** Messages are deleted after the days set in Settings (365 by default; 0 keeps
   them). To delete one now, delete it in the list.
 - **Spam.** The form is limited per visitor and per hour, has a hidden field that robots fill in, and
   refuses new messages for an hour if far too many arrive. Turn the whole feature off with **Take
   Messages From Visitors** in Settings: the page then disappears. It is also off in Classified mode, and
   in a library set to *Login required* only signed-in people can use it.
+
+### The Telegram alert
+
+Telegram is optional: without it, messages still arrive in the Desk and its bell. With it, your phone
+buzzes as well. What Telegram receives is only "*a visitor sent a message*" and a link that opens the Desk
+(where you must sign in); **never the message, the name or the email**, and never your phone number.
+
+**Set it up once (about five minutes):**
+
+1. In Telegram, open **@BotFather**, send `/newbot`, and choose a name. It replies with a **token**
+   (a number, a colon and a long string). Anyone with the token can act as the bot: keep it secret.
+2. Open your new bot in Telegram and press **Start**, then write any message to it. For a group, add the
+   bot to the group and write there.
+3. In a browser open `https://api.telegram.org/botTOKEN/getUpdates` (your token in place of `TOKEN`) and
+   find `"chat":{"id":123456789` : that number is the **chat ID** (a group's is negative, like
+   `-1001234567890`).
+4. In Settings → **Messages from Visitors**, paste the token and the chat ID and **save**.
+5. Choose **Messages → Send a Test Telegram Message**. Settings says *Sent*, and the chat shows the
+   test; or it says in plain words what to fix.
+
+| The test says | Do this |
+|---|---|
+| *does not accept this bot token* | Copy the token again from @BotFather (`/mybots` → your bot → API Token) |
+| *does not know that chat ID* | Write to the bot first (step 2), then read the id again |
+| *cannot write to that chat* | Open the chat and press **Start**; for a group, add the bot again |
+| *could not be reached from this server* | The server must be able to open `https://api.telegram.org`; check its firewall |
+| *slow down* | Wait a minute and try again |
+| *does not look like a bot token*, or *Enter the bot token and the chat ID first* | Paste the whole token and the chat ID from steps 1 and 3, and save Settings |
+| *refused the message (code …)* | Check the token and the chat ID again; the code is Telegram's own |
+
+The token is stored encrypted and only the super admin and managers with access to Settings can read
+or change it; it is never shown in the Desk's lists, logs or error messages. If it leaks, revoke it in
+@BotFather (`/revoke`) and paste the new one. **Desk → Connections → Telegram alert** shows whether it is
+set up. A failed alert never loses a message: the message is already in the Desk. It is not used in
+Classified mode, which allows no outside connection.
 
 ## Usage statistics
 
