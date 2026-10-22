@@ -77,3 +77,28 @@ def test_a_telegram_username_is_cleaned_or_refused():
 		assert contact.clean_username(text) == ""
 	assert contact.telegram_link("@SOKLibrary") == "https://t.me/SOKLibrary"
 	assert contact.telegram_link("nonsense here") == ""
+
+
+def test_the_chats_a_bot_has_heard_from_are_found_newest_first_once_each():
+	data = {
+		"result": [
+			{
+				"update_id": 1,
+				"message": {"chat": {"id": 11, "type": "private", "first_name": "Asha", "last_name": "K"}},
+			},
+			{
+				"update_id": 2,
+				"message": {"chat": {"id": -100, "type": "supergroup", "title": "Library team"}},
+			},
+			{
+				"update_id": 3,
+				"message": {"chat": {"id": 11, "type": "private", "first_name": "Asha", "last_name": "K"}},
+			},
+			{"update_id": 4, "channel_post": {"chat": {"id": -200, "type": "channel", "title": "News"}}},
+			{"update_id": 5, "poll": {}},
+		]
+	}
+	found = contact.chats_from_updates(data)
+	assert [c["id"] for c in found] == ["-200", "11", "-100"]
+	assert found[1]["label"] == "Asha K (private chat)"
+	assert contact.chats_from_updates({}) == [] and contact.chats_from_updates(None) == []

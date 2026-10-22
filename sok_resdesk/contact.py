@@ -99,36 +99,76 @@ def telegram_ready() -> bool:
 	)
 
 
-def _send_telegram(text: str) -> tuple[bool, str]:
-	"""(sent, why not): one message to the chat in RD Settings. The token is in the address, so nothing
-	here ever logs or returns the text of an error, only its kind."""
-	s = settings()
-	token = (s.get_password("telegram_bot_token", raise_exception=False) or "").strip()
-	chat = (s.get("telegram_chat_id") or "").strip()
-	if not token or not chat:
-		return False, _("Enter the bot token and the chat ID first, and save Settings.")
+def _telegram_call(method: str, payload: dict) -> tuple[bool, int, dict, str]:
+	"""(reached and answered 200, status, answer, why not) for one Telegram Bot API call with the saved
+	token. The token is in the address, so nothing here ever logs or returns the text of an error, only
+	its kind."""
+	token = (settings().get_password("telegram_bot_token", raise_exception=False) or "").strip()
+	if not token:
+		return False, 0, {}, _("Enter the bot token first, and save Settings.")
 	if not rules.looks_like_token(token):  # also keeps a stray "/" or "?" out of the address
-		return False, _("That does not look like a bot token. It is a number, a colon and a long string.")
+		return (
+			False,
+			0,
+			{},
+			_("That does not look like a bot token. It is a number, a colon and a long string."),
+		)
 	try:
 		resp = requests.post(
-			f"https://api.telegram.org/bot{token}/sendMessage",
-			json={"chat_id": chat, "text": text, "disable_web_page_preview": True},
-			timeout=10,
-			allow_redirects=False,
+			f"https://api.telegram.org/bot{token}/{method}", json=payload, timeout=10, allow_redirects=False
 		)
 	except Exception as e:
 		frappe.log_error(title="Research Desk: the Telegram alert failed", message=type(e).__name__)
-		return False, rules.telegram_problem(0)
-	if resp.status_code == 200:
-		return True, ""
+		return False, 0, {}, rules.telegram_problem(0)
 	try:
-		said = (resp.json() or {}).get("description", "")
+		data = resp.json() or {}
 	except Exception:
-		said = ""
+		data = {}
+	if resp.status_code == 200:
+		return True, 200, data, ""
 	frappe.log_error(
 		title="Research Desk: the Telegram alert was refused", message=f"Telegram answered {resp.status_code}"
 	)
-	return False, rules.telegram_problem(resp.status_code, said)
+	return (
+		False,
+		resp.status_code,
+		data,
+		rules.telegram_problem(resp.status_code, data.get("description", "")),
+	)
+
+
+def _send_telegram(text: str) -> tuple[bool, str]:
+	"""(sent, why not): one message to the chat in RD Settings."""
+	chat = (settings().get("telegram_chat_id") or "").strip()
+	if not chat:
+		return False, _("Enter the bot token and the chat ID first, and save Settings.")
+	ok, _status, _data, why = _telegram_call(
+		"sendMessage", {"chat_id": chat, "text": text, "disable_web_page_preview": True}
+	)
+	return ok, why
+
+
+@frappe.whitelist(methods=["POST"])
+@rate_limit(limit=20, seconds=600)
+def find_telegram_chat() -> dict:
+	"""Settings → Find the Chat ID: the chats the bot has heard from, so no one has to read Telegram's
+	address in a browser. {"ok", "chats": [{"id", "label"}], "why"}."""
+	frappe.only_for(connections.MANAGERS)
+	if seams.classified():
+		return {"ok": False, "chats": [], "why": _("Telegram is not used in Classified mode.")}
+	ok, _status, data, why = _telegram_call("getUpdates", {"limit": 100, "timeout": 0})
+	if not ok:
+		return {"ok": False, "chats": [], "why": why}
+	chats = rules.chats_from_updates(data)
+	if not chats:
+		return {
+			"ok": False,
+			"chats": [],
+			"why": _(
+				"The bot has heard from no one yet. Open your bot in Telegram, press Start and write 'hello' (for a group: add the bot and write there), then try again."
+			),
+		}
+	return {"ok": True, "chats": chats, "why": ""}
 
 
 def tell_telegram(name: str) -> None:

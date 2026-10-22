@@ -31,6 +31,19 @@ function rd_feature_suggestions(frm) {
 frappe.ui.form.on("RD Settings", {
 	refresh(frm) {
 		rd_feature_suggestions(frm);
+		frm.add_custom_button(__("Find the Telegram Chat ID"), () =>
+			frm.is_dirty() ? frappe.msgprint(__("Save Settings first: this uses the saved bot token.")) : frappe.call({ method: "sok_resdesk.contact.find_telegram_chat", freeze: true }).then((r) => {
+				const m = r.message || {};
+				if (!m.ok) return frappe.msgprint({ title: __("Telegram"), indicator: "red", message: frappe.utils.escape_html(m.why || __("Nothing found.")) });
+				const list = "<ul>" + m.chats.map((c) => `<li>${frappe.utils.escape_html(c.label)}: <code>${frappe.utils.escape_html(c.id)}</code></li>`).join("") + "</ul>";
+				// one chat is filled in; with several (a stranger may have written to a public bot) you choose
+				if (m.chats.length === 1) {
+					frm.set_value("telegram_chat_id", m.chats[0].id);
+					return frappe.msgprint({ title: __("Telegram"), indicator: "green", message: __("The Chat ID is filled in for {0}. Check that this is you or your group, save Settings, then send the test message.", [frappe.utils.escape_html(m.chats[0].label)]) });
+				}
+				frappe.msgprint({ title: __("Telegram"), indicator: "orange", message: __("The bot has heard from several chats. Type the Chat ID of yours into the field, save, then send the test message. Anyone can write to a public bot, so choose carefully:") + list });
+			}), __("Messages")
+		);
 		frm.add_custom_button(__("Send a Test Telegram Message"), () =>
 			frm.is_dirty() ? frappe.msgprint(__("Save Settings first: the test uses the saved token and chat ID.")) : frappe.call({ method: "sok_resdesk.contact.test_telegram", freeze: true }).then((r) => {
 				const m = r.message || {};

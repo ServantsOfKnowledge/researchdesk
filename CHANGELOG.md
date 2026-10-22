@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.102.0 (2026-10-23): A quicker Research Desk page, and Telegram's Chat ID found for you
+
+- **The Research Desk page opens at once.** Its numbers used to be counted when you opened the page (kept five minutes), so a big catalogue made the first visit after each pause slow. They are now counted in the background, every hour and again when the last count is over five minutes old, and the page shows the latest count immediately. `./resdesk.sh bench execute sok_resdesk.dashboard.timings` prints which count is slow, if any still is. A book made *Cleared only* is left out of the counts at the next count, within the hour.
+- **Find the Telegram Chat ID.** Settings → *Messages → Find the Telegram Chat ID* asks Telegram which chats have written to the bot and fills the Chat ID in, so no one has to read `api.telegram.org/bot…/getUpdates` in a browser (where a mistyped token gives `404 Not Found`). The Staff guide says what that 404 means. It fills the id in only when exactly one chat is found (anyone can write to a public bot); with several it lists them and you type yours.
+
 ## 0.101.0 (2026-10-22): Message us on Telegram
 
 - **A *Message us on Telegram* button** on the Contact us page, when Settings → *Messages from Visitors* has a public Telegram username (the library's own account, a channel or a group: a username, never a phone number). `@name` and `t.me/name` are accepted and saved plain; anything else is refused. Not shown in Classified mode. Chats started there live in Telegram, not in the Desk's Messages.

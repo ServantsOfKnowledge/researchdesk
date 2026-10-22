@@ -98,3 +98,28 @@ def clean_username(name) -> str:
 def telegram_link(name) -> str:
 	user = clean_username(name)
 	return f"https://t.me/{user}" if user else ""
+
+
+def chats_from_updates(data) -> list[dict]:
+	"""The chats a bot has heard from, newest first, from Telegram's getUpdates answer:
+	[{"id": "123", "label": "Asha (private chat)"}]. Used to find the Chat ID without a browser."""
+	seen, out = set(), []
+	for update in reversed((data or {}).get("result") or []):
+		for key in ("message", "edited_message", "channel_post", "my_chat_member"):
+			chat = (update.get(key) or {}).get("chat")
+			if not chat or chat.get("id") in seen:
+				continue
+			seen.add(chat["id"])
+			kind = {
+				"private": "private chat",
+				"group": "group",
+				"supergroup": "group",
+				"channel": "channel",
+			}.get(chat.get("type"), "chat")
+			name = (
+				chat.get("title")
+				or " ".join(x for x in (chat.get("first_name"), chat.get("last_name")) if x)
+				or (f"@{chat['username']}" if chat.get("username") else "")
+			)
+			out.append({"id": str(chat["id"]), "label": f"{name or 'No name'} ({kind})"})
+	return out

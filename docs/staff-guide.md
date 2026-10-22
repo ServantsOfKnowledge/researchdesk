@@ -541,16 +541,18 @@ buzzes as well. What Telegram receives is only "*a visitor sent a message*" and 
    (a number, a colon and a long string). Anyone with the token can act as the bot: keep it secret.
 2. Open your new bot in Telegram and press **Start**, then write any message to it. For a group, add the
    bot to the group and write there.
-3. In a browser open `https://api.telegram.org/botTOKEN/getUpdates` (your token in place of `TOKEN`) and
-   find `"chat":{"id":123456789` : that number is the **chat ID** (a group's is negative, like
-   `-1001234567890`).
-4. In Settings → **Messages from Visitors**, paste the token and the chat ID and **save**.
+3. In Settings → **Messages from Visitors**, paste the token into **Telegram Bot Token** and **save**. Then
+   choose **Messages → Find the Telegram Chat ID**: it asks Telegram which chats have written to the bot,
+   fills in the **Telegram Chat ID** when it has heard from exactly one chat (a group's is negative, like
+   `-1001234567890`). If there are several, it lists them and you type yours in: a bot's name is public,
+   so a stranger may have written to it; make sure the id is yours. (If it says the bot has heard from no one, repeat step 2 and try again.)
+4. **Save** Settings again.
 5. Choose **Messages → Send a Test Telegram Message**. Settings says *Sent*, and the chat shows the
    test; or it says in plain words what to fix.
 
 | The test says | Do this |
 |---|---|
-| *does not accept this bot token* | Copy the token again from @BotFather (`/mybots` → your bot → API Token) |
+| *does not accept this bot token* | Copy the token again from @BotFather (`/mybots` → your bot → API Token). If you tried the address `https://api.telegram.org/bot…/getUpdates` in a browser and saw `404 Not Found`, it is the same problem: the word `bot` must stay directly in front of the token, with no spaces and no `<` `>` |
 | *does not know that chat ID* | Write to the bot first (step 2), then read the id again |
 | *cannot write to that chat* | Open the chat and press **Start**; for a group, add the bot again |
 | *could not be reached from this server* | The server must be able to open `https://api.telegram.org`; check its firewall |

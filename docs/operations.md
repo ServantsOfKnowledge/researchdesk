@@ -600,6 +600,8 @@ login. Readers can also sign up themselves, or be added with
 
 ## Troubleshooting
 
+**The Research Desk page is slow to open.** The numbers at the top are counted in the background (every hour, and again when the last count is more than five minutes old) and shown at once; only the very first time after an install or a cache clear waits. If it is still slow, run `./resdesk.sh bench execute sok_resdesk.dashboard.timings`: it prints the slowest counts and how long each took. On a very busy portal, turn off *Built-in* usage statistics in Settings → Usage Statistics first, since crawlers fill that log.
+
 | Symptom | Fix |
 |---|---|
 | `install.sh` says Docker isn't running | start Docker Desktop and wait for "Engine running" |

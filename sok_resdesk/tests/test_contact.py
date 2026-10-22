@@ -128,6 +128,27 @@ class TestContact(IntegrationTestCase):
 		self.assertIn("bot token", out["why"])
 		self.assertEqual(self.posts, [])
 
+	def test_finding_the_chat_id_lists_the_chats_or_says_to_write_to_the_bot(self):
+		set_encrypted_password(
+			"RD Settings", "RD Settings", "123456789:AAH-xyz_0123456789abcdefghijk", "telegram_bot_token"
+		)
+		answer = {
+			"ok": True,
+			"result": [
+				{"update_id": 1, "message": {"chat": {"id": 42, "type": "private", "first_name": "Asha"}}}
+			],
+		}
+		contact.requests.post = lambda url, **kw: type(
+			"R", (), {"status_code": 200, "json": lambda self: answer}
+		)()
+		out = contact.find_telegram_chat()
+		self.assertTrue(out["ok"])
+		self.assertEqual(out["chats"][0]["id"], "42")
+		answer["result"] = []
+		out = contact.find_telegram_chat()
+		self.assertFalse(out["ok"])
+		self.assertIn("Start", out["why"])
+
 	def test_the_test_button_says_when_nothing_is_set_up(self):
 		self.assertFalse(contact.telegram_ready())
 		self.assertFalse(contact.test_telegram()["ok"])

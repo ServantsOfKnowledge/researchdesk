@@ -185,7 +185,12 @@ scheduler_events = {
 		"15 3 * * *": ["sok_resdesk.preservation.daily"],
 	},
 	# books that left the public are taken off the public mirror (if there is one)
-	"hourly": ["sok_resdesk.ingest.run_scheduled_hourly", "sok_resdesk.outbound.reconcile_all"],
+	"hourly": [
+		"sok_resdesk.ingest.run_scheduled_hourly",
+		"sok_resdesk.outbound.reconcile_all",
+		# the Desk's numbers are counted here, so opening the Desk never waits for them
+		"sok_resdesk.dashboard.rebuild",
+	],
 	"daily": [
 		# visitors' messages older than the days set in RD Settings are deleted
 		"sok_resdesk.contact.purge_old",

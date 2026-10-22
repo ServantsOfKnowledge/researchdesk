@@ -1,15 +1,20 @@
 """The numbers at the top of the Research Desk workspace, for managers: the catalogue, readers,
 the research layer, preservation and portal use, each linked to where to act on it.
 
-Computed in a handful of count queries and kept for five minutes, so opening the Desk stays quick
-however big the catalogue is.
+Counted in a handful of queries by a background job (hourly, and again when the last count is more
+than five minutes old and someone opens the Desk). Opening the Desk shows the last count at once,
+so it stays quick however big the catalogue is. `timings()` shows which count is slow.
 """
 
 from __future__ import annotations
 
+import time
+
 import frappe
 from frappe import _
 from frappe.utils import add_days, cint, now_datetime, nowdate
+
+from sok_resdesk.ratelimit import rate_limit
 
 MANAGERS = ("System Manager", "ResDesk Manager")
 CACHE_KEY = "resdesk:dashboard"
@@ -260,13 +265,57 @@ def _usage() -> dict | None:
 	return None
 
 
-@frappe.whitelist()
-def numbers(refresh: int = 0) -> dict:
-	frappe.only_for(MANAGERS)
-	if not cint(refresh):
-		cached = frappe.cache.get_value(CACHE_KEY)
-		if cached:
-			return cached
+FRESH_SECONDS = 300
+JOB_ID = "resdesk-dashboard"
+
+
+def rebuild() -> dict:
+	"""Count everything and keep the answer. Runs in the background (and hourly), so opening the Desk
+	never waits for the counts of a big catalogue."""
 	out = compute()
-	frappe.cache.set_value(CACHE_KEY, out, expires_in_sec=300)
+	out["at"] = time.time()
+	frappe.cache.set_value(CACHE_KEY, out, expires_in_sec=7 * 24 * 3600)
 	return out
+
+
+@frappe.whitelist()
+@rate_limit(limit=60, seconds=60)
+def numbers(refresh: int = 0) -> dict:
+	"""The last counts at once, however old; a newer set is counted in the background when they are more
+	than five minutes old. Only the very first time (or with `refresh`) does the caller wait."""
+	frappe.only_for(MANAGERS)
+	cached = None if cint(refresh) else frappe.cache.get_value(CACHE_KEY)
+	if not cached:
+		return rebuild()
+	if time.time() - cached.get("at", 0) > FRESH_SECONDS:
+		frappe.enqueue(
+			"sok_resdesk.dashboard.rebuild", queue="short", job_id=JOB_ID, deduplicate=True, timeout=600
+		)
+	return cached
+
+
+def timings() -> None:
+	"""Which count is slow? ./resdesk.sh bench execute sok_resdesk.dashboard.timings"""
+	slow = []
+
+	def timed(fn, name):
+		def wrapper(*args, **kwargs):
+			start = time.time()
+			try:
+				return fn(*args, **kwargs)
+			finally:
+				slow.append((time.time() - start, name, " ".join(str(args)[:140].split())))
+
+		return wrapper
+
+	frappe.db.sql = timed(frappe.db.sql, "sql")
+	frappe.db.count = timed(frappe.db.count, "count")
+	start = time.time()
+	try:
+		compute()
+	finally:
+		del frappe.db.sql
+		del frappe.db.count
+	print(f"all the counts: {time.time() - start:.1f} s")
+	for seconds, name, what in sorted(slow, reverse=True)[:8]:
+		print(f"{seconds:6.2f} s  {name}  {what}")
