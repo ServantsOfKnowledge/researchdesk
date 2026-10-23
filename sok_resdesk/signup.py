@@ -21,14 +21,24 @@ from sok_resdesk.ratelimit import rate_limit
 MAX_PER_HOUR = 100  # all visitors together; Frappe's own sign-up has the same kind of cap
 
 
+def main_page() -> str:
+	"""The library's main page: / while it is the site's home page, else /library."""
+	from sok_resdesk.portal import library_url
+
+	return library_url()
+
+
 def open_to_join() -> bool:
 	return access.signup_mode() != core.SIGNUP_CLOSED
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=6, seconds=3600)
-def join(full_name: str = "", email: str = "", password: str = "", rd_hp: str = "") -> dict:
-	"""Make the account, sign it in, and say where to go next. `rd_hp` is a field people cannot see."""
+def join(full_name: str = "", email: str = "", password: str = "", rd_hp: str = "", next: str = "") -> dict:
+	"""Make the account, sign it in, and say where to go next. `rd_hp` is a field people cannot see.
+
+	A reader goes to the page they came from (`next`, a plain path on this site); a person who must still be
+	approved goes to the library's main page, since a members-only page would only turn them away."""
 	if not open_to_join():
 		frappe.throw(_("This library adds its readers itself. Please ask the library for an account."))
 	# a form on another site can post forms and plain text but not JSON, so this cannot be done to a visitor
@@ -37,7 +47,7 @@ def join(full_name: str = "", email: str = "", password: str = "", rd_hp: str = 
 		frappe.throw(_("Please use the sign-up page."))
 	fields, why = rules.clean(full_name, email, password, rd_hp)
 	if why == "trap":
-		return {"joined": 1, "status": "member"}  # looks like success to a robot, and nothing is made
+		return {"joined": 1, "status": "member", "next": main_page()}  # looks like success to a robot
 	messages = {
 		"name": _("Please give your name."),
 		"email": _("That email address does not look right."),
@@ -78,4 +88,6 @@ def join(full_name: str = "", email: str = "", password: str = "", rd_hp: str = 
 	login = getattr(frappe.local, "login_manager", None)  # none outside a web request (tests)
 	if login:
 		login.login_as(user.name)
-	return {"joined": 1, "status": "member" if mode == core.SIGNUP_OPEN else "pending"}
+	if mode == core.SIGNUP_OPEN:
+		return {"joined": 1, "status": "member", "next": rules.safe_next(next, main_page())}
+	return {"joined": 1, "status": "pending", "next": main_page()}

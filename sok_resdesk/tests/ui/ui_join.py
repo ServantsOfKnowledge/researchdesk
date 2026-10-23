@@ -3,7 +3,7 @@
 from .conftest import STUB_GLOBALS, axe_violations, page_shell, render_template
 
 FAIL = "window.fetch = () => Promise.resolve({ json: () => Promise.resolve({ exc: 'x', _server_messages: JSON.stringify([JSON.stringify({ message: 'This email already has an account.' })]) }) });"
-OK = "window.fetch = (u, o) => { window.sent = JSON.parse(o.body); return Promise.resolve({ json: () => Promise.resolve({ message: { joined: 1, status: 'member' } }) }); };"
+OK = "window.fetch = (u, o) => { window.sent = JSON.parse(o.body); return Promise.resolve({ json: () => Promise.resolve({ message: { joined: 1, status: 'member', next: '#joined' } }) }); };"
 
 
 def _open(page, site, fetch, approval=False):
@@ -66,6 +66,7 @@ def test_the_password_can_be_shown_and_a_good_form_is_sent(page, site):
 		"email": "asha@example.org",
 		"password": "longenough1",
 		"rd_hp": "",
+		"next": "#joined",
 	}
 
 

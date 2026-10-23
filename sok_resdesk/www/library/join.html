@@ -48,9 +48,9 @@
 		fetch("/api/method/sok_resdesk.signup.join", {
 			method: "POST", credentials: "same-origin",
 			headers: {"Content-Type": "application/json", "X-Frappe-CSRF-Token": window.csrf_token},
-			body: JSON.stringify({full_name: el.full_name.value, email: el.email.value, password: el.password.value, rd_hp: el.rd_hp.value})
+			body: JSON.stringify({full_name: el.full_name.value, email: el.email.value, password: el.password.value, rd_hp: el.rd_hp.value, next: NEXT})
 		}).then((r) => r.json()).then((r) => {
-			if (r.message && r.message.joined) { window.location.href = NEXT; return; }
+			if (r.message && r.message.joined) { window.location.href = r.message.next || "/"; return; }
 			fail(why(r) || T.failed);
 		}).catch(() => fail(T.failed)).finally(() => {
 			f.setAttribute("aria-busy", "false");

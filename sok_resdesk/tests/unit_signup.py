@@ -43,3 +43,9 @@ def test_only_a_plain_path_on_this_site_is_gone_to_afterwards():
 		"/library?x=<script>",
 	):
 		assert signup.safe_next(bad) == "/library", repr(bad)
+
+
+def test_a_refused_address_falls_back_to_the_default_given():
+	assert signup.safe_next("//evil.example", "/") == "/"
+	assert signup.safe_next("", "/") == "/"
+	assert signup.safe_next("/library/item/x", "/") == "/library/item/x"

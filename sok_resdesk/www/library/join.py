@@ -4,6 +4,7 @@ from sok_resdesk import access, signup
 from sok_resdesk.catalogue import settings
 from sok_resdesk.core import access as core
 from sok_resdesk.core.signup import safe_next
+from sok_resdesk.portal import library_url
 
 no_cache = 1
 
@@ -24,7 +25,7 @@ def get_context(context):
 	context.title = f"{frappe._('Create an account')} · {context.portal_title}"
 	context.approval = access.signup_mode() == core.SIGNUP_APPROVE
 	context.min_password = signup.rules.MIN_PASSWORD
-	context.next_url = safe_next(frappe.form_dict.get("redirect-to"))
+	context.next_url = safe_next(frappe.form_dict.get("redirect-to"), library_url())
 	context.login_url = access.login_url(context.next_url)
 	context.metatags = {"title": context.title, "robots": "noindex"}
 	return context

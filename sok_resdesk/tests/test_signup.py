@@ -45,7 +45,8 @@ class TestJoin(IntegrationTestCase):
 	def test_open_signup_makes_a_reader_who_can_read_at_once_without_an_email(self):
 		queued = frappe.db.count("Email Queue")
 		out = signup.join(full_name="Asha", email=EMAIL, password="longenough1")
-		self.assertEqual(out, {"joined": 1, "status": "member"})
+		self.assertEqual(out["status"], "member")
+		self.assertEqual(out["next"], signup.main_page())  # no page asked for: the main page
 		user = frappe.get_doc("User", EMAIL)
 		self.assertTrue(user.enabled)
 		self.assertIn(access.READER_ROLE, [r.role for r in user.roles])
@@ -54,10 +55,23 @@ class TestJoin(IntegrationTestCase):
 
 		self.assertEqual(check_password(EMAIL, "longenough1"), EMAIL)
 
+	def test_a_reader_goes_back_to_the_book_they_came_from_but_never_elsewhere(self):
+		out = signup.join(full_name="Asha", email=EMAIL, password="longenough1", next="/library/item/abc")
+		self.assertEqual(out["next"], "/library/item/abc")
+		self.clean()
+		out = signup.join(full_name="Asha", email=EMAIL, password="longenough1", next="//evil.example")
+		self.assertEqual(out["next"], signup.main_page())
+
+	def test_a_person_waiting_for_approval_goes_to_the_main_page_not_the_members_only_book(self):
+		self.mode(core.SIGNUP_APPROVE)
+		out = signup.join(full_name="Asha", email=EMAIL, password="longenough1", next="/library/item/abc")
+		self.assertEqual(out["next"], signup.main_page())
+
 	def test_approval_mode_makes_a_visitor_with_a_request_for_a_librarian(self):
 		self.mode(core.SIGNUP_APPROVE)
 		out = signup.join(full_name="Asha", email=EMAIL, password="longenough1")
 		self.assertEqual(out["status"], "pending")
+		self.assertEqual(out["next"], signup.main_page())
 		self.assertNotIn(access.READER_ROLE, [r.role for r in frappe.get_doc("User", EMAIL).roles])
 		self.assertEqual(frappe.db.get_value("RD Reader Request", {"user": EMAIL}, "status"), "Pending")
 

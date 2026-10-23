@@ -31,9 +31,9 @@ def clean(full_name, email, password, trap="") -> tuple[dict | None, str]:
 _NEXT = re.compile(r"/[A-Za-z0-9._~%/\-]*(\?[A-Za-z0-9._~%/=&\-]*)?")
 
 
-def safe_next(url) -> str:
+def safe_next(url, default: str = "/library") -> str:
 	"""Where to go after joining: only a plain path on this site. Browsers drop tabs and line breaks inside
 	an address, so "/<tab>/evil.example" would become "//evil.example": anything but ordinary path
 	characters is refused."""
 	url = str(url or "")
-	return url if _NEXT.fullmatch(url) and not url.startswith("//") else "/library"
+	return url if _NEXT.fullmatch(url) and not url.startswith("//") else default

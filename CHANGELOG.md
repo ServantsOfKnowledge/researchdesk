@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.103.1 (2026-10-23): After joining, the main page
+
+- **Fixed: a "Not Permitted" page after creating an account.** Someone joining from a members-only book under *Sign up, admin approves* was sent back to that book, which they may not open until approved. They now land on the library's main page, where a note says the account is waiting for approval. A reader who may read still returns to the book they came from (only ever a plain path on this site), and with no book in mind goes to the main page.
+
 ## 0.103.0 (2026-10-23): Create an account on one short page
 
 - **Sign-up no longer waits on email.** *Create an account* (`/library/join`; linked from the home page and from a book that asks you to log in) asks for a name, an email and a password, and signs the reader in at once. Before, Frappe's own sign-up sent an email whose link set the password, so a reader whose email was late, in spam or mistyped could not get in at all. The library's choice still holds: *Anyone can sign up* gives the Reader role, *Sign up, admin approves* files a Reader Request and leaves the person as a visitor until approved, and *Admins add readers* has no page. The login page's own *Sign up* still works.
