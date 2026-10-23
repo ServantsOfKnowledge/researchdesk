@@ -129,7 +129,7 @@ tells you which logged errors a later release already fixed.
 
 ### Set up sign-in email first
 
-Sign-up, welcome and password emails need an outgoing mailbox: **Connections → People and sign-in →
+Welcome and password emails (and *Forgot password*) need an outgoing mailbox; reader sign-up needs none: **Connections → People and sign-in →
 Outgoing email**. Until it is set, they go nowhere. See
 [Sign-in email and sign-ups](sign-in-email.md).
 

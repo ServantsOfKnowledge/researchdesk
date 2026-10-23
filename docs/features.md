@@ -78,7 +78,8 @@ folders, and Research Desk will:
 - keep the installation safe in a librarian's hands: a **super admin** role for Servants of
   Knowledge holds the installation's own settings, the Server page, security setup and
   credentials, while librarians keep the manager role
-- **send sign-in and sign-up email** from a mailbox set on one screen (Resend, Gmail, Microsoft 365
+- let readers **create an account on one short page** (name, email, password: signed in at once, no email
+  to wait for), and **send sign-in and password email** from a mailbox set on one screen (Resend, Gmail, Microsoft 365
   and more, with a test), let readers fill in an optional **About me** (volunteer to review or
   proofread; private support needs for blind, low-vision or other readers), and keep the server
   tidy with **Log QA**, folding Server sections and **gentle upgrades** that restart only what a

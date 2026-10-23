@@ -58,7 +58,7 @@ def _status(c: core.Card) -> dict:
 		from sok_resdesk import mail
 
 		if not mail.ready():
-			return {"state": "todo", "text": _("Not set up: sign-in and sign-up emails are not sent")}
+			return {"state": "todo", "text": _("Not set up: password and welcome emails are not sent")}
 		left = mail.stuck()
 		if left["failed"]:
 			return {"state": "todo", "text": _("{0} emails failed to send").format(left["failed"])}

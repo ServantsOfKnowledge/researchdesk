@@ -83,7 +83,7 @@
 				<p>{{ _("Reading, searching inside the text and downloading are for the library's readers. The details and citations on this page are open to everyone.") }}</p>
 				<div class="rd-actions">
 					<a class="rd-btn rd-btn--primary" href="{{ login_url }}">{{ _("Log in") }}</a>
-					{% if viewer.signup %}<a class="rd-btn" href="/login#signup">{{ _("Create an account") }}</a>{% endif %}
+					{% if viewer.signup %}<a class="rd-btn" href="{{ join_url }}">{{ _("Create an account") }}</a>{% endif %}
 				</div>
 				{% endif %}
 			</div>
@@ -123,7 +123,7 @@
 				<p>{{ _("Each page image beside its text, notes, read aloud and the text as an accessible EPUB or plain text are for the library's members, to keep the portal fast for everyone. The details and citations here are open to everyone.") }}</p>
 				<div class="rd-actions">
 					<a class="rd-btn rd-btn--primary" href="{{ login_url }}">{{ _("Log in") }}</a>
-					{% if viewer.signup %}<a class="rd-btn" href="/login#signup">{{ _("Create an account") }}</a>{% endif %}
+					{% if viewer.signup %}<a class="rd-btn" href="{{ join_url }}">{{ _("Create an account") }}</a>{% endif %}
 				</div>
 			</div>
 			{% endif %}

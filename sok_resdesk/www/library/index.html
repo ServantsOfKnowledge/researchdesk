@@ -20,7 +20,7 @@
 		<p class="rd-access-note">{{ _("Your account is waiting for approval. Until then you see what visitors see.") }}</p>
 		{% elif not viewer.logged_in and viewer.guest_mode == "Records only" %}
 		<p class="rd-access-note"><a href="{{ login_url }}">{{ _("Log in") }}</a> {{ _("to read books and search inside their text.") }}
-			{% if viewer.signup %}<a href="/login#signup">{{ _("Create an account") }}</a>{% endif %}</p>
+			{% if viewer.signup %}<a href="/library/join">{{ _("Create an account") }}</a>{% endif %}</p>
 		{% endif %}
 	</header>
 

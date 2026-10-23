@@ -111,7 +111,7 @@
 			$("#rd-facet-lists").innerHTML = "";
 			$("#rd-pager").innerHTML = "";
 			$("#rd-hits").innerHTML = `<li class="rd-empty"><a href="${esc(root.login)}">${__("Log in")}</a> ${__("to search inside the text of the books.")}${
-				root.signup === "1" ? ` ${__("No account?")} <a href="/login#signup">${__("Create one")}</a>.` : ""}</li>`;
+				root.signup === "1" ? ` ${__("No account?")} <a href="/library/join">${__("Create one")}</a>.` : ""}</li>`;
 			return;
 		}
 		const count = `${(data.total || 0).toLocaleString()}${data.total_capped ? "+" : ""}`;

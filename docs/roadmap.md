@@ -174,6 +174,7 @@
 - [x] Self-healing for the other Research Desk jobs: a dead job's record is cleared and logged (0.74)
 - [x] Re-sending failed emails by itself: the watchdog puts failed emails of the last twelve hours back in the queue; older ones stay failed, because a stale sign-in link is better replaced with **Send a new link** (0.74)
 - [x] Messages from visitors: a Contact us page, a Desk inbox and an optional private Telegram alert (0.99); the Telegram alert can be tested and shows on Connections (0.100); a *Message us on Telegram* button (0.101)
+- [x] Create an account on one short page, signed in at once, no email to wait for (0.103)
 - [x] A public contributors page (/library/contributors) for people who chose to be named in About me (0.74)
 
 ## On hold, and why

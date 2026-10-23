@@ -1,4 +1,5 @@
 import json
+from urllib.parse import quote
 
 import frappe
 from frappe.utils import cint
@@ -53,6 +54,7 @@ def get_context(context):
 		else []
 	)
 	context.login_url = access.login_url(f"/library/item/{item_id}")
+	context.join_url = "/library/join?redirect-to=" + quote(f"/library/item/{item_id}", safe="/")
 	context.title = citations.display_title(record)
 	context.start_leaf = max(0, cint(frappe.form_dict.get("page")))
 	# two readers side by side: the book reader (archive.org's, as before) and the page reader

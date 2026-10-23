@@ -176,7 +176,7 @@ def test(to: str = "") -> dict:
 			recipients=[to],
 			subject=_("Test email from Research Desk"),
 			message=_(
-				"<p>If you can read this, sign-in and sign-up emails from this library will arrive.</p>"
+				"<p>If you can read this, password and welcome emails from this library will arrive.</p>"
 			),
 			now=True,
 		)

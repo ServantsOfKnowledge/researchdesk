@@ -109,8 +109,8 @@ Settings → *Access & Sign-up* → **Reader Accounts**:
 | Setting | What happens |
 |---|---|
 | **Admins add readers** (default) | No sign-up page. Staff create accounts. |
-| **Anyone can sign up** | The login page gets a *Sign up* link; every new account can read straight away. |
-| **Sign up, admin approves** | Anyone can sign up, but the account waits in **Reader Requests** until staff approve it. Managers get a notification for each request. |
+| **Anyone can sign up** | A one-page *Create an account* (name, email, password) signs the person in at once; every new account can read straight away, with no email to wait for. |
+| **Sign up, admin approves** | Anyone can sign up (the same page, signed in at once), but the account waits in **Reader Requests** until staff approve it. Managers get a notification for each request. |
 
 **Adding readers yourself:** Desk → *User* → *Add User*, set *User Type* to *Website User* and
 give the **ResDesk Reader** role. Or from the terminal:

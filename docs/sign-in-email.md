@@ -1,12 +1,12 @@
 # Sign-in email and sign-ups
 
-Reader sign-up, "set my password" and "forgot password" all send email. A fresh install has no
+*Forgot password* and the links staff send use email. **Reader sign-up does not**: the reader chooses a password on the sign-up page and is signed in at once. A fresh install has no
 mailbox to send from, so these emails go nowhere until you set one up. This page is for
 administrators and managers.
 
 ## What is emailed
 
-Only account messages: the welcome and password-reset links, sign-up confirmations, and the test message you ask for in Connections. Alerts, deposit notices and the like are never emailed; they appear in the Desk's notifications (and a webhook, if you set one). Frappe's own notifications
+Only account messages: the welcome and password-reset links for accounts staff make, and the test message you ask for in Connections. Alerts, deposit notices and the like are never emailed; they appear in the Desk's notifications (and a webhook, if you set one). Frappe's own notifications
 (a mention, an assignment, a share, energy points, event reminders) are kept in the Desk too: each
 account's own email-notification setting is switched off, now and for new accounts, and a person
 may turn it back on in their Notification Settings.
@@ -72,8 +72,8 @@ Links sent before stop working. To try all of this with accounts of every kind, 
 | Choice | What happens |
 |---|---|
 | **Admins add readers** | no sign-up link; you create accounts |
-| **Anyone can sign up** | the person gets an email and can read at once |
-| **Sign up, admin approves** | a **Reader Request** is created for you to approve |
+| **Anyone can sign up** | the person chooses a password on a one-page form and can read at once; no email is needed |
+| **Sign up, admin approves** | a **Reader Request** is created for you to approve. The email address is not verified, so check it before you approve: the library's *account is ready* message goes there |
 
 ## Finding people who tried to sign up
 

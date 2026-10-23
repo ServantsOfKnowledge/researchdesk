@@ -661,6 +661,13 @@ def decide_requests(names, status: str) -> str:
 	return _("{0} requests marked {1}").format(len(names or []), _(status))
 
 
+def signup_mode() -> str:
+	"""How readers join: Admins add readers, Anyone can sign up, or Sign up, admin approves."""
+	s = settings()
+	mode = s.reader_signup or core.SIGNUP_CLOSED
+	return mode if features.on("reader_accounts", s) else core.SIGNUP_CLOSED
+
+
 def apply_signup_setting(s=None) -> None:
 	"""Mirror the sign-up choice into Frappe's own Website Settings."""
 	s = s or frappe.get_single("RD Settings")

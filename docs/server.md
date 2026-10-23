@@ -275,7 +275,7 @@ Checks run every 10 minutes. Alerts go to:
 | Where | How |
 |---|---|
 | Desk notifications | always (the bell at the top of the Desk) |
-| Outgoing email | sign-in links, sign-up confirmations and password resets need it (alerts are never emailed): **Connections → Outgoing email** sets it up and sends a test (presets for Gmail, Microsoft 365, Zoho, SES, Brevo and Resend: for Resend the login is `resend`, the password is the API key, and the sender must be on a domain verified in Resend) |
+| Outgoing email | sign-in links, welcome emails and password resets need it (reader sign-up does not) (alerts are never emailed): **Connections → Outgoing email** sets it up and sends a test (presets for Gmail, Microsoft 365, Zoho, SES, Brevo and Resend: for Resend the login is `resend`, the password is the API key, and the sender must be on a domain verified in Resend) |
 | Webhook | *Alert Webhook URL*: a JSON post with the message in `text`, which Slack, Mattermost and Discord (add `/slack` to a Discord webhook address) show as a message. Other fields: `event`, `severity` (`bad`, `ok`, `info`), `message`, `site`, `link`, `at` |
 
 **Send a test alert** (Server page, Alerts) checks all three.

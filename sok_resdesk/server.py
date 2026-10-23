@@ -517,7 +517,7 @@ def _check(key, label, state, detail="", link=""):
 
 
 def _mail_check() -> dict:
-	"""Outgoing email: sign-in, sign-up and password emails need it."""
+	"""Outgoing email: welcome and password emails need it (reader sign-up does not)."""
 	from sok_resdesk import mail
 
 	if not mail.ready():
@@ -525,7 +525,7 @@ def _mail_check() -> dict:
 			"mail",
 			_("Outgoing email"),
 			"bad" if mail.signup_mode() != "Admins add readers" else "warn",
-			_("not set up: sign-in and sign-up emails are not sent"),
+			_("not set up: password and welcome emails are not sent"),
 			"/app/resdesk-connections",
 		)
 	left = mail.stuck()

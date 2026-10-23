@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.103.0 (2026-10-23): Create an account on one short page
+
+- **Sign-up no longer waits on email.** *Create an account* (`/library/join`; linked from the home page and from a book that asks you to log in) asks for a name, an email and a password, and signs the reader in at once. Before, Frappe's own sign-up sent an email whose link set the password, so a reader whose email was late, in spam or mistyped could not get in at all. The library's choice still holds: *Anyone can sign up* gives the Reader role, *Sign up, admin approves* files a Reader Request and leaves the person as a visitor until approved, and *Admins add readers* has no page. The login page's own *Sign up* still works.
+- **Looked after.** Limited per visitor and per hour, a hidden field for robots, any password rules set in System Settings, a stop when far too many join in an hour, JSON-only so another site cannot sign a visitor in to an account it made, and a *go to* address that can only be a plain path on this site. The email address is not verified, so Reader Requests say to check it before approving. Forgot password still uses email.
+- Help: *Creating an account* (readers), *Reader accounts* (Who can see what) and *Sign-in email and sign-ups* updated; the API page lists `sok_resdesk.signup.join`.
+
 ## 0.102.1 (2026-10-23): The Telegram card opens Settings at the Telegram fields
 
 - **Connections → Telegram alert → Set up and test** opened Settings on its first tab. It now opens the form at the *Telegram Chat ID* field (the token field sits just above it), on the right tab and scrolled into view. The same works for any card whose button names a field.

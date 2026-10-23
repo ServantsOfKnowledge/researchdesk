@@ -1,0 +1,62 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="rd rd-join">
+	<nav class="rd-crumbs"><a href="{{ library_url() }}">← {{ portal_title }}</a></nav>
+	<h1 class="rd-page-title">{{ _("Create an account") }}</h1>
+	<p id="rd-jn-intro" class="rd-muted">{% if approval %}{{ _("Choose a password and you are in at once. A librarian then approves your account to read books; until then you see what visitors see.") }}{% else %}{{ _("Your name, your email and a password: that is all. You can read at once; there is no email to wait for.") }}{% endif %}</p>
+	<form id="rd-jn" class="rd-form" aria-describedby="rd-jn-intro" novalidate>
+		<p><label>{{ _("Your name") }} <span aria-hidden="true">*</span> <input name="full_name" maxlength="140" required autocomplete="name" style="width:100%"></label></p>
+		<p><label>{{ _("Your email") }} <span aria-hidden="true">*</span> <input name="email" type="email" maxlength="140" required autocomplete="email" style="width:100%" aria-describedby="rd-jn-h-email"></label>
+			<span id="rd-jn-h-email" class="rd-muted">{{ _("Check it twice: it is how you can get back in if you forget your password.") }}</span></p>
+		<p><label>{{ _("Choose a password") }} <span aria-hidden="true">*</span> <input name="password" type="password" minlength="{{ min_password }}" required autocomplete="new-password" style="width:100%" aria-describedby="rd-jn-h-pw"></label>
+			<span id="rd-jn-h-pw" class="rd-muted">{{ _("At least {0} characters.").format(min_password) }}</span></p>
+		<p><label class="rd-choice"><input type="checkbox" id="rd-jn-show"> {{ _("Show the password") }}</label></p>
+		<div aria-hidden="true" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden">
+			<label>{{ _("Leave this empty") }} <input name="rd_hp" tabindex="-1" autocomplete="off"></label>
+		</div>
+		<p class="rd-actions"><button class="rd-btn rd-btn--primary" type="submit">{{ _("Create my account") }}</button></p>
+		<p id="rd-jn-err" role="alert" tabindex="-1" class="rd-error"></p>
+		<p class="rd-muted">{{ _("Already have an account?") }} <a href="{{ login_url }}">{{ _("Log in") }}</a></p>
+	</form>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+(function () {
+	const f = document.getElementById("rd-jn"), err = document.getElementById("rd-jn-err");
+	const NEXT = {{ next_url | tojson }};
+	const T = {{ {"failed": _("Your account could not be made. Please try again."), "name": _("Please give your name."), "email": _("That email address does not look right."), "short": _("Please choose a password of at least {0} characters.").format(min_password)} | tojson }};
+	document.getElementById("rd-jn-show").addEventListener("change", (e) => { f.elements.password.type = e.target.checked ? "text" : "password"; });
+	const why = (r) => {
+		try { return JSON.parse(JSON.parse(r._server_messages || "[]")[0]).message.replace(/<[^>]+>/g, ""); } catch (x) { return ""; }
+	};
+	const fail = (text, field) => { err.textContent = text; if (field) field.setAttribute("aria-invalid", "true"); err.focus(); };
+	f.addEventListener("submit", (e) => {
+		e.preventDefault();
+		err.textContent = "";
+		[...f.elements].forEach((x) => x.removeAttribute && x.removeAttribute("aria-invalid"));
+		const el = f.elements;
+		if (!el.full_name.value.trim()) return fail(T.name, el.full_name);
+		if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(el.email.value.trim())) return fail(T.email, el.email);
+		if (el.password.value.length < {{ min_password }}) return fail(T.short, el.password);
+		f.setAttribute("aria-busy", "true");
+		f.querySelectorAll("button").forEach((b) => (b.disabled = true));
+		fetch("/api/method/sok_resdesk.signup.join", {
+			method: "POST", credentials: "same-origin",
+			headers: {"Content-Type": "application/json", "X-Frappe-CSRF-Token": window.csrf_token},
+			body: JSON.stringify({full_name: el.full_name.value, email: el.email.value, password: el.password.value, rd_hp: el.rd_hp.value})
+		}).then((r) => r.json()).then((r) => {
+			if (r.message && r.message.joined) { window.location.href = NEXT; return; }
+			fail(why(r) || T.failed);
+		}).catch(() => fail(T.failed)).finally(() => {
+			f.setAttribute("aria-busy", "false");
+			f.querySelectorAll("button").forEach((b) => (b.disabled = false));
+		});
+	});
+})();
+</script>
+{% endblock %}

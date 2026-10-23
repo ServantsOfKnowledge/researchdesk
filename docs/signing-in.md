@@ -5,15 +5,21 @@ have set things up differently.
 
 ## Creating an account
 
-On the portal, choose **Log in**, then **Create an account** (if the library offers it). Give your
-name and your email address. Depending on the library:
+On the portal, choose **Create an account** (on the home page, on a book that asks you to log in, or
+at `/library/join`). Give your name, your email and a password, and you are signed in at once: **there
+is no email to wait for**. Depending on the library:
 
-- **Anyone can sign up**: you get an email to set your password, then you can read at once.
-- **Sign up, and a librarian approves**: you get the email too, but until you are approved you see
-  what visitors see. The library lets you know when you are in.
-- **The library adds readers**: there is no sign-up link. Ask the library for an account.
+- **Anyone can sign up**: you can read straight away.
+- **Sign up, and a librarian approves**: you are signed in, but until you are approved you see what
+  visitors see. The library lets you know when you are in.
+- **The library adds readers**: there is no sign-up page. Ask the library for an account.
+
+Check your email address twice: it is how you get back in if you forget your password. If you already
+have an account, the page says so and points you to **Log in** or **Forgot password**.
 
 ## The email does not arrive
+
+Creating an account needs no email. This is for the **Forgot password** link:
 
 1. Look in the spam or junk folder, and wait a few minutes.
 2. Check that you typed the address correctly.
