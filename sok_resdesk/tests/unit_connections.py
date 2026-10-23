@@ -40,3 +40,8 @@ def test_roles_decide_who_may_use_a_card():
 	ingest = c.card("ia_bring")
 	assert c.can_use(ingest, {"ResDesk Manager"}) and not c.can_use(ingest, {"ResDesk Cataloguer"})
 	assert c.can_use(c.card("oai"), set())  # open standards are for everyone
+
+
+def test_the_telegram_card_opens_settings_at_the_telegram_field():
+	action = c.card("telegram").actions[0]
+	assert action.target == ("Form", "RD Settings", "#telegram_chat_id")

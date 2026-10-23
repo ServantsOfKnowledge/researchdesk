@@ -24,7 +24,11 @@ class ResDeskConnections {
 		);
 		this.$body.on("click", "[data-route]", (e) => {
 			e.preventDefault();
-			frappe.set_route(...String($(e.currentTarget).data("route")).split("/").map(decodeURIComponent));
+			const parts = String($(e.currentTarget).data("route")).split("/").map(decodeURIComponent);
+			// a last part like "#telegram_bot_token" opens the form at that field (switching to its tab)
+			const field = parts.length && parts[parts.length - 1].startsWith("#") ? parts.pop().slice(1) : "";
+			frappe.route_hooks = field ? { after_load: (frm) => frm.scroll_to_field(field) } : {};
+			frappe.set_route(...parts);
 		});
 		this.$body.on("click", "[data-email]", (e) => {
 			e.preventDefault();

@@ -112,7 +112,7 @@ CARDS: tuple[Card, ...] = (
 		"Telegram tells you privately that a visitor wrote, with a link to the Desk: never the message itself. Needs a bot made with @BotFather. Off in Classified mode.",
 		"Managers set it up once; the token stays in Settings.",
 		MANAGERS,
-		(Action("Set up and test", ROUTE, _r("Form", "RD Settings"), True),),
+		(Action("Set up and test", ROUTE, _r("Form", "RD Settings", "#telegram_chat_id"), True),),
 	),
 	Card(
 		"profiles",

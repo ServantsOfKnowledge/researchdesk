@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.102.1 (2026-10-23): The Telegram card opens Settings at the Telegram fields
+
+- **Connections → Telegram alert → Set up and test** opened Settings on its first tab. It now opens the form at the *Telegram Chat ID* field (the token field sits just above it), on the right tab and scrolled into view. The same works for any card whose button names a field.
+
 ## 0.102.0 (2026-10-23): A quicker Research Desk page, and Telegram's Chat ID found for you
 
 - **The Research Desk page opens at once.** Its numbers used to be counted when you opened the page (kept five minutes), so a big catalogue made the first visit after each pause slow. They are now counted in the background, every hour and again when the last count is over five minutes old, and the page shows the latest count immediately. `./resdesk.sh bench execute sok_resdesk.dashboard.timings` prints which count is slow, if any still is. A book made *Cleared only* is left out of the counts at the next count, within the hour.
