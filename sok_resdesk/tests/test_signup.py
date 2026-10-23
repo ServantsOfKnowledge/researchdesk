@@ -95,3 +95,14 @@ class TestJoin(IntegrationTestCase):
 		out = signup.join(full_name="Bot", email=EMAIL, password="longenough1", rd_hp="http://spam")
 		self.assertEqual(out["joined"], 1)
 		self.assertFalse(frappe.db.exists("User", EMAIL))
+
+
+class TestCanOpenDesk(IntegrationTestCase):
+	def tearDown(self):
+		frappe.set_user("Administrator")
+
+	def test_guest_no_administrator_yes(self):
+		frappe.set_user("Guest")
+		self.assertFalse(access.can_open_desk())
+		frappe.set_user("Administrator")
+		self.assertTrue(access.can_open_desk())

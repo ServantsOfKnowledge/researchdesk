@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.103.2 (2026-10-23): Readers land on the library, not the Desk
+
+- **Fixed: "Not Permitted" right after creating an account or setting a password.** Frappe sent every new account to the Research Desk screen, which a reader (a website user, with only the Reader role) may not open. The Desk entry is now offered only to people who work in the Desk, so readers go to the library's main page. Sign-up under *Anyone can sign up* still gives the Reader role and nothing else.
+
 ## 0.103.1 (2026-10-23): After joining, the main page
 
 - **Fixed: a "Not Permitted" page after creating an account.** Someone joining from a members-only book under *Sign up, admin approves* was sent back to that book, which they may not open until approved. They now land on the library's main page, where a note says the account is waiting for approval. A reader who may read still returns to the book they came from (only ever a plain path on this site), and with no book in mind goes to the main page.

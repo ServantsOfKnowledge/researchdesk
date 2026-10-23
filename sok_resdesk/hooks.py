@@ -15,6 +15,9 @@ add_to_apps_screen = [
 		"logo": "/assets/sok_resdesk/images/sok-logo.png",
 		"title": "Research Desk",
 		"route": "/app/research-desk",
+		# only people who work in the Desk: for everyone else Frappe would send the account to the Desk
+		# after sign-up or login, where a reader meets "Not Permitted" (they belong on the portal)
+		"has_permission": "sok_resdesk.access.can_open_desk",
 	}
 ]
 

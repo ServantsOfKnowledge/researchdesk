@@ -49,6 +49,16 @@ def is_staff(user: str | None = None) -> bool:
 	return user == "Administrator" or bool(_roles(user) & set(STAFF_ROLES))
 
 
+def can_open_desk() -> bool:
+	"""Whether the signed-in account works in the Desk (a System User). Frappe's apps screen and the page it
+	sends people to after login or setting a password use this: a reader is a Website User, so they go to
+	the library and never to the Desk."""
+	user = frappe.session.user
+	if user in (None, "Guest"):
+		return False
+	return user == "Administrator" or frappe.db.get_value("User", user, "user_type") == "System User"
+
+
 def is_member(user: str | None = None) -> bool:
 	"""A logged-in reader: has the Reader role or a staff role.
 
