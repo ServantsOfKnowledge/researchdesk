@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.103.3 (2026-10-26): Run a waiting job first
+
+- **New: *Run first* on Background Jobs.** A waiting job can be moved to the front of its queue, so a small task no longer waits behind a long page-text or page-order job. A job already running is untouched; stop it if every worker is busy.
+
 ## 0.103.2 (2026-10-23): Readers land on the library, not the Desk
 
 - **Fixed: "Not Permitted" right after creating an account or setting a password.** Frappe sent every new account to the Research Desk screen, which a reader (a website user, with only the Reader role) may not open. The Desk entry is now offered only to people who work in the Desk, so readers go to the library's main page. Sign-up under *Anyone can sign up* still gives the Reader role and nothing else.

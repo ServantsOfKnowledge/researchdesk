@@ -779,6 +779,27 @@ def hold_job(job_id: str) -> dict:
 
 
 @frappe.whitelist()
+def run_first(job_id: str) -> dict:
+	"""Move one waiting job to the front of its queue, so the next free worker takes it before the rest."""
+	frappe.only_for(MANAGERS)
+	from frappe.utils.background_jobs import get_redis_conn
+	from rq import Queue
+	from rq.job import Job
+
+	job = next((j for j in _rq_jobs() if j["id"] == job_id), None)
+	if not job:
+		frappe.throw(_("That job is not a Research Desk job, or it has already finished."))
+	if job["state"] != "queued":
+		frappe.throw(_("Only waiting jobs can be moved up."))
+	conn = get_redis_conn()
+	queue = Queue(Job.fetch(job_id, connection=conn).origin, connection=conn)
+	if not conn.lrem(queue.key, 0, job_id):
+		frappe.throw(_("The job started just now; it can't be moved any more."))
+	conn.lpush(queue.key, job_id)
+	return {"message": _("Job moved to the front of the queue. A free worker takes it next.")}
+
+
+@frappe.whitelist()
 def release_held(keys=None, discard: int = 0) -> dict:
 	"""Put held jobs back in the queue (all when keys is empty), or discard them."""
 	frappe.only_for(MANAGERS)

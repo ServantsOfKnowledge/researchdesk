@@ -47,6 +47,7 @@ class ResDeskJobs {
 		this.$body.on("click", "[data-resume-run]", (e) => this.call("resume_run", { run: $(e.currentTarget).data("resume-run") }));
 		this.$body.on("click", "[data-stop-push]", (e) => this.stop_push($(e.currentTarget).data("stop-push")));
 		this.$body.on("click", "[data-hold-job]", (e) => this.call("hold_job", { job_id: $(e.currentTarget).data("hold-job") }));
+		this.$body.on("click", "[data-first-job]", (e) => this.call("run_first", { job_id: $(e.currentTarget).data("first-job") }));
 		this.$body.on("click", "[data-release]", (e) => this.call("release_held", { keys: JSON.stringify([String($(e.currentTarget).data("release"))]) }));
 		this.$body.on("click", "[data-discard]", (e) =>
 			this.call("release_held", { keys: JSON.stringify([String($(e.currentTarget).data("discard"))]), discard: 1 }, __("Discard this held job? It won't run."))
@@ -416,7 +417,7 @@ class ResDeskJobs {
 					<td>${j.items || ""}</td>
 					<td class="text-muted small">${ago(j.started_at || j.enqueued_at)}</td>
 					<td class="text-right">${
-						j.state === "queued" ? `<button class="btn btn-xs btn-default" data-hold-job="${esc(j.id)}">${__("Hold")}</button> ` : ""
+						j.state === "queued" ? `<button class="btn btn-xs btn-default" data-first-job="${esc(j.id)}">${__("Run first")}</button> <button class="btn btn-xs btn-default" data-hold-job="${esc(j.id)}">${__("Hold")}</button> ` : ""
 					}<button class="btn btn-xs btn-default" data-cancel-job="${esc(j.id)}">${
 						j.state === "running" ? __("Stop") : __("Cancel")
 					}</button></td></tr>`

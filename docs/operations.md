@@ -165,7 +165,7 @@ is doing in the background and refreshes every 5 seconds:
 | Ingest runs in progress | profile, progress bar, new/updated/failed counts, last progress | **Pause / Resume** · **Stop** (after the current book) · **Stop now** |
 | Metadata pushes in progress | target, progress, sent/unchanged/failed, dry run or not | **Pause / Resume** · **Stop** |
 | Server tasks | the latest five upgrades, restarts and backups asked for on the Server page, with their status | **Clear stuck task** on the [Server](server.md) page |
-| Background jobs | every queued or running ingest batch, re-index batch, bulk visibility or collection change, export, spreadsheet import and push run | **Hold** (waiting jobs) · **Cancel** / **Stop** |
+| Background jobs | every queued or running ingest batch, re-index batch, bulk visibility or collection change, export, spreadsheet import and push run | **Run first** · **Hold** (waiting jobs) · **Cancel** / **Stop** |
 | Held jobs | jobs kept aside by Hold or Pause All | **Release** · **Discard** (one or all) |
 | Scheduled ingests | profiles set to Hourly, Daily or Weekly, with their last run | pause them all, or set a profile's Schedule to Manual |
 | Search engine | indexing work Meilisearch still has to do (this is what uses CPU after a big ingest or an upgrade) | **Cancel pending indexing** |
@@ -180,6 +180,9 @@ Pausing never throws work away.
   on the run, which shows *Paused*. **Resume** queues exactly those books again, so nothing is
   processed twice and nothing is skipped. A paused ingest counts as running for its schedule, so
   the scheduler won't start a second one.
+- **Run first**: moves one waiting job to the front of its queue, so the next free worker takes it
+  before the others. It doesn't stop a job that is already running; if every worker is busy with a
+  long job, Stop that one or wait.
 - **Hold a job**: takes one waiting job (a re-index batch, an export, a bulk change) out of the
   queue and keeps it under *Held jobs* until you **Release** it (or **Discard** it).
 - **Pause All**: pauses every run, holds every waiting job, pauses schedules, and makes any new
