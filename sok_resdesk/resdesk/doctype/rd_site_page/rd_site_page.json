@@ -1,0 +1,127 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-27 10:00:00.000000",
+ "modified": "2026-10-27 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Site Page",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "title_field": "title",
+ "show_title_field_in_link": 1,
+ "search_fields": "title,slug",
+ "field_order": [
+  "title",
+  "slug",
+  "column_break_p",
+  "published",
+  "members_only",
+  "section_menu",
+  "in_menu",
+  "menu_label",
+  "section_body",
+  "summary",
+  "body"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "slug",
+   "fieldtype": "Data",
+   "label": "Address",
+   "set_only_once": 1,
+   "in_list_view": 1,
+   "description": "The page is at /p/ followed by this. Letters, digits and hyphens; made from the title when empty. It cannot be changed afterwards: make a new page instead."
+  },
+  {
+   "fieldname": "column_break_p",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "published",
+   "fieldtype": "Check",
+   "label": "Published",
+   "default": "0",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "description": "Unpublished pages can be previewed by staff only."
+  },
+  {
+   "fieldname": "members_only",
+   "fieldtype": "Check",
+   "label": "Signed-in Readers Only",
+   "default": "0",
+   "description": "Guests are sent to sign in. Kept out of the sitemap and the top bar."
+  },
+  {
+   "fieldname": "section_menu",
+   "fieldtype": "Section Break",
+   "label": "Top Bar"
+  },
+  {
+   "fieldname": "in_menu",
+   "fieldtype": "Check",
+   "label": "Show in the Top Bar",
+   "default": "0"
+  },
+  {
+   "fieldname": "menu_label",
+   "fieldtype": "Data",
+   "label": "Top Bar Label",
+   "depends_on": "in_menu",
+   "description": "Empty: the title."
+  },
+  {
+   "fieldname": "section_body",
+   "fieldtype": "Section Break",
+   "label": "Page"
+  },
+  {
+   "fieldname": "summary",
+   "fieldtype": "Small Text",
+   "label": "Description for Search Engines",
+   "description": "One or two sentences. Shown in search results and when the page is shared."
+  },
+  {
+   "fieldname": "body",
+   "fieldtype": "Text Editor",
+   "label": "Content"
+  }
+ ],
+ "links": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "share": 1
+  }
+ ]
+}

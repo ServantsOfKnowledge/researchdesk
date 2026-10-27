@@ -110,6 +110,13 @@ def sitemap(part: int = 0) -> str:
 		if contributors():
 			entries.append((base + "/library/contributors", ""))
 		for name, modified in frappe.get_all(
+			"RD Site Page",
+			filters={"published": 1, "members_only": 0},
+			fields=["name", "modified"],
+			as_list=True,
+		):
+			entries.append((f"{base}/p/{quote(name, safe='')}", str(modified)[:10]))
+		for name, modified in frappe.get_all(
 			"RD Collection", filters={"published": 1}, fields=["name", "modified"], as_list=True
 		):
 			entries.append((f"{base}/library/collection/{quote(name, safe='')}", str(modified)[:10]))

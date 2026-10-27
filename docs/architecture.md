@@ -172,6 +172,7 @@ The seventeen records-office doctypes (audit event, department, clearance, item 
 | RD Library Record | one record from a library system | record number, title, other title, authors, year, ISBN, status (New / Linked / To Review / No Match / Not This Book / Catalogued), the book here, score and why, candidates, who decided, links sent on, the MARCXML as received |
 | **RD Reader Request** | a sign-up waiting for approval | user, status (Pending / Approved / Rejected); approving adds the ResDesk Reader role |
 | **RD Message** | a message a visitor sent from the Contact us page | name, contact, message, status (New / Read / Replied / Done / Spam), note for staff; deleted after the days set in Settings |
+| **RD Site Page** | a page the organisation writes itself, at `/p/<address>` | title, slug (the name), published, members_only, in_menu with label and order, summary, body (rich text) |
 | **RD About Page** | single | the introduction page at `/about`: on/off and its top-bar label, page title and search description, headline, tagline, introduction (rich text), image, live numbers, two buttons, steps, highlight cards, featured collections, a free-form part |
 | RD About Item | child table of RD About Page (`steps`, `highlights`) | title, text (plain, `**bold**`), link, link text |
 | **RD Tombstone** | what is left of a deleted or merged book, so its ARK still answers | ark, item_id, title, authors, year, reason (Deleted / Withdrawn / Merged), replaced_by, note for readers |

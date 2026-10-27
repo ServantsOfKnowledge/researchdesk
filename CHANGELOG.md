@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.104.0 (2026-10-27): Pages of your own
+
+- **New: Site Pages.** An organisation can write pages of its own in the Desk (about us, a programme, how to take part) and the portal serves them at `/p/<address>`, so it can be the organisation's website as well as its library. Each page can be a draft, limited to signed-in readers, linked from the top bar with its own label, and given a description for search engines. Published pages are in the sitemap. The text is cleaned of scripts.
 ## 0.103.3 (2026-10-26): Run a waiting job first
 
 - **New: *Run first* on Background Jobs.** A waiting job can be moved to the front of its queue, so a small task no longer waits behind a long page-text or page-order job. A job already running is untouched; stop it if every worker is busy.

@@ -78,6 +78,7 @@ STRUCTURE: list = [
 			("Open Portal", "URL", "/"),
 			("Settings", D, "RD Settings"),
 			("About Page", D, "RD About Page"),
+			("Site Pages", D, "RD Site Page"),
 			("People & Roles", P, "resdesk-people"),
 			("Reader Profiles", D, "RD Reader Profile"),
 			("Portal Translations", P, "resdesk-translations"),

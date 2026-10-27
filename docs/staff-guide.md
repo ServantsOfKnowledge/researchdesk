@@ -348,6 +348,21 @@ Each night every published book is checked again (**Scan now** checks at once). 
 
 A corrected record leaves the queue as soon as it is saved, wherever it was corrected.
 
+## Pages of your own
+
+For an organisation that wants the portal to be its website too, **Site Pages** (Research Desk → Setup, or `/app/rd-site-page`) holds pages you write yourself: about the organisation, a programme, how to take part, contact. Each page is at **`/p/`** followed by its address.
+
+| Part | What goes there |
+|---|---|
+| Title and address | the title; the address is made from it when empty (letters, digits and hyphens) and cannot be changed afterwards, so that links keep working. To change it, make a new page |
+| Published | untick to keep a draft; staff can still preview it, visitors get "not found" |
+| Signed-in readers only | guests are sent to sign in, and signed-in people who are not readers of this library are refused, as for members-only books; the page stays out of the sitemap and the top bar |
+| Top bar | **Show in the Top Bar** adds a link after Library and About, with its own label |
+| Description | one or two sentences for search engines and shared links |
+| Content | the rich-text editor: headings, bold, lists, links and pictures. Scripts and event handlers are removed |
+
+To make one of these pages the first thing visitors see, set *Home Page* in Website Settings to `p/<address>` (see *The portal's address*). Published pages are in the sitemap.
+
 ## The About page
 
 **About Page** (Research Desk → Setup, or `/app/rd-about-page`) is the introduction to your

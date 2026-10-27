@@ -34,6 +34,7 @@ website_route_rules = [
 	{"from_route": "/library/archive/<unit>", "to_route": "library/archive_unit"},
 	{"from_route": "/library/entity/<entity>", "to_route": "library/entity"},
 	{"from_route": "/library/tag/<tag>", "to_route": "library/tag"},
+	{"from_route": "/p/<slug>", "to_route": "p"},
 ]
 
 

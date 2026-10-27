@@ -25,6 +25,7 @@ SCREEN_HELP = {
 	"RD Ingest Run": ("ingesting", "watching-pausing-and-stopping-runs"),
 	"RD Settings": ("staff-guide", "settings"),
 	"RD About Page": ("staff-guide", "the-about-page"),
+	"RD Site Page": ("staff-guide", "pages-of-your-own"),
 	"RD Export": ("collections-and-metadata", "exporting-metadata"),
 	"RD Metadata Import": ("collections-and-metadata", "editing-many-books-with-a-spreadsheet"),
 	"RD Push Target": ("collections-and-metadata", "pushing-metadata-to-other-systems"),

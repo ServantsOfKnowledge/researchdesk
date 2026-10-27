@@ -1,0 +1,11 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title | e }}{% endblock %}
+
+{% block page_content %}
+<div class="rd rd-site-page">
+	{% if draft %}<p class="rd-muted" role="status">{{ _("Not published yet. Only staff can see this page.") }}</p>{% endif %}
+	<h1 class="rd-page-title">{{ page_title | e }}</h1>
+	<div class="rd-prose">{{ body }}</div>
+</div>
+{% endblock %}

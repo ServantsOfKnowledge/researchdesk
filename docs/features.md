@@ -91,7 +91,7 @@ folders, and Research Desk will:
   catalogue with reading for members, or an internal library; readers sign up, are approved,
   or are added by staff, and books can be switched in bulk by collection, filter or search
 - carry **your library's logo and name** on the portal, the admin bar and the browser tab, with
-  an **About page** introducing the library and how to use it, edited in the Desk
+  an **About page** introducing the library and how to use it, edited in the Desk, and **pages of your own** (`/p/…`) so the portal can serve as an organisation's website too
 - let staff build **curated collections** (by hand, in bulk or by rules), each with its own
   portal page and OAI-PMH set, and **correct catalogue details** that survive re-ingest
 - **export metadata** as a spreadsheet, JSON, Dublin Core, MODS, MARCXML, JSON-LD, BibTeX/RIS or
