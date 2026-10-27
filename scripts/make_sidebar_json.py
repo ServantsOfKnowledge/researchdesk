@@ -34,6 +34,18 @@ ITEM_DEFAULTS = {
 }
 
 
+def modified() -> str:
+	"""Frappe re-reads a shipped file only when its `modified` is newer than the site's copy, so it must
+	grow with every release (a fixed date left a new menu entry out of an upgraded site)."""
+	from datetime import datetime, timedelta
+
+	from sok_resdesk import __version__
+
+	major, minor, patch = (list(map(int, __version__.split("."))) + [0, 0])[:3]
+	when = datetime(2026, 11, 6, 12) + timedelta(minutes=(major * 1000 + minor) * 100 + patch)
+	return when.strftime("%Y-%m-%d %H:%M:%S.000000")
+
+
 def document() -> dict:
 	rows = []
 	for it in sidebar.build():
@@ -49,7 +61,7 @@ def document() -> dict:
 		"header_icon": "book",
 		"idx": 0,
 		"items": rows,
-		"modified": "2026-11-06 12:00:00.000000",
+		"modified": modified(),
 		"module": "ResDesk",
 		"name": sidebar.TITLE,
 		"standard": 1,

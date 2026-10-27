@@ -19,7 +19,12 @@ def _maker():
 def test_the_shipped_sidebar_file_matches_the_list():
 	mk = _maker()
 	with open(mk.PATH, encoding="utf-8") as f:
-		assert json.load(f) == mk.document(), "run: python scripts/make_sidebar_json.py"
+		shipped = json.load(f)
+	# `modified` only has to grow when the list changes (it is the release the file was made for)
+	assert {**shipped, "modified": ""} == {**mk.document(), "modified": ""}, (
+		"run: python scripts/make_sidebar_json.py"
+	)
+	assert shipped["modified"] > "2026-11-06 12:00:00.000000"
 
 
 def test_the_list_has_every_section_and_hides_what_is_off():

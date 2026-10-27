@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.104.2 (2026-10-27): Site Pages in the Desk menu after an upgrade
+
+- **Fixed: the new Site Pages entry was missing from the Desk sidebar.** Frappe re-reads a shipped sidebar only when its date is newer than the site's copy, and ours never moved. The date now follows the release, so a changed menu reaches upgraded sites. Until then, `/app/rd-site-page` opens the list.
+
 ## 0.104.1 (2026-10-27): Read archive.org as a logged-in account
 
 - **New: archive.org keys for ingest.** Settings → Internet Archive takes the account's access and secret keys (the ones the `ia` command-line tool keeps), or fetches them from an archive.org email and password with *Get Keys from archive.org Login* (the password is not kept). Ingest then sends them with every request, to archive.org hosts only, so it still works when archive.org refuses anonymous visitors. The keys go only over https. The login button is refused in Classified mode and never follows a redirect with the password. With no keys, nothing changes.
