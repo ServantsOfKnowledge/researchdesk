@@ -117,6 +117,7 @@ only; 10 a minute.
 | `sok_resdesk.jobs.pause_all` · `resume_all` | pause every run, hold waiting and new jobs, pause schedules; and undo it |
 | `sok_resdesk.jobs.hold_job` (`job_id`) · `release_held` (`keys` JSON list or empty for all, `discard`) | keep one waiting job aside; put held jobs back or drop them |
 | (page) `/p/<address>` | a published RD Site Page; staff may preview a draft; Signed-in Readers Only sends guests to sign in |
+| `sok_resdesk.ingest.ia_keys_from_login` (`email`, `password`, POST) | trade an archive.org login for the account's access keys, kept in Settings; the password is not stored |
 | `sok_resdesk.jobs.run_first` (`job_id`) | move one waiting job to the front of its queue |
 | `sok_resdesk.jobs.choose_preset` (`preset`=`light`/`standard`/`server`) | record the resource preset; `./resdesk.sh resources apply` puts it into effect |
 | `sok_resdesk.jobs.stop_run` (`run`, `force`) | stop one run and drop its queued batches |

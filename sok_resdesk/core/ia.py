@@ -47,11 +47,24 @@ class IAError(Exception):
 	pass
 
 
+class _ArchiveSession(requests.Session):
+	def should_strip_auth(self, old_url, new_url):
+		# archive.org answers a download from its own storage servers (ia8xxxx.us.archive.org): the keys
+		# go along, to archive.org hosts only
+		new = requests.utils.urlparse(new_url)
+		host = new.hostname or ""
+		if new.scheme == "https" and (host == "archive.org" or host.endswith(".archive.org")):
+			return False
+		return super().should_strip_auth(old_url, new_url)
+
+
 class IAClient:
-	def __init__(self, contact: str = "", delay: float = 0.5, timeout: int = 60, session=None):
+	def __init__(self, contact: str = "", delay: float = 0.5, timeout: int = 60, session=None, keys=None):
 		self.delay = delay
 		self.timeout = timeout
-		self.session = session or requests.Session()
+		self.session = session or _ArchiveSession()
+		if keys:  # the S3-like access and secret keys, as the `ia` command-line tool keeps them
+			self.session.headers["Authorization"] = f"LOW {keys[0]}:{keys[1]}"
 		agent = "SOK-ResearchDesk/0.11 (+https://github.com/ServantsOfKnowledge/researchdesk)"
 		if contact:
 			agent += f" contact:{contact}"

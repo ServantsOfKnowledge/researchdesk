@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.104.1 (2026-10-27): Read archive.org as a logged-in account
+
+- **New: archive.org keys for ingest.** Settings → Internet Archive takes the account's access and secret keys (the ones the `ia` command-line tool keeps), or fetches them from an archive.org email and password with *Get Keys from archive.org Login* (the password is not kept). Ingest then sends them with every request, to archive.org hosts only, so it still works when archive.org refuses anonymous visitors. The keys go only over https. The login button is refused in Classified mode and never follows a redirect with the password. With no keys, nothing changes.
+
 ## 0.104.0 (2026-10-27): Pages of your own
 
 - **New: Site Pages.** An organisation can write pages of its own in the Desk (about us, a programme, how to take part) and the portal serves them at `/p/<address>`, so it can be the organisation's website as well as its library. Each page can be a draft, limited to signed-in readers, linked from the top bar with its own label, and given a description for search engines. Published pages are in the sitemap. The text is cleaned of scripts.

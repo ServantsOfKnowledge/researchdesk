@@ -93,6 +93,8 @@
   "ia_section",
   "ia_contact",
   "ia_delay",
+  "ia_access_key",
+  "ia_secret_key",
   "ia_upload_collection",
   "column_break_ia",
   "batch_size",
@@ -739,6 +741,18 @@
    "label": "Delay Between Requests (seconds)",
    "default": "0.5",
    "description": "Pause between requests to archive.org. Raise it if archive.org asks you to slow down."
+  },
+  {
+   "fieldname": "ia_access_key",
+   "fieldtype": "Data",
+   "label": "archive.org Access Key",
+   "description": "Optional. The S3-like keys of an archive.org account (the ones <code>ia configure</code> saves) let this server read as a logged-in person, which helps when archive.org refuses anonymous visitors. Or use Get Keys from archive.org Login above."
+  },
+  {
+   "fieldname": "ia_secret_key",
+   "fieldtype": "Password",
+   "label": "archive.org Secret Key",
+   "description": "Kept encrypted. Never shown again after saving."
   },
   {
    "fieldname": "ia_upload_collection",

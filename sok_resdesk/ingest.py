@@ -24,6 +24,7 @@ import time
 import traceback
 
 import frappe
+from frappe import _
 from frappe.utils import cint, now_datetime
 
 from sok_resdesk.catalogue import item_to_record, settings, upsert_item
@@ -39,7 +40,45 @@ MAX_LOG_CHARS = 200_000
 
 def client() -> IAClient:
 	s = settings()
-	return IAClient(contact=s.ia_contact or "", delay=float(s.ia_delay or 0.5))
+	secret = s.get_password("ia_secret_key", raise_exception=False) or ""
+	keys = (s.ia_access_key.strip(), secret.strip()) if s.ia_access_key and secret else None
+	return IAClient(contact=s.ia_contact or "", delay=float(s.ia_delay or 0.5), keys=keys)
+
+
+@frappe.whitelist(methods=["POST"])
+def ia_keys_from_login(email: str, password: str) -> dict:
+	"""What `ia configure` does: trade an archive.org email and password for the account's access keys,
+	keep the keys in Settings, and forget the password (it is not stored or logged)."""
+	import requests
+
+	from sok_resdesk import seams
+
+	frappe.only_for(("System Manager", "ResDesk Manager"))
+	if seams.classified():  # classified mode never sends anything to an outside host
+		frappe.throw(_("Not used in Classified mode."), frappe.PermissionError)
+	email = (email or "").strip()
+	try:
+		# no redirects: a 307 would send the password to wherever it points
+		r = requests.post(
+			"https://archive.org/services/xauthn/",
+			params={"op": "login"},
+			data={"email": email, "password": password or ""},
+			timeout=30,
+			allow_redirects=False,
+		)
+		data = r.json()
+	except (requests.RequestException, ValueError):
+		frappe.throw(_("Could not reach archive.org to log in. Check this server's internet access."))
+	data = data if isinstance(data, dict) else {}
+	s3 = (data.get("values") or {}).get("s3") or {}
+	if not data.get("success") or not s3.get("access") or not s3.get("secret"):
+		frappe.throw(_("archive.org did not accept that email and password."))
+	doc = frappe.get_doc("RD Settings")
+	doc.ia_access_key = s3["access"]
+	doc.ia_secret_key = s3["secret"]
+	doc.flags.ignore_permissions = True
+	doc.save()
+	return {"message": _("Connected to archive.org as {0}.").format(email)}
 
 
 # -- page-text cache ----------------------------------------------------------------------

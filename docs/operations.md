@@ -429,6 +429,8 @@ Every setting:
 |---|---|
 | Contact (sent in User-Agent) | An email or URL so IA can reach you if your harvesting causes problems. |
 | Delay Between Requests (seconds) | Pause between requests to archive.org. Raise it if archive.org asks you to slow down. |
+| archive.org Access Key | Optional. The S3-like keys of an archive.org account (the ones <code>ia configure</code> saves) let this server read as a logged-in person, which helps when archive.org refuses anonymous visitors. Or use Get Keys from archive.org Login above. |
+| archive.org Secret Key | Kept encrypted. Never shown again after saving. |
 | Collection for Uploads to archive.org | Where books sent to archive.org from here are filed. People who send their own work always use this one; staff can choose another collection they may add to when they send. Everything sent is public. |
 | Books per Background Batch | Large ingests are split into batches that run in parallel, one per queue worker. Add workers with QUEUE_WORKERS in .env. |
 | Keep a Local Copy of Page Text | Stores compressed OCR text on disk (about 20–60 KB per book) so re-indexing never needs to download from archive.org again. |

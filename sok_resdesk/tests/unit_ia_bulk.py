@@ -37,6 +37,16 @@ class FakeSession:
 		)
 
 
+def test_keys_are_sent_and_kept_on_archive_org_hosts_only():
+	client = ia.IAClient(delay=0, keys=("AK", "SK"))
+	assert client.session.headers["Authorization"] == "LOW AK:SK"
+	s = client.session
+	assert not s.should_strip_auth("https://archive.org/download/x/y", "https://ia800.us.archive.org/1/y")
+	assert s.should_strip_auth("https://archive.org/download/x/y", "https://evil.example.com/y")
+	assert s.should_strip_auth("https://archive.org/download/x/y", "http://ia800.us.archive.org/1/y")
+	assert "Authorization" not in ia.IAClient(delay=0).session.headers
+
+
 def test_records_come_in_bulk_with_their_fields():
 	s = FakeSession()
 	client = ia.IAClient(delay=0, session=s)

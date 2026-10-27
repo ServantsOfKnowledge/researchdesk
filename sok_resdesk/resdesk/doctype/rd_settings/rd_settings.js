@@ -31,6 +31,17 @@ function rd_feature_suggestions(frm) {
 frappe.ui.form.on("RD Settings", {
 	refresh(frm) {
 		rd_feature_suggestions(frm);
+		frm.add_custom_button(__("Get Keys from archive.org Login"), () =>
+			frappe.prompt(
+				[
+					{ fieldname: "email", fieldtype: "Data", options: "Email", label: __("archive.org Email"), reqd: 1 },
+					{ fieldname: "password", fieldtype: "Password", label: __("archive.org Password"), reqd: 1, description: __("Sent to archive.org once to fetch your keys. It is not kept.") },
+				],
+				(v) => frappe.call({ method: "sok_resdesk.ingest.ia_keys_from_login", args: v, freeze: true }).then((r) => { frappe.show_alert({ message: r.message.message, indicator: "green" }); frm.reload_doc(); }),
+				__("Connect to archive.org"),
+				__("Get Keys")
+			), __("Internet Archive")
+		);
 		frm.add_custom_button(__("Find the Telegram Chat ID"), () =>
 			frm.is_dirty() ? frappe.msgprint(__("Save Settings first: this uses the saved bot token.")) : frappe.call({ method: "sok_resdesk.contact.find_telegram_chat", freeze: true }).then((r) => {
 				const m = r.message || {};
