@@ -238,6 +238,17 @@ box(
 	fill="#fbf3e8",
 )
 
+box(
+	910,
+	574,
+	260,
+	96,
+	"Lending and buying (optional)",
+	("loans, holds, fines paid online", "members join with an ID card", "orders, invoices, serials, ILL"),
+	colour=GREEN,
+	fill="#eef6ee",
+)
+
 # bottom strip
 parts.append(
 	f'<rect x="30" y="680" width="1140" height="60" rx="10" fill="#f6f8fa" stroke="{LINE}" stroke-width="1.4"/>'

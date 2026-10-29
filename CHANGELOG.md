@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.106.1 (2026-10-30): The overview picture and README show lending
+
+- The "how it fits together" picture has a Lending and buying box, and the README names the lending desk.
+
 ## 0.106.0 (2026-10-30): Budgets, serials, interlibrary loan, online payment of fines
 
 - **Budgets and invoices.** A budget has an amount; a purchase order charged to it refuses to go over what is left. Vendor invoices are checked against the order and what arrived (flagged when more than 5% over), approved and recorded as paid by managers, and turn a commitment into spending without counting it twice.
