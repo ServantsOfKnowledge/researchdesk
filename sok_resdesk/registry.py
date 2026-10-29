@@ -32,7 +32,7 @@ def _blocked() -> str:
 		return _("This is a Classified installation: it makes no outside connections.")
 	if "sok_resdesk_governance" in frappe.get_installed_apps():
 		return _("The governance edition never sends one.")
-	if not cint(frappe.db.get_single_value("RD Settings", "share_install_info")):
+	if not cint(frappe.db.get_single_value("RD Settings", "share_install_info", cache=False)):
 		return _("Switched off in Settings.")
 	return ""
 
@@ -45,7 +45,7 @@ def _kind() -> str:
 
 def instance_id() -> str:
 	"""The random ID of this install, made the first time it is needed and never changed."""
-	value = frappe.db.get_single_value("RD Settings", "instance_id")
+	value = frappe.db.get_single_value("RD Settings", "instance_id", cache=False)
 	if not value:
 		value = str(uuid.uuid4())
 		frappe.db.set_single_value("RD Settings", "instance_id", value)
@@ -74,7 +74,7 @@ def preview() -> dict:
 		"note": current_note(),
 		"to": rules.ENDPOINT,
 		"blocked": why,
-		"last_sent": str(frappe.db.get_single_value("RD Settings", "registry_last_sent") or ""),
+		"last_sent": str(frappe.db.get_single_value("RD Settings", "registry_last_sent", cache=False) or ""),
 	}
 
 
@@ -107,7 +107,9 @@ def daily() -> None:
 	"""About once a month (and the first time after it is switched on); a failure is simply tried again tomorrow."""
 	if _blocked():
 		return
-	if rules.due(frappe.db.get_single_value("RD Settings", "registry_last_sent"), getdate(nowdate())):
+	if rules.due(
+		frappe.db.get_single_value("RD Settings", "registry_last_sent", cache=False), getdate(nowdate())
+	):
 		send()
 		frappe.db.commit()
 
@@ -120,7 +122,7 @@ def daily() -> None:
 def ping() -> dict:
 	"""Take one install note. Does nothing, and says so as if the page did not exist, unless this site is the
 	registry. Keeps the ID, the version, the edition, the kind, the profiles and two dates: no address."""
-	if not cint(frappe.db.get_single_value("RD Settings", "registry_receive")):
+	if not cint(frappe.db.get_single_value("RD Settings", "registry_receive", cache=False)):
 		raise frappe.DoesNotExistError
 	req = frappe.request
 	if (

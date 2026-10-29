@@ -14,16 +14,27 @@ from sok_resdesk.core import registry as rules
 ID = "123e4567-e89b-42d3-a456-426614174000"
 
 
+def reset_last_sent(value):
+	"""Put the last-sent time back as it was; an unset one is removed, not written as an empty date."""
+	if value is None:
+		frappe.db.sql("delete from tabSingles where doctype='RD Settings' and field='registry_last_sent'")
+	else:
+		frappe.db.set_single_value("RD Settings", "registry_last_sent", value)
+	frappe.clear_cache(doctype="RD Settings")
+
+
 class TestInstallNote(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
-		self.was = frappe.db.get_single_value("RD Settings", "share_install_info")
+		self.was = frappe.db.get_single_value("RD Settings", "share_install_info", cache=False)
+		self.last = frappe.db.get_single_value("RD Settings", "registry_last_sent", cache=False)
+		reset_last_sent(self.last)
 		frappe.db.delete("RD Install Ping", {"name": ID})
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.set_single_value("RD Settings", "share_install_info", self.was or 0)
-		frappe.db.set_single_value("RD Settings", "registry_last_sent", None)
+		reset_last_sent(self.last)
 		frappe.db.delete("RD Install Ping", {"name": ID})
 		frappe.conf.pop("resdesk_classified", None)
 		frappe.db.commit()
@@ -52,8 +63,12 @@ class TestInstallNote(IntegrationTestCase):
 			self.assertEqual(post.call_args.args[0], rules.ENDPOINT)
 			registry.daily()  # not due again for four weeks
 			self.assertEqual(post.call_count, 1)
-		self.assertTrue(frappe.db.get_single_value("RD Settings", "registry_last_sent"))
-		self.assertIn(body["id"], frappe.db.get_single_value("RD Settings", "registry_last_note"))
+		self.assertNotEqual(
+			frappe.db.get_single_value("RD Settings", "registry_last_sent", cache=False), self.last
+		)
+		self.assertIn(
+			body["id"], frappe.db.get_single_value("RD Settings", "registry_last_note", cache=False)
+		)
 		self.assertEqual(registry.instance_id(), body["id"])  # the same id every time
 
 	def test_a_failed_send_is_tried_again_later(self):
@@ -62,7 +77,9 @@ class TestInstallNote(IntegrationTestCase):
 		frappe.db.set_single_value("RD Settings", "share_install_info", 1)
 		with mock.patch("requests.post", side_effect=requests.ConnectionError):
 			self.assertEqual(registry.send()["sent"], 0)
-		self.assertFalse(frappe.db.get_single_value("RD Settings", "registry_last_sent"))
+		self.assertEqual(
+			frappe.db.get_single_value("RD Settings", "registry_last_sent", cache=False), self.last
+		)
 
 	def test_a_received_note_keeps_one_record_per_id_and_no_address(self):
 		note = rules.payload(ID, "0.109.0", "standard", "docker", ["school"])

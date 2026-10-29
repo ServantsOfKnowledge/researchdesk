@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.109.1 (2026-10-29): Install note: fixes found by the tests
+
+- The install note reads its settings straight from the database, so a change (the box ticked, the install ID just made)
+  is never missed because of a cached value; its tests no longer leave an empty date behind. 0.109.0 was not released
+  because of these; this is the first release with the install note.
+
 ## 0.109.0 (2026-10-29): The install note
 
 - **The install note.** The installer asks whether this installation may tell Servants of Knowledge that it exists (offering yes;
