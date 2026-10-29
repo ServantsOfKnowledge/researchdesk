@@ -730,7 +730,7 @@ shows how many of the catalogue's books it lists, the tasks it has waiting, the 
 working on (since when, how far) and its last failure. The Server page turns *Search indexing*
 red when tasks wait and nothing is being worked on, and orange when one batch has run for hours.
 
-1. **Look at what it says.** `./resdesk.sh logs meilisearch` (or Server → Logs → meilisearch).
+1. **Look at what it says.** `./resdesk.sh logs meilisearch` (or Server → Services → Logs for meilisearch).
    Then whether it has been running out of memory and starting over:
    `docker inspect -f '{{.State.OOMKilled}} {{.RestartCount}}' $(docker compose ps -q meilisearch)`.
    `true` or a restart count that keeps growing means it is: each restart begins the same batch

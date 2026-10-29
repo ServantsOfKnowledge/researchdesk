@@ -948,7 +948,7 @@ def _log_dir() -> Path:
 
 @frappe.whitelist()
 def logs(source: str = "errors", name: str = "", lines: int = 200) -> dict:
-	"""Recent errors, failed jobs, or the end of a log file (Server → Logs)."""
+	"""Recent errors, failed jobs, or the end of a log file (the Logs page)."""
 	frappe.only_for(MANAGERS)
 	lines = max(20, min(cint(lines) or 200, 2000))
 	if source == "errors":
@@ -1047,7 +1047,7 @@ def _qa_rows() -> list[dict]:
 
 @frappe.whitelist()
 def log_qa() -> dict:
-	"""Server → Logs → Log QA: the Error Log grouped by what it is and whether a release has fixed
+	"""Logs → Log QA: the Error Log grouped by what it is and whether a release has fixed
 	it, so a manager can tell what is safe to ignore (and clear) from what needs a look."""
 	frappe.only_for(MANAGERS)
 	from sok_resdesk import __version__

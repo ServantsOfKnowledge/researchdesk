@@ -30,7 +30,7 @@ backups needs the **System Manager** role.
 | Updates | the newest release, *What's new* from its release notes, and either the **Upgrade** button or the command to run on the server |
 | Services | with the helper: every container (Docker) or process (native) and its state, **Logs** for each, and **Restart** buttons |
 | Backups | the automatic schedule, **Back up now**, the list of backups with download links |
-| Logs | recent errors, failed background jobs, and the end of any log file |
+| Logs | now on their own page: **Logs** in the sidebar, or *Logs* in this page's menu ([below](#log-qa-and-folding-sections)) |
 | Book limit | how many books the catalogue holds, the limit, and what this machine's CPUs, memory and disk can each take ([below](#book-limit)) |
 | Resources | the resource preset in use, and **Apply a preset now** with the helper ([Resources](operations.md#resources-how-much-of-the-machine-research-desk-may-use)) |
 | Alerts | where alerts go, and a test button |
@@ -46,7 +46,7 @@ What each health line means:
 | Disk | fuller than the alert level (Settings, 90% by default); *Check* 10% before |
 | Backups | the last backup failed, or the newest is older than the schedule promises |
 | Book limit | the catalogue is at its limit: no new books are added. *Check* from 90% |
-| Errors | *Check* when errors were logged or background jobs failed in the last day: open them under Logs |
+| Errors | *Check* when errors were logged or background jobs failed in the last day: open them on the **Logs** page |
 | Updater helper | it is on but hasn't reported for a minute and a half |
 
 The page refreshes itself every 15 seconds.
@@ -363,7 +363,7 @@ It never prints the token. `RESDESK_CLASSIFIED=1` switches the helper off on pur
 
 ## Log QA and folding sections
 
-**Server → Logs → Log QA** matches every Error Log entry to the release that fixed it (the list is
+The **Logs** page (sidebar → Running the Library → Logs) has four tabs: **Errors**, **Log QA**, **Failed jobs** and **Log files** (the end of any log file). **Log QA** matches every Error Log entry to the release that fixed it (the list is
 `sok_resdesk/core/known_errors.py`, one entry per fixed error, with the release):
 
 | Verdict | Meaning |
@@ -378,4 +378,4 @@ Entries it does not recognise are listed to look at. **Clear the resolved entrie
 ones and the blue notes. Each `migrate` records when a version became the installed one.
 
 Every section of the page folds away with the button on its title (**Fold all sections** and **Open all
-sections** at the top); Health, Updates and Logs start open, and the choice is kept in your browser.
+sections** at the top); Health and Updates start open, and the choice is kept in your browser.

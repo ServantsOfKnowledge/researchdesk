@@ -1,6 +1,6 @@
 """Known errors: what an Error Log entry means and which release fixed it (pure, no Frappe).
 
-Server → Logs → Log QA matches each entry to this list and says whether it is safe to ignore:
+The Logs page (Log QA) matches each entry to this list and says whether it is safe to ignore:
 logged before the fix was installed (resolved), still possible because the release is not
 installed yet (upgrade), or logged after the fix (recurring: the fix did not stop it, look).
 """

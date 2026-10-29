@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.112.0 (2026-10-29): Logs have their own page
+
+- **Logs are off the Server page.** Errors, Log QA, Failed jobs and Log files now have their own **Logs** page (sidebar → Running the
+  Library, or *Logs* in the Server page's menu), so the Server page is only about updates, health, services, backups and resources.
+  The per-service **Logs** button on the Server page's Services list stays, because it shows that one service's log live.
+
 ## 0.111.0 (2026-10-29): A tidier Desk sidebar
 
 - **The Research Desk sidebar is regrouped.** Catalogue now holds only cataloguing; ingesting is under **Bringing In**, imports, exports,

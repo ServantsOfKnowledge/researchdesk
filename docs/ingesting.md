@@ -234,7 +234,7 @@ Nothing is lost when something fails: try it again from the run, in the same run
 | *New Books Left Out* shown in red | the [book limit](server.md#book-limit) was reached, so new books were skipped | raise the limit in Settings → Machine Resources (or free disk space, or give Docker more), then **Carry On** |
 
 The same is on **Background Jobs** (*Retry failed* / *Carry on* next to each recent run) and on
-the **Server** page → Logs → **Failed jobs**, which lists every background job that failed
+the **Logs** page → **Failed jobs**, which lists every background job that failed
 with its error: **Retry** one, **Retry all**, or **Clear the list**. Ingest batches retried there
 go back into their run, which then finishes as usual. A book that still fails after a retry is
 counted as failed again, with the new reason in the log.
