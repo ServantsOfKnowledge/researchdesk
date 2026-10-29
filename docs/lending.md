@@ -1,5 +1,7 @@
 # Members, lending and acquisitions
 
+> New here? Start with [Quick start: the lending desk](quickstart-lending.md); this page has the detail.
+
 Research Desk can run the lending side of a library too: a roll of **members** with ID cards, **lending** and
 returns at a desk, **holds**, **fines** (payable online), **acquisitions** (vendors, purchase orders, **budgets and
 invoices**), **periodicals** (serials) and **interlibrary loan**. It is for schools,

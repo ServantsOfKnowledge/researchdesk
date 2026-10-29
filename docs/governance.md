@@ -1,5 +1,7 @@
 # Government and institutional use
 
+> New here? Start with [Quick start: government records](quickstart-records.md); this page has the detail.
+
 For a ministry, department, court, council or any institution that must be able to show **who may
 see what, and who did see what**. Everything here belongs to the *governance edition* ([Editions](installation.md#editions)): a standard install has none of it. On that edition it is switched on with one setting and is off otherwise, so an open library pays nothing for it.
 

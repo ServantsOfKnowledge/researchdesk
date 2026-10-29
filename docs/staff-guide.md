@@ -1,5 +1,7 @@
 # Staff guide: a tour of the Desk
 
+> New here? Start with [Quick start: running the library](quickstart-library.md); this page has the detail.
+
 This page is for library staff who look after Research Desk: bringing books in, correcting the
 catalogue, building collections and deciding who can read what. Installing and running the
 server is covered in [Getting started](getting-started.md) and [Operations](operations.md).

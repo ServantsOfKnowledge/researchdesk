@@ -10,7 +10,11 @@ def test_every_help_page_is_in_a_track_so_nothing_is_lost():
 
 
 def test_each_track_begins_with_a_page_for_it():
-	assert [t.pages[0] for t in h.TRACKS][:3] == ["reader-guide", "staff-guide", "ingesting"]
+	assert [t.pages[0] for t in h.TRACKS][:3] == [
+		"reader-guide",
+		"quickstart-library",
+		"quickstart-cataloguing",
+	]
 
 
 def test_roles_get_their_tracks_and_a_plain_account_the_reader_help():

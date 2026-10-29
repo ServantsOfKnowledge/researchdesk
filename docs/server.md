@@ -1,5 +1,7 @@
 # Server: updates, health & backups
 
+> New here? Start with [Quick start: looking after the installation](quickstart-admin.md); this page has the detail.
+
 The **Server** page in the Desk (Research Desk → *Server*, or `/app/resdesk-server`) shows
 the state of the whole installation in one place and, if you allow it, lets a System Manager
 look after it without opening a terminal:

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.115.0 (2026-10-29): Quick starts for each job
+
+- **Quick starts.** Five one-screen pages, each the first page of its track in the Desk's Help: running the library, cataloguing, the lending
+  desk, looking after the installation and government records. Each lists a few steps, what to do every day and where the full page is.
+  The long pages are unchanged apart from a line at the top pointing at the quick start.
+
 ## 0.114.0 (2026-10-29): Help that follows your role
 
 - **Start here.** The Desk's Help opens on a page built from the roles you hold: the jobs they give you, a line about each and the page to

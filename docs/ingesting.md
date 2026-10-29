@@ -1,5 +1,7 @@
 # Choosing & ingesting books
 
+> New here? Start with [Quick start: cataloguing](quickstart-cataloguing.md); this page has the detail.
+
 > Books in IA-style folders on your own disk, NAS or web server? See
 > [Books from your own folders or servers](local-folders.md) (which also covers manuscripts,
 > photographs and recordings in folders). A Calibre library? [Calibre](calibre.md). A DSpace,
