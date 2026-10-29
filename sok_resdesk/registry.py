@@ -43,6 +43,12 @@ def _kind() -> str:
 	return {"darwin": "macos", "linux": "linux"}.get(sys.platform, "other")
 
 
+def last_sent():
+	"""When the last note went, or None. A value never set can come back as the empty date (year 1)."""
+	value = frappe.db.get_single_value("RD Settings", "registry_last_sent", cache=False)
+	return value if value and getattr(value, "year", 0) > 1 else None
+
+
 def instance_id() -> str:
 	"""The random ID of this install, made the first time it is needed and never changed."""
 	value = frappe.db.get_single_value("RD Settings", "instance_id", cache=False)
@@ -74,7 +80,7 @@ def preview() -> dict:
 		"note": current_note(),
 		"to": rules.ENDPOINT,
 		"blocked": why,
-		"last_sent": str(frappe.db.get_single_value("RD Settings", "registry_last_sent", cache=False) or ""),
+		"last_sent": str(last_sent() or ""),
 	}
 
 
@@ -107,9 +113,7 @@ def daily() -> None:
 	"""About once a month (and the first time after it is switched on); a failure is simply tried again tomorrow."""
 	if _blocked():
 		return
-	if rules.due(
-		frappe.db.get_single_value("RD Settings", "registry_last_sent", cache=False), getdate(nowdate())
-	):
+	if rules.due(last_sent(), getdate(nowdate())):
 		send()
 		frappe.db.commit()
 

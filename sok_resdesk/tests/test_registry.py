@@ -27,7 +27,7 @@ class TestInstallNote(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 		self.was = frappe.db.get_single_value("RD Settings", "share_install_info", cache=False)
-		self.last = frappe.db.get_single_value("RD Settings", "registry_last_sent", cache=False)
+		self.last = registry.last_sent()
 		reset_last_sent(self.last)
 		frappe.db.delete("RD Install Ping", {"name": ID})
 
@@ -63,9 +63,7 @@ class TestInstallNote(IntegrationTestCase):
 			self.assertEqual(post.call_args.args[0], rules.ENDPOINT)
 			registry.daily()  # not due again for four weeks
 			self.assertEqual(post.call_count, 1)
-		self.assertNotEqual(
-			frappe.db.get_single_value("RD Settings", "registry_last_sent", cache=False), self.last
-		)
+		self.assertNotEqual(registry.last_sent(), self.last)
 		self.assertIn(
 			body["id"], frappe.db.get_single_value("RD Settings", "registry_last_note", cache=False)
 		)
@@ -77,9 +75,7 @@ class TestInstallNote(IntegrationTestCase):
 		frappe.db.set_single_value("RD Settings", "share_install_info", 1)
 		with mock.patch("requests.post", side_effect=requests.ConnectionError):
 			self.assertEqual(registry.send()["sent"], 0)
-		self.assertEqual(
-			frappe.db.get_single_value("RD Settings", "registry_last_sent", cache=False), self.last
-		)
+		self.assertEqual(registry.last_sent(), self.last)
 
 	def test_a_received_note_keeps_one_record_per_id_and_no_address(self):
 		note = rules.payload(ID, "0.109.0", "standard", "docker", ["school"])
