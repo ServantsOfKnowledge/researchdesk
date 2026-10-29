@@ -1,0 +1,160 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-30 10:00:00.000000",
+ "modified": "2026-10-30 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Serial Subscription",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "autoname": "format:SUB-{#####}",
+ "title_field": "title",
+ "show_title_field_in_link": 1,
+ "search_fields": "title,issn",
+ "field_order": [
+  "title",
+  "item",
+  "issn",
+  "vendor",
+  "cb",
+  "frequency",
+  "status",
+  "first_issue_due",
+  "ends_on",
+  "claim_after_days",
+  "sec_more",
+  "price",
+  "location",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Periodical",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Catalogue Record",
+   "options": "RD Item",
+   "description": "Empty: one is made when the first issue arrives."
+  },
+  {
+   "fieldname": "issn",
+   "fieldtype": "Data",
+   "label": "ISSN"
+  },
+  {
+   "fieldname": "vendor",
+   "fieldtype": "Link",
+   "label": "Vendor",
+   "options": "RD Vendor"
+  },
+  {
+   "fieldname": "cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "frequency",
+   "fieldtype": "Select",
+   "label": "Frequency",
+   "options": "Weekly\nFortnightly\nMonthly\nBimonthly\nQuarterly\nHalf-yearly\nYearly",
+   "reqd": 1,
+   "default": "Monthly",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Active\nLapsed\nCancelled",
+   "default": "Active",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "first_issue_due",
+   "fieldtype": "Date",
+   "label": "First Issue Due",
+   "description": "The date the first expected issue is due. Issues are made from here by Generate Issues."
+  },
+  {
+   "fieldname": "ends_on",
+   "fieldtype": "Date",
+   "label": "Subscription Ends"
+  },
+  {
+   "fieldname": "claim_after_days",
+   "fieldtype": "Int",
+   "label": "Claim After (days)",
+   "default": "14",
+   "description": "An issue not here this many days after it was due is marked Late and managers are told."
+  },
+  {
+   "fieldname": "sec_more",
+   "fieldtype": "Section Break",
+   "label": "More"
+  },
+  {
+   "fieldname": "price",
+   "fieldtype": "Float",
+   "label": "Price per Year"
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "Shelf or Branch"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "links": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 0
+  }
+ ]
+}

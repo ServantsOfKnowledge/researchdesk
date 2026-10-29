@@ -1,6 +1,8 @@
 # What Research Desk does
 
-The short version is on the project's front page. This is the whole list.
+The short version is on the project's front page. This is the whole list. It is written for libraries,
+archives, schools and colleges, and **universities and research institutions** (their repositories, theses,
+publications, datasets' catalogue records, archives and special collections).
 
 Choose a collection, a search or a list of items on archive.org, or point it at your own
 folders, and Research Desk will:

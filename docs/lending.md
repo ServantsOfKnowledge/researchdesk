@@ -1,7 +1,8 @@
 # Members, lending and acquisitions
 
 Research Desk can run the lending side of a library too: a roll of **members** with ID cards, **lending** and
-returns at a desk, **holds**, **fines**, and **acquisitions** (vendors and purchase orders). It is for schools,
+returns at a desk, **holds**, **fines** (payable online), **acquisitions** (vendors, purchase orders, **budgets and
+invoices**), **periodicals** (serials) and **interlibrary loan**. It is for schools,
 colleges and small libraries that do not run a separate library system. A library that lends through
 [Koha](koha.md) keeps using Koha and leaves this switched off.
 
@@ -124,7 +125,24 @@ days in Settings; then it goes to the next one. A loan cannot be renewed while s
 
 A late fine is made when the book is returned. Staff mark it **Paid** or **Waived** at the desk; the library
 takes payment itself (cash or its own way), Research Desk records it. A fine due counts toward *Block borrowing
-over*.
+over*. A member can also pay online (see [Paying fines online](#paying-fines-online)).
+
+## Paying fines online
+
+Optional, off until the library sets it up: Settings → Members and Lending → **Online Payment of Fines**, choose
+**Razorpay** and give its *Key ID*, *Key Secret* and a *Webhook Secret* you choose. In the Razorpay dashboard add a
+webhook to `https://<your portal>/api/method/sok_resdesk.payments.webhook` for the event **payment_link.paid**,
+with the same secret.
+
+A member with fines due sees **Pay online** on My library. Research Desk makes a Razorpay *payment link* for the
+total and sends them to it: the card or UPI details go to Razorpay and never touch this server, and Razorpay sends
+no email or SMS for it. When Razorpay's webhook says the link was paid, the fines are marked **Paid**. The webhook
+is believed only with the right signature and for a link this site made, an amount that is not what was asked for is
+not accepted (it is written to the Error Log), and being told twice changes nothing. If a member pays a link for
+fines the desk had already cleared, the payment is recorded and the Error Log says a refund may be needed. The
+Razorpay keys can be changed only by a System Manager. Desk → **Online Payments** lists every link and its
+state (read only). It is not available in Classified mode, which refuses outside connections. Fines still due can
+always be paid at the desk.
 
 ## My library
 
@@ -134,7 +152,7 @@ may do.
 
 ## Acquisitions
 
-Desk → **Vendors** and **Purchase Orders**.
+Desk → **Vendors** and **Purchase Orders** (money: see [Budgets and invoices](#budgets-and-invoices)).
 
 1. Add the **Vendor**.
 2. Write a **Purchase Order**: the vendor and the books (title, author, ISBN, how many, unit price). A line can
@@ -144,6 +162,50 @@ Desk → **Vendors** and **Purchase Orders**.
    per book, on the shelf and ready to lend, with its barcode; the order shows *Part Received* or *Received*.
    **Print barcode labels** from the message that follows.
 
+## Budgets and invoices
+
+Desk → **Budgets**: a budget has a name, an amount and a period (*Books 2026-27*). Put it on a **Purchase Order**
+(the *Budget* field): **Place Order** refuses an order that is more than what is left. A budget shows what orders
+**committed**, what invoices **spent** and what is **left**: an order holds back its total less what has been
+invoiced against it, so an invoice turns a commitment into spending without counting it twice.
+
+Desk → **Invoices**: the vendor's invoice (number, date, amount) against the order. Research Desk checks it
+against the order and what actually arrived (*the three-way check*): more than 5% above the order, or above the
+value of the books received, is flagged in orange so a manager looks before **Approve**. Managers approve and
+record **payment** (how it was paid: cheque, transfer, voucher). The library pays outside Research Desk; it
+records that it did. An invoice number is not accepted twice for one vendor (capitals and spaces do not make it
+different), and one for another vendor's order is refused. Only the buttons move an invoice along: an approved invoice
+cannot be edited or deleted (cancel it and enter another), and Settings can require that **someone else** approves an
+invoice a manager entered.
+
+## Periodicals (serials)
+
+Desk → **Serial Subscriptions**: the periodical, its vendor, how often it comes (weekly to yearly), when the first
+issue is due and how many days late it may be. **Generate Issues** makes the expected issues (the 15th stays the 15th;
+31 January + a month is 28 February). When an issue arrives open it and press **Check In**: it becomes a reference
+copy with a barcode (a current issue is read in the library), under the periodical's catalogue record (made the
+first time if there is none). Each night, issues that are overdue by the claim period become **Late** and
+managers get one alert in the Desk bell (no email). **Claimed from Vendor** and **Mark Missing** record what
+happened; asking the vendor is done outside Research Desk.
+
+## Interlibrary loan
+
+Desk → **Interlibrary Loans**, in either direction.
+
+- **Borrowing**: a member asks for a book the library does not have (they can, from **My library**, up to the
+  number set in Settings; or staff enter it for them). Staff move it along: **Sent** (to the other library, whose
+  name goes in the request), **Received**, **Lent to Patron** (the due date comes from the member's category; an
+  expired or blocked member is refused), **Returned**, **Sent Back**, **Closed**. A fee the other library charges
+  can be **charged to the member**, who then sees it as a fine (and can pay it like one). The member sees the
+  request and its step on My library; no email is sent.
+- **Lending**: another library asks for one of ours: **Requested**, **Approved**, **Sent** (the chosen copy goes
+  off the shelf as *Interlibrary loan*), **Returned** (it goes back on the shelf, or to a member waiting for it),
+  **Closed**.
+
+The steps are fixed: a book cannot be lent to the member before it has been received. A request can be **Refused**
+or **Cancelled** while nothing has been sent. Research Desk does not talk to other libraries' systems (ISO ILL,
+NCIP): it keeps the library's own record, and the library writes to the other library in its usual way.
+
 ## Privacy
 
 The library keeps no record of what people read: returned (and lost) loans with no unpaid fine are deleted after the number
@@ -152,6 +214,7 @@ are private files. Deleting a member is for managers.
 
 ## What is not here
 
-Not built: acquisitions budgets and invoices, serials check-in, inter-library loan, self-service kiosks and
-online payment of fines. A library that needs them keeps Koha or another library system; Research Desk links to
-it ([Koha](koha.md)).
+Not built: invoice line items and tax (GST) handling, automatic claims to vendors, electronic ordering (EDI),
+bundling several periodical titles in one subscription, ILL protocols (ISO ILL, NCIP), self-service kiosks, and
+payment providers other than Razorpay. A library that needs them keeps Koha or another library system; Research
+Desk links to it ([Koha](koha.md)).

@@ -59,7 +59,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "Available\nOn loan\nOn hold shelf\nIn processing\nLost\nWithdrawn",
+   "options": "Available\nOn loan\nOn hold shelf\nIn processing\nInterlibrary loan\nLost\nWithdrawn",
    "default": "Available",
    "reqd": 1,
    "in_list_view": 1,

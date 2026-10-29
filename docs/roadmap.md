@@ -193,7 +193,7 @@ Things we decided not to do yet, so nobody wonders whether they were forgotten.
 | Single sign-on leavers, two-factor login | Cannot be tested without a real provider; Keycloak ([Keycloak](keycloak.md)) is the planned reference. |
 | Archival authority records and accessions | Wait for a partner archive that needs them; ISAD(G) and EAD3 cover description today. |
 | A machine-draft engine bundled in the image | Whisper and Kraken models are large; a bundled engine would double the image for libraries that never transcribe. Today it is chosen in Settings. |
-| Acquisitions budgets and invoices, serials check-in, inter-library loan, online payment of fines | Circulation, members and basic acquisitions are built ([Members, lending and acquisitions](lending.md)); these need a library that wants them and, for payment, a payment provider. |
+| Invoice line items and GST, vendor claims and EDI, ILL protocols (ISO ILL, NCIP), payment providers other than Razorpay | Budgets, invoices, serials, interlibrary loan and online payment of fines are built ([Members, lending and acquisitions](lending.md)); these need a library that wants them and, for each provider, a real account to test against. |
 | DOIs and permanent links for everyone | ARKs need the library's NAAN and DOIs need a DataCite membership: both are the library's to obtain; the software is ready. |
 | Help pictures for members-only libraries; retaken portal pictures with real covers | Need a library with real books; `./resdesk.sh screenshots` takes them. |
 | A browser test against a live Desk (the governance menu, the dialogs with real data) | The cover-parts dialog is tested in a browser against a stand-in for the Desk (0.98); a test against a live Desk needs a seeded Docker site in CI. |
@@ -204,6 +204,7 @@ Things we decided not to do yet, so nobody wonders whether they were forgotten.
 - [ ] A pluggable search backend: Meilisearch stays the default; an OpenSearch adapter (ICU analysers for Indic scripts, sharding) for very large page indexes, chosen in Settings, behind the same `search.py` interface
 - [x] Holdings, patrons and circulation stay with Koha when the library runs it: Research Desk works alongside it ([Koha](koha.md#what-stays-in-the-library-system)) (0.65)
 - [x] Members with ID cards, lending, holds, fines and acquisitions for libraries without a library system: off by default ([Members, lending and acquisitions](lending.md)) (0.105)
+- [x] Budgets and invoices with a three-way check, periodicals (serials), interlibrary loan in both directions, and online payment of fines through Razorpay ([Members, lending and acquisitions](lending.md)) (0.106)
 - [x] SRU 1.2 target for older library systems; Z39.50-only clients through a gateway ([SRU](sru.md)) (0.65)
 - [x] Usage statistics in COUNTER form: the Title Master Report with investigations; requests are not recorded ([Usage reports](usage-reports.md)) (0.65)
 - [ ] OpenScribe, the last module of the digitisation workflow (in progress at Servants of Knowledge; TTScribe scanning and Repub processing are built)

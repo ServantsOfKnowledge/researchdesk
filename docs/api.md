@@ -129,6 +129,13 @@ only; 10 a minute.
 | `sok_resdesk.acquisitions.receive` (`order`, `quantities`, `location`) | books arrived: makes the copies with their barcodes (staff, POST) |
 | `sok_resdesk.acquisitions.labels` (`barcodes`) | barcode labels (SVG) for copies (staff) |
 | (page) `/library/membership` · `/library/loans` · `/library/card` · `/library/labels` | become a member; My library; the ID card(s); barcode labels (staff) |
+| `sok_resdesk.acquisitions.budget_summary` (`budget`) | a budget's amount, committed, spent and left (staff) |
+| `sok_resdesk.acquisitions.invoice_approve` (`invoice`) · `invoice_pay` (`invoice`, `note`) · `invoice_cancel` (`invoice`) | approve an invoice; record that it was paid; cancel it (managers, POST) |
+| `sok_resdesk.serials.generate` (`subscription`, `count`) · `receive` (`issue`, `make_copy`) · `claim` (`issue`) · `mark_missing` (`issue`) | make the expected issues; check an issue in (a reference copy); note a claim; mark missing (staff, POST) |
+| `sok_resdesk.ill.steps` (`request`) · `advance` (`request`, `to`, `note`) · `charge_fee` (`request`) | the next steps of an interlibrary request; take one; charge the fee to the member (staff) |
+| `sok_resdesk.ill.request_mine` (`title`, `author`, `isbn`, `notes`) · `cancel_mine` (`request`) | a member asks for a book from another library; cancels a request not yet started (POST) |
+| `sok_resdesk.payments.start` | a Razorpay payment link for what the signed-in member owes (POST) |
+| `sok_resdesk.payments.webhook` | Razorpay's `payment_link.paid` event: marks the fines paid; believed only with the right `X-Razorpay-Signature` (guest, POST) |
 | (page) `/p/<address>` | a published RD Site Page; staff may preview a draft; Signed-in Readers Only sends guests to sign in |
 | `sok_resdesk.ingest.ia_keys_from_login` (`email`, `password`, POST) | trade an archive.org login for the account's access keys, kept in Settings; the password is not stored |
 | `sok_resdesk.jobs.run_first` (`job_id`) | move one waiting job to the front of its queue |

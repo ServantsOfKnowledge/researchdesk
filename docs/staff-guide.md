@@ -281,8 +281,8 @@ uses.
 ![Settings → Features: the kinds of institution, suggestions from the data, and the features](../sok_resdesk/public/images/guide/desk-features.png)
 
 **Your institution** (the installer asks it first; [Installation](installation.md#docker-one-command)): tick every kind that fits: *Small library or school*, *Public research
-portal*, *Members-only institution*, *Archive keeping its own copies*, *University or repository
-front*, *Language-technology partner*, *Manuscript library or archive*, *Photograph archive*, *School or college library (lends books)*. They combine: a library can be a public research portal and
+portal*, *Members-only institution*, *Archive keeping its own copies*, *University or research
+institution*, *Language-technology partner*, *Manuscript library or archive*, *Photograph archive*, *School or college library (lends books)*. They combine: a library can be a public research portal and
 an archive at once. Ticking or unticking one sets the features to what the ticked kinds need, and
 the resource preset (Settings → Server) to the largest of theirs. You can still change each feature
 afterwards.

@@ -1,0 +1,122 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-30 10:00:00.000000",
+ "modified": "2026-10-30 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Fine Payment",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "autoname": "format:FP-{#####}",
+ "field_order": [
+  "patron",
+  "amount",
+  "status",
+  "cb",
+  "provider",
+  "provider_ref",
+  "provider_payment_id",
+  "paid_on",
+  "fine_names",
+  "link_url"
+ ],
+ "fields": [
+  {
+   "fieldname": "patron",
+   "fieldtype": "Link",
+   "label": "Member",
+   "options": "RD Patron",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Float",
+   "label": "Amount",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Created\nPaid",
+   "default": "Created",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "provider",
+   "fieldtype": "Data",
+   "label": "Provider",
+   "read_only": 1
+  },
+  {
+   "fieldname": "provider_ref",
+   "fieldtype": "Data",
+   "label": "Payment Link",
+   "read_only": 1
+  },
+  {
+   "fieldname": "provider_payment_id",
+   "fieldtype": "Data",
+   "label": "Payment ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "paid_on",
+   "fieldtype": "Datetime",
+   "label": "Paid On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "fine_names",
+   "fieldtype": "Small Text",
+   "label": "Fines Covered",
+   "read_only": 1
+  },
+  {
+   "fieldname": "link_url",
+   "fieldtype": "Data",
+   "label": "Link",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 0
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 0,
+   "create": 0,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 0
+  }
+ ]
+}

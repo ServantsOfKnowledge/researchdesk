@@ -40,9 +40,26 @@
 	<section class="rd-card" aria-labelledby="rd-fines-h">
 		<h2 id="rd-fines-h">{{ _("Fines due") | e }}: {{ me.currency | e }}{{ me.fines_total | e }}</h2>
 		<ul>{% for f in me.fines %}<li>{{ _(f.reason) | e }}{% if f.note %} · {{ f.note | e }}{% endif %}: {{ me.currency | e }}{{ f.amount | e }}</li>{% endfor %}</ul>
-		<p class="rd-muted">{{ _("Pay at the library desk.") | e }}</p>
+		{% if me.pay_online %}<p><button class="rd-btn rd-btn--primary" type="button" id="rd-pay">{{ _("Pay online") | e }}</button> <span class="rd-muted">{{ _("You go to Razorpay to pay; the library never sees your card.") | e }}</span></p>
+		{% else %}<p class="rd-muted">{{ _("Pay at the library desk.") | e }}</p>{% endif %}
 	</section>
 	{% endif %}
+	<section class="rd-card" aria-labelledby="rd-ill-h">
+		<h2 id="rd-ill-h">{{ _("Books from other libraries") | e }}</h2>
+		{% if me.ill %}
+		<ul>{% for r in me.ill %}<li>{{ r.title | e }}{% if r.author %} · {{ r.author | e }}{% endif %} · <strong>{{ _(r.status) | e }}</strong>{% if r.status == "Lent to Patron" and r.due_on %} · {{ _("due {0}").format(r.due_on) | e }}{% elif r.status == "Received" %} · {{ _("it has arrived: ask at the desk") | e }}{% endif %}
+			{% if r.status == "Requested" %}<button class="rd-btn" type="button" data-ill-cancel="{{ r.name | e }}">{{ _("Cancel") | e }}</button>{% endif %}</li>{% endfor %}</ul>
+		{% else %}<p class="rd-muted">{{ _("Nothing requested.") | e }}</p>{% endif %}
+		<details><summary>{{ _("Ask for a book the library does not have") | e }}</summary>
+			<form id="rd-ill-form" class="rd-form" novalidate>
+				<p><label>{{ _("Title") | e }} <span aria-hidden="true">*</span> <input name="title" maxlength="300" required style="width:100%"></label></p>
+				<p><label>{{ _("Author") | e }} <input name="author" maxlength="200" style="width:100%"></label></p>
+				<p><label>{{ _("ISBN") | e }} <input name="isbn" maxlength="40" inputmode="text"></label></p>
+				<p><label>{{ _("Anything we should know") | e }} <input name="notes" maxlength="500" style="width:100%"></label></p>
+				<p class="rd-actions"><button class="rd-btn rd-btn--primary" type="submit">{{ _("Send the request") | e }}</button></p>
+			</form>
+		</details>
+	</section>
 	{% endif %}
 </div>
 {% endblock %}
@@ -53,7 +70,7 @@
 (function () {
 	const msg = document.getElementById("rd-ln-msg");
 	const T = {{ _("That did not work. Please try again.") | tojson }};
-	const post = (method, args) => fetch("/api/method/sok_resdesk.lending." + method, {
+	const post = (method, args) => fetch("/api/method/sok_resdesk." + (method.includes(".") ? method : "lending." + method), {
 		method: "POST", credentials: "same-origin",
 		headers: {"Content-Type": "application/json", "X-Frappe-CSRF-Token": window.csrf_token},
 		body: JSON.stringify(args)
@@ -63,6 +80,25 @@
 		try { text = JSON.parse(JSON.parse(r._server_messages || "[]")[0]).message.replace(/<[^>]+>/g, ""); } catch (x) {}
 		msg.textContent = text; msg.focus();
 	}).catch(() => { msg.textContent = T; msg.focus(); });
+	const pay = document.getElementById("rd-pay");
+	if (pay) pay.addEventListener("click", () => {
+		pay.disabled = true;
+		fetch("/api/method/sok_resdesk.payments.start", {method: "POST", credentials: "same-origin", headers: {"Content-Type": "application/json", "X-Frappe-CSRF-Token": window.csrf_token}, body: "{}"})
+			.then((r) => r.json()).then((r) => {
+				if (r.message && r.message.url) { window.location.href = r.message.url; return; }
+				pay.disabled = false;
+				let text = T;
+				try { text = JSON.parse(JSON.parse(r._server_messages || "[]")[0]).message.replace(/<[^>]+>/g, ""); } catch (x) {}
+				msg.textContent = text; msg.focus();
+			}).catch(() => { pay.disabled = false; msg.textContent = T; msg.focus(); });
+	});
+	const form = document.getElementById("rd-ill-form");
+	if (form) form.addEventListener("submit", (e) => {
+		e.preventDefault();
+		if (!form.elements.title.value.trim()) { msg.textContent = {{ _("Please give the title of the book.") | tojson }}; form.elements.title.setAttribute("aria-invalid", "true"); msg.focus(); return; }
+		post("ill.request_mine", {title: form.elements.title.value, author: form.elements.author.value, isbn: form.elements.isbn.value, notes: form.elements.notes.value});
+	});
+	document.querySelectorAll("[data-ill-cancel]").forEach((b) => b.addEventListener("click", () => post("ill.cancel_mine", {request: b.dataset.illCancel})));
 	document.querySelectorAll("[data-renew]").forEach((b) => b.addEventListener("click", () => post("my_renew", {loan: b.dataset.renew})));
 	document.querySelectorAll("[data-cancel]").forEach((b) => b.addEventListener("click", () => post("my_cancel_hold", {hold: b.dataset.cancel})));
 })();

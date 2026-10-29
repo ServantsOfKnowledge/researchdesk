@@ -1,0 +1,124 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-30 10:00:00.000000",
+ "modified": "2026-10-30 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Serial Issue",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "autoname": "format:ISS-{######}",
+ "search_fields": "subscription,label",
+ "field_order": [
+  "subscription",
+  "label",
+  "expected_on",
+  "cb",
+  "status",
+  "received_on",
+  "claimed_on",
+  "copy"
+ ],
+ "fields": [
+  {
+   "fieldname": "subscription",
+   "fieldtype": "Link",
+   "label": "Subscription",
+   "options": "RD Serial Subscription",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "label": "Issue",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "March 2026, or Vol. 12 No. 3: change it to the real name."
+  },
+  {
+   "fieldname": "expected_on",
+   "fieldtype": "Date",
+   "label": "Due On",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Expected\nReceived\nLate\nClaimed\nMissing",
+   "default": "Expected",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "received_on",
+   "fieldtype": "Date",
+   "label": "Received On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "claimed_on",
+   "fieldtype": "Date",
+   "label": "Claimed On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "copy",
+   "fieldtype": "Link",
+   "label": "Copy",
+   "options": "RD Copy",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 0
+  }
+ ]
+}

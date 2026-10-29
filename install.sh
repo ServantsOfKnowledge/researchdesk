@@ -187,10 +187,11 @@ else
   # features start on and how much of the machine they get; Settings → Features changes it later
   if [ -z "$PROFILES" ] && [ "$YES" != 1 ]; then
     echo
-    echo "  What kind of institution is this? Give every number that fits (they combine), e.g. 2,4."
+    echo "  What kind of institution is this: a library, a school or college, a university or research"
+    echo "  institution, an archive? Give every number that fits (they combine), e.g. 2,4."
     echo "  Leave it empty to start with every feature on."
     echo "    1  Small library or school        4  Archive keeping its own copies"
-    echo "    2  Public research portal          5  University or repository front"
+    echo "    2  Public research portal          5  University or research institution"
     echo "    3  Members-only institution        6  Language-technology partner"
     echo "    7  Manuscript library or archive   8  Photograph archive"
     echo "    9  School or college library (lends books)"

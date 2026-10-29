@@ -73,6 +73,12 @@ STRUCTURE: list = [
 			("Fines", D, "RD Fine"),
 			("Vendors", D, "RD Vendor"),
 			("Purchase Orders", D, "RD Purchase Order"),
+			("Budgets", D, "RD Budget"),
+			("Invoices", D, "RD Invoice"),
+			("Serial Subscriptions", D, "RD Serial Subscription"),
+			("Serial Issues", D, "RD Serial Issue"),
+			("Interlibrary Loans", D, "RD ILL Request"),
+			("Online Payments", D, "RD Fine Payment"),
 		],
 	),
 	(

@@ -15,6 +15,7 @@
   "vendor",
   "status",
   "cb",
+  "budget",
   "order_date",
   "expected_date",
   "total",
@@ -77,6 +78,14 @@
    "fieldname": "notes",
    "fieldtype": "Small Text",
    "label": "Notes"
+  },
+  {
+   "fieldname": "budget",
+   "fieldtype": "Link",
+   "label": "Budget",
+   "options": "RD Budget",
+   "in_standard_filter": 1,
+   "description": "What the order is charged to. Placing it refuses to go over the budget."
   }
  ],
  "links": [],

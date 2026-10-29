@@ -200,6 +200,8 @@ scheduler_events = {
 		"sok_resdesk.contact.purge_old",
 		# holds not collected go to the next member; memberships that ended expire; old loans are forgotten
 		"sok_resdesk.lending.daily",
+		# periodical issues that did not come are marked Late, and managers are told once
+		"sok_resdesk.serials.daily",
 		# deposits whose embargo has ended become readable (Settings → Features → Repository deposit)
 		"sok_resdesk.deposit.release_embargoes",
 		"sok_resdesk.ingest.run_scheduled_daily",

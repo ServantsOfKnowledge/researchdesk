@@ -1,0 +1,210 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-30 10:00:00.000000",
+ "modified": "2026-10-30 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD ILL Request",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "autoname": "format:ILL-{#####}",
+ "search_fields": "title,partner_library,patron",
+ "field_order": [
+  "direction",
+  "status",
+  "cb",
+  "patron",
+  "partner_library",
+  "partner_contact",
+  "sec_book",
+  "title",
+  "author",
+  "isbn",
+  "cb2",
+  "item",
+  "copy",
+  "sec_dates",
+  "requested_on",
+  "needed_by",
+  "due_on",
+  "cb3",
+  "fee",
+  "fee_charged",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "direction",
+   "fieldtype": "Select",
+   "label": "Direction",
+   "options": "Borrowing\nLending",
+   "default": "Borrowing",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "description": "Borrowing: we ask another library for a book for a member. Lending: another library asks us for one of ours."
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Requested\nApproved\nSent\nReceived\nLent to Patron\nReturned\nSent Back\nClosed\nRefused\nCancelled",
+   "default": "Requested",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "patron",
+   "fieldtype": "Link",
+   "label": "Member",
+   "options": "RD Patron",
+   "in_standard_filter": 1,
+   "depends_on": "eval:doc.direction=='Borrowing'"
+  },
+  {
+   "fieldname": "partner_library",
+   "fieldtype": "Data",
+   "label": "Other Library",
+   "in_list_view": 1,
+   "description": "Filled in by staff before the request is sent. For a request from another library: who is asking."
+  },
+  {
+   "fieldname": "partner_contact",
+   "fieldtype": "Data",
+   "label": "Their Contact"
+  },
+  {
+   "fieldname": "sec_book",
+   "fieldtype": "Section Break",
+   "label": "The Book"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "author",
+   "fieldtype": "Data",
+   "label": "Author"
+  },
+  {
+   "fieldname": "isbn",
+   "fieldtype": "Data",
+   "label": "ISBN"
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Our Catalogue Record",
+   "options": "RD Item",
+   "depends_on": "eval:doc.direction=='Lending'"
+  },
+  {
+   "fieldname": "copy",
+   "fieldtype": "Link",
+   "label": "Our Copy",
+   "options": "RD Copy",
+   "depends_on": "eval:doc.direction=='Lending'",
+   "description": "The copy that goes to the other library. It is off the shelf until it returns."
+  },
+  {
+   "fieldname": "sec_dates",
+   "fieldtype": "Section Break",
+   "label": "Dates and Charges"
+  },
+  {
+   "fieldname": "requested_on",
+   "fieldtype": "Date",
+   "label": "Requested On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "needed_by",
+   "fieldtype": "Date",
+   "label": "Needed By"
+  },
+  {
+   "fieldname": "due_on",
+   "fieldtype": "Date",
+   "label": "Due Back",
+   "read_only": 1,
+   "description": "For a book lent to a member: the date it is due."
+  },
+  {
+   "fieldname": "cb3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fee",
+   "fieldtype": "Float",
+   "label": "Fee",
+   "description": "What the other library charges, or postage. Charged to the member on request."
+  },
+  {
+   "fieldname": "fee_charged",
+   "fieldtype": "Check",
+   "label": "Fee Charged to Member",
+   "read_only": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "links": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 0
+  }
+ ]
+}

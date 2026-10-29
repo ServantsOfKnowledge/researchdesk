@@ -12,7 +12,7 @@ proofreading, and **kept safe** with checked copies and permanent links. It shar
 through open standards and gives back to Wikidata, Wikisource and Commons. It runs on
 [Frappe](https://frappe.io) and is free software (MIT).
 
-It is built for institutions: roles and members-only access, reviewed deposits, archival
+It is built for libraries, archives, schools and colleges, **universities and research institutions**: roles and members-only access, reviewed deposits, archival
 description, accessibility checked in every release (WCAG 2.2 AA), a Server page with health
 checks, backups and upgrades, and an optional **governance edition** for government records
 (classification, audit log, retention, disclosure and redaction) that is installed only when

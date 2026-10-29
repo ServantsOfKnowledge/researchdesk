@@ -38,6 +38,16 @@ ME = {
 	"fines": [{"name": "F-00001", "amount": 10.0, "reason": "Overdue", "note": "5 days late"}],
 	"fines_total": 10.0,
 	"currency": "₹",
+	"ill": [
+		{
+			"name": "ILL-00001",
+			"title": "A Rare Book",
+			"author": "Someone",
+			"status": "Requested",
+			"due_on": "",
+		}
+	],
+	"pay_online": True,
 }
 
 
@@ -143,3 +153,27 @@ def test_the_id_card_is_credit_card_size_and_has_no_wcag_problems(page, site, ax
 	)
 	assert 84 <= width <= 87  # 85.6 mm
 	assert axe_violations(page, axe_js) == []
+
+
+def test_online_payment_and_interlibrary_requests_call_the_server(page, site, axe_js):
+	body, script = render_template("loans.html", state="member", status="Active", me=ME)
+	page.goto(
+		site.write("loans_more.html", page_shell(body, f"<script>{STUB_GLOBALS}{RECORD}</script>{script}"))
+	)
+	assert axe_violations(page, axe_js) == []
+	page.click("#rd-pay")
+	page.wait_for_function("window.sent")
+	assert page.evaluate("window.sent")[0].endswith("sok_resdesk.payments.start")
+	page.evaluate("window.sent = null")
+	page.click("[data-ill-cancel]")
+	page.wait_for_function("window.sent")
+	assert page.evaluate("window.sent")[0].endswith("sok_resdesk.ill.cancel_mine")
+	page.evaluate("window.sent = null; document.querySelector('details').open = true")
+	page.click("#rd-ill-form button[type=submit]")
+	assert "title" in page.inner_text("#rd-ln-msg")  # nothing is sent without one
+	assert page.evaluate("window.sent") is None
+	page.fill("#rd-ill-form [name=title]", "Another Rare Book")
+	page.click("#rd-ill-form button[type=submit]")
+	page.wait_for_function("window.sent")
+	url, sent = page.evaluate("window.sent")
+	assert url.endswith("sok_resdesk.ill.request_mine") and sent["title"] == "Another Rare Book"

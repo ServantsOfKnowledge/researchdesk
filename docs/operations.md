@@ -355,7 +355,7 @@ Every setting:
 | Public research portal | Switches on: page-level full-text search, OCR, proofreading and ground truth, readers' notes, authority control, review queue, permanent identifiers, sharing metadata, usage statistics, audio and video, manuscripts and palm leaves, photographs. Resources: standard. |
 | Members-only institution | Switches on: page-level full-text search, reader accounts, library systems, review queue, sharing metadata, manuscripts and palm leaves, photographs. Resources: standard. |
 | Archive keeping its own copies | Switches on: preservation, permanent identifiers, books from folders and servers, review queue, audio and video, manuscripts and palm leaves, photographs. Resources: standard. |
-| University or repository front | Switches on: page-level full-text search, OCR, books from repositories, books from folders and servers, permanent identifiers, sharing metadata, library systems, repository deposit, review queue, manuscripts and palm leaves, photographs. Resources: standard. |
+| University or research institution | Switches on: page-level full-text search, OCR, books from repositories, books from folders and servers, permanent identifiers, sharing metadata, library systems, repository deposit, review queue, manuscripts and palm leaves, photographs. Resources: standard. |
 | Language-technology partner | Switches on: page-level full-text search, OCR, proofreading and ground truth, sharing metadata. Resources: server. |
 | Manuscript library or archive | For libraries and archives that hold manuscripts, palm leaves and photographs. Switches on: page-level full-text search, proofreading and ground truth, manuscripts and palm leaves, photographs, books from folders and servers, audio and video, preservation, permanent identifiers, review queue, sharing metadata. Resources: standard. |
 | Photograph archive | Switches on: photographs, books from folders and servers, preservation, permanent identifiers, review queue, sharing metadata. Resources: standard. |
@@ -600,6 +600,17 @@ Every setting:
 | Governance Mode | Governance edition only. Records who viewed, downloaded, searched and changed what, in a log that cannot be edited or deleted from the Desk and shows any tampering (Audit Log). Meant for a government or institutional deployment; off, nothing is recorded. |
 | Days to Reply to a Disclosure Request | Governance edition only. How many days after a request for records arrives the reply is owed (Disclosure Requests). Set it to what the law or the office's rules say. |
 | Appeal Note for Disclosure Replies | Governance edition only. Printed at the end of every reply to a disclosure request: who the applicant may appeal to, and within how long. |
+| Open Interlibrary Requests per Member | How many requests for books from other libraries one member may have open at once. 0 = no limit. |
+
+**Online Payment of Fines**
+
+| Setting | What it does |
+|---|---|
+| Online Payment | Off: fines are paid at the desk. Razorpay: members can pay what they owe from My library; Razorpay holds the money and the card details. Not available in Classified mode (it needs an outside connection). Choices: *Off*, *Razorpay*. |
+| Razorpay Key ID | From the Razorpay dashboard (Settings → API keys). |
+| Razorpay Key Secret | Kept encrypted. Never shown again after saving. |
+| Razorpay Webhook Secret | A secret you choose, typed here and in the Razorpay webhook (event payment_link.paid, address /api/method/sok_resdesk.payments.webhook on this portal). |
+| Someone Else Must Approve an Invoice | On: the manager who entered an invoice cannot approve it; another manager must. Leave it off in a library with one manager. |
 <!-- /generated:settings -->
 
 ## Users and roles

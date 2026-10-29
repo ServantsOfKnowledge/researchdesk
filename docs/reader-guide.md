@@ -226,7 +226,7 @@ the optional **About me** page (volunteering, support needs), see
 
 ## Borrowing and My library
 
-If your library lends books, a book's page says how many copies are on the shelf, and **Place a hold** when all are out. **Become a member** (a link on a book's page and on the sign-up page, or `/library/membership`) with the number on your ID card; if the library has you on its list you can borrow at once, otherwise a librarian checks your ID. **My library** (`/library/loans`) shows what you have on loan and when it is due, with a **Renew** button, your holds, any fines, and your ID card to show or print. The library sends no email about due dates: look here.
+If your library lends books, a book's page says how many copies are on the shelf, and **Place a hold** when all are out. **Become a member** (a link on a book's page and on the sign-up page, or `/library/membership`) with the number on your ID card; if the library has you on its list you can borrow at once, otherwise a librarian checks your ID. **My library** (`/library/loans`) shows what you have on loan and when it is due, with a **Renew** button, your holds, any fines, and your ID card to show or print. The library sends no email about due dates: look here. If the library does not have a book you need, **Ask for a book the library does not have** on My library sends a request to borrow it from another library, and shows where it is. If the library takes online payment, **Pay online** next to your fines takes you to Razorpay to pay them.
 
 ## Writing to the library
 

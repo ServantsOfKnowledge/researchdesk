@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.106.0 (2026-10-30): Budgets, serials, interlibrary loan, online payment of fines
+
+- **Budgets and invoices.** A budget has an amount; a purchase order charged to it refuses to go over what is left. Vendor invoices are checked against the order and what arrived (flagged when more than 5% over), approved and recorded as paid by managers, and turn a commitment into spending without counting it twice.
+- **Periodicals.** Subscriptions with a frequency make the expected issues; checking one in makes a reference copy with a barcode; overdue issues become Late and managers get one Desk alert a night.
+- **Interlibrary loan,** borrowing and lending, with fixed steps (a book cannot reach the member before it arrived). Members can ask for a book from My library; the other library's fee can be charged to them as a fine.
+- **Online payment of fines through Razorpay payment links,** off until the library gives its keys. The card details go to Razorpay, no email or SMS is sent, the webhook is believed only with the right signature, and it is refused in Classified mode.
+- *University or research institution* is now the name of the profile for universities and research institutions, in the installer and the docs.
 ## 0.105.1 (2026-10-29): Lending, finished
 
 - **Fixed: receiving a purchase order failed** after a first refused attempt (the order stayed locked). Two deliveries entered together are still kept apart, with a database lock.

@@ -176,6 +176,12 @@ FEATURES: dict[str, Feature] = {
 				"RD Fine",
 				"RD Vendor",
 				"RD Purchase Order",
+				"RD Budget",
+				"RD Invoice",
+				"RD Serial Subscription",
+				"RD Serial Issue",
+				"RD ILL Request",
+				"RD Fine Payment",
 			),
 			pages=("resdesk-circulation",),
 		),
@@ -271,7 +277,7 @@ PROFILES: dict[str, Profile] = {
 		),
 		Profile(
 			"repository",
-			"University or repository front",
+			"University or research institution",
 			frozenset(
 				{
 					"page_search",

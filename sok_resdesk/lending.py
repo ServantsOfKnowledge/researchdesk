@@ -206,6 +206,8 @@ def snapshot(patron: str) -> dict:
 		order_by="creation asc",
 	)
 	why = _standing(p)
+	from sok_resdesk import ill, payments  # they use this module too
+
 	return {
 		"patron": {
 			"name": p.name,
@@ -223,6 +225,8 @@ def snapshot(patron: str) -> dict:
 		"fines": fines,
 		"fines_total": round(sum(f.amount for f in fines), 2),
 		"currency": currency(),
+		"ill": ill.mine(patron),
+		"pay_online": payments.configured(),
 	}
 
 

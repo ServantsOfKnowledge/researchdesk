@@ -13,7 +13,8 @@ import frappe
 from frappe import _
 from frappe.utils import cint, flt, nowdate
 
-from sok_resdesk import features
+from sok_resdesk import access, features
+from sok_resdesk.core import budget as money
 from sok_resdesk.lending import STAFF
 
 MAX_PER_DELIVERY = 500
@@ -63,6 +64,13 @@ def place(order: str) -> dict:
 		frappe.throw(_("Only a draft order can be placed."))
 	if not doc.lines:
 		frappe.throw(_("Add the books to order first."))
+	if doc.budget and not _fits(doc.budget, doc.total, exclude=doc.name):
+		frappe.throw(
+			_("This order is more than what is left in {0}. Raise the budget or order less.").format(
+				doc.budget
+			),
+			title=_("Over budget"),
+		)
 	doc.status = "Ordered"
 	doc.order_date = doc.order_date or nowdate()
 	doc.flags.ignore_permissions = True
@@ -143,3 +151,145 @@ def labels(barcodes: str) -> dict:
 		if title is not None or frappe.db.exists("RD Copy", code):
 			out.append({"barcode": code, "title": title or "", "svg": svg(code, height=40, module=2)})
 	return {"labels": out}
+
+
+# -- budgets and invoices ----------------------------------------------------------------------------
+
+
+def _managers() -> None:
+	"""Money decisions (approving and paying an invoice, a budget) are a manager's."""
+	if not features.on("lending"):
+		frappe.throw(features.off_message("lending"), title=_("Switched off"))
+	frappe.only_for(access.MANAGER_ROLES)
+
+
+def _budget_figures(budget: str, exclude: str = "") -> tuple[float, list, float]:
+	"""(amount, [(order total, status, invoiced on it)], invoiced on the budget) for the arithmetic."""
+	amount = flt(frappe.db.get_value("RD Budget", budget, "amount"))
+	orders = []
+	for po in frappe.get_all(
+		"RD Purchase Order",
+		filters={"budget": budget, "name": ("!=", exclude)},
+		fields=["name", "total", "status"],
+	):
+		invoiced = flt(
+			frappe.db.sql(
+				"select coalesce(sum(amount), 0) from `tabRD Invoice` where `order`=%s and status!='Cancelled'",
+				po.name,
+			)[0][0]
+		)
+		orders.append((flt(po.total), po.status, invoiced))
+	spent = flt(
+		frappe.db.sql(
+			"select coalesce(sum(amount), 0) from `tabRD Invoice` where budget=%s and status!='Cancelled'",
+			budget,
+		)[0][0]
+	)
+	return amount, orders, spent
+
+
+def _fits(budget: str, extra: float, exclude: str = "") -> bool:
+	return money.fits(*_budget_figures(budget, exclude), extra)
+
+
+@frappe.whitelist()
+def budget_summary(budget: str) -> dict:
+	"""What a budget holds: its amount, what orders have committed, what invoices have spent, what is left."""
+	_staff()
+	return money.summary(*_budget_figures(budget))
+
+
+def _received_value(order: str) -> float:
+	return money.received_value(
+		[(r.received, r.unit_price) for r in frappe.get_doc("RD Purchase Order", order).lines]
+	)
+
+
+def check_invoice(doc) -> None:
+	"""RD Invoice.validate: the order's vendor and budget, a number not used before, and the three-way check."""
+	if flt(doc.amount) <= 0:
+		frappe.throw(_("The invoice amount must be more than nothing."))
+	doc.invoice_number = (doc.invoice_number or "").strip().upper()  # INV-1 and inv-1 are one invoice
+	if doc.is_new():
+		doc.status, doc.approved_by, doc.paid_on = "Draft", None, None  # only the buttons approve and pay
+	else:
+		before = doc.get_doc_before_save()
+		if before and not doc.flags.get("from_workflow"):
+			if doc.status != before.status or doc.approved_by != before.approved_by:
+				frappe.throw(_("Use Approve, Record Payment or Cancel to change an invoice's state."))
+			if before.status != "Draft" and any(
+				doc.get(f) != before.get(f) for f in ("amount", "vendor", "order", "budget", "invoice_number")
+			):
+				frappe.throw(
+					_("An invoice that has been approved cannot be changed. Cancel it and enter another.")
+				)
+	if frappe.db.exists(
+		"RD Invoice",
+		{
+			"vendor": doc.vendor,
+			"invoice_number": doc.invoice_number,
+			"name": ("!=", doc.name),
+			"status": ("!=", "Cancelled"),
+		},
+	):
+		frappe.throw(_("This vendor's invoice {0} is already entered.").format(doc.invoice_number))
+	doc.match = ""
+	if doc.order:
+		po = frappe.get_doc("RD Purchase Order", doc.order)
+		if po.vendor != doc.vendor:
+			frappe.throw(_("The order {0} is with another vendor.").format(doc.order))
+		doc.budget = doc.budget or po.budget
+		doc.match = money.three_way(doc.amount, po.total, _received_value(doc.order))
+
+
+def _invoice(name: str, *states: str):
+	doc = frappe.get_doc("RD Invoice", name)
+	if doc.status not in states:
+		frappe.throw(_("An invoice that is {0} cannot be changed this way.").format(_(doc.status)))
+	return doc
+
+
+@frappe.whitelist(methods=["POST"])
+def invoice_approve(invoice: str) -> dict:
+	"""A manager approves an invoice for payment. One that asks for more than the order or the books received
+	is approved only by someone who knows why, so it says so."""
+	_managers()
+	doc = _invoice(invoice, "Draft")
+	if (
+		cint(frappe.db.get_single_value("RD Settings", "invoice_separate_approval"))
+		and doc.owner == frappe.session.user
+	):
+		frappe.throw(_("Another manager must approve an invoice you entered."))
+	if doc.budget and not _fits(doc.budget, 0):
+		frappe.throw(_("{0} is already over budget.").format(doc.budget), title=_("Over budget"))
+	doc.status = "Approved"
+	doc.approved_by = frappe.session.user
+	doc.flags.from_workflow = True
+	doc.flags.ignore_permissions = True
+	doc.save()
+	return {"status": doc.status, "match": doc.match}
+
+
+@frappe.whitelist(methods=["POST"])
+def invoice_pay(invoice: str, note: str = "") -> dict:
+	"""The library paid it (outside Research Desk): record how and when."""
+	_managers()
+	doc = _invoice(invoice, "Approved")
+	doc.status = "Paid"
+	doc.paid_on = nowdate()
+	doc.payment_note = note or doc.payment_note
+	doc.flags.from_workflow = True
+	doc.flags.ignore_permissions = True
+	doc.save()
+	return {"status": doc.status}
+
+
+@frappe.whitelist(methods=["POST"])
+def invoice_cancel(invoice: str) -> dict:
+	_managers()
+	doc = _invoice(invoice, "Draft", "Approved")
+	doc.status = "Cancelled"
+	doc.flags.from_workflow = True
+	doc.flags.ignore_permissions = True
+	doc.save()
+	return {"status": doc.status}
