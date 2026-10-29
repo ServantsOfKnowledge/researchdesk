@@ -454,7 +454,9 @@ def apply_profiles(doc, force: bool = False) -> None:
 
 
 def changed(doc) -> bool:
-	return any(doc.has_value_changed(field_of(k)) for k in FEATURES)
+	return any(doc.has_value_changed(field_of(k)) for k in FEATURES) or bool(
+		doc.has_value_changed("registry_receive")  # the Install Notes screen follows it
+	)
 
 
 def apply(doc=None) -> None:
@@ -483,6 +485,10 @@ def hidden_targets() -> set[str]:
 		if not on(f.key):
 			out.update(f.doctypes)
 			out.update(f.pages)
+	from sok_resdesk import registry
+
+	if not registry.receiving():  # the registry's own screens, on research.servantsofknowledge.in only
+		out.update(("resdesk-install-notes", "RD Install Ping"))
 	return out
 
 

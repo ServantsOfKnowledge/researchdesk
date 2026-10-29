@@ -127,6 +127,7 @@ STRUCTURE: list = [
 			("Server", P, "resdesk-server"),
 			("Background Jobs", P, "resdesk-jobs"),
 			("Logs", P, "resdesk-logs"),
+			("Install Notes", P, "resdesk-install-notes"),
 			("Convert Old Kannada Text", P, "resdesk-kannada-converter"),
 			("Help", P, "resdesk-help"),
 		],

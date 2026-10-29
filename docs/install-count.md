@@ -49,5 +49,5 @@ a few minutes.
 The same app receives the notes: Settings → **This Site Is the Registry** (System Manager), on `research.servantsofknowledge.in`
 and nowhere else. On any other site the endpoint answers as if it did not exist. It takes only an exact note (the five
 fields, correct shapes and sizes), at most one a hour per `id`, at most 500 new `id`s a day (after that the sender gets an error and tries again the next day), 30 requests a minute from
-one address. **RD Install Ping** lists what was received; `sok_resdesk.registry.summary` (System Manager) counts the
+one address. **Install Notes** in the sidebar (Running the Library; it is listed only on the registry site) shows the counts as cards, with the most recent installs below and a link to the full list of **RD Install Ping**, which can be filtered and exported; `sok_resdesk.registry.summary` (System Manager) counts the
 installs heard from lately by version, edition, kind and kind of institution.

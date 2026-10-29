@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.113.0 (2026-10-29): Install Notes screen for the registry
+
+- **Install Notes.** On the site that is the registry (Settings → Install Note → This Site Is the Registry), a new screen under Running
+  the Library shows how many installs have been heard from and are still sending, the counts by version, edition, install type and
+  kind of institution, and the most recent installs, with a link to the full list. It is not listed anywhere else.
+
 ## 0.112.0 (2026-10-29): Logs have their own page
 
 - **Logs are off the Server page.** Errors, Log QA, Failed jobs and Log files now have their own **Logs** page (sidebar → Running the

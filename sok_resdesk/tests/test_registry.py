@@ -100,6 +100,22 @@ class TestInstallNote(IntegrationTestCase):
 		row.reload()
 		self.assertEqual((row.version, row.pings), ("0.110.0", 2))
 
+	def test_the_install_notes_screen_follows_the_registry_switch(self):
+		from sok_resdesk import features
+
+		was = frappe.db.get_single_value("RD Settings", "registry_receive", cache=False)
+		try:
+			frappe.db.set_single_value("RD Settings", "registry_receive", 0)
+			self.assertIn("resdesk-install-notes", features.hidden_targets())
+			frappe.db.set_single_value("RD Settings", "registry_receive", 1)
+			self.assertNotIn("resdesk-install-notes", features.hidden_targets())
+			registry.take(rules.payload(ID, "0.113.0", "standard", "docker", ["school"]))
+			rows = registry.recent(10)
+			self.assertEqual(rows[0]["instance_id"], ID)
+			self.assertTrue(registry.summary()["receiving"])
+		finally:
+			frappe.db.set_single_value("RD Settings", "registry_receive", was or 0)
+
 	def test_a_site_that_is_not_the_registry_answers_as_if_the_page_did_not_exist(self):
 		frappe.db.set_single_value("RD Settings", "registry_receive", 0)
 		frappe.set_user("Guest")

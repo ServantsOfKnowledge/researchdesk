@@ -57,6 +57,7 @@ SCREEN_HELP = {
 	"RD Reader Profile": ("staff-guide", "reader-profiles-and-volunteers"),
 	"RD Creator": ("staff-guide", "authors-and-subjects"),
 	"RD Subject": ("staff-guide", "authors-and-subjects"),
+	"resdesk-install-notes": ("install-count", "for-the-registry-servants-of-knowledge-only"),
 	"resdesk-logs": ("server", "log-qa-and-folding-sections"),
 	"resdesk-statistics": ("staff-guide", "portal-statistics"),
 	"resdesk-jobs": ("operations", "background-jobs-see-pause-and-stop-what-is-running"),

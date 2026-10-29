@@ -185,6 +185,25 @@ def take(note: dict) -> bool:
 
 
 @frappe.whitelist()
+def recent(limit: int = 200) -> list[dict]:
+	"""The installs heard from lately, newest first (System Manager, on the registry only)."""
+	frappe.only_for(("System Manager", "SOK Super Admin"))
+	rows = frappe.get_all(
+		"RD Install Ping",
+		fields=["instance_id", "version", "edition", "kind", "profiles", "first_seen", "last_seen", "pings"],
+		order_by="last_seen desc",
+		limit_page_length=max(1, min(cint(limit), 1000)),
+	)
+	for r in rows:
+		r["first_seen"], r["last_seen"] = str(r["first_seen"])[:16], str(r["last_seen"])[:16]
+	return rows
+
+
+def receiving() -> bool:
+	return bool(cint(frappe.db.get_single_value("RD Settings", "registry_receive", cache=False)))
+
+
+@frappe.whitelist()
 def summary() -> dict:
 	"""How many installs have been heard from and are still sending (System Manager, on the registry only)."""
 	frappe.only_for(("System Manager", "SOK Super Admin"))
@@ -193,4 +212,4 @@ def summary() -> dict:
 	)
 	for r in rows:
 		r["last_seen"] = getdate(r["last_seen"])
-	return rules.summarize(rows, getdate(nowdate()))
+	return {**rules.summarize(rows, getdate(nowdate())), "receiving": receiving()}
