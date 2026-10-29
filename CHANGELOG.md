@@ -1,6 +1,17 @@
 # Changelog
 
-## 0.107.0 (2026-10-31): Invoice lines and GST
+## 0.108.0 (2026-10-29): Claims to vendors, bundled periodicals, self-service kiosk
+
+- **Claims to vendors.** *Claim Letter* on a vendor lists the orders past their date and the periodical issues that are
+  Late, as a letter to copy or print; *I Sent It* notes the date so nothing is claimed twice within two weeks. Managers get
+  one Desk alert a night for orders past their date.
+- **Several titles in one subscription.** A subscription can list more titles: each expected date has an issue for each,
+  checked in under that title's own catalogue record.
+- **Self-service kiosk.** A device with the new role ResDesk Kiosk opens `/library/kiosk`: a member scans their card, types
+  the PIN they chose under My library, and borrows. Loans use the desk's rules; five wrong tries lock the card for fifteen
+  minutes, and a kiosk that fails twenty times in ten minutes is refused; a session ends after a minute idle. A PIN is set with the account password. Returns stay at the desk.
+
+## 0.107.0 (2026-10-29): Invoice lines and GST
 
 - **Invoice lines.** An invoice can list what it bills (item, quantity, rate, HSN, GST %); each line's tax and the
   invoice total are worked out, and *Fill lines from the order* starts the list. An invoice without lines works as before.
@@ -10,16 +21,16 @@
 - **Checked against the order.** With lines the taxable value (the order's prices are before tax) is compared with the
   order and with what arrived, and a line that names an order line is checked on its own quantity.
 
-## 0.106.2 (2026-10-30): Koha import of patrons and loans noted as on hold
+## 0.106.2 (2026-10-29): Koha import of patrons and loans noted as on hold
 
 - The roadmap now lists moving patrons, items, loans and fines from Koha as on hold, and why.
 
-## 0.106.1 (2026-10-30): Install fix for 0.106.0; the overview picture and README show lending
+## 0.106.1 (2026-10-29): Install fix for 0.106.0; the overview picture and README show lending
 
 - **Fixes the 0.106.0 install.** The periodical subscription screen had no code file, so a new site could not be installed and 0.106.0 was never released. A test now checks every screen has one.
 - The "how it fits together" picture has a Lending and buying box, and the README names the lending desk.
 
-## 0.106.0 (2026-10-30): Budgets, serials, interlibrary loan, online payment of fines
+## 0.106.0 (2026-10-29): Budgets, serials, interlibrary loan, online payment of fines
 
 - **Budgets and invoices.** A budget has an amount; a purchase order charged to it refuses to go over what is left. Vendor invoices are checked against the order and what arrived (flagged when more than 5% over), approved and recorded as paid by managers, and turn a commitment into spending without counting it twice.
 - **Periodicals.** Subscriptions with a frequency make the expected issues; checking one in makes a reference copy with a barcode; overdue issues become Late and managers get one Desk alert a night.

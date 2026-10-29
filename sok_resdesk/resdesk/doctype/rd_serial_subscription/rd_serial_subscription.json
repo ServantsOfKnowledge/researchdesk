@@ -27,7 +27,9 @@
   "sec_more",
   "price",
   "location",
-  "notes"
+  "notes",
+  "sec_titles",
+  "titles"
  ],
  "fields": [
   {
@@ -114,6 +116,18 @@
    "fieldname": "notes",
    "fieldtype": "Small Text",
    "label": "Notes"
+  },
+  {
+   "fieldname": "sec_titles",
+   "fieldtype": "Section Break",
+   "label": "More Titles in This Subscription",
+   "description": "One subscription from one vendor can bring several periodicals. The title above is the first; list the others here. Each expected date then has one issue for every title."
+  },
+  {
+   "fieldname": "titles",
+   "fieldtype": "Table",
+   "label": "Other Titles",
+   "options": "RD Serial Title"
   }
  ],
  "links": [],

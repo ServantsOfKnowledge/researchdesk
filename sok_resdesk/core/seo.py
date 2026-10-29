@@ -32,6 +32,7 @@ DISALLOW = (
 	"/library/notes",
 	"/library/withdrawn",
 	"/library/loans",
+	"/library/kiosk",
 	"/library/card",
 	"/library/labels",
 	"/library/membership",

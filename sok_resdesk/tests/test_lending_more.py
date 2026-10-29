@@ -13,7 +13,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import getdate, nowdate
 
-from sok_resdesk import acquisitions, ill, lending, payments, serials
+from sok_resdesk import acquisitions, claims, ill, kiosk, lending, payments, serials
 from sok_resdesk.catalogue import upsert_item
 from sok_resdesk.core import payments as pay_rules
 
@@ -172,6 +172,79 @@ class TestMoreLending(IntegrationTestCase):
 			frappe.get_doc(
 				{"doctype": "RD Vendor", "vendor_name": "Bad GSTIN", "gstin": "27AAPFU0939F1ZX"}
 			).insert(ignore_permissions=True)
+
+	# -- claims, bundled titles, the kiosk ---------------------------------------------------------
+
+	def test_a_claim_letter_lists_what_is_owed_and_is_not_repeated(self):
+		po = self.order(2, 100, expected_date="2026-01-05")
+		acquisitions.place(po.name)
+		out = claims.letter("Test Vendor")
+		self.assertEqual((out["orders"], out["issues"]), (1, 0))
+		self.assertIn("2 x Ordered Title", out["text"])
+		self.assertEqual(claims.mark_claimed("Test Vendor")["orders"], 1)
+		self.assertEqual(claims.letter("Test Vendor")["orders"], 0)  # asked just now: not again for two weeks
+		self.assertEqual(frappe.db.get_value("RD Purchase Order", po.name, "claim_count"), 1)
+
+	def test_one_subscription_brings_an_issue_of_every_title(self):
+		sub = self.subscription(titles=[{"title": "The Weekly Extra"}])
+		self.assertEqual(serials.generate(sub.name, 2)["made"], 4)
+		extra = frappe.get_all(
+			"RD Serial Issue",
+			filters={"subscription": sub.name, "periodical": "The Weekly Extra"},
+			pluck="name",
+		)
+		self.assertEqual(len(extra), 2)
+		out = serials.receive(extra[0])
+		self.assertIn("The Weekly Extra", frappe.db.get_value("RD Copy", out["barcode"], "notes"))
+		self.assertTrue(frappe.db.get_value("RD Serial Title", {"parent": sub.name}, "item"))
+
+	def test_the_kiosk_needs_card_and_pin_and_locks_after_five_wrong_tries(self):
+		from frappe.utils.password import update_password
+
+		member = patron("Kiosk Member")
+		update_password(member, "1234", doctype="RD Patron", fieldname=lending.PIN_FIELD)
+		copy = frappe.get_doc({"doctype": "RD Copy", "item": ITEM, "barcode": "RDTEST-K1"}).insert(
+			ignore_permissions=True
+		)
+		cache = frappe.cache()
+		cache.delete_value(f"rd_kiosk_tries:{member.upper()}")
+		try:
+			for _i in range(kiosk.MAX_TRIES):
+				with self.assertRaises(frappe.AuthenticationError):
+					kiosk.start(member, "0000")
+			with self.assertRaises(frappe.AuthenticationError):  # locked: even the right PIN waits
+				kiosk.start(member, "1234")
+			cache.delete_value(f"rd_kiosk_tries:{member.upper()}")
+			with self.assertRaises(frappe.AuthenticationError):
+				kiosk.start("NO-SUCH-CARD", "1234")
+			session = kiosk.start(member, "1234")
+			done = kiosk.borrow(session["token"], copy.name)
+			self.assertEqual(frappe.db.get_value("RD Loan", done["loan"], "patron"), member)
+			with self.assertRaises(frappe.PermissionError):
+				kiosk.borrow("not-a-token", copy.name)
+			kiosk.end(session["token"])
+			with self.assertRaises(frappe.PermissionError):
+				kiosk.borrow(session["token"], copy.name)
+		finally:
+			cache.delete_value(f"rd_kiosk_tries:{member.upper()}")
+			cache.delete_value(f"rd_kiosk_device:{frappe.session.user}")
+
+	def test_a_member_who_cannot_borrow_cannot_use_the_kiosk(self):
+		from frappe.utils.password import update_password
+
+		member = patron("Blocked Member", status="Blocked")
+		update_password(member, "1234", doctype="RD Patron", fieldname=lending.PIN_FIELD)
+		session = kiosk.start(member, "1234")  # signed in, but the loan itself is refused by the rules
+		copy = frappe.get_doc({"doctype": "RD Copy", "item": ITEM, "barcode": "RDTEST-K2"}).insert(
+			ignore_permissions=True
+		)
+		with self.assertRaises(frappe.ValidationError):
+			kiosk.borrow(session["token"], copy.name)
+		frappe.cache().delete_value(f"rd_kiosk_device:{frappe.session.user}")
+		pending = patron("Pending Member", status="Pending")
+		update_password(pending, "1234", doctype="RD Patron", fieldname=lending.PIN_FIELD)
+		with self.assertRaises(frappe.AuthenticationError):
+			kiosk.start(pending, "1234")
 
 	# -- budgets and invoices --------------------------------------------------------------------
 

@@ -440,6 +440,7 @@ to it follows; set *Home Page* back to `library` to return.
 | ResDesk Cataloguer | edit books, authors, subjects and collections; exports and spreadsheet imports; read ingest runs |
 | ResDesk Reader | the portal only: read members-only books |
 | ResDesk Proofreader | the portal only: correct and validate page text, and read pages again with OCR |
+| ResDesk Kiosk | a self-service kiosk's own account: lets members borrow with card and PIN ([Lending](lending.md#self-service-kiosk)); never for a person |
 
 Give and take roles on **People & Roles** (below).
 

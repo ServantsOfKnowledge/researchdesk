@@ -121,6 +121,8 @@ only; 10 a minute.
 | `sok_resdesk.lending.checkout` (`patron`, `barcode`) · `checkin` (`barcode`) | lend a copy; take it back (late fine charged, next hold kept) (staff, POST) |
 | `sok_resdesk.lending.renew` (`loan`) · `mark_lost` (`loan`) · `settle_fine` (`fine`, `waive`) | renew a loan; close it as lost; mark a fine paid or waived (staff, POST) |
 | `sok_resdesk.lending.place_hold_for` (`patron`, `item`) · `cancel_hold_staff` (`hold`) | place or cancel a hold for a member (staff, POST) |
+| `sok_resdesk.lending.my_set_pin` (`pin`, `password`) | a member chooses the PIN for the self-service kiosk, confirming with the account password (POST, rate limited; only a hash is kept) |
+| `sok_resdesk.kiosk.start` (`card`, `pin`) · `borrow` (`token`, `barcode`) · `renew` (`token`, `loan`) · `end` (`token`) | the self-service kiosk: sign a member in (five wrong tries lock the card for 15 minutes), borrow, renew, finish (the role ResDesk Kiosk or a manager, POST, rate limited) |
 | `sok_resdesk.lending.my` · `my_renew` (`loan`) · `my_hold` (`item`) · `my_cancel_hold` (`hold`) | a member's own loans, renewal, holds (the signed-in member only) |
 | `sok_resdesk.patrons.apply` (`full_name`, `email`, `password`, `id_number`, `date_of_birth`, `photo`) | join the portal with an ID card number: a matching date of birth on the roster makes a member, anything else waits for a manager; the answer is the same either way (guest, POST JSON, rate limited) |
 | `sok_resdesk.patrons.claim` (`id_number`, `date_of_birth`) | a signed-in person links their account to the roster; the date of birth must match (POST) |
@@ -132,6 +134,7 @@ only; 10 a minute.
 | `sok_resdesk.acquisitions.budget_summary` (`budget`) | a budget's amount, committed, spent and left (staff) |
 | `sok_resdesk.acquisitions.invoice_lines_from_order` (`order`) | the order's lines as invoice lines to start from (staff) |
 | `sok_resdesk.acquisitions.invoice_approve` (`invoice`) · `invoice_pay` (`invoice`, `note`) · `invoice_cancel` (`invoice`) | approve an invoice; record that it was paid; cancel it (managers, POST) |
+| `sok_resdesk.claims.letter` (`vendor`) · `mark_claimed` (`vendor`) | the text of a claim letter for what a vendor owes; note that it was sent (staff; the second is POST) |
 | `sok_resdesk.serials.generate` (`subscription`, `count`) · `receive` (`issue`, `make_copy`) · `claim` (`issue`) · `mark_missing` (`issue`) | make the expected issues; check an issue in (a reference copy); note a claim; mark missing (staff, POST) |
 | `sok_resdesk.ill.steps` (`request`) · `advance` (`request`, `to`, `note`) · `charge_fee` (`request`) | the next steps of an interlibrary request; take one; charge the fee to the member (staff) |
 | `sok_resdesk.ill.request_mine` (`title`, `author`, `isbn`, `notes`) · `cancel_mine` (`request`) | a member asks for a book from another library; cancels a request not yet started (POST) |

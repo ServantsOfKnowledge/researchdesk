@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import frappe
 from frappe import _
+from frappe.rate_limiter import rate_limit
 from frappe.utils import add_days, cint, flt, getdate, now_datetime, nowdate
 
 from sok_resdesk import access, features
@@ -270,6 +271,12 @@ def desk_snapshot(patron: str) -> dict:
 def checkout(patron: str, barcode: str) -> dict:
 	"""Lend the copy with this barcode to this member."""
 	_staff()
+	return lend(patron, barcode)
+
+
+def lend(patron: str, barcode: str) -> dict:
+	"""The loan itself, with every rule of the member's category. The desk (staff) and the kiosk (the member
+	after card and PIN) both come through here and nowhere else."""
 	code = (barcode or "").strip().upper()
 	copy = frappe.db.get_value(
 		"RD Copy", code, ["name", "item", "status", "reference_only"], as_dict=True, for_update=True
@@ -591,6 +598,38 @@ def my_cancel_hold(hold: str) -> dict:
 		frappe.throw(_("That is not your hold."), frappe.PermissionError)
 	cancel_hold_row(hold)
 	return {"message": _("Hold cancelled.")}
+
+
+PIN_FIELD = "kiosk_pin"
+
+
+def has_pin(patron: str) -> bool:
+	return bool(
+		frappe.db.sql(
+			"select 1 from `__Auth` where doctype='RD Patron' and name=%s and fieldname=%s",
+			(patron, PIN_FIELD),
+		)
+	)
+
+
+@frappe.whitelist(methods=["POST"])
+@rate_limit(limit=10, seconds=300)
+def my_set_pin(pin: str, password: str) -> dict:
+	"""A member chooses the PIN that goes with their card at a self-service kiosk (4 to 6 digits). It needs the
+	account's password, so a borrowed browser cannot set one. Only a hash is kept, in the same place passwords
+	are, not on the member's record."""
+	member = _me()
+	pin = str(pin or "").strip()
+	if not (pin.isascii() and pin.isdigit() and 4 <= len(pin) <= 6):
+		frappe.throw(_("A PIN is 4 to 6 digits."))
+	from frappe.utils.password import check_password, update_password
+
+	try:
+		check_password(frappe.session.user, password or "")
+	except frappe.AuthenticationError:
+		frappe.throw(_("The password is not right."))
+	update_password(member.name, pin, doctype="RD Patron", fieldname=PIN_FIELD)
+	return {"message": _("Your PIN is set.")}
 
 
 def availability(item: str) -> dict | None:

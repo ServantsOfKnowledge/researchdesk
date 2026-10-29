@@ -202,6 +202,8 @@ scheduler_events = {
 		"sok_resdesk.lending.daily",
 		# periodical issues that did not come are marked Late, and managers are told once
 		"sok_resdesk.serials.daily",
+		# orders past their date that nobody has claimed: managers are told once
+		"sok_resdesk.claims.daily",
 		# deposits whose embargo has ended become readable (Settings → Features → Repository deposit)
 		"sok_resdesk.deposit.release_embargoes",
 		"sok_resdesk.ingest.run_scheduled_daily",

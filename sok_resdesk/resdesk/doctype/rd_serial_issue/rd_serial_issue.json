@@ -13,6 +13,7 @@
  "search_fields": "subscription,label",
  "field_order": [
   "subscription",
+  "periodical",
   "label",
   "expected_on",
   "cb",
@@ -30,6 +31,13 @@
    "reqd": 1,
    "in_list_view": 1,
    "in_standard_filter": 1
+  },
+  {
+   "fieldname": "periodical",
+   "fieldtype": "Data",
+   "label": "Periodical",
+   "in_list_view": 1,
+   "description": "Which title of the subscription this issue is of."
   },
   {
    "fieldname": "label",

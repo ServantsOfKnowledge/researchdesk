@@ -148,7 +148,7 @@ always be paid at the desk.
 
 Members open **/library/loans** (or **Show my ID card**): what they have on loan and when it is due, a
 **Renew** button, their holds, the fines due, and their card. The library's own rules decide what a renewal
-may do.
+may do. A member can also choose the PIN for the [self-service kiosk](#self-service-kiosk) here.
 
 ## Acquisitions
 
@@ -199,6 +199,34 @@ first time if there is none). Each night, issues that are overdue by the claim p
 managers get one alert in the Desk bell (no email). **Claimed from Vendor** and **Mark Missing** record what
 happened; asking the vendor is done outside Research Desk.
 
+**Several titles in one subscription.** A vendor often sends a bundle. List the other titles under **More Titles in
+This Subscription** (the title at the top is the first): each expected date then has one issue for every title, and
+checking one in shelves it under that title's own catalogue record.
+
+## Claims to vendors
+
+Open a **Vendor** and press **Claim Letter**. It lists what that vendor owes: orders past their expected date with the
+books still to come, and periodical issues that are Late (or were claimed more than two weeks ago and have still not
+come). Copy the letter into an email or print it, send it yourself (Research Desk sends no email except account
+messages), then press **I Sent It**: each order and issue is marked with the date, so it is not claimed again for two
+weeks. Each night managers get one Desk alert for orders past their date that nobody has claimed.
+
+## Self-service kiosk
+
+A screen by the door where a member borrows a book without a librarian. Make an account for the device, give it the
+role **ResDesk Kiosk** (never to a person), sign in on the device and open `/library/kiosk`. The member scans their
+card and types a **PIN** that they chose themselves under **My library → Set a PIN for the self-service kiosk**
+(4 to 6 digits, and their account password to confirm it; only a hash is kept, with passwords, not on their record). Then they scan the barcode of each book.
+Loans follow exactly the rules of the desk (limits, fines, holds, reference copies). The kiosk cannot take books back,
+change a member or show anyone else's loans.
+
+- Five wrong tries lock that card at the kiosk for fifteen minutes (however the card number is typed), and a kiosk
+  account that gets twenty wrong in ten minutes, on any cards, is refused for the rest of that time. The message is the same for a card that does not
+  exist, a wrong PIN, and a member who cannot borrow, so it tells a stranger nothing.
+- A session ends after a minute of nothing touched (five at the longest between actions, thirty minutes in all), belongs
+  to the kiosk account that began it, and allows ten books.
+- A forgotten PIN is chosen again on the website; a member who has not set one cannot use the kiosk.
+
 ## Interlibrary loan
 
 Desk → **Interlibrary Loans**, in either direction.
@@ -221,11 +249,10 @@ NCIP): it keeps the library's own record, and the library writes to the other li
 
 The library keeps no record of what people read: returned (and lost) loans with no unpaid fine are deleted after the number
 of days in Settings (180 by default; 0 keeps them). A settled fine keeps no link to the book. Photos of ID cards
-are private files. Deleting a member is for managers.
+are private files. A kiosk PIN is kept only as a hash, with passwords, never on the member's record. Deleting a member is for managers.
 
 ## What is not here
 
-Not built: automatic claims to vendors, electronic ordering (EDI),
-bundling several periodical titles in one subscription, ILL protocols (ISO ILL, NCIP), self-service kiosks, and
+Not built: electronic ordering (EDI), ILL protocols (ISO ILL, NCIP), taking books back at a kiosk, and
 payment providers other than Razorpay. A library that needs them keeps Koha or another library system; Research
 Desk links to it ([Koha](koha.md)).

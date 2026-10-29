@@ -179,13 +179,14 @@ The seventeen records-office doctypes (audit event, department, clearance, item 
 | RD Hold | a member waiting for a title whose copies are all out | item, patron, status (Waiting / Ready / Fulfilled / Cancelled / Expired), placed_on, copy, ready_until |
 | RD Fine | what a member owes | patron, loan, reason (Overdue / Lost / Damaged / Fee), amount, status (Due / Paid / Waived), paid_on |
 | RD Vendor | who the library buys from | vendor_name, contact_person, email, phone, address, notes |
-| **RD Purchase Order** | an order of books | vendor, status (Draft / Ordered / Part Received / Received / Cancelled), order_date, expected_date, total, lines (child table RD Order Line) |
+| **RD Purchase Order** | an order of books | vendor, status (Draft / Ordered / Part Received / Received / Cancelled), order_date, expected_date, claimed_on (last claim letter, read only), claim_count, total, lines (child table RD Order Line) |
 | RD Order Line | child table of RD Purchase Order | title, author, isbn, item, quantity, unit_price, received |
 | RD Budget | what a purchase budget is | budget_name, amount, starts_on, ends_on, notes |
 | RD Invoice Line | child table of RD Invoice | description, order_line, hsn, quantity, rate, gst_rate, taxable, tax |
 | **RD Invoice** | a vendor's invoice | vendor, order, budget, invoice_number, invoice_date, due_date, lines (child table RD Invoice Line), supply, taxable_total, cgst, sgst, igst, tax_total, amount, status (Draft / Approved / Paid / Cancelled), match (the three-way check), approved_by, paid_on, payment_note |
-| RD Serial Subscription | a periodical the library subscribes to | title, item, issn, vendor, frequency (Weekly … Yearly), status, first_issue_due, ends_on, claim_after_days, price, location |
-| RD Serial Issue | one expected issue | subscription, label, expected_on, status (Expected / Received / Late / Claimed / Missing), received_on, claimed_on, copy |
+| RD Serial Subscription | a periodical the library subscribes to | title, item, issn, vendor, frequency (Weekly … Yearly), status, first_issue_due, ends_on, claim_after_days, price, location, titles (child table RD Serial Title) |
+| RD Serial Title | child table of RD Serial Subscription: the other titles a subscription brings | title, issn, item |
+| RD Serial Issue | one expected issue | subscription, periodical (which title of the subscription), label, expected_on, status (Expected / Received / Late / Claimed / Missing), received_on, claimed_on, copy |
 | **RD ILL Request** | a request for a book from, or for, another library | direction (Borrowing / Lending), status, patron, partner_library, title, author, isbn, item, copy, requested_on, needed_by, due_on, fee, fee_charged, notes |
 | RD Fine Payment | an online payment link for a member's fines (read only) | patron, amount, status (Created / Paid), provider, provider_ref, provider_payment_id, fine_names, link_url, paid_on |
 | **RD Site Page** | a page the organisation writes itself, at `/p/<address>` | title, slug (the name), published, members_only, in_menu with label, summary, body (rich text) |

@@ -127,3 +127,46 @@ def test_lines_match_each_book_on_its_own():
 	assert budget.lines_match({"a": 4}, ordered, received) == "over received"
 	assert budget.lines_match({"a": 6}, ordered, received) == "over order"
 	assert budget.lines_match({"c": 1}, ordered, received) == "over order"
+
+
+def test_a_claim_is_due_once_past_its_date_and_not_claimed_lately():
+	from datetime import date
+
+	from sok_resdesk.core import claims
+
+	today = date(2026, 11, 1)
+	assert not claims.due_for_claim(None, None, today)
+	assert not claims.due_for_claim(date(2026, 11, 1), None, today)  # due today: not yet late
+	assert claims.due_for_claim(date(2026, 10, 30), None, today)
+	assert not claims.due_for_claim(date(2026, 10, 1), date(2026, 10, 25), today)  # claimed 7 days ago
+	assert claims.due_for_claim(date(2026, 10, 1), date(2026, 10, 10), today)  # claimed 22 days ago
+
+
+def test_the_claim_letter_names_the_vendor_orders_and_issues():
+	from datetime import date
+
+	from sok_resdesk.core import claims
+
+	text = claims.letter(
+		"Town Library",
+		"Acme Books",
+		[
+			{
+				"name": "PO-1",
+				"order_date": date(2026, 9, 1),
+				"expected_date": date(2026, 9, 20),
+				"lines": [("A Book", 2)],
+			}
+		],
+		[{"title": "The Monthly", "label": "October 2026", "expected_on": date(2026, 10, 15)}],
+		date(2026, 11, 1),
+	)
+	for part in (
+		"Town Library",
+		"Acme Books",
+		"PO-1",
+		"2 x A Book",
+		"The Monthly, October 2026",
+		"20 Sep 2026",
+	):
+		assert part in text

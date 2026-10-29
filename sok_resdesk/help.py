@@ -32,7 +32,7 @@ SCREEN_HELP = {
 	"RD Loan": ("lending", "the-circulation-desk"),
 	"RD Hold": ("lending", "holds"),
 	"RD Fine": ("lending", "fines"),
-	"RD Vendor": ("lending", "acquisitions"),
+	"RD Vendor": ("lending", "claims-to-vendors"),
 	"RD Purchase Order": ("lending", "acquisitions"),
 	"RD Budget": ("lending", "budgets-and-invoices"),
 	"RD Invoice": ("lending", "budgets-and-invoices"),

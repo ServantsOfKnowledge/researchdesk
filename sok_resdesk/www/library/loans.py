@@ -30,5 +30,6 @@ def get_context(context):
 	)
 	context.status = member.status if member else ""
 	context.me = lending.snapshot(member.name) if context.state == "member" else None
+	context.has_pin = lending.has_pin(member.name) if context.state == "member" else False
 	context.metatags = {"title": context.title, "robots": "noindex"}
 	return context

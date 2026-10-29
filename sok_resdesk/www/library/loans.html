@@ -17,6 +17,15 @@
 		<p class="rd-muted">{{ me.patron.name | e }} · {{ me.patron.category | e }}{% if me.patron.valid_until %} · {{ _("valid until {0}").format(me.patron.valid_until) | e }}{% endif %}</p>
 		{% if me.standing %}<p role="alert"><strong>{{ me.standing | e }}</strong></p>{% endif %}
 		<p><a class="rd-btn" href="/library/card" target="_blank">{{ _("Show my ID card") | e }}</a></p>
+		<details><summary>{{ (_("Change my kiosk PIN") if has_pin else _("Set a PIN for the self-service kiosk")) | e }}</summary>
+			<form id="rd-pin-form" class="rd-form" novalidate>
+				<p><label for="rd-pin">{{ _("New PIN (4 to 6 digits)") | e }}</label><br>
+				<input id="rd-pin" name="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="6" required style="min-height:44px"></p>
+				<p><label for="rd-pin-pw">{{ _("Your account password") | e }}</label><br>
+				<input id="rd-pin-pw" name="password" type="password" autocomplete="current-password" required style="min-height:44px"></p>
+				<p class="rd-actions"><button class="rd-btn rd-btn--primary" type="submit" style="min-height:44px">{{ _("Save PIN") | e }}</button></p>
+			</form>
+		</details>
 	</section>
 	<p id="rd-ln-msg" role="status" tabindex="-1" class="rd-error"></p>
 	<section class="rd-card" aria-labelledby="rd-loans-h">
@@ -91,6 +100,14 @@
 				try { text = JSON.parse(JSON.parse(r._server_messages || "[]")[0]).message.replace(/<[^>]+>/g, ""); } catch (x) {}
 				msg.textContent = text; msg.focus();
 			}).catch(() => { pay.disabled = false; msg.textContent = T; msg.focus(); });
+	});
+	const pinForm = document.getElementById("rd-pin-form");
+	if (pinForm) pinForm.addEventListener("submit", (e) => {
+		e.preventDefault();
+		const pin = pinForm.elements.pin.value.trim();
+		if (!/^[0-9]{4,6}$/.test(pin)) { msg.textContent = {{ _("A PIN is 4 to 6 digits.") | tojson }}; pinForm.elements.pin.setAttribute("aria-invalid", "true"); msg.focus(); return; }
+		if (!pinForm.elements.password.value) { msg.textContent = {{ _("Please type your account password.") | tojson }}; pinForm.elements.password.setAttribute("aria-invalid", "true"); msg.focus(); return; }
+		post("my_set_pin", {pin: pin, password: pinForm.elements.password.value});
 	});
 	const form = document.getElementById("rd-ill-form");
 	if (form) form.addEventListener("submit", (e) => {

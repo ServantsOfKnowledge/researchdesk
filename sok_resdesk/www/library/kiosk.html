@@ -1,0 +1,98 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title | e }}{% endblock %}
+
+{% block page_content %}
+<div class="rd rd-kiosk">
+	<h1 class="rd-page-title">{{ _("Borrow a book") | e }}</h1>
+	{% if not allowed %}
+	<p role="alert">{{ _("This screen is for the library's self-service kiosk. Ask the library to set it up.") | e }}</p>
+	{% else %}
+	<p id="rd-k-msg" role="status" tabindex="-1" class="rd-error"></p>
+	<section id="rd-k-in" class="rd-card" aria-labelledby="rd-k-in-h">
+		<h2 id="rd-k-in-h">{{ _("Scan your library card") | e }}</h2>
+		<form id="rd-k-login" class="rd-form" novalidate>
+			<p><label for="rd-k-card">{{ _("Card number") | e }}</label><br>
+			<input id="rd-k-card" name="card" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="60" required style="min-height:44px;font-size:1.25rem;width:100%;max-width:24rem"></p>
+			<p><label for="rd-k-pin">{{ _("PIN") | e }}</label><br>
+			<input id="rd-k-pin" name="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="6" required style="min-height:44px;font-size:1.25rem;width:10rem"></p>
+			<p class="rd-muted">{{ _("You choose your PIN on the library's website, under My library.") | e }}</p>
+			<p><button class="rd-btn rd-btn--primary" type="submit" style="min-height:44px">{{ _("Start") | e }}</button></p>
+		</form>
+	</section>
+	<section id="rd-k-on" class="rd-card" aria-labelledby="rd-k-on-h" hidden>
+		<h2 id="rd-k-on-h" tabindex="-1"></h2>
+		<form id="rd-k-borrow" class="rd-form" novalidate>
+			<p><label for="rd-k-code">{{ _("Scan the barcode of the book you are borrowing") | e }}</label><br>
+			<input id="rd-k-code" name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="60" required style="min-height:44px;font-size:1.25rem;width:100%;max-width:24rem"></p>
+			<p><button class="rd-btn rd-btn--primary" type="submit" style="min-height:44px">{{ _("Borrow") | e }}</button>
+			<button class="rd-btn" type="button" id="rd-k-end" style="min-height:44px">{{ _("Finish") | e }}</button></p>
+		</form>
+		<h3>{{ _("On loan") | e }}</h3>
+		<ul id="rd-k-loans"></ul>
+	</section>
+	{% endif %}
+</div>
+{% endblock %}
+
+{% block script %}
+{% if allowed %}
+<script>
+(function () {
+	const $ = (id) => document.getElementById(id);
+	const msg = $("rd-k-msg");
+	const T = {{ _("That did not work. Please try again or ask at the desk.") | tojson }};
+	let token = "", idle = null;
+	const say = (text, bad) => { msg.textContent = text; msg.className = bad ? "rd-error" : "rd-muted"; };
+	const post = (method, args) => fetch("/api/method/sok_resdesk.kiosk." + method, {
+		method: "POST", credentials: "same-origin",
+		headers: {"Content-Type": "application/json", "X-Frappe-CSRF-Token": window.csrf_token},
+		body: JSON.stringify(args)
+	}).then((r) => r.json()).then((r) => {
+		if (r.message) return r.message;
+		let text = T;
+		try { text = JSON.parse(JSON.parse(r._server_messages || "[]")[0]).message.replace(/<[^>]+>/g, ""); } catch (x) {}
+		throw new Error(text);
+	});
+	const reset = () => {
+		token = ""; clearTimeout(idle);
+		$("rd-k-on").hidden = true; $("rd-k-in").hidden = false;
+		$("rd-k-login").reset(); $("rd-k-card").focus();
+	};
+	const finish = () => { const t = token; reset(); if (t) post("end", {token: t}).catch(() => {}); };
+	const touch = () => { clearTimeout(idle); if (token) idle = setTimeout(() => { finish(); say({{ _("Your session ended because nothing was touched for a minute.") | tojson }}, false); }, 60000); };
+	const show = (snap) => {
+		$("rd-k-on-h").textContent = {{ _("Hello, {0}") | tojson }}.replace("{0}", () => snap.patron.full_name);
+		const list = $("rd-k-loans"); list.textContent = "";
+		snap.loans.forEach((l) => {
+			const li = document.createElement("li");
+			li.append(l.title + " · " + {{ _("due {0}") | tojson }}.replace("{0}", () => l.due_on) + (l.overdue ? " · " + {{ _("overdue") | tojson }} : "") + " ");
+			const b = document.createElement("button"); b.type = "button"; b.className = "rd-btn"; b.style.minHeight = "44px";
+			b.textContent = {{ _("Renew") | tojson }};
+			b.addEventListener("click", () => { touch(); post("renew", {token, loan: l.name}).then((r) => { say(r.message, false); show(r.snapshot); }).catch((e) => say(e.message, true)); });
+			li.append(b); list.append(li);
+		});
+	};
+	$("rd-k-login").addEventListener("submit", (e) => {
+		e.preventDefault();
+		const f = e.target;
+		if (!f.card.value.trim() || !f.pin.value.trim()) { say({{ _("Please scan your card and type your PIN.") | tojson }}, true); (f.card.value.trim() ? f.pin : f.card).focus(); return; }
+		post("start", {card: f.card.value, pin: f.pin.value}).then((r) => {
+			token = r.token; say("", false);
+			$("rd-k-in").hidden = true; $("rd-k-on").hidden = false; f.reset();
+			show(r.snapshot); touch(); $("rd-k-on-h").focus();
+		}).catch((x) => { f.pin.value = ""; say(x.message, true); msg.focus(); });
+	});
+	$("rd-k-borrow").addEventListener("submit", (e) => {
+		e.preventDefault();
+		const f = e.target; touch();
+		if (!f.code.value.trim()) { say({{ _("Please scan the barcode of the book.") | tojson }}, true); f.code.focus(); return; }
+		post("borrow", {token, barcode: f.code.value}).then((r) => { say(r.message, false); show(r.snapshot); f.reset(); f.code.focus(); })
+			.catch((x) => { say(x.message, true); f.code.select(); });
+	});
+	$("rd-k-end").addEventListener("click", () => { finish(); say({{ _("Thank you. Your session has ended.") | tojson }}, false); });
+	$("rd-k-card").focus();
+})();
+</script>
+{% endif %}
+{% endblock %}

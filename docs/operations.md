@@ -622,6 +622,7 @@ Every setting:
 | ResDesk Cataloguer | edit catalogue records, re-index items, read runs, change who can see books |
 | ResDesk Reader | log in on the portal and read members-only books; no Desk access |
 | ResDesk Proofreader | correct and validate page text on the portal, and read pages again with OCR; no Desk access |
+| ResDesk Kiosk | a self-service kiosk's own account (borrowing with card and PIN); for a device, not a person |
 | (visitors) | search, read and cite what the site allows without a login |
 
 Give and take roles, invite people and decide sign-ups on **People & Roles** in the Desk

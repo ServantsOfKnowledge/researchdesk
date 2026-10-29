@@ -10,6 +10,11 @@ from sok_resdesk.core import lending
 
 
 class RDPatron(Document):
+	def on_trash(self):
+		frappe.db.delete(
+			"__Auth", {"doctype": "RD Patron", "name": self.name}
+		)  # a kiosk PIN goes with the member
+
 	def validate(self):
 		self.institution_id = (self.institution_id or "").strip()
 		if self.institution_id:

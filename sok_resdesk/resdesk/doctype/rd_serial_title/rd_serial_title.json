@@ -1,0 +1,43 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-11-01 10:00:00.000000",
+ "modified": "2026-11-01 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Serial Title",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "istable": 1,
+ "editable_grid": 1,
+ "field_order": [
+  "title",
+  "issn",
+  "item"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "issn",
+   "fieldtype": "Data",
+   "label": "ISSN",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Catalogue Record",
+   "options": "RD Item",
+   "read_only": 1,
+   "description": "Made when the first issue of this title is checked in."
+  }
+ ],
+ "permissions": []
+}

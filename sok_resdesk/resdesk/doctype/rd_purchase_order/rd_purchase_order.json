@@ -19,6 +19,8 @@
   "order_date",
   "expected_date",
   "total",
+  "claimed_on",
+  "claim_count",
   "sec_lines",
   "lines",
   "notes"
@@ -61,6 +63,19 @@
    "fieldname": "total",
    "fieldtype": "Float",
    "label": "Total",
+   "read_only": 1
+  },
+  {
+   "fieldname": "claimed_on",
+   "fieldtype": "Date",
+   "label": "Last Claimed",
+   "read_only": 1,
+   "description": "The last time a claim letter was sent to the vendor for this order."
+  },
+  {
+   "fieldname": "claim_count",
+   "fieldtype": "Int",
+   "label": "Claims Made",
    "read_only": 1
   },
   {

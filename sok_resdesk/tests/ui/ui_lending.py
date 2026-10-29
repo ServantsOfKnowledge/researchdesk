@@ -168,7 +168,7 @@ def test_online_payment_and_interlibrary_requests_call_the_server(page, site, ax
 	page.click("[data-ill-cancel]")
 	page.wait_for_function("window.sent")
 	assert page.evaluate("window.sent")[0].endswith("sok_resdesk.ill.cancel_mine")
-	page.evaluate("window.sent = null; document.querySelector('details').open = true")
+	page.evaluate("window.sent = null; document.querySelectorAll('details').forEach((d) => (d.open = true))")
 	page.click("#rd-ill-form button[type=submit]")
 	assert "title" in page.inner_text("#rd-ln-msg")  # nothing is sent without one
 	assert page.evaluate("window.sent") is None
@@ -177,3 +177,78 @@ def test_online_payment_and_interlibrary_requests_call_the_server(page, site, ax
 	page.wait_for_function("window.sent")
 	url, sent = page.evaluate("window.sent")
 	assert url.endswith("sok_resdesk.ill.request_mine") and sent["title"] == "Another Rare Book"
+
+
+KIOSK = """window.fetch = (u, o) => {
+	const body = JSON.parse(o.body);
+	window.calls = (window.calls || []).concat([[u.split('.').pop(), body]]);
+	const snap = { patron: { full_name: 'Asha K' }, loans: [{ name: 'L-1', title: 'A Book', due_on: '2026-11-20', overdue: false }] };
+	if (u.endsWith('kiosk.start') && body.pin !== '1234') return Promise.resolve({ json: () => Promise.resolve({ exc: 'x', _server_messages: JSON.stringify([JSON.stringify({ message: 'The card or PIN is not right.' })]) }) });
+	const m = u.endsWith('kiosk.start') ? { token: 'T', snapshot: snap } : { message: 'Lent.', snapshot: snap, ended: 1 };
+	return Promise.resolve({ json: () => Promise.resolve({ message: m }) });
+};"""
+
+
+def _kiosk(page, site, allowed=True):
+	body, script = render_template("kiosk.html", allowed=allowed)
+	page.goto(
+		site.write(
+			f"kiosk_{allowed}.html", page_shell(body, f"<script>{STUB_GLOBALS}{KIOSK}</script>{script}")
+		)
+	)
+
+
+def test_the_kiosk_has_no_wcag_problems_and_asks_for_what_is_missing(page, site, axe_js):
+	_kiosk(page, site)
+	assert axe_violations(page, axe_js) == []
+	page.click("#rd-k-login button[type=submit]")
+	assert "card" in page.inner_text("#rd-k-msg")
+	assert page.evaluate("window.calls") is None  # nothing is sent without both
+	_kiosk(page, site, allowed=False)
+	assert "kiosk" in page.inner_text(".rd-kiosk")
+	assert axe_violations(page, axe_js) == []
+
+
+def test_the_kiosk_signs_a_member_in_borrows_and_ends(page, site):
+	_kiosk(page, site)
+	page.fill("#rd-k-card", "M-00001")
+	page.fill("#rd-k-pin", "0000")
+	page.click("#rd-k-login button[type=submit]")
+	page.wait_for_function("window.calls")
+	page.wait_for_function("document.getElementById('rd-k-msg').textContent.length > 0")
+	assert "not right" in page.inner_text("#rd-k-msg")
+	assert page.input_value("#rd-k-pin") == ""  # a wrong PIN is not left on the screen
+	page.fill("#rd-k-card", "M-00001")
+	page.fill("#rd-k-pin", "1234")
+	page.click("#rd-k-login button[type=submit]")
+	page.wait_for_selector("#rd-k-on:not([hidden])")
+	assert "Asha K" in page.inner_text("#rd-k-on-h") and "A Book" in page.inner_text("#rd-k-loans")
+	page.fill("#rd-k-code", "C-00001")
+	page.click("#rd-k-borrow button[type=submit]")
+	page.wait_for_function("window.calls.some((c) => c[0] === 'borrow')")
+	assert [c for c in page.evaluate("window.calls") if c[0] == "borrow"][0][1] == {
+		"token": "T",
+		"barcode": "C-00001",
+	}
+	page.click("#rd-k-end")
+	page.wait_for_selector("#rd-k-in:not([hidden])")
+	assert page.input_value("#rd-k-card") == ""
+
+
+def test_the_pin_form_wants_four_to_six_digits_and_the_password(page, site):
+	body, script = render_template("loans.html", state="member", status="Active", me=ME, has_pin=False)
+	page.goto(
+		site.write("loans_pin.html", page_shell(body, f"<script>{STUB_GLOBALS}{RECORD}</script>{script}"))
+	)
+	page.evaluate("document.querySelectorAll('details').forEach((d) => (d.open = true))")
+	page.fill("#rd-pin", "12")
+	page.click("#rd-pin-form button[type=submit]")
+	assert "4 to 6" in page.inner_text("#rd-ln-msg") and page.evaluate("window.sent") is None
+	page.fill("#rd-pin", "1234")
+	page.click("#rd-pin-form button[type=submit]")
+	assert "password" in page.inner_text("#rd-ln-msg") and page.evaluate("window.sent") is None
+	page.fill("#rd-pin-pw", "secret")
+	page.click("#rd-pin-form button[type=submit]")
+	page.wait_for_function("window.sent")
+	url, sent = page.evaluate("window.sent")
+	assert url.endswith("sok_resdesk.lending.my_set_pin") and sent == {"pin": "1234", "password": "secret"}
