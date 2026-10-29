@@ -5,6 +5,7 @@
 - [Using the library](reader-guide.md): for readers: finding, reading and citing books, My list, members-only books
 - [Accessibility](accessibility.md): keyboard, screen readers and Indian-language voices, read aloud; the standards followed and the plan
 - [Signing in, your account and About me](signing-in.md): creating an account, the email that does not arrive, the optional About me page (volunteering, private support needs)
+- [Members, lending and acquisitions](lending.md): members with ID cards, lending and returns, holds, fines, vendors and purchase orders (off by default)
 - [Staff guide: a tour of the Desk](staff-guide.md): for library staff: the workspace, help and tours, the getting-started checklist, every part of the Desk
 
 The same pages are inside the app: **Help** on the portal (for readers) and **Help** in the Desk (everything).

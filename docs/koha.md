@@ -2,7 +2,8 @@
 
 Research Desk can run **on its own** as a discovery portal and digital library, or
 **alongside** an integrated library system (ILS) such as Koha. In the second case, Koha keeps
-print holdings, patrons and circulation, while Research Desk provides full text, reading and
+print holdings, patrons and circulation (a school or small library with no such system can lend from
+Research Desk instead: [Members, lending and acquisitions](lending.md)), while Research Desk provides full text, reading and
 citation for digitised books. Records flow between them through standards, not custom code.
 
 ## Option A: Koha harvests Research Desk over OAI-PMH
@@ -136,13 +137,15 @@ overlay).
 ## Option D: Research Desk on its own
 
 Everything a reader needs (discovery, faceted search, full text, reading, citation) works
-without any other system. The Frappe data model can be extended with holdings, patrons and
-loans for a complete library system. See [Architecture](architecture.md#towards-a-full-library-system).
+without any other system. A school or small library that does not run a separate library system can
+also lend from Research Desk: members with ID cards, circulation, holds, fines and acquisitions
+([Members, lending and acquisitions](lending.md), off by default).
 
 ## What stays in the library system
 
-Circulation, acquisitions, holdings and patrons stay in Koha (or whichever system the library
-uses), by design: Research Desk does not copy them. It links the catalogue to the digital copies
+A library that runs Koha (or another library system) keeps circulation, acquisitions, holdings and
+patrons there: leave [Members, lending and acquisitions](lending.md) switched off and Research Desk
+does not copy them. It links the catalogue to the digital copies
 and sends the links back (options above), and answers [SRU](sru.md) and OAI-PMH so the library
 system can also fetch records from here.
 

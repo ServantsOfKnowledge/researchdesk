@@ -163,6 +163,23 @@ FEATURES: dict[str, Feature] = {
 			doctypes=("RD Reader Request",),
 		),
 		Feature(
+			"lending",
+			"Members, lending and acquisitions",
+			"members with ID cards, lending, returns, renewals, holds, fines, vendors and purchase orders",
+			"the lending screens and portal pages; a library that lends through Koha leaves it off",
+			doctypes=(
+				"RD Patron",
+				"RD Patron Category",
+				"RD Copy",
+				"RD Loan",
+				"RD Hold",
+				"RD Fine",
+				"RD Vendor",
+				"RD Purchase Order",
+			),
+			pages=("resdesk-circulation",),
+		),
+		Feature(
 			"statistics",
 			"Usage statistics",
 			"how readers use the portal (built-in, PostHog, Plausible or Umami)",
@@ -212,6 +229,12 @@ PROFILES: dict[str, Profile] = {
 				}
 			),
 			"standard",
+		),
+		Profile(
+			"school",
+			"School or college library (lends books)",
+			frozenset({"lending", "reader_accounts", "page_search"}),
+			"light",
 		),
 		Profile(
 			"members",
@@ -307,17 +330,23 @@ def field_of(key: str) -> str:
 	return f"feature_{key}"
 
 
+OFF_BY_DEFAULT = frozenset(
+	{"lending"}
+)  # needs a decision of the library: nothing is collected until asked for
+
+
 def on(key: str, doc=None) -> bool:
 	"""Whether a feature is on (as saved, or in `doc`, the settings being saved). Unknown to the
-	settings (an old site before migrate) = on."""
+	settings (an old site before migrate) = on, except the features that start off."""
+	unset = key not in OFF_BY_DEFAULT
 	if doc is not None:
 		value = doc.get(field_of(key))
-		return value is None or bool(int(value))
+		return unset if value is None else bool(int(value))
 	try:
 		value = frappe.db.get_single_value("RD Settings", field_of(key), cache=True)
 	except Exception:
-		return True
-	return value is None or bool(int(value))
+		return unset
+	return unset if value is None else bool(int(value))
 
 
 def off_message(key: str) -> str:

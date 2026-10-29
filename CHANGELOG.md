@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.105.0 (2026-10-29): Members, lending and acquisitions
+
+- **New, off by default: the lending side of a library.** For a school, college or small library with no library system. Settings → Features → *Members, lending and acquisitions* (or the profile *School or college library (lends books)*) switches on **members** with categories and printable ID cards (a Code 39 barcode of the member number), **copies** with barcodes and labels, a **Circulation Desk** for lending, returning, renewing and marking lost with a barcode scanner, **holds** with a hold shelf, **fines**, and **acquisitions** (vendors and purchase orders that receive into copies).
+- **Join the portal with an ID card.** `/library/membership`: the person gives the number on their ID card and their date of birth. On the library's roster with a matching date, they are a member at once; otherwise they wait for a manager, with a photo of the card if they sent one (an email alone never makes a member). The form answers the same either way, an ID number guessed at too often is closed for the hour, and the date of birth and the photo are deleted once a manager has decided.
+- **My library** (`/library/loans`) shows a member's loans, due dates, renewals, holds, fines and ID card; a book's page shows the copies on the shelf and a hold button.
+- No email is sent about loans. Returned loans with no unpaid fine are deleted after a number of days (180 by default), so no record of what people read is kept.
+- Nothing is collected and no screen shows while the feature is off. A library that lends through Koha leaves it off.
+
 ## 0.104.2 (2026-10-27): Site Pages in the Desk menu after an upgrade
 
 - **Fixed: the new Site Pages entry was missing from the Desk sidebar.** Frappe re-reads a shipped sidebar only when its date is newer than the site's copy, and ours never moved. The date now follows the release, so a changed menu reaches upgraded sites. Until then, `/app/rd-site-page` opens the list.

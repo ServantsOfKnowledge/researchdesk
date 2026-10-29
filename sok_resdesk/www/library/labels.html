@@ -1,0 +1,20 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title | e }}{% endblock %}
+
+{% block page_content %}
+<style>
+	.rd-labels { display: flex; flex-wrap: wrap; gap: 4mm; }
+	.rd-label { width: 60mm; height: 30mm; border: .3mm dashed #999; box-sizing: border-box; padding: 2mm; font-family: Arial, sans-serif; font-size: 2.8mm; overflow: hidden; page-break-inside: avoid; break-inside: avoid; }
+	.rd-label svg { height: 14mm; width: auto; max-width: 56mm; display: block; }
+	.rd-label b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	@page { size: A4; margin: 10mm; }
+	@media print { .rd-label-tools, header, nav, footer, .navbar, .web-footer { display: none !important; } }
+</style>
+<div class="rd">
+	<p class="rd-label-tools"><button class="rd-btn rd-btn--primary" type="button" onclick="window.print()">{{ _("Print") | e }}</button></p>
+	<div class="rd-labels">
+	{% for l in labels %}<div class="rd-label"><b>{{ l.title | e }}</b>{{ l.svg }}{% if l.call %}<span>{{ l.call | e }}</span>{% endif %}</div>{% endfor %}
+	</div>
+</div>
+{% endblock %}

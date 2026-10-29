@@ -116,6 +116,19 @@ only; 10 a minute.
 | `sok_resdesk.jobs.pause_run` · `resume_run` (`run`: an ingest run or `PUSH-…`) | pause a run keeping its unfinished books; resume carries on with them |
 | `sok_resdesk.jobs.pause_all` · `resume_all` | pause every run, hold waiting and new jobs, pause schedules; and undo it |
 | `sok_resdesk.jobs.hold_job` (`job_id`) · `release_held` (`keys` JSON list or empty for all, `discard`) | keep one waiting job aside; put held jobs back or drop them |
+| `sok_resdesk.lending.find_patron` (`query`) | the Circulation Desk: a card number, ID number or name finds a member and everything they have out (staff) |
+| `sok_resdesk.lending.desk_snapshot` (`patron`) · `overview` | a member's loans, holds and fines; what is overdue and on the hold shelf (staff) |
+| `sok_resdesk.lending.checkout` (`patron`, `barcode`) · `checkin` (`barcode`) | lend a copy; take it back (late fine charged, next hold kept) (staff, POST) |
+| `sok_resdesk.lending.renew` (`loan`) · `mark_lost` (`loan`) · `settle_fine` (`fine`, `waive`) | renew a loan; close it as lost; mark a fine paid or waived (staff, POST) |
+| `sok_resdesk.lending.place_hold_for` (`patron`, `item`) · `cancel_hold_staff` (`hold`) | place or cancel a hold for a member (staff, POST) |
+| `sok_resdesk.lending.my` · `my_renew` (`loan`) · `my_hold` (`item`) · `my_cancel_hold` (`hold`) | a member's own loans, renewal, holds (the signed-in member only) |
+| `sok_resdesk.patrons.apply` (`full_name`, `email`, `password`, `id_number`, `date_of_birth`, `photo`) | join the portal with an ID card number: a matching date of birth on the roster makes a member, anything else waits for a manager; the answer is the same either way (guest, POST JSON, rate limited) |
+| `sok_resdesk.patrons.claim` (`id_number`, `date_of_birth`) | a signed-in person links their account to the roster; the date of birth must match (POST) |
+| `sok_resdesk.patrons.approve` (`patron`) · `reject` (`patron`) | accept or turn down a pending member (managers, POST) |
+| `sok_resdesk.acquisitions.place` (`order`) · `cancel` (`order`) | place a draft purchase order; cancel one (staff, POST) |
+| `sok_resdesk.acquisitions.receive` (`order`, `quantities`, `location`) | books arrived: makes the copies with their barcodes (staff, POST) |
+| `sok_resdesk.acquisitions.labels` (`barcodes`) | barcode labels (SVG) for copies (staff) |
+| (page) `/library/membership` · `/library/loans` · `/library/card` · `/library/labels` | become a member; My library; the ID card(s); barcode labels (staff) |
 | (page) `/p/<address>` | a published RD Site Page; staff may preview a draft; Signed-in Readers Only sends guests to sign in |
 | `sok_resdesk.ingest.ia_keys_from_login` (`email`, `password`, POST) | trade an archive.org login for the account's access keys, kept in Settings; the password is not stored |
 | `sok_resdesk.jobs.run_first` (`job_id`) | move one waiting job to the front of its queue |

@@ -35,6 +35,7 @@ PAGES = [
 	Page("signing-in", "signing-in.md", "Signing in, your account and About me", "reader", "For readers"),
 	Page("accessibility", "accessibility.md", "Accessibility", "reader", "For readers"),
 	Page("staff-guide", "staff-guide.md", "Staff guide: a tour of the Desk", "staff", "For library staff"),
+	Page("lending", "lending.md", "Members, lending and acquisitions", "staff", "For library staff"),
 	Page("ingesting", "ingesting.md", "Choosing & ingesting books", "staff", "For library staff"),
 	Page(
 		"local-folders",

@@ -32,29 +32,16 @@ def open_to_join() -> bool:
 	return access.signup_mode() != core.SIGNUP_CLOSED
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
-@rate_limit(limit=6, seconds=3600)
-def join(full_name: str = "", email: str = "", password: str = "", rd_hp: str = "", next: str = "") -> dict:
-	"""Make the account, sign it in, and say where to go next. `rd_hp` is a field people cannot see.
-
-	A reader goes to the page they came from (`next`, a plain path on this site); a person who must still be
-	approved goes to the library's main page, since a members-only page would only turn them away."""
-	if not open_to_join():
-		frappe.throw(_("This library adds its readers itself. Please ask the library for an account."))
-	# a form on another site can post forms and plain text but not JSON, so this cannot be done to a visitor
-	# from elsewhere (it would sign them in to the attacker's account)
+def require_json() -> None:
+	"""A form on another site can post forms and plain text but not JSON, so a sign-up cannot be done to a
+	visitor from elsewhere (it would sign them in to the attacker's account)."""
 	if frappe.request and not (frappe.request.content_type or "").startswith("application/json"):
 		frappe.throw(_("Please use the sign-up page."))
-	fields, why = rules.clean(full_name, email, password, rd_hp)
-	if why == "trap":
-		return {"joined": 1, "status": "member", "next": main_page()}  # looks like success to a robot
-	messages = {
-		"name": _("Please give your name."),
-		"email": _("That email address does not look right."),
-		"password": _("Please choose a password of at least {0} characters.").format(rules.MIN_PASSWORD),
-	}
-	if why:
-		frappe.throw(messages[why])
+
+
+def make_user(fields: dict, reader_request: bool = True):
+	"""The visitor's account (a Website User with no roles yet), or a plain-words refusal. A member sign-up
+	(patrons.apply) files no reader request: its own roster or the staff approval decides."""
 	if frappe.db.exists("User", {"email": fields["email"]}):
 		frappe.throw(
 			_("This email already has an account. Log in, or choose Forgot password on the login page.")
@@ -75,12 +62,37 @@ def join(full_name: str = "", email: str = "", password: str = "", rd_hp: str = 
 	)
 	user.flags.ignore_permissions = True
 	user.flags.no_welcome_mail = True
+	user.flags.skip_reader_request = not reader_request
 	try:
 		user.insert()  # access.on_user_insert files the request when a librarian must approve
 	except frappe.DuplicateEntryError:  # two posts for one address at the same moment
 		frappe.throw(
 			_("This email already has an account. Log in, or choose Forgot password on the login page.")
 		)
+	return user
+
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=6, seconds=3600)
+def join(full_name: str = "", email: str = "", password: str = "", rd_hp: str = "", next: str = "") -> dict:
+	"""Make the account, sign it in, and say where to go next. `rd_hp` is a field people cannot see.
+
+	A reader goes to the page they came from (`next`, a plain path on this site); a person who must still be
+	approved goes to the library's main page, since a members-only page would only turn them away."""
+	if not open_to_join():
+		frappe.throw(_("This library adds its readers itself. Please ask the library for an account."))
+	require_json()
+	fields, why = rules.clean(full_name, email, password, rd_hp)
+	if why == "trap":
+		return {"joined": 1, "status": "member", "next": main_page()}  # looks like success to a robot
+	messages = {
+		"name": _("Please give your name."),
+		"email": _("That email address does not look right."),
+		"password": _("Please choose a password of at least {0} characters.").format(rules.MIN_PASSWORD),
+	}
+	if why:
+		frappe.throw(messages[why])
+	user = make_user(fields)
 	mode = access.signup_mode()
 	if mode == core.SIGNUP_OPEN:
 		user.add_roles(access.READER_ROLE)

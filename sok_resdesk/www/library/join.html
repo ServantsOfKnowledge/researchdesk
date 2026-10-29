@@ -19,6 +19,7 @@
 		</div>
 		<p class="rd-actions"><button class="rd-btn rd-btn--primary" type="submit">{{ _("Create my account") }}</button></p>
 		<p id="rd-jn-err" role="alert" tabindex="-1" class="rd-error"></p>
+		{% if lending %}<p class="rd-muted">{{ _("A student or member of this library?") }} <a href="/library/membership">{{ _("Join with your ID card") }}</a></p>{% endif %}
 		<p class="rd-muted">{{ _("Already have an account?") }} <a href="{{ login_url }}">{{ _("Log in") }}</a></p>
 	</form>
 </div>

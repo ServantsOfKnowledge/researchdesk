@@ -61,6 +61,22 @@ STRUCTURE: list = [
 	),
 	(
 		"section",
+		"Members and Lending",
+		"book-open",
+		[
+			("Circulation Desk", P, "resdesk-circulation"),
+			("Members", D, "RD Patron"),
+			("Member Categories", D, "RD Patron Category"),
+			("Copies", D, "RD Copy"),
+			("Loans", D, "RD Loan"),
+			("Holds", D, "RD Hold"),
+			("Fines", D, "RD Fine"),
+			("Vendors", D, "RD Vendor"),
+			("Purchase Orders", D, "RD Purchase Order"),
+		],
+	),
+	(
+		"section",
 		"Keeping",
 		"archive",
 		[

@@ -31,6 +31,10 @@ DISALLOW = (
 	"/library/proofread",
 	"/library/notes",
 	"/library/withdrawn",
+	"/library/loans",
+	"/library/card",
+	"/library/labels",
+	"/library/membership",
 	"/private/",
 	"/*?*q=",  # searches: endless combinations of the same books
 	"/*?*page=",

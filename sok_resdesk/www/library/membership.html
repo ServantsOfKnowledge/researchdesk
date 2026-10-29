@@ -1,0 +1,87 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="rd rd-join">
+	<nav class="rd-crumbs"><a href="{{ library_url() }}">← {{ portal_title }}</a></nav>
+	<h1 class="rd-page-title">{{ _("Become a member") }}</h1>
+	{% if not open %}
+	<p>{{ _("This library has not opened membership yet. Please ask the library.") }}</p>
+	{% else %}
+	<p id="rd-mb-intro" class="rd-muted">{% if signed_in %}{{ _("Link your account to your membership with the number on your ID card.") }}{% else %}{{ _("Join with the number on your school, college or library ID card. If the library has you on its list and your date of birth matches you can borrow at once; otherwise a librarian checks your ID and approves you.") }}{% endif %}</p>
+	<form id="rd-mb" class="rd-form" aria-describedby="rd-mb-intro" novalidate>
+		{% if not signed_in %}
+		<p><label>{{ _("Your name") }} <span aria-hidden="true">*</span> <input name="full_name" maxlength="140" required autocomplete="name" style="width:100%"></label></p>
+		<p><label>{{ _("Your email") }} <span aria-hidden="true">*</span> <input name="email" type="email" maxlength="140" required autocomplete="email" style="width:100%"></label></p>
+		<p><label>{{ _("Choose a password") }} <span aria-hidden="true">*</span> <input name="password" type="password" minlength="{{ min_password }}" required autocomplete="new-password" style="width:100%" aria-describedby="rd-mb-h-pw"></label>
+			<span id="rd-mb-h-pw" class="rd-muted">{{ _("At least {0} characters.").format(min_password) }}</span></p>
+		{% endif %}
+		<p><label>{{ _("ID number") }} <span aria-hidden="true">*</span> <input name="id_number" maxlength="60" required autocomplete="off" style="width:100%" aria-describedby="rd-mb-h-id"></label>
+			<span id="rd-mb-h-id" class="rd-muted">{{ _("The number printed on your ID card.") }}</span></p>
+		<p><label>{{ _("Date of birth") }} <input name="date_of_birth" type="date" autocomplete="bday" aria-describedby="rd-mb-h-dob"></label>
+			<span id="rd-mb-h-dob" class="rd-muted">{{ _("Used to check it is you. Without it a librarian has to check you, which takes longer.") }}</span></p>
+		{% if not signed_in %}
+		<p><label>{{ _("A photo of your ID card (optional)") }} <input name="photo" type="file" accept="image/jpeg,image/png" aria-describedby="rd-mb-h-ph"></label>
+			<span id="rd-mb-h-ph" class="rd-muted">{{ _("JPEG or PNG, up to 2 MB. It helps a librarian approve you if the library cannot find you on its list. Only library staff see it.") }}</span></p>
+		<div aria-hidden="true" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden">
+			<label>{{ _("Leave this empty") }} <input name="rd_hp" tabindex="-1" autocomplete="off"></label>
+		</div>
+		{% endif %}
+		<p class="rd-actions"><button class="rd-btn rd-btn--primary" type="submit">{% if signed_in %}{{ _("Link my membership") }}{% else %}{{ _("Join the library") }}{% endif %}</button></p>
+		<p id="rd-mb-err" role="alert" tabindex="-1" class="rd-error"></p>
+		{% if not signed_in %}<p class="rd-muted">{{ _("Already have an account?") }} <a href="{{ login_url }}">{{ _("Log in") }}</a></p>{% endif %}
+	</form>
+	{% endif %}
+</div>
+{% endblock %}
+
+{% block script %}
+{% if open %}
+<script>
+(function () {
+	const f = document.getElementById("rd-mb"), err = document.getElementById("rd-mb-err");
+	const SIGNED_IN = {{ signed_in | tojson }};
+	const T = {{ {"failed": _("That did not work. Please try again."), "name": _("Please give your name."), "email": _("That email address does not look right."), "short": _("Please choose a password of at least {0} characters.").format(min_password), "id": _("Please give the number on your ID card."), "big": _("That picture is larger than 2 MB.")} | tojson }};
+	const why = (r) => { try { return JSON.parse(JSON.parse(r._server_messages || "[]")[0]).message.replace(/<[^>]+>/g, ""); } catch (x) { return ""; } };
+	const fail = (text, field) => { err.textContent = text; if (field) field.setAttribute("aria-invalid", "true"); err.focus(); };
+	const send = (method, body) => fetch("/api/method/sok_resdesk." + method, {
+		method: "POST", credentials: "same-origin",
+		headers: {"Content-Type": "application/json", "X-Frappe-CSRF-Token": window.csrf_token},
+		body: JSON.stringify(body)
+	}).then((r) => r.json()).then((r) => {
+		if (r.message && (r.message.joined || r.message.status)) { window.location.href = r.message.next || "/library/loans"; return; }
+		fail(why(r) || T.failed);
+	}).catch(() => fail(T.failed)).finally(() => {
+		f.setAttribute("aria-busy", "false");
+		f.querySelectorAll("button").forEach((b) => (b.disabled = false));
+	});
+	f.addEventListener("submit", (e) => {
+		e.preventDefault();
+		err.textContent = "";
+		[...f.elements].forEach((x) => x.removeAttribute && x.removeAttribute("aria-invalid"));
+		const el = f.elements;
+		if (!el.id_number.value.trim()) return fail(T.id, el.id_number);
+		const body = {id_number: el.id_number.value, date_of_birth: el.date_of_birth.value};
+		const go = () => {
+			f.setAttribute("aria-busy", "true");
+			f.querySelectorAll("button").forEach((b) => (b.disabled = true));
+			send(SIGNED_IN ? "patrons.claim" : "patrons.apply", body);
+		};
+		if (SIGNED_IN) return go();
+		if (!el.full_name.value.trim()) return fail(T.name, el.full_name);
+		if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(el.email.value.trim())) return fail(T.email, el.email);
+		if (el.password.value.length < {{ min_password }}) return fail(T.short, el.password);
+		Object.assign(body, {full_name: el.full_name.value, email: el.email.value, password: el.password.value, rd_hp: el.rd_hp.value});
+		const file = el.photo.files[0];
+		if (!file) return go();
+		if (file.size > 2 * 1024 * 1024) return fail(T.big, el.photo);
+		const reader = new FileReader();
+		reader.onload = () => { body.photo = reader.result; go(); };
+		reader.onerror = () => fail(T.failed, el.photo);
+		reader.readAsDataURL(file);
+	});
+})();
+</script>
+{% endif %}
+{% endblock %}

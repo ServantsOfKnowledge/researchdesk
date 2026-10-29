@@ -24,6 +24,9 @@ def get_context(context):
 	context.portal_title = tr(s.portal_title) or "SOK Research Desk"
 	context.title = f"{frappe._('Create an account')} · {context.portal_title}"
 	context.approval = access.signup_mode() == core.SIGNUP_APPROVE
+	from sok_resdesk import features
+
+	context.lending = features.on("lending")  # a link to joining with an ID card
 	context.min_password = signup.rules.MIN_PASSWORD
 	context.next_url = safe_next(frappe.form_dict.get("redirect-to"), library_url())
 	context.login_url = access.login_url(context.next_url)

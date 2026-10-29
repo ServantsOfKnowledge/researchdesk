@@ -588,8 +588,8 @@ def on_user_insert(doc, method=None):
 	"""A new account from the portal's sign-up page: make it a reader, or ask staff to approve."""
 	if doc.user_type != "Website User" or doc.name in ("Guest", "Administrator"):
 		return
-	if frappe.session.user not in ("Guest", doc.name):
-		return  # created by staff in the Desk: they choose the roles themselves
+	if frappe.session.user not in ("Guest", doc.name) or doc.flags.get("skip_reader_request"):
+		return  # created by staff in the Desk (they choose the roles themselves) or by a member sign-up
 	# open sign-up gives the Reader role through Portal Settings → Default Role (see apply_signup_setting)
 	mode = settings().reader_signup or core.SIGNUP_CLOSED
 	if mode == core.SIGNUP_APPROVE and not frappe.db.exists("RD Reader Request", {"user": doc.name}):

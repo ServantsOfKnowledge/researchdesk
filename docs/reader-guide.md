@@ -224,6 +224,10 @@ approved. Ask the library if you're not sure how to join. If the email does not 
 the optional **About me** page (volunteering, support needs), see
 [Signing in, your account and About me](signing-in.md).
 
+## Borrowing and My library
+
+If your library lends books, a book's page says how many copies are on the shelf, and **Place a hold** when all are out. **Become a member** (a link on a book's page and on the sign-up page, or `/library/membership`) with the number on your ID card; if the library has you on its list you can borrow at once, otherwise a librarian checks your ID. **My library** (`/library/loans`) shows what you have on loan and when it is due, with a **Renew** button, your holds, any fines, and your ID card to show or print. The library sends no email about due dates: look here.
+
 ## Writing to the library
 
 The link *Write to the library* on the home page opens a form for a question, a correction or a book you

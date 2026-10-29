@@ -189,6 +189,26 @@
 			{% endif %}
 		</section>
 
+		{% if lending %}
+		<section class="rd-card rd-lending" id="rd-lending" aria-labelledby="rd-lending-h">
+			<h2 id="rd-lending-h">{{ _("Borrow this book") }}</h2>
+			<p>{% if lending.available %}{{ _("{0} of {1} copies are on the shelf.").format(lending.available, lending.copies) }}{% else %}{{ _("All {0} copies are out.").format(lending.copies) }}{% if lending.waiting %} {{ _("{0} members are waiting.").format(lending.waiting) }}{% endif %}{% endif %}</p>
+			{% if lending.hold %}
+			<p>{% if lending.hold_status == "Ready" %}{{ _("A copy is kept for you on the hold shelf. Ask at the desk.") }}{% else %}{{ _("You are on the waiting list for this book.") }}{% endif %}</p>
+			<p class="rd-actions"><button class="rd-btn" type="button" id="rd-hold-cancel" data-hold="{{ lending.hold }}">{{ _("Cancel my hold") }}</button></p>
+			{% elif lending.member and not lending.available %}
+			<p class="rd-actions"><button class="rd-btn rd-btn--primary" type="button" id="rd-hold-place">{{ _("Place a hold") }}</button></p>
+			{% elif lending.member %}
+			<p class="rd-muted">{{ _("Ask at the desk to borrow it.") }}</p>
+			{% elif lending.logged_in %}
+			<p><a class="rd-btn" href="/library/membership">{{ _("Join the library to borrow") }}</a></p>
+			{% else %}
+			<p><a class="rd-btn" href="{{ login_url }}">{{ _("Log in to place a hold") }}</a> <a href="/library/membership">{{ _("Become a member") }}</a></p>
+			{% endif %}
+			<p id="rd-lending-msg" role="status" tabindex="-1" class="rd-muted"></p>
+		</section>
+		{% endif %}
+
 		<section class="rd-book-about" id="rd-about">
 			<div class="rd-card rd-book-about__details">
 				<h2>{{ _("Details") }}</h2>
@@ -274,4 +294,24 @@
 <script src="{{ asset('js/readaloud.js') }}"></script>
 <script src="{{ asset('js/annotate.js') }}"></script>
 <script src="{{ asset('js/proofread.js') }}"></script>
+{% if lending %}
+<script>
+(function () {
+	const msg = document.getElementById("rd-lending-msg");
+	const post = (method, args) => fetch("/api/method/sok_resdesk.lending." + method, {
+		method: "POST", credentials: "same-origin",
+		headers: {"Content-Type": "application/json", "X-Frappe-CSRF-Token": window.csrf_token},
+		body: JSON.stringify(args)
+	}).then((r) => r.json()).then((r) => {
+		if (r.message) { window.location.reload(); return; }
+		let text = {{ _("That did not work. Please try again.") | tojson }};
+		try { text = JSON.parse(JSON.parse(r._server_messages || "[]")[0]).message.replace(/<[^>]+>/g, ""); } catch (x) {}
+		msg.textContent = text; msg.focus();
+	}).catch(() => { msg.textContent = {{ _("That did not work. Please try again.") | tojson }}; msg.focus(); });
+	const place = document.getElementById("rd-hold-place"), cancel = document.getElementById("rd-hold-cancel");
+	if (place) place.addEventListener("click", () => post("my_hold", {item: {{ item.item_id | tojson }}}));
+	if (cancel) cancel.addEventListener("click", () => post("my_cancel_hold", {hold: cancel.dataset.hold}));
+})();
+</script>
+{% endif %}
 {% endblock %}

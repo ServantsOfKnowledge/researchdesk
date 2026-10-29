@@ -172,7 +172,16 @@ The seventeen records-office doctypes (audit event, department, clearance, item 
 | RD Library Record | one record from a library system | record number, title, other title, authors, year, ISBN, status (New / Linked / To Review / No Match / Not This Book / Catalogued), the book here, score and why, candidates, who decided, links sent on, the MARCXML as received |
 | **RD Reader Request** | a sign-up waiting for approval | user, status (Pending / Approved / Rejected); approving adds the ResDesk Reader role |
 | **RD Message** | a message a visitor sent from the Contact us page | name, contact, message, status (New / Read / Replied / Done / Spam), note for staff; deleted after the days set in Settings |
-| **RD Site Page** | a page the organisation writes itself, at `/p/<address>` | title, slug (the name), published, members_only, in_menu with label and order, summary, body (rich text) |
+| **RD Patron** | a library member, or someone on the roster (feature *Members, lending and acquisitions*) | full_name, category, status (Active / Expired / Blocked / Listed / Pending / Rejected), institution_id (the number on their own ID card), user (portal account), valid_until, date_of_birth, email, phone, department, photo, id_card_photo (private), notes; named M-00001… |
+| RD Patron Category | the lending rules of a kind of member | loan_days, max_loans, max_renewals, max_holds, fine_per_day, grace_days, fine_cap, block_fines_over, validity_months |
+| **RD Copy** | one physical copy of a catalogue record | item, barcode (the name, Code 39), status (Available / On loan / On hold shelf / In processing / Lost / Withdrawn), call_number, location, reference_only, price, acquired_on, order |
+| **RD Loan** | one copy lent to one member | copy, item, patron, status (Out / Returned / Lost), issued_on, due_on, returned_on, renewals, issued_by; returned loans are deleted after the number of days in Settings |
+| RD Hold | a member waiting for a title whose copies are all out | item, patron, status (Waiting / Ready / Fulfilled / Cancelled / Expired), placed_on, copy, ready_until |
+| RD Fine | what a member owes | patron, loan, reason (Overdue / Lost / Damaged / Fee), amount, status (Due / Paid / Waived), paid_on |
+| RD Vendor | who the library buys from | vendor_name, contact_person, email, phone, address, notes |
+| **RD Purchase Order** | an order of books | vendor, status (Draft / Ordered / Part Received / Received / Cancelled), order_date, expected_date, total, lines (child table RD Order Line) |
+| RD Order Line | child table of RD Purchase Order | title, author, isbn, item, quantity, unit_price, received |
+| **RD Site Page** | a page the organisation writes itself, at `/p/<address>` | title, slug (the name), published, members_only, in_menu with label, summary, body (rich text) |
 | **RD About Page** | single | the introduction page at `/about`: on/off and its top-bar label, page title and search description, headline, tagline, introduction (rich text), image, live numbers, two buttons, steps, highlight cards, featured collections, a free-form part |
 | RD About Item | child table of RD About Page (`steps`, `highlights`) | title, text (plain, `**bold**`), link, link text |
 | **RD Tombstone** | what is left of a deleted or merged book, so its ARK still answers | ark, item_id, title, authors, year, reason (Deleted / Withdrawn / Merged), replaced_by, note for readers |
@@ -443,7 +452,8 @@ and the portal.
 For most libraries and archives, Research Desk replaces the four or five separate systems a
 digital library needs: repository, discovery, reader, OCR and proofreading, and basic
 preservation, and, for archives, the description of papers as a hierarchy (ISAD(G), EAD3). It works
-alongside the library system (circulation, acquisitions, patrons).
+alongside the library system, or, for a school or small library that has none, can lend itself (members,
+circulation, acquisitions: [Members, lending and acquisitions](lending.md), off by default).
 
 | Layer | Typical tools | Research Desk | Why |
 |---|---|---|---|
@@ -475,20 +485,21 @@ layer for Koha libraries with no migration; and proofread Indic text and OCR gro
 **Gaps that would widen it**, in order: OpenScribe, the last module of the digitisation workflow, in progress
 at Servants of Knowledge (TTScribe scanners and Repub already cover scanning and processing); archival authority records and accessions; a machine-draft
 engine bundled in the image (today the engines are installed by the library); and, at national
-scale, an OpenSearch adapter. Circulation, acquisitions and patrons stay with the library
-system.
+scale, an OpenSearch adapter. Circulation, acquisitions and patrons are built for libraries that have
+no other system (switched off by default); a library that runs Koha keeps them there.
 
 ## Towards a full library system
 
-Frappe makes it cheap to add the rest of an ILS alongside the digital library:
+The rest of an ILS is built alongside the digital library, behind the feature *Members, lending and
+acquisitions* (off by default; [Members, lending and acquisitions](lending.md)):
 
-- **Holdings & items**: physical copies with barcodes and locations, linked to RD Item
-- **Patrons & circulation**: members, loans, returns, fines (Frappe ships Contacts, Users,
-  Web Forms, Payments)
-- **Acquisitions**: Frappe/ERPNext purchasing if needed
+- **Copies**: physical copies with barcodes and locations, linked to RD Item (RD Copy)
+- **Members & circulation**: members with ID cards, loans, returns, renewals, holds, fines
+  (RD Patron, RD Patron Category, RD Loan, RD Hold, RD Fine)
+- **Acquisitions**: vendors and purchase orders that receive into copies (RD Vendor, RD Purchase Order)
 
-Until then, Koha (or any ILS) can do those jobs, and Research Desk integrates through
-OAI-PMH and MARC (see [Koha](koha.md)).
+Not built: budgets and invoices, serials, inter-library loan. A library that runs Koha (or any ILS)
+leaves it off and integrates through OAI-PMH and MARC (see [Koha](koha.md)).
 
 ## Adding another source
 

@@ -1,0 +1,149 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-29 10:00:00.000000",
+ "modified": "2026-10-29 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Patron Category",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "autoname": "field:category_name",
+ "search_fields": "category_name",
+ "field_order": [
+  "category_name",
+  "loan_days",
+  "max_loans",
+  "max_renewals",
+  "max_holds",
+  "cb",
+  "fine_per_day",
+  "grace_days",
+  "fine_cap",
+  "block_fines_over",
+  "validity_months"
+ ],
+ "fields": [
+  {
+   "fieldname": "category_name",
+   "fieldtype": "Data",
+   "label": "Category",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1,
+   "description": "For example Student, Teacher, Staff, Public member."
+  },
+  {
+   "fieldname": "loan_days",
+   "fieldtype": "Int",
+   "label": "Loan Days",
+   "default": "14",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "How long a book may be kept before it is due."
+  },
+  {
+   "fieldname": "max_loans",
+   "fieldtype": "Int",
+   "label": "Books at Once",
+   "default": "3",
+   "in_list_view": 1,
+   "description": "Most books a member of this category may have on loan. 0 = no limit."
+  },
+  {
+   "fieldname": "max_renewals",
+   "fieldtype": "Int",
+   "label": "Renewals",
+   "default": "2",
+   "description": "How many times one loan may be extended."
+  },
+  {
+   "fieldname": "max_holds",
+   "fieldtype": "Int",
+   "label": "Holds at Once",
+   "default": "3",
+   "description": "Most holds (waiting for a book that is out). 0 = no limit."
+  },
+  {
+   "fieldname": "cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fine_per_day",
+   "fieldtype": "Float",
+   "label": "Fine per Day",
+   "default": "0",
+   "description": "Charged for each day a book is returned late. 0 = no fines."
+  },
+  {
+   "fieldname": "grace_days",
+   "fieldtype": "Int",
+   "label": "Grace Days",
+   "default": "0",
+   "description": "Days after the due date before a fine starts."
+  },
+  {
+   "fieldname": "fine_cap",
+   "fieldtype": "Float",
+   "label": "Fine Cap per Loan",
+   "default": "0",
+   "description": "A late fine never goes above this. 0 = no cap."
+  },
+  {
+   "fieldname": "block_fines_over",
+   "fieldtype": "Float",
+   "label": "Block Borrowing Over",
+   "default": "0",
+   "description": "A member who owes more than this cannot borrow until they pay. 0 = never blocked for fines."
+  },
+  {
+   "fieldname": "validity_months",
+   "fieldtype": "Int",
+   "label": "Membership Lasts (months)",
+   "default": "12",
+   "description": "A new membership ends this many months on. 0 = no end date."
+  }
+ ],
+ "links": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1
+  }
+ ]
+}

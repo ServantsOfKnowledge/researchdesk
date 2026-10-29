@@ -359,6 +359,7 @@ Every setting:
 | Language-technology partner | Switches on: page-level full-text search, OCR, proofreading and ground truth, sharing metadata. Resources: server. |
 | Manuscript library or archive | For libraries and archives that hold manuscripts, palm leaves and photographs. Switches on: page-level full-text search, proofreading and ground truth, manuscripts and palm leaves, photographs, books from folders and servers, audio and video, preservation, permanent identifiers, review queue, sharing metadata. Resources: standard. |
 | Photograph archive | Switches on: photographs, books from folders and servers, preservation, permanent identifiers, review queue, sharing metadata. Resources: standard. |
+| School or college library (lends books) | Switches on: members, lending and acquisitions, reader accounts, page-level full-text search. Resources: light. |
 
 **General**
 
@@ -380,14 +381,15 @@ Every setting:
 | Books from folders and servers | IA-style book folders and loose PDFs on disk, a NAS or a web server. Off saves the folder scans. |
 | Books from repositories | DSpace, EPrints and any OAI-PMH repository. Off saves the harvests. |
 | Library systems | A Koha or other library catalogue matched to the books here, links sent back. Off saves the imports and matching. |
+| Audio and video | Recordings with a player and a time-coded transcript, in folders and from archive.org. Off saves the player pages and the transcripts. |
 | Manuscripts and palm leaves | Describing manuscripts, labelling their leaves (1a, 1b…), folders of leaf photographs, and the transcription list. Off saves them for libraries that keep none. |
 | Photographs | Photographs as items: their EXIF, who and where, a SHA-256 of the original, a zoom viewer. Off saves them for libraries that keep none. |
 | Archival description | Describing papers as fonds, series, file and item (ISAD(G)), a browsable hierarchy on the portal and EAD3 finding aids. Off saves it for libraries that describe no archives. |
-| Audio and video | Recordings with a player and a time-coded transcript, in folders and from archive.org. Off saves the player pages and the transcripts. |
 | Repository deposit | People deposit their own work (files, licence, embargo) for a reviewer to accept. Off saves the deposit pages and the review screen. |
 | Sharing metadata | The OAI-PMH provider, pushes to Koha, Wikidata, archive.org and webhooks. Off saves the push jobs and the OAI-PMH endpoint. |
 | Reader accounts | Readers signing up, sign-up requests, members-only reading. Off saves the sign-up pages. |
 | Usage statistics | How readers use the portal (built-in, PostHog, Plausible or Umami). Off saves the page-view log. |
+| Members, lending and acquisitions | Members with ID cards, lending and returns, holds, fines, vendors and purchase orders. Off (the default) means none of it is collected and its screens are hidden; a library that lends through Koha keeps it off. |
 
 ### Readers & Access
 
@@ -411,6 +413,29 @@ Every setting:
 | Setting | What it does |
 |---|---|
 | What Staff See in the Desk | Research Desk's sidebar holds every screen an administrator needs, Frappe's users, roles, system settings and logs included (under Administration), and the way to Frappe's own desktop is closed. The other choices give Administrator, or System Managers, Frappe's desktop back. Changing it updates every account straight away. Choices: *Research Desk only, for everyone (Frappe's tools are under Administration)*, *Research Desk only, except Administrator*, *Research Desk only for staff; System Managers see everything*, *Everything (Frappe's own tools too)*. |
+
+**Members and Lending**
+
+| Setting | What it does |
+|---|---|
+| Library Closed On | Weekdays the library is shut, separated by commas (for example Sunday, Saturday). A loan that falls due on a closed day is due the next day the library is open. |
+| Days a Held Book Waits | How long a returned book is kept on the hold shelf for the member waiting for it, before it goes to the next one. |
+| Category for New Sign-ups | The category given to people who join the portal with their ID card and are not on the roster. Staff can change it when they approve. |
+| Currency Symbol | Shown beside fines and prices. |
+| Allow Renewing Overdue Loans | Off: a member must return an overdue book (and pay any fine) before it can be lent again. |
+| Keep Returned Loans (days) | Returned loans with no unpaid fine are deleted after this many days, so the library keeps no record of what people read. 0 = keep them. |
+| Back of the ID Card | Printed on the back of the member card: the library's address, opening hours and rules. |
+
+**Messages from Visitors**
+
+| Setting | What it does |
+|---|---|
+| Take Messages From Visitors | Shows a Contact us page where anyone can write to the library. Messages arrive in the Desk under Messages, and managers get an alert in the Desk bell. |
+| Words Above the Contact Form | Optional. Shown above the form: what to write about, how soon you answer. |
+| Days to Keep Messages | Messages older than this are deleted every night. 0 keeps them for good. |
+| Telegram Bot Token | Optional. Make a bot with @BotFather on Telegram and paste its token here. Together with the chat ID below, Telegram then tells you privately that a visitor wrote, with a link to the Desk, never the message itself. Save, then use Messages → Send a Test Telegram Message. Not used in Classified mode. |
+| Telegram Chat ID | The number of the chat the alert goes to (a group's is negative): press Start on your bot, write to it, then open https://api.telegram.org/botTOKEN/getUpdates (your token in place of TOKEN) and read chat → id. Your own phone number is never used or shown. |
+| Telegram Name Visitors Can Message | Optional. A public Telegram username of the library's own account, a channel or a group, like SOKLibrary (not a phone number). The Contact us page then offers a Message us on Telegram button that opens it. Those chats live in Telegram, not in the Desk's Messages. Not shown in Classified mode. |
 
 **Usage Statistics**
 
@@ -575,17 +600,6 @@ Every setting:
 | Governance Mode | Governance edition only. Records who viewed, downloaded, searched and changed what, in a log that cannot be edited or deleted from the Desk and shows any tampering (Audit Log). Meant for a government or institutional deployment; off, nothing is recorded. |
 | Days to Reply to a Disclosure Request | Governance edition only. How many days after a request for records arrives the reply is owed (Disclosure Requests). Set it to what the law or the office's rules say. |
 | Appeal Note for Disclosure Replies | Governance edition only. Printed at the end of every reply to a disclosure request: who the applicant may appeal to, and within how long. |
-
-**Messages from Visitors**
-
-| Setting | What it does |
-|---|---|
-| Take Messages From Visitors | Shows a Contact us page where anyone can write to the library. Messages arrive in the Desk under Messages, and managers get an alert in the Desk bell. |
-| Words Above the Contact Form | Optional. Shown above the form: what to write about, how soon you answer. |
-| Days to Keep Messages | Messages older than this are deleted every night. 0 keeps them for good. |
-| Telegram Bot Token | Optional. Make a bot with @BotFather on Telegram and paste its token here. Together with the chat ID below, Telegram then tells you privately that a visitor wrote, with a link to the Desk, never the message itself. Save, then use Messages → Send a Test Telegram Message. Not used in Classified mode. |
-| Telegram Chat ID | The number of the chat the alert goes to (a group's is negative): press Start on your bot, write to it, then open https://api.telegram.org/botTOKEN/getUpdates (your token in place of TOKEN) and read chat → id. Your own phone number is never used or shown. |
-| Telegram Name Visitors Can Message | Optional. A public Telegram username of the library's own account, a channel or a group, like SOKLibrary (not a phone number). The Contact us page then offers a Message us on Telegram button that opens it. Those chats live in Telegram, not in the Desk's Messages. Not shown in Classified mode. |
 <!-- /generated:settings -->
 
 ## Users and roles

@@ -1,0 +1,164 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-29 10:00:00.000000",
+ "modified": "2026-10-29 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Copy",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "autoname": "field:barcode",
+ "title_field": "barcode",
+ "show_title_field_in_link": 1,
+ "search_fields": "barcode,item_title,call_number",
+ "field_order": [
+  "item",
+  "item_title",
+  "barcode",
+  "status",
+  "cb",
+  "call_number",
+  "location",
+  "reference_only",
+  "sec_acq",
+  "price",
+  "acquired_on",
+  "cb2",
+  "order",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Catalogue Record",
+   "options": "RD Item",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "item_title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "fetch_from": "item.title",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "barcode",
+   "fieldtype": "Data",
+   "label": "Barcode",
+   "unique": 1,
+   "description": "Made when the copy is saved (C-000001, C-000002…) unless you type one first. It cannot be changed afterwards.",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Available\nOn loan\nOn hold shelf\nIn processing\nLost\nWithdrawn",
+   "default": "Available",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "call_number",
+   "fieldtype": "Data",
+   "label": "Call Number",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "Shelf or Branch",
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "reference_only",
+   "fieldtype": "Check",
+   "label": "Reference Only",
+   "default": "0",
+   "description": "Read in the library, never lent."
+  },
+  {
+   "fieldname": "sec_acq",
+   "fieldtype": "Section Break",
+   "label": "Where It Came From"
+  },
+  {
+   "fieldname": "price",
+   "fieldtype": "Float",
+   "label": "Price"
+  },
+  {
+   "fieldname": "acquired_on",
+   "fieldtype": "Date",
+   "label": "Acquired On"
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "order",
+   "fieldtype": "Link",
+   "label": "Purchase Order",
+   "options": "RD Purchase Order",
+   "read_only": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "links": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1
+  }
+ ]
+}

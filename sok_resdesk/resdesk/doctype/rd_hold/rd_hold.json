@@ -1,0 +1,126 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-29 10:00:00.000000",
+ "modified": "2026-10-29 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Hold",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "autoname": "format:H-{#####}",
+ "search_fields": "patron,item_title",
+ "field_order": [
+  "item",
+  "item_title",
+  "patron",
+  "cb",
+  "status",
+  "placed_on",
+  "copy",
+  "ready_until"
+ ],
+ "fields": [
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Catalogue Record",
+   "options": "RD Item",
+   "reqd": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "item_title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "fetch_from": "item.title",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "patron",
+   "fieldtype": "Link",
+   "label": "Member",
+   "options": "RD Patron",
+   "reqd": 1,
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Waiting\nReady\nFulfilled\nCancelled\nExpired",
+   "default": "Waiting",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "placed_on",
+   "fieldtype": "Datetime",
+   "label": "Placed On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "copy",
+   "fieldtype": "Link",
+   "label": "Copy Kept for Them",
+   "options": "RD Copy",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ready_until",
+   "fieldtype": "Date",
+   "label": "Kept Until",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "track_changes": 1,
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1
+  }
+ ]
+}

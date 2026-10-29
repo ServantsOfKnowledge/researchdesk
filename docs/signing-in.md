@@ -9,6 +9,7 @@ On the portal, choose **Create an account** (on the home page, on a book that as
 at `/library/join`). Give your name, your email and a password, and you are signed in at once: **there
 is no email to wait for**. Depending on the library:
 
+- If your library lends books, you can also join with your ID card: see [Using the library](reader-guide.md#borrowing-and-my-library).
 - **Anyone can sign up**: you can read straight away.
 - **Sign up, and a librarian approves**: you are signed in, but until you are approved you see what
   visitors see. The library lets you know when you are in.

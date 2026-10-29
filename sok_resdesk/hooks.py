@@ -198,6 +198,8 @@ scheduler_events = {
 	"daily": [
 		# visitors' messages older than the days set in RD Settings are deleted
 		"sok_resdesk.contact.purge_old",
+		# holds not collected go to the next member; memberships that ended expire; old loans are forgotten
+		"sok_resdesk.lending.daily",
 		# deposits whose embargo has ended become readable (Settings → Features → Repository deposit)
 		"sok_resdesk.deposit.release_embargoes",
 		"sok_resdesk.ingest.run_scheduled_daily",

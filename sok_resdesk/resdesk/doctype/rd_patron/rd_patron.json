@@ -1,0 +1,199 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-29 10:00:00.000000",
+ "modified": "2026-10-29 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Patron",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "autoname": "format:M-{#####}",
+ "title_field": "full_name",
+ "show_title_field_in_link": 1,
+ "search_fields": "full_name,institution_id,email,phone",
+ "field_order": [
+  "full_name",
+  "category",
+  "status",
+  "cb1",
+  "institution_id",
+  "user",
+  "valid_until",
+  "sec_contact",
+  "email",
+  "phone",
+  "cb2",
+  "date_of_birth",
+  "department",
+  "sec_card",
+  "photo",
+  "id_card_photo",
+  "cb3",
+  "joined_on",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "label": "Name",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Link",
+   "label": "Category",
+   "options": "RD Patron Category",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Active\nPending\nListed\nExpired\nBlocked\nRejected",
+   "default": "Active",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "reqd": 1,
+   "description": "Listed: on the roster, has not joined the portal yet. Pending: joined, waiting for staff to approve."
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "institution_id",
+   "fieldtype": "Data",
+   "label": "School, College or Employee ID",
+   "in_standard_filter": 1,
+   "description": "The number on the person's own ID card. Sign-up checks it against the roster."
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "Portal Account",
+   "options": "User",
+   "read_only": 1,
+   "description": "Set when the person joins the portal."
+  },
+  {
+   "fieldname": "valid_until",
+   "fieldtype": "Date",
+   "label": "Valid Until",
+   "description": "Last day of the membership. Empty = no end date."
+  },
+  {
+   "fieldname": "sec_contact",
+   "fieldtype": "Section Break",
+   "label": "Contact"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "label": "Phone",
+   "options": "Phone"
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "date_of_birth",
+   "fieldtype": "Date",
+   "label": "Date of Birth",
+   "description": "Used to check a person's ID when they join. Not shown on the card."
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Data",
+   "label": "Class or Department"
+  },
+  {
+   "fieldname": "sec_card",
+   "fieldtype": "Section Break",
+   "label": "Card"
+  },
+  {
+   "fieldname": "photo",
+   "fieldtype": "Attach Image",
+   "label": "Photo",
+   "description": "Printed on the ID card."
+  },
+  {
+   "fieldname": "id_card_photo",
+   "fieldtype": "Attach Image",
+   "label": "Photo of ID Card Sent at Sign-up",
+   "read_only": 1,
+   "description": "Sent by the person when the roster could not confirm them. Staff look, then approve or reject."
+  },
+  {
+   "fieldname": "cb3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "joined_on",
+   "fieldtype": "Datetime",
+   "label": "Joined On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes",
+   "description": "For staff. The member never sees this."
+  }
+ ],
+ "links": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "index_web_pages_for_search": 0,
+ "track_changes": 1,
+ "image_field": "photo",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1
+  }
+ ]
+}

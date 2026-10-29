@@ -282,7 +282,7 @@ uses.
 
 **Your institution** (the installer asks it first; [Installation](installation.md#docker-one-command)): tick every kind that fits: *Small library or school*, *Public research
 portal*, *Members-only institution*, *Archive keeping its own copies*, *University or repository
-front*, *Language-technology partner*, *Manuscript library or archive*, *Photograph archive*. They combine: a library can be a public research portal and
+front*, *Language-technology partner*, *Manuscript library or archive*, *Photograph archive*, *School or college library (lends books)*. They combine: a library can be a public research portal and
 an archive at once. Ticking or unticking one sets the features to what the ticked kinds need, and
 the resource preset (Settings → Server) to the largest of theirs. You can still change each feature
 afterwards.
@@ -347,6 +347,10 @@ Each night every published book is checked again (**Scan now** checks at once). 
   **Not a duplicate** keeps both.
 
 A corrected record leaves the queue as soon as it is saved, wherever it was corrected.
+
+## Members, lending and acquisitions
+
+For a school or small library with no library system, Research Desk can lend books too: members with ID cards, a circulation desk, holds, fines, vendors and purchase orders. Managers and Cataloguers work the lending screens; readers see only **My library**. It is off by default; see [Members, lending and acquisitions](lending.md).
 
 ## Pages of your own
 

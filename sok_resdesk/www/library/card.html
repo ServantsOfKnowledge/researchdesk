@@ -1,0 +1,49 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title | e }}{% endblock %}
+
+{% block page_content %}
+<style>
+	.rd-cards { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; padding: 16px 0; }
+	.rd-idc { width: 85.6mm; height: 54mm; box-sizing: border-box; border: 1px solid #1f272e; border-radius: 3.5mm; overflow: hidden; background: #fff; color: #1f272e; font-family: Arial, sans-serif; position: relative; page-break-inside: avoid; break-inside: avoid; }
+	.rd-idc__band { background: #0f5c6e; color: #fff; padding: 2mm 3mm; display: flex; align-items: center; gap: 2mm; height: 9mm; box-sizing: border-box; }
+	.rd-idc__band img { height: 6mm; width: auto; }
+	.rd-idc__band b { font-size: 3.4mm; line-height: 1.1; }
+	.rd-idc__body { display: flex; gap: 3mm; padding: 2.5mm 3mm 0; }
+	.rd-idc__photo { width: 21mm; height: 26mm; background: #eceef0; border: .3mm solid #c4c7cb; flex: none; object-fit: cover; }
+	.rd-idc__who b { display: block; font-size: 4mm; line-height: 1.15; margin-bottom: 1mm; }
+	.rd-idc__who span { display: block; font-size: 2.8mm; line-height: 1.35; color: #333; }
+	.rd-idc__code { position: absolute; left: 0; right: 0; bottom: 1.5mm; text-align: center; }
+	.rd-idc__code svg { height: 12mm; width: auto; max-width: 80mm; }
+	.rd-idc--back { padding: 4mm; font-size: 2.9mm; line-height: 1.4; white-space: pre-line; }
+	.rd-idc--back small { position: absolute; left: 4mm; bottom: 3mm; color: #555; }
+	.rd-card-tools { text-align: center; }
+	@page { size: A4; margin: 10mm; }
+	@media print {
+		.rd-card-tools, header, nav, footer, .navbar, .web-footer { display: none !important; }
+		body { background: #fff; }
+		.rd-cards { display: block; padding: 0; }
+		.rd-idc { margin: 0 6mm 6mm 0; display: inline-block; vertical-align: top; }
+	}
+</style>
+<div class="rd">
+	<p class="rd-card-tools"><button class="rd-btn rd-btn--primary" type="button" onclick="window.print()">{{ _("Print") | e }}</button>
+	<span class="rd-muted">{{ _("Cards are credit-card size (85.6 × 54 mm): print at 100%, then cut.") | e }}</span></p>
+	<div class="rd-cards">
+	{% for c in cards %}
+		<div class="rd-idc" role="group" aria-label="{{ _('ID card of {0}').format(c.full_name) | e }}">
+			<div class="rd-idc__band">{% if c.logo %}<img src="{{ c.logo | e }}" alt="">{% endif %}<b>{{ c.library | e }}</b></div>
+			<div class="rd-idc__body">
+				{% if c.photo %}<img class="rd-idc__photo" src="{{ c.photo }}" alt="">{% else %}<div class="rd-idc__photo" aria-hidden="true"></div>{% endif %}
+				<div class="rd-idc__who"><b>{{ c.full_name | e }}</b>
+					<span>{{ c.category | e }}{% if c.department %} · {{ c.department | e }}{% endif %}</span>
+					{% if c.institution_id %}<span>{{ _("ID") | e }} {{ c.institution_id | e }}</span>{% endif %}
+					{% if c.valid_until %}<span>{{ _("Valid until {0}").format(c.valid_until) | e }}</span>{% endif %}</div>
+			</div>
+			<div class="rd-idc__code">{{ c.barcode }}</div>
+		</div>
+		<div class="rd-idc rd-idc--back" role="group" aria-label="{{ _('Back of the ID card of {0}').format(c.full_name) | e }}">{{ (c.back or _("This card belongs to the library. If you find it, please return it to the library.")) | e }}<small>{{ c.name | e }}</small></div>
+	{% endfor %}
+	</div>
+</div>
+{% endblock %}

@@ -40,6 +40,7 @@
   "profile_langtech",
   "profile_manuscripts",
   "profile_photos",
+  "profile_school",
   "suggestions_section",
   "feature_suggestions",
   "features_section",
@@ -63,6 +64,7 @@
   "feature_sharing",
   "feature_reader_accounts",
   "feature_statistics",
+  "feature_lending",
   "tab_readers",
   "tab_readers_intro",
   "access_section",
@@ -75,6 +77,15 @@
   "access_rules",
   "desk_section",
   "desk_scope",
+  "lending_section",
+  "lending_closed_days",
+  "lending_hold_days",
+  "lending_default_category",
+  "lending_currency",
+  "column_break_lending",
+  "lending_renew_overdue",
+  "lending_keep_days",
+  "lending_card_back",
   "contact_section",
   "contact_enabled",
   "contact_intro",
@@ -402,6 +413,14 @@
    "permlevel": 1
   },
   {
+   "fieldname": "profile_school",
+   "fieldtype": "Check",
+   "label": "School or college library (lends books)",
+   "default": "0",
+   "permlevel": 1,
+   "description": "Switches on: members, lending and acquisitions, reader accounts, page-level full-text search. Resources: light."
+  },
+  {
    "fieldname": "suggestions_section",
    "fieldtype": "Section Break",
    "label": "",
@@ -514,6 +533,14 @@
    "permlevel": 1
   },
   {
+   "fieldname": "feature_media",
+   "fieldtype": "Check",
+   "label": "Audio and video",
+   "default": "1",
+   "description": "Recordings with a player and a time-coded transcript, in folders and from archive.org. Off saves the player pages and the transcripts.",
+   "permlevel": 1
+  },
+  {
    "fieldname": "feature_manuscripts",
    "fieldtype": "Check",
    "label": "Manuscripts and palm leaves",
@@ -535,14 +562,6 @@
    "label": "Archival description",
    "default": "1",
    "description": "Describing papers as fonds, series, file and item (ISAD(G)), a browsable hierarchy on the portal and EAD3 finding aids. Off saves it for libraries that describe no archives.",
-   "permlevel": 1
-  },
-  {
-   "fieldname": "feature_media",
-   "fieldtype": "Check",
-   "label": "Audio and video",
-   "default": "1",
-   "description": "Recordings with a player and a time-coded transcript, in folders and from archive.org. Off saves the player pages and the transcripts.",
    "permlevel": 1
   },
   {
@@ -576,6 +595,14 @@
    "default": "1",
    "description": "How readers use the portal (built-in, PostHog, Plausible or Umami). Off saves the page-view log.",
    "permlevel": 1
+  },
+  {
+   "fieldname": "feature_lending",
+   "fieldtype": "Check",
+   "label": "Members, lending and acquisitions",
+   "default": "0",
+   "permlevel": 1,
+   "description": "Members with ID cards, lending and returns, holds, fines, vendors and purchase orders. Off (the default) means none of it is collected and its screens are hidden; a library that lends through Koha keeps it off."
   },
   {
    "fieldname": "tab_readers",
@@ -666,6 +693,113 @@
    "default": "Research Desk only, for everyone (Frappe's tools are under Administration)",
    "description": "Research Desk's sidebar holds every screen an administrator needs, Frappe's users, roles, system settings and logs included (under Administration), and the way to Frappe's own desktop is closed. The other choices give Administrator, or System Managers, Frappe's desktop back. Changing it updates every account straight away.",
    "permlevel": 1
+  },
+  {
+   "fieldname": "lending_section",
+   "fieldtype": "Section Break",
+   "label": "Members and Lending",
+   "depends_on": "eval:doc.feature_lending"
+  },
+  {
+   "fieldname": "lending_closed_days",
+   "fieldtype": "Data",
+   "label": "Library Closed On",
+   "default": "Sunday",
+   "description": "Weekdays the library is shut, separated by commas (for example Sunday, Saturday). A loan that falls due on a closed day is due the next day the library is open."
+  },
+  {
+   "fieldname": "lending_hold_days",
+   "fieldtype": "Int",
+   "label": "Days a Held Book Waits",
+   "default": "7",
+   "description": "How long a returned book is kept on the hold shelf for the member waiting for it, before it goes to the next one."
+  },
+  {
+   "fieldname": "lending_default_category",
+   "fieldtype": "Link",
+   "label": "Category for New Sign-ups",
+   "options": "RD Patron Category",
+   "description": "The category given to people who join the portal with their ID card and are not on the roster. Staff can change it when they approve."
+  },
+  {
+   "fieldname": "lending_currency",
+   "fieldtype": "Data",
+   "label": "Currency Symbol",
+   "default": "₹",
+   "description": "Shown beside fines and prices."
+  },
+  {
+   "fieldname": "column_break_lending",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "lending_renew_overdue",
+   "fieldtype": "Check",
+   "label": "Allow Renewing Overdue Loans",
+   "default": "0",
+   "description": "Off: a member must return an overdue book (and pay any fine) before it can be lent again."
+  },
+  {
+   "fieldname": "lending_keep_days",
+   "fieldtype": "Int",
+   "label": "Keep Returned Loans (days)",
+   "default": "180",
+   "description": "Returned loans with no unpaid fine are deleted after this many days, so the library keeps no record of what people read. 0 = keep them."
+  },
+  {
+   "fieldname": "lending_card_back",
+   "fieldtype": "Small Text",
+   "label": "Back of the ID Card",
+   "description": "Printed on the back of the member card: the library's address, opening hours and rules."
+  },
+  {
+   "fieldname": "contact_section",
+   "fieldtype": "Section Break",
+   "label": "Messages from Visitors"
+  },
+  {
+   "fieldname": "contact_enabled",
+   "fieldtype": "Check",
+   "label": "Take Messages From Visitors",
+   "default": "1",
+   "description": "Shows a Contact us page where anyone can write to the library. Messages arrive in the Desk under Messages, and managers get an alert in the Desk bell."
+  },
+  {
+   "fieldname": "contact_intro",
+   "fieldtype": "Small Text",
+   "label": "Words Above the Contact Form",
+   "depends_on": "contact_enabled",
+   "description": "Optional. Shown above the form: what to write about, how soon you answer."
+  },
+  {
+   "fieldname": "contact_keep_days",
+   "fieldtype": "Int",
+   "label": "Days to Keep Messages",
+   "default": "365",
+   "depends_on": "contact_enabled",
+   "description": "Messages older than this are deleted every night. 0 keeps them for good."
+  },
+  {
+   "fieldname": "telegram_bot_token",
+   "fieldtype": "Password",
+   "label": "Telegram Bot Token",
+   "permlevel": 1,
+   "depends_on": "contact_enabled",
+   "description": "Optional. Make a bot with @BotFather on Telegram and paste its token here. Together with the chat ID below, Telegram then tells you privately that a visitor wrote, with a link to the Desk, never the message itself. Save, then use Messages → Send a Test Telegram Message. Not used in Classified mode."
+  },
+  {
+   "fieldname": "telegram_chat_id",
+   "fieldtype": "Data",
+   "label": "Telegram Chat ID",
+   "depends_on": "contact_enabled",
+   "description": "The number of the chat the alert goes to (a group's is negative): press Start on your bot, write to it, then open https://api.telegram.org/botTOKEN/getUpdates (your token in place of TOKEN) and read chat → id. Your own phone number is never used or shown."
+  },
+  {
+   "fieldname": "telegram_username",
+   "fieldtype": "Data",
+   "label": "Telegram Name Visitors Can Message",
+   "depends_on": "contact_enabled",
+   "description": "Optional. A public Telegram username of the library's own account, a channel or a group, like SOKLibrary (not a phone number). The Contact us page then offers a Message us on Telegram button that opens it. Those chats live in Telegram, not in the Desk's Messages. Not shown in Classified mode."
   },
   {
    "fieldname": "analytics_section",
@@ -1500,55 +1634,6 @@
    "label": "Appeal Note for Disclosure Replies",
    "permlevel": 1,
    "description": "Governance edition only. Printed at the end of every reply to a disclosure request: who the applicant may appeal to, and within how long."
-  },
-  {
-   "fieldname": "contact_section",
-   "fieldtype": "Section Break",
-   "label": "Messages from Visitors"
-  },
-  {
-   "fieldname": "contact_enabled",
-   "fieldtype": "Check",
-   "label": "Take Messages From Visitors",
-   "default": "1",
-   "description": "Shows a Contact us page where anyone can write to the library. Messages arrive in the Desk under Messages, and managers get an alert in the Desk bell."
-  },
-  {
-   "fieldname": "contact_intro",
-   "fieldtype": "Small Text",
-   "label": "Words Above the Contact Form",
-   "depends_on": "contact_enabled",
-   "description": "Optional. Shown above the form: what to write about, how soon you answer."
-  },
-  {
-   "fieldname": "contact_keep_days",
-   "fieldtype": "Int",
-   "label": "Days to Keep Messages",
-   "default": "365",
-   "depends_on": "contact_enabled",
-   "description": "Messages older than this are deleted every night. 0 keeps them for good."
-  },
-  {
-   "fieldname": "telegram_bot_token",
-   "fieldtype": "Password",
-   "label": "Telegram Bot Token",
-   "permlevel": 1,
-   "depends_on": "contact_enabled",
-   "description": "Optional. Make a bot with @BotFather on Telegram and paste its token here. Together with the chat ID below, Telegram then tells you privately that a visitor wrote, with a link to the Desk, never the message itself. Save, then use Messages → Send a Test Telegram Message. Not used in Classified mode."
-  },
-  {
-   "fieldname": "telegram_chat_id",
-   "fieldtype": "Data",
-   "label": "Telegram Chat ID",
-   "depends_on": "contact_enabled",
-   "description": "The number of the chat the alert goes to (a group's is negative): press Start on your bot, write to it, then open https://api.telegram.org/botTOKEN/getUpdates (your token in place of TOKEN) and read chat → id. Your own phone number is never used or shown."
-  },
-  {
-   "fieldname": "telegram_username",
-   "fieldtype": "Data",
-   "label": "Telegram Name Visitors Can Message",
-   "depends_on": "contact_enabled",
-   "description": "Optional. A public Telegram username of the library's own account, a channel or a group, like SOKLibrary (not a phone number). The Contact us page then offers a Message us on Telegram button that opens it. Those chats live in Telegram, not in the Desk's Messages. Not shown in Classified mode."
   }
  ],
  "links": [],

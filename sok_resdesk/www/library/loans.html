@@ -1,0 +1,71 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title | e }}{% endblock %}
+
+{% block page_content %}
+<div class="rd rd-loans">
+	<nav class="rd-crumbs"><a href="{{ library_url() }}">← {{ portal_title | e }}</a></nav>
+	<h1 class="rd-page-title">{{ _("My library") | e }}</h1>
+	{% if state == "none" %}
+	<p>{{ _("Your account is not linked to a membership yet.") | e }}</p>
+	<p><a class="rd-btn rd-btn--primary" href="/library/membership">{{ _("Become a member") | e }}</a></p>
+	{% elif state == "pending" %}
+	<p role="status">{% if status == "Rejected" %}{{ _("The library could not confirm your membership. Please ask at the desk.") | e }}{% else %}{{ _("A librarian is checking your membership. You can borrow once it is approved.") | e }}{% endif %}</p>
+	{% else %}
+	<section class="rd-card" aria-labelledby="rd-me-h">
+		<h2 id="rd-me-h">{{ me.patron.full_name | e }}</h2>
+		<p class="rd-muted">{{ me.patron.name | e }} · {{ me.patron.category | e }}{% if me.patron.valid_until %} · {{ _("valid until {0}").format(me.patron.valid_until) | e }}{% endif %}</p>
+		{% if me.standing %}<p role="alert"><strong>{{ me.standing | e }}</strong></p>{% endif %}
+		<p><a class="rd-btn" href="/library/card" target="_blank">{{ _("Show my ID card") | e }}</a></p>
+	</section>
+	<p id="rd-ln-msg" role="status" tabindex="-1" class="rd-error"></p>
+	<section class="rd-card" aria-labelledby="rd-loans-h">
+		<h2 id="rd-loans-h">{{ _("On loan") | e }} ({{ me.loans | length }}{% if me.limits.loans %} / {{ me.limits.loans | e }}{% endif %})</h2>
+		{% if me.loans %}
+		<table class="rd-table"><thead><tr><th scope="col">{{ _("Book") | e }}</th><th scope="col">{{ _("Due") | e }}</th><th scope="col"><span class="sr-only">{{ _("Actions") | e }}</span></th></tr></thead><tbody>
+		{% for l in me.loans %}
+			<tr><td><a href="/library/item/{{ l.item | urlencode }}">{{ l.title | e }}</a></td>
+			<td>{{ l.due_on | e }}{% if l.overdue %} <strong>· {{ _("overdue") | e }}</strong>{% endif %}</td>
+			<td><button class="rd-btn" type="button" data-renew="{{ l.name | e }}">{{ _("Renew") | e }}</button></td></tr>
+		{% endfor %}</tbody></table>
+		{% else %}<p class="rd-muted">{{ _("Nothing on loan.") | e }}</p>{% endif %}
+	</section>
+	<section class="rd-card" aria-labelledby="rd-holds-h">
+		<h2 id="rd-holds-h">{{ _("Holds") | e }}</h2>
+		{% if me.holds %}
+		<ul>{% for h in me.holds %}<li><a href="/library/item/{{ h.item | urlencode }}">{{ h.title | e }}</a> · {% if h.status == "Ready" %}{{ _("ready for you on the hold shelf until {0}").format(h.ready_until) | e }}{% else %}{{ _("waiting") | e }}{% endif %} <button class="rd-btn" type="button" data-cancel="{{ h.name | e }}">{{ _("Cancel") | e }}</button></li>{% endfor %}</ul>
+		{% else %}<p class="rd-muted">{{ _("No holds. When every copy of a book is out, you can place a hold on its page.") | e }}</p>{% endif %}
+	</section>
+	{% if me.fines %}
+	<section class="rd-card" aria-labelledby="rd-fines-h">
+		<h2 id="rd-fines-h">{{ _("Fines due") | e }}: {{ me.currency | e }}{{ me.fines_total | e }}</h2>
+		<ul>{% for f in me.fines %}<li>{{ _(f.reason) | e }}{% if f.note %} · {{ f.note | e }}{% endif %}: {{ me.currency | e }}{{ f.amount | e }}</li>{% endfor %}</ul>
+		<p class="rd-muted">{{ _("Pay at the library desk.") | e }}</p>
+	</section>
+	{% endif %}
+	{% endif %}
+</div>
+{% endblock %}
+
+{% block script %}
+{% if state == "member" %}
+<script>
+(function () {
+	const msg = document.getElementById("rd-ln-msg");
+	const T = {{ _("That did not work. Please try again.") | tojson }};
+	const post = (method, args) => fetch("/api/method/sok_resdesk.lending." + method, {
+		method: "POST", credentials: "same-origin",
+		headers: {"Content-Type": "application/json", "X-Frappe-CSRF-Token": window.csrf_token},
+		body: JSON.stringify(args)
+	}).then((r) => r.json()).then((r) => {
+		if (r.message) { window.location.reload(); return; }
+		let text = T;
+		try { text = JSON.parse(JSON.parse(r._server_messages || "[]")[0]).message.replace(/<[^>]+>/g, ""); } catch (x) {}
+		msg.textContent = text; msg.focus();
+	}).catch(() => { msg.textContent = T; msg.focus(); });
+	document.querySelectorAll("[data-renew]").forEach((b) => b.addEventListener("click", () => post("my_renew", {loan: b.dataset.renew})));
+	document.querySelectorAll("[data-cancel]").forEach((b) => b.addEventListener("click", () => post("my_cancel_hold", {hold: b.dataset.cancel})));
+})();
+</script>
+{% endif %}
+{% endblock %}

@@ -99,6 +99,12 @@ def get_context(context):
 		and (record.get("on_archive_org") or record.get("from_wikisource") or iiif.drawn_here(record))
 		else ""
 	)
+	try:
+		from sok_resdesk import lending
+
+		context.lending = lending.availability(item_id)  # copies on the shelf, when the library lends
+	except Exception:
+		context.lending = None
 	context.formats = [(k, v[0]) for k, v in citations.FORMATS.items()]
 	context.cites = {k: citations.render(record, k, root) for k in citations.FORMATS}
 	context.highwire = citations.highwire_tags(record, root)
