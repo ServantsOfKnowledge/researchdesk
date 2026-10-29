@@ -87,9 +87,10 @@ def receive(order: str, quantities=None, location: str = "") -> dict:
 	"""Books arrived: `quantities` is a JSON object {line number: how many came} (empty: everything still
 	outstanding). Makes the copies and returns their barcodes, to print as labels."""
 	_staff()
+	frappe.db.get_value(
+		"RD Purchase Order", order, "name", for_update=True
+	)  # two deliveries entered together must not make the copies twice
 	doc = frappe.get_doc("RD Purchase Order", order)
-	doc.lock()  # two deliveries entered together must not make the copies twice
-	doc.reload()
 	if doc.status not in ("Ordered", "Part Received"):
 		frappe.throw(_("Place the order before receiving books."))
 	wanted = (

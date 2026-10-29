@@ -22,6 +22,9 @@
 		<p class="rd-access-note"><a href="{{ login_url }}">{{ _("Log in") }}</a> {{ _("to read books and search inside their text.") }}
 			{% if viewer.signup %}<a href="/library/join">{{ _("Create an account") }}</a>{% endif %}</p>
 		{% endif %}
+		{% if lending %}
+		<p class="rd-access-note">{% if lending_member %}<a href="/library/loans">{{ _("My library") }}</a> {{ _("Your loans, holds and ID card.") }}{% else %}<a href="/library/membership">{{ _("Become a member") }}</a> {{ _("to borrow books with your ID card.") }}{% endif %}</p>
+		{% endif %}
 	</header>
 
 

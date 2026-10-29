@@ -30,6 +30,10 @@ def get_context(context):
 
 	context.item_count = item_count()
 	context.viewer = access.viewer()
+	from sok_resdesk import features, lending
+
+	context.lending = features.on("lending")  # a link to joining, or to My library
+	context.lending_member = bool(context.lending and lending.patron_of())
 	from sok_resdesk import profile
 
 	context.ask_profile = bool(context.viewer.get("logged_in")) and not profile.has_profile()

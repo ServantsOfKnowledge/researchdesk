@@ -10,7 +10,7 @@
 #  ./install.sh --check      look at this machine and advise how to install (changes nothing)
 #  ./install.sh --profile portal,archive [--languages "kan eng"] [--books 20000]
 #                            what kind of institution (they combine): small, portal, members,
-#                            archive, repository, langtech; the books' languages for OCR (or
+#                            archive, repository, langtech, school; the books' languages for OCR (or
 #                            all); about how many books. Settings → Features can change it later
 #  ./install.sh --edition governance
 #                            the records-office app as well (audit log, classification, retention,
@@ -193,10 +193,11 @@ else
     echo "    2  Public research portal          5  University or repository front"
     echo "    3  Members-only institution        6  Language-technology partner"
     echo "    7  Manuscript library or archive   8  Photograph archive"
+    echo "    9  School or college library (lends books)"
   fi
   ask PROFILES      "Kinds of institution"                               "$PROFILES"
   PROFILES=$(echo "$PROFILES" | tr ' ' ',' \
-    | sed 's/1/small/g;s/2/portal/g;s/3/members/g;s/4/archive/g;s/5/repository/g;s/6/langtech/g;s/7/manuscripts/g;s/8/photos/g')
+    | sed 's/1/small/g;s/2/portal/g;s/3/members/g;s/4/archive/g;s/5/repository/g;s/6/langtech/g;s/7/manuscripts/g;s/8/photos/g;s/9/school/g')
   # Secret and Top Secret records: an installation that refuses every outside connection
   # (docs/governance.md#classified-mode); a separate, air-gapped machine is recommended
   if [ "$YES" != 1 ]; then

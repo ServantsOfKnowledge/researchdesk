@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.105.1 (2026-10-29): Lending, finished
+
+- **Fixed: receiving a purchase order failed** after a first refused attempt (the order stayed locked). Two deliveries entered together are still kept apart, with a database lock.
+- **A way in to lending.** The library's home page now says *Become a member* (or *My library* for a member) when lending is on, and the installer offers the kind of institution *School or college library (lends books)* (`9`, or `school`).
 ## 0.105.0 (2026-10-29): Members, lending and acquisitions
 
 - **New, off by default: the lending side of a library.** For a school, college or small library with no library system. Settings → Features → *Members, lending and acquisitions* (or the profile *School or college library (lends books)*) switches on **members** with categories and printable ID cards (a Code 39 barcode of the member number), **copies** with barcodes and labels, a **Circulation Desk** for lending, returning, renewing and marking lost with a barcode scanner, **holds** with a hold shelf, **fines**, and **acquisitions** (vendors and purchase orders that receive into copies).
