@@ -130,6 +130,7 @@ only; 10 a minute.
 | `sok_resdesk.acquisitions.labels` (`barcodes`) | barcode labels (SVG) for copies (staff) |
 | (page) `/library/membership` · `/library/loans` · `/library/card` · `/library/labels` | become a member; My library; the ID card(s); barcode labels (staff) |
 | `sok_resdesk.acquisitions.budget_summary` (`budget`) | a budget's amount, committed, spent and left (staff) |
+| `sok_resdesk.acquisitions.invoice_lines_from_order` (`order`) | the order's lines as invoice lines to start from (staff) |
 | `sok_resdesk.acquisitions.invoice_approve` (`invoice`) · `invoice_pay` (`invoice`, `note`) · `invoice_cancel` (`invoice`) | approve an invoice; record that it was paid; cancel it (managers, POST) |
 | `sok_resdesk.serials.generate` (`subscription`, `count`) · `receive` (`issue`, `make_copy`) · `claim` (`issue`) · `mark_missing` (`issue`) | make the expected issues; check an issue in (a reference copy); note a claim; mark missing (staff, POST) |
 | `sok_resdesk.ill.steps` (`request`) · `advance` (`request`, `to`, `note`) · `charge_fee` (`request`) | the next steps of an interlibrary request; take one; charge the fee to the member (staff) |

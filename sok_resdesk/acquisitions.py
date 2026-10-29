@@ -15,6 +15,7 @@ from frappe.utils import cint, flt, nowdate
 
 from sok_resdesk import access, features
 from sok_resdesk.core import budget as money
+from sok_resdesk.core import gst
 from sok_resdesk.lending import STAFF
 
 MAX_PER_DELIVERY = 500
@@ -205,8 +206,57 @@ def _received_value(order: str) -> float:
 	)
 
 
+LINE_FIELDS = ("description", "order_line", "hsn", "quantity", "rate", "gst_rate")
+_SUPPLY = {"intra": "Within the state (CGST + SGST)", "inter": "Between states (IGST)"}
+
+
+def _price_lines(doc) -> None:
+	"""With lines, the tax and the total are worked out here; with none, the amount is what was typed."""
+	figures = {"taxable": 0, "tax": 0, "cgst": 0, "sgst": 0, "igst": 0}
+	kind = ""
+	if doc.get("lines"):
+		for row in doc.lines:
+			if cint(row.quantity) <= 0 or flt(row.rate) < 0:
+				frappe.throw(
+					_("Row {0}: the quantity must be more than nothing and the rate not negative.").format(
+						row.idx
+					)
+				)
+			row.hsn = (row.hsn or "").strip()
+			row.taxable, row.tax = (float(x) for x in gst.line(row.quantity, row.rate, row.gst_rate or "0"))
+		kind = gst.supply(
+			frappe.db.get_single_value("RD Settings", "library_gstin"),
+			frappe.db.get_value("RD Vendor", doc.vendor, "gstin"),
+		)
+		figures = gst.totals([(r.quantity, r.rate, r.gst_rate or "0") for r in doc.lines], kind)
+		doc.amount = figures["total"]
+	doc.supply = _SUPPLY.get(kind, "")
+	doc.taxable_total, doc.tax_total = figures["taxable"], figures["tax"]
+	doc.cgst, doc.sgst, doc.igst = figures["cgst"], figures["sgst"], figures["igst"]
+
+
+def _lines_key(doc) -> list:
+	return [tuple(row.get(f) or "" for f in LINE_FIELDS) for row in doc.get("lines") or []]
+
+
+def _match_lines(doc, po) -> str:
+	"""The lines that name an order line: no more billed than ordered or received (all of one book together)."""
+	own = {r.name for r in po.lines}
+	billed: dict = {}
+	for row in doc.lines:
+		if row.order_line:
+			if row.order_line not in own:
+				frappe.throw(_("Row {0}: that line is not on the order {1}.").format(row.idx, po.name))
+			billed[row.order_line] = billed.get(row.order_line, 0) + cint(row.quantity)
+	return money.lines_match(
+		billed, {r.name: cint(r.quantity) for r in po.lines}, {r.name: cint(r.received) for r in po.lines}
+	)
+
+
 def check_invoice(doc) -> None:
-	"""RD Invoice.validate: the order's vendor and budget, a number not used before, and the three-way check."""
+	"""RD Invoice.validate: the lines and tax, the order's vendor and budget, a number not used before, and the
+	three-way check."""
+	_price_lines(doc)
 	if flt(doc.amount) <= 0:
 		frappe.throw(_("The invoice amount must be more than nothing."))
 	doc.invoice_number = (doc.invoice_number or "").strip().upper()  # INV-1 and inv-1 are one invoice
@@ -217,8 +267,12 @@ def check_invoice(doc) -> None:
 		if before and not doc.flags.get("from_workflow"):
 			if doc.status != before.status or doc.approved_by != before.approved_by:
 				frappe.throw(_("Use Approve, Record Payment or Cancel to change an invoice's state."))
-			if before.status != "Draft" and any(
-				doc.get(f) != before.get(f) for f in ("amount", "vendor", "order", "budget", "invoice_number")
+			if before.status != "Draft" and (
+				any(
+					doc.get(f) != before.get(f)
+					for f in ("amount", "vendor", "order", "budget", "invoice_number")
+				)
+				or _lines_key(doc) != _lines_key(before)
 			):
 				frappe.throw(
 					_("An invoice that has been approved cannot be changed. Cancel it and enter another.")
@@ -239,7 +293,31 @@ def check_invoice(doc) -> None:
 		if po.vendor != doc.vendor:
 			frappe.throw(_("The order {0} is with another vendor.").format(doc.order))
 		doc.budget = doc.budget or po.budget
-		doc.match = money.three_way(doc.amount, po.total, _received_value(doc.order))
+		# the order's prices are before tax, so with lines it is the taxable value that is checked against it
+		billed = doc.taxable_total if doc.get("lines") else doc.amount
+		doc.match = money.three_way(billed, po.total, _received_value(doc.order))
+		if doc.match == "ok" and doc.get("lines"):
+			doc.match = _match_lines(doc, po)
+	elif any(r.order_line for r in doc.get("lines") or []):
+		frappe.throw(_("Choose the order these lines belong to."))
+
+
+@frappe.whitelist()
+def invoice_lines_from_order(order: str) -> list[dict]:
+	"""The lines of an order as invoice lines (what has arrived, or the whole order when nothing has yet)."""
+	_staff()
+	po = frappe.get_doc("RD Purchase Order", order)
+	return [
+		{
+			"description": r.title,
+			"order_line": r.name,
+			"hsn": "4901",
+			"quantity": cint(r.received) or cint(r.quantity),
+			"rate": flt(r.unit_price),
+			"gst_rate": "0",
+		}
+		for r in po.lines
+	]
 
 
 def _invoice(name: str, *states: str):

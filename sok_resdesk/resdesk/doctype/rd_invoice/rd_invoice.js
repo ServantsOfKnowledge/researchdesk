@@ -3,6 +3,16 @@
 
 frappe.ui.form.on("RD Invoice", {
 	refresh(frm) {
+		if (frm.doc.status === "Draft" || frm.is_new()) {
+			frm.add_custom_button(__("Fill lines from the order"), () => {
+				if (!frm.doc.order) return frappe.msgprint(__("Choose the purchase order first."));
+				frappe.call({ method: "sok_resdesk.acquisitions.invoice_lines_from_order", args: { order: frm.doc.order } }).then((r) => {
+					frm.clear_table("lines");
+					(r.message || []).forEach((row) => frm.add_child("lines", row));
+					frm.refresh_field("lines");
+				});
+			});
+		}
 		if (frm.is_new() || frm.is_dirty()) return;
 		const act = (method, ask, args = {}) => () => frappe.confirm(ask, () => frappe.call({ method: "sok_resdesk.acquisitions." + method, args: { invoice: frm.doc.name, ...args }, freeze: true }).then(() => frm.reload_doc()));
 		if (frm.doc.match && frm.doc.match !== "ok") frm.set_intro(__("This invoice does not agree with the order: {0}. Check before approving.", [frm.doc.match]), "orange");

@@ -19,6 +19,16 @@
   "invoice_number",
   "invoice_date",
   "due_date",
+  "sec_lines",
+  "lines",
+  "sec_tax",
+  "supply",
+  "taxable_total",
+  "cgst",
+  "sgst",
+  "igst",
+  "cb_tax",
+  "tax_total",
   "amount",
   "sec_state",
   "status",
@@ -77,11 +87,70 @@
    "label": "Pay By"
   },
   {
+   "fieldname": "sec_lines",
+   "fieldtype": "Section Break",
+   "label": "What Is Billed",
+   "description": "Add lines to work out the tax and the total. With no lines, enter the total yourself."
+  },
+  {
+   "fieldname": "lines",
+   "fieldtype": "Table",
+   "label": "Lines",
+   "options": "RD Invoice Line"
+  },
+  {
+   "fieldname": "sec_tax",
+   "fieldtype": "Section Break",
+   "label": "GST"
+  },
+  {
+   "fieldname": "supply",
+   "fieldtype": "Data",
+   "label": "Kind of Supply",
+   "read_only": 1,
+   "description": "Within the state (CGST and SGST) or between states (IGST), from the first two digits of the two GSTINs. Empty when either is missing or wrong."
+  },
+  {
+   "fieldname": "taxable_total",
+   "fieldtype": "Float",
+   "label": "Taxable Value",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cgst",
+   "fieldtype": "Float",
+   "label": "CGST",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sgst",
+   "fieldtype": "Float",
+   "label": "SGST",
+   "read_only": 1
+  },
+  {
+   "fieldname": "igst",
+   "fieldtype": "Float",
+   "label": "IGST",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb_tax",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tax_total",
+   "fieldtype": "Float",
+   "label": "Total Tax",
+   "read_only": 1
+  },
+  {
    "fieldname": "amount",
    "fieldtype": "Float",
    "label": "Amount",
-   "reqd": 1,
-   "in_list_view": 1
+   "reqd": 0,
+   "in_list_view": 1,
+   "description": "With lines this is worked out (taxable value plus tax); with none, enter what the vendor billed."
   },
   {
    "fieldname": "sec_state",

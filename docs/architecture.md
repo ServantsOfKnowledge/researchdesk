@@ -182,7 +182,8 @@ The seventeen records-office doctypes (audit event, department, clearance, item 
 | **RD Purchase Order** | an order of books | vendor, status (Draft / Ordered / Part Received / Received / Cancelled), order_date, expected_date, total, lines (child table RD Order Line) |
 | RD Order Line | child table of RD Purchase Order | title, author, isbn, item, quantity, unit_price, received |
 | RD Budget | what a purchase budget is | budget_name, amount, starts_on, ends_on, notes |
-| **RD Invoice** | a vendor's invoice | vendor, order, budget, invoice_number, invoice_date, due_date, amount, status (Draft / Approved / Paid / Cancelled), match (the three-way check), approved_by, paid_on, payment_note |
+| RD Invoice Line | child table of RD Invoice | description, order_line, hsn, quantity, rate, gst_rate, taxable, tax |
+| **RD Invoice** | a vendor's invoice | vendor, order, budget, invoice_number, invoice_date, due_date, lines (child table RD Invoice Line), supply, taxable_total, cgst, sgst, igst, tax_total, amount, status (Draft / Approved / Paid / Cancelled), match (the three-way check), approved_by, paid_on, payment_note |
 | RD Serial Subscription | a periodical the library subscribes to | title, item, issn, vendor, frequency (Weekly … Yearly), status, first_issue_due, ends_on, claim_after_days, price, location |
 | RD Serial Issue | one expected issue | subscription, label, expected_on, status (Expected / Received / Late / Claimed / Missing), received_on, claimed_on, copy |
 | **RD ILL Request** | a request for a book from, or for, another library | direction (Borrowing / Lending), status, patron, partner_library, title, author, isbn, item, copy, requested_on, needed_by, due_on, fee, fee_charged, notes |

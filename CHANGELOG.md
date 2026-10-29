@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.107.0 (2026-10-31): Invoice lines and GST
+
+- **Invoice lines.** An invoice can list what it bills (item, quantity, rate, HSN, GST %); each line's tax and the
+  invoice total are worked out, and *Fill lines from the order* starts the list. An invoice without lines works as before.
+- **GST.** Settings has the library's GSTIN and each vendor has theirs (checked for format and check character). The first
+  two digits tell the state: tax is split into CGST and SGST within a state and IGST between states, and shown whole when
+  either GSTIN is missing.
+- **Checked against the order.** With lines the taxable value (the order's prices are before tax) is compared with the
+  order and with what arrived, and a line that names an order line is checked on its own quantity.
+
 ## 0.106.2 (2026-10-30): Koha import of patrons and loans noted as on hold
 
 - The roadmap now lists moving patrons, items, loans and fines from Koha as on hold, and why.

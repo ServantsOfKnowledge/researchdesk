@@ -16,6 +16,7 @@
   "contact_person",
   "email",
   "phone",
+  "gstin",
   "cb",
   "address",
   "notes"
@@ -46,6 +47,12 @@
    "fieldtype": "Data",
    "label": "Phone",
    "options": "Phone"
+  },
+  {
+   "fieldname": "gstin",
+   "fieldtype": "Data",
+   "label": "GSTIN",
+   "description": "The vendor's 15-character GST number; its first two digits are the state."
   },
   {
    "fieldname": "cb",

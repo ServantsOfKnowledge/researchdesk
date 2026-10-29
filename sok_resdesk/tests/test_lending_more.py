@@ -74,7 +74,7 @@ class TestMoreLending(IntegrationTestCase):
 		self.clean()
 		s = frappe.get_single("RD Settings")
 		s.feature_lending, s.payment_provider, s.lending_ill_max = self.saved
-		s.razorpay_key_id = s.razorpay_key_secret = s.razorpay_webhook_secret = ""
+		s.razorpay_key_id = s.razorpay_key_secret = s.razorpay_webhook_secret = s.library_gstin = ""
 		s.save(ignore_permissions=True)
 		frappe.db.commit()
 
@@ -115,6 +115,63 @@ class TestMoreLending(IntegrationTestCase):
 				"amount": amount,
 			}
 		).insert(ignore_permissions=True)
+
+	def test_invoice_lines_work_out_the_tax_and_the_split(self):
+		maharashtra = "27AAPFU0939F1ZV"
+		self.settings(library_gstin=maharashtra)
+		frappe.db.set_value("RD Vendor", "Test Vendor", "gstin", maharashtra)
+		po = self.order(2, 100)
+		acquisitions.place(po.name)
+		acquisitions.receive(po.name)
+		line = frappe.get_all("RD Order Line", filters={"parent": po.name}, pluck="name")[0]
+		inv = frappe.get_doc(
+			{
+				"doctype": "RD Invoice",
+				"vendor": "Test Vendor",
+				"order": po.name,
+				"invoice_number": "G-1",
+				"invoice_date": nowdate(),
+				"lines": [
+					{"description": "Book", "order_line": line, "quantity": 2, "rate": 100, "gst_rate": "5"},
+				],
+			}
+		).insert(ignore_permissions=True)
+		self.assertEqual((inv.taxable_total, inv.tax_total, inv.amount), (200, 10, 210))
+		self.assertEqual((inv.cgst, inv.sgst, inv.igst), (5, 5, 0))
+		self.assertEqual(inv.match, "ok")  # the 5% tax is not counted against the order's prices
+		# another state: IGST
+		frappe.db.set_value("RD Vendor", "Test Vendor", "gstin", "29AABCT1332L1ZA")
+		inv2 = frappe.get_doc(
+			{
+				"doctype": "RD Invoice",
+				"vendor": "Test Vendor",
+				"order": po.name,
+				"invoice_number": "G-2",
+				"invoice_date": nowdate(),
+				"lines": [
+					{"description": "Book", "order_line": line, "quantity": 2, "rate": 100, "gst_rate": "5"}
+				],
+			}
+		).insert(ignore_permissions=True)
+		self.assertEqual((inv2.cgst, inv2.sgst, inv2.igst), (0, 0, 10))
+		# more billed than has arrived
+		too_many = frappe.get_doc(
+			{
+				"doctype": "RD Invoice",
+				"vendor": "Test Vendor",
+				"order": po.name,
+				"invoice_number": "G-3",
+				"invoice_date": nowdate(),
+				"lines": [{"description": "Book", "order_line": line, "quantity": 3, "rate": 60}],
+			}
+		).insert(ignore_permissions=True)
+		self.assertEqual(too_many.match, "over order")
+
+	def test_a_bad_gstin_is_refused(self):
+		with self.assertRaises(frappe.ValidationError):
+			frappe.get_doc(
+				{"doctype": "RD Vendor", "vendor_name": "Bad GSTIN", "gstin": "27AAPFU0939F1ZX"}
+			).insert(ignore_permissions=True)
 
 	# -- budgets and invoices --------------------------------------------------------------------
 

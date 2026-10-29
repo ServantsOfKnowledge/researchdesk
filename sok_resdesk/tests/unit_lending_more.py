@@ -117,3 +117,13 @@ def test_every_doctype_has_its_python_module():
 	for folder in root.iterdir():
 		if (folder / f"{folder.name}.json").exists():
 			assert (folder / f"{folder.name}.py").exists(), folder.name
+
+
+def test_lines_match_each_book_on_its_own():
+	from sok_resdesk.core import budget
+
+	ordered, received = {"a": 5, "b": 2}, {"a": 3, "b": 2}
+	assert budget.lines_match({"a": 3, "b": 2}, ordered, received) == "ok"
+	assert budget.lines_match({"a": 4}, ordered, received) == "over received"
+	assert budget.lines_match({"a": 6}, ordered, received) == "over order"
+	assert budget.lines_match({"c": 1}, ordered, received) == "over order"

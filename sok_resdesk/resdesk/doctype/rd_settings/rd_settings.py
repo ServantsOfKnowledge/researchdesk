@@ -2,8 +2,11 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import escape_html
+
+from sok_resdesk.core import gst
 
 
 class RDSettings(Document):
@@ -11,6 +14,9 @@ class RDSettings(Document):
 		from sok_resdesk import features
 
 		features.apply_profiles(self)  # before the resource preset is checked: profiles set it
+		self.library_gstin = (self.library_gstin or "").strip().upper()
+		if self.library_gstin and not gst.valid_gstin(self.library_gstin):
+			frappe.throw(_("{0} is not a valid GSTIN.").format(self.library_gstin))
 		if self.base_url:
 			self.base_url = self.base_url.rstrip("/")
 		if self.index_prefix:

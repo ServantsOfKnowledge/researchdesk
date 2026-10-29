@@ -88,6 +88,7 @@
   "lending_card_back",
   "lending_ill_max",
   "invoice_separate_approval",
+  "library_gstin",
   "payments_section",
   "payment_provider",
   "razorpay_key_id",
@@ -759,6 +760,66 @@
    "fieldtype": "Small Text",
    "label": "Back of the ID Card",
    "description": "Printed on the back of the member card: the library's address, opening hours and rules."
+  },
+  {
+   "fieldname": "lending_ill_max",
+   "fieldtype": "Int",
+   "label": "Open Interlibrary Requests per Member",
+   "default": "3",
+   "description": "How many requests for books from other libraries one member may have open at once. 0 = no limit."
+  },
+  {
+   "fieldname": "invoice_separate_approval",
+   "fieldtype": "Check",
+   "label": "Someone Else Must Approve an Invoice",
+   "default": "0",
+   "description": "On: the manager who entered an invoice cannot approve it; another manager must. Leave it off in a library with one manager."
+  },
+  {
+   "fieldname": "library_gstin",
+   "fieldtype": "Data",
+   "label": "Library's GSTIN",
+   "description": "Used with a vendor's GSTIN to tell CGST and SGST (same state) from IGST (two states) on invoices. Leave empty if the library has none."
+  },
+  {
+   "fieldname": "payments_section",
+   "fieldtype": "Section Break",
+   "label": "Online Payment of Fines",
+   "depends_on": "eval:doc.feature_lending"
+  },
+  {
+   "fieldname": "payment_provider",
+   "fieldtype": "Select",
+   "label": "Online Payment",
+   "options": "Off\nRazorpay",
+   "default": "Off",
+   "description": "Off: fines are paid at the desk. Razorpay: members can pay what they owe from My library; Razorpay holds the money and the card details. Not available in Classified mode (it needs an outside connection).",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "razorpay_key_id",
+   "fieldtype": "Data",
+   "label": "Razorpay Key ID",
+   "description": "From the Razorpay dashboard (Settings → API keys).",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "column_break_pay",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "razorpay_key_secret",
+   "fieldtype": "Password",
+   "label": "Razorpay Key Secret",
+   "description": "Kept encrypted. Never shown again after saving.",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "razorpay_webhook_secret",
+   "fieldtype": "Password",
+   "label": "Razorpay Webhook Secret",
+   "description": "A secret you choose, typed here and in the Razorpay webhook (event payment_link.paid, address /api/method/sok_resdesk.payments.webhook on this portal).",
+   "permlevel": 1
   },
   {
    "fieldname": "contact_section",
@@ -1642,60 +1703,6 @@
    "label": "Appeal Note for Disclosure Replies",
    "permlevel": 1,
    "description": "Governance edition only. Printed at the end of every reply to a disclosure request: who the applicant may appeal to, and within how long."
-  },
-  {
-   "fieldname": "lending_ill_max",
-   "fieldtype": "Int",
-   "label": "Open Interlibrary Requests per Member",
-   "default": "3",
-   "description": "How many requests for books from other libraries one member may have open at once. 0 = no limit."
-  },
-  {
-   "fieldname": "payments_section",
-   "fieldtype": "Section Break",
-   "label": "Online Payment of Fines",
-   "depends_on": "eval:doc.feature_lending"
-  },
-  {
-   "fieldname": "payment_provider",
-   "fieldtype": "Select",
-   "label": "Online Payment",
-   "options": "Off\nRazorpay",
-   "default": "Off",
-   "description": "Off: fines are paid at the desk. Razorpay: members can pay what they owe from My library; Razorpay holds the money and the card details. Not available in Classified mode (it needs an outside connection).",
-   "permlevel": 1
-  },
-  {
-   "fieldname": "razorpay_key_id",
-   "fieldtype": "Data",
-   "label": "Razorpay Key ID",
-   "description": "From the Razorpay dashboard (Settings → API keys).",
-   "permlevel": 1
-  },
-  {
-   "fieldname": "column_break_pay",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "razorpay_key_secret",
-   "fieldtype": "Password",
-   "label": "Razorpay Key Secret",
-   "description": "Kept encrypted. Never shown again after saving.",
-   "permlevel": 1
-  },
-  {
-   "fieldname": "razorpay_webhook_secret",
-   "fieldtype": "Password",
-   "label": "Razorpay Webhook Secret",
-   "description": "A secret you choose, typed here and in the Razorpay webhook (event payment_link.paid, address /api/method/sok_resdesk.payments.webhook on this portal).",
-   "permlevel": 1
-  },
-  {
-   "fieldname": "invoice_separate_approval",
-   "fieldtype": "Check",
-   "label": "Someone Else Must Approve an Invoice",
-   "default": "0",
-   "description": "On: the manager who entered an invoice cannot approve it; another manager must. Leave it off in a library with one manager."
   }
  ],
  "links": [],

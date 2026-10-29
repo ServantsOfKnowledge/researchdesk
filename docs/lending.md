@@ -178,6 +178,17 @@ different), and one for another vendor's order is refused. Only the buttons move
 cannot be edited or deleted (cancel it and enter another), and Settings can require that **someone else** approves an
 invoice a manager entered.
 
+**Lines and GST.** Add the invoice's **lines** (the item, quantity, rate, HSN and GST %) and Research Desk works out
+each line's tax and the invoice total, so the amount is never typed twice. *Fill lines from the order* copies
+the order's lines (what has arrived, or the whole order if nothing has) to start from. Printed books are nil-rated
+(0%), so most book invoices have 0 tax; periodicals and other goods carry the rate the vendor billed. Put the
+library's **GSTIN** in Settings and the vendor's on the vendor: the first two digits are the state, and when they
+agree the tax is split into **CGST and SGST**, otherwise it is **IGST**. A GSTIN with a wrong check character is
+refused, and with either one missing the tax is shown whole and not split. The order's prices are before tax, so
+with lines the check against the order uses the **taxable value**, and a line that names an order line is also checked
+against what was ordered and received of that book. An invoice with no lines still works as before: type the
+total.
+
 ## Periodicals (serials)
 
 Desk → **Serial Subscriptions**: the periodical, its vendor, how often it comes (weekly to yearly), when the first
@@ -214,7 +225,7 @@ are private files. Deleting a member is for managers.
 
 ## What is not here
 
-Not built: invoice line items and tax (GST) handling, automatic claims to vendors, electronic ordering (EDI),
+Not built: automatic claims to vendors, electronic ordering (EDI),
 bundling several periodical titles in one subscription, ILL protocols (ISO ILL, NCIP), self-service kiosks, and
 payment providers other than Razorpay. A library that needs them keeps Koha or another library system; Research
 Desk links to it ([Koha](koha.md)).

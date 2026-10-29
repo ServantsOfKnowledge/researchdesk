@@ -48,3 +48,13 @@ def three_way(
 	if amount > float(received or 0) * (1 + tolerance) + 0.005:
 		return "over received"
 	return "ok"
+
+
+def lines_match(billed: dict, ordered: dict, received: dict) -> str:
+	"""Line by line: more of a book billed than was ordered ("over order") or than has arrived ("over
+	received"). Keys are order-line names; values are quantities."""
+	if any(q > ordered.get(k, 0) for k, q in billed.items()):
+		return "over order"
+	if any(q > received.get(k, 0) for k, q in billed.items()):
+		return "over received"
+	return "ok"
