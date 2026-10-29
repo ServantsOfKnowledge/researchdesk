@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.110.1 (2026-10-29): Install note test for the governance edition
+
+- The install note's test now allows for the governance edition, which correctly never sends a note. 0.110.0 was not
+  released only because of that test; this is the first release with the install note and Portal Statistics.
+
 ## 0.110.0 (2026-10-29): A faster dashboard, Portal Statistics on its own page
 
 - **Page views are no longer counted on the dashboard.** Counting a big page-view log was what made it slow. Desk → **Portal

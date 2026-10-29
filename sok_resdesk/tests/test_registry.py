@@ -53,7 +53,17 @@ class TestInstallNote(IntegrationTestCase):
 			self.assertEqual(registry.send()["sent"], 0)
 		post.assert_not_called()
 
+	def test_the_governance_edition_never_sends_even_when_ticked(self):
+		if "sok_resdesk_governance" not in frappe.get_installed_apps():
+			self.skipTest("only on a site with the governance app")
+		frappe.db.set_single_value("RD Settings", "share_install_info", 1)
+		with mock.patch("requests.post") as post:
+			self.assertEqual(registry.send()["sent"], 0)
+		post.assert_not_called()
+
 	def test_a_note_is_sent_once_and_what_was_sent_is_kept_to_show(self):
+		if "sok_resdesk_governance" in frappe.get_installed_apps():
+			self.skipTest("the governance edition never sends a note")
 		frappe.db.set_single_value("RD Settings", "share_install_info", 1)
 		with mock.patch("requests.post") as post:
 			post.return_value.status_code = 200
