@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.111.0 (2026-10-29): A tidier Desk sidebar
+
+- **The Research Desk sidebar is regrouped.** Catalogue now holds only cataloguing; ingesting is under **Bringing In**, imports, exports,
+  pushes and library systems under **Sharing**, lending under **Circulation** and buying under **Acquisitions**, and the portal's
+  own pages (About, Site Pages, Translations, Reader Profiles, Portal Statistics) under **Portal**. **Running the Library** keeps
+  Settings, People & Roles, Server, Background Jobs and Help. Nothing was removed or renamed, and the records-office screens
+  of the governance edition still follow Server.
+
 ## 0.110.1 (2026-10-29): Install note test for the governance edition
 
 - The install note's test now allows for the governance edition, which correctly never sends a note. 0.110.0 was not

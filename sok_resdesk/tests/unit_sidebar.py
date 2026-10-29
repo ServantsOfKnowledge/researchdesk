@@ -30,7 +30,16 @@ def test_the_shipped_sidebar_file_matches_the_list():
 def test_the_list_has_every_section_and_hides_what_is_off():
 	items = sidebar.build()
 	labels = [i["label"] for i in items]
-	for label in ("Catalogue", "Exchange", "Connections", "Administration", "Portal Translations"):
+	for label in (
+		"Catalogue",
+		"Sharing",
+		"Circulation",
+		"Acquisitions",
+		"Portal",
+		"Connections",
+		"Administration",
+		"Portal Translations",
+	):
 		assert label in labels
 	hidden = {
 		t

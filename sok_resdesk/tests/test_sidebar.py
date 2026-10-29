@@ -27,8 +27,12 @@ class TestSidebar(IntegrationTestCase):
 		labels = [i["label"] for i in items]
 		for section in (
 			"Catalogue",
-			"Exchange",
+			"Bringing In",
+			"Sharing",
 			"Readers and Research",
+			"Circulation",
+			"Acquisitions",
+			"Portal",
 			"Keeping",
 			"Running the Library",
 			"Administration",

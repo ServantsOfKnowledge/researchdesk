@@ -474,8 +474,8 @@ Manager, and everyone lands in Research Desk after logging in. Nothing a person 
 changes: roles still decide that, and everything staff need (People & Roles, Users, Background
 Jobs, Server) is linked from Research Desk.
 
-The sidebar lists **every Research Desk screen** in sections (Catalogue, Exchange, Readers and
-Research, Keeping, Running the Library; on the governance edition also the records-office screens), each shown only to those who may open it, and the screens
+The sidebar lists **every Research Desk screen** in sections (Catalogue, Bringing In, Sharing, Readers and
+Research, Circulation, Acquisitions, Keeping, Portal, Running the Library; on the governance edition also the records-office screens), each shown only to those who may open it, and the screens
 of a switched-off feature are not listed. For System Managers, including the built-in
 **Administrator** account, an **Administration** section adds Frappe's own tools an administrator
 needs: Users, Roles, User Permissions, the Permission Manager, System Settings, Email Accounts,
