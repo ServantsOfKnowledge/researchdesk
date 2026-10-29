@@ -642,7 +642,7 @@ login. Readers can also sign up themselves, or be added with
 
 ## Troubleshooting
 
-**The Research Desk page is slow to open.** The numbers at the top are counted in the background (every hour, and again when the last count is more than five minutes old) and shown at once; only the very first time after an install or a cache clear waits. If it is still slow, run `./resdesk.sh bench execute sok_resdesk.dashboard.timings`: it prints the slowest counts and how long each took. On a very busy portal, turn off *Built-in* usage statistics in Settings → Usage Statistics first, since crawlers fill that log.
+**The Research Desk page is slow to open.** The numbers at the top are counted in the background (every hour, and again when the last count is more than five minutes old) and shown at once; after an install or a cache clear the page says it is counting and fills in when the count is ready. Page views are not counted there at all: they are on Portal Statistics. If it is still slow, run `./resdesk.sh bench execute sok_resdesk.dashboard.timings`: it prints the slowest counts and how long each took. On a very busy portal, turn off *Built-in* usage statistics in Settings → Usage Statistics first, since crawlers fill that log.
 
 | Symptom | Fix |
 |---|---|

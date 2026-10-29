@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.110.0 (2026-10-29): A faster dashboard, Portal Statistics on its own page
+
+- **Page views are no longer counted on the dashboard.** Counting a big page-view log was what made it slow. Desk → **Portal
+  Statistics** shows page views, visitors, the most-read books and views a day (7, 30 or 90 days), counted when it is opened and
+  kept for ten minutes; the dashboard only links to it.
+- **The dashboard opens at once even with nothing counted yet** (after a restart): it says it is counting and fills in when
+  the count is ready, instead of making the first visit wait.
+
 ## 0.109.1 (2026-10-29): Install note: fixes found by the tests
 
 - The install note reads its settings straight from the database, so a change (the box ticked, the install ID just made)

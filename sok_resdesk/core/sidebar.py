@@ -95,6 +95,7 @@ STRUCTURE: list = [
 		"Running the Library",
 		"settings",
 		[
+			("Portal Statistics", P, "resdesk-statistics"),
 			("Background Jobs", P, "resdesk-jobs"),
 			("Server", P, "resdesk-server"),
 			("Open Portal", "URL", "/"),

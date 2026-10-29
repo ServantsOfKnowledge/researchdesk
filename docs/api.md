@@ -230,6 +230,7 @@ only; 10 a minute.
 | `sok_resdesk.translations.set_language` (`lang`) | anyone, POST: the portal's language switch (a cookie; a logged-in reader's account language too) |
 | `sok_resdesk.requirements.report` (`refresh`) · `install` (`part`=`python`/`ocr`) | admins: every tool Research Desk uses, found or missing, with what it is for and how to fix it; install Python packages or Tesseract with its models through the updater helper (native installs) |
 | `sok_resdesk.dashboard.numbers` (`refresh`) | managers: the workspace numbers (cached five minutes) |
+| `sok_resdesk.analytics.statistics` (`days`, `refresh`) | the Portal Statistics page: views, visitors, most-read books and views a day, kept ten minutes (managers) |
 | `sok_resdesk.analytics.config` | the usage statistics service portal pages load (public) |
 | `sok_resdesk.counter.reports` · `report` (`report_id`=`TR`, `begin_date`, `end_date`, `format`=`json`/`tsv`) | managers: the COUNTER style Title Master Report from the built-in page views ([Usage reports](usage-reports.md)) |
 | `sok_resdesk_governance.audit.verify` | managers: check the audit log's hash chain, and say at which line it was tampered with ([Governance](governance.md)) |

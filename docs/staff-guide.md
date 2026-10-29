@@ -604,7 +604,7 @@ no cookies are set, and nothing about who a reader is goes with the numbers.
 | Choice | Where the numbers are | What it costs |
 |---|---|---|
 | **Off** (the start) | nowhere | nothing |
-| **Built-in** | on this server (Frappe's page-view log): page views and visitors this week and the most-read books, on the dashboard; the full log under *Web Page View* | one small database row per page seen; nothing leaves the server |
+| **Built-in** | on this server (Frappe's page-view log): page views and visitors, the most-read books and views a day, on **Portal Statistics** in the Desk; the full log under *Web Page View* | one small database row per page seen; nothing leaves the server |
 | **PostHog** | PostHog (cloud in the US or EU, or your own): pages, searches, funnels, its own dashboards | one script from the service on portal pages |
 | **Plausible** | Plausible (cloud or your own): a simple, privacy-first page dashboard | a very small script |
 | **Umami** | Umami (cloud or your own) | a very small script |
@@ -615,6 +615,10 @@ dashboard. Besides page views, the portal sends a few named events: *Search* (bo
 text, with how many results), *Search inside a book*, *Reader opened*, *Citation copied* (book or
 page, format), *Note added* (kind, visibility) and *Page proofread*. A visitor's browser asks for
 the choice once per visit, so a change shows to new visits.
+
+### Portal statistics
+
+With **Built-in**, Desk → **Portal Statistics** shows page views, visitors, the most-read books and views a day for the last 7, 30 or 90 days. It is counted when you open the page and kept for ten minutes (**Refresh** counts again), so the Research Desk dashboard, which only links to it, never waits for the page-view log. With PostHog, Plausible or Umami the page says where the numbers are and links to the dashboard.
 
 With **Built-in**, a manager can also download a COUNTER style report of each book's views by
 month for a funder or consortium: see [Usage reports](usage-reports.md).

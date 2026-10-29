@@ -190,6 +190,7 @@ FEATURES: dict[str, Feature] = {
 			"Usage statistics",
 			"how readers use the portal (built-in, PostHog, Plausible or Umami)",
 			"the page-view log",
+			pages=("resdesk-statistics",),
 		),
 	)
 }

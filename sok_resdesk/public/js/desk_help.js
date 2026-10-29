@@ -126,8 +126,18 @@
 				};
 			});
 		};
+		let tries = 0;
 		const load = (refresh) =>
-			frappe.call({ method: "sok_resdesk.dashboard.numbers", args: { refresh: refresh || 0 } }).then((r) => r.message && draw(r.message));
+			frappe.call({ method: "sok_resdesk.dashboard.numbers", args: { refresh: refresh || 0 } }).then((r) => {
+				if (!r.message) return;
+				if (r.message.pending) {
+					// nothing counted yet: it is being counted in the background; look again in a few seconds
+					box.innerHTML = `<div class="text-muted small" role="status" style="padding:4px 2px">${__("Counting your library…")}</div>`;
+					if (++tries < 15) setTimeout(() => load(0), 4000);
+					return;
+				}
+				draw(r.message);
+			});
 		load(0);
 	};
 

@@ -37,6 +37,23 @@ class TestDashboardCache(IntegrationTestCase):
 		self.assertEqual(len(self.queued), 1)
 		self.assertEqual(self.queued[0][1]["job_id"], dashboard.JOB_ID)
 
-	def test_with_nothing_kept_the_first_caller_waits_for_the_count(self):
+	def test_with_nothing_kept_the_caller_is_answered_at_once_and_the_count_is_queued(self):
 		frappe.cache.delete_value(dashboard.CACHE_KEY)
-		self.assertIn("groups", dashboard.numbers())
+		got = dashboard.numbers()
+		self.assertEqual(got["pending"], 1)
+		self.assertEqual(len(self.queued), 1)
+
+	def test_an_explicit_refresh_waits_for_the_count(self):
+		self.assertIn("groups", dashboard.numbers(refresh=1))
+
+	def test_the_dashboard_counts_no_page_views_only_links_to_them(self):
+		from sok_resdesk import analytics
+
+		calls = []
+		real = analytics.page_views
+		analytics.page_views = lambda *a, **k: calls.append(1)
+		try:
+			dashboard.compute()
+		finally:
+			analytics.page_views = real
+		self.assertEqual(calls, [])

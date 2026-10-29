@@ -2,8 +2,9 @@
 the research layer, preservation and portal use, each linked to where to act on it.
 
 Counted in a handful of queries by a background job (hourly, and again when the last count is more
-than five minutes old and someone opens the Desk). Opening the Desk shows the last count at once,
-so it stays quick however big the catalogue is. `timings()` shows which count is slow.
+than five minutes old and someone opens the Desk). Opening the Desk shows the last count at once, and
+with nothing kept yet it says so and fills in when the count is ready, so it stays quick however big the
+catalogue is. Portal use (page views) is not counted here: it has its own page. `timings()` shows which count is slow.
 """
 
 from __future__ import annotations
@@ -223,46 +224,25 @@ def compute() -> dict:
 
 
 def _usage() -> dict | None:
+	"""A link to the portal's statistics, with no counting here: the numbers are on their own page (Portal
+	Statistics), because counting page views on a big log is what made the dashboard slow."""
 	s = frappe.get_cached_doc("RD Settings")
 	provider = s.get("analytics_provider") or "Off"
-	dashboard = s.get("analytics_dashboard") or ""
 	if provider == "Built-in":
-		from sok_resdesk.analytics import page_views
-
-		pv = page_views(7)
-		if pv is None:
-			return None
-		cards = [
-			{
-				"label": _("Page views this week"),
-				"value": pv["views"],
-				"sub": _("{0} visitors").format(pv["visitors"]),
-				"route": ["List", "Web Page View"],
-			},
-		]
-		for t in pv["top"][:3]:
-			cards.append(
-				{
-					"label": t.title[:60],
-					"value": t.views,
-					"sub": _("views this week"),
-					"url": f"/library/item/{t.item}",
-				}
-			)
-		return {"title": _("Portal use"), "cards": cards}
-	if provider in ("PostHog", "Plausible", "Umami"):
-		return {
-			"title": _("Portal use"),
-			"cards": [
-				{
-					"label": _("Statistics in {0}").format(provider),
-					"value": "↗",
-					"sub": _("open the dashboard"),
-					"url": dashboard or s.get("analytics_host") or "",
-				}
-			],
+		card = {
+			"value": "→",
+			"sub": _("views, visitors and the most-read books"),
+			"route": ["resdesk-statistics"],
 		}
-	return None
+	elif provider in ("PostHog", "Plausible", "Umami"):
+		card = {
+			"value": "↗",
+			"sub": _("open the dashboard"),
+			"url": s.get("analytics_dashboard") or s.get("analytics_host") or "",
+		}
+	else:
+		return None
+	return {"title": _("Portal use"), "cards": [{"label": _("Portal statistics"), **card}]}
 
 
 FRESH_SECONDS = 300
@@ -285,8 +265,15 @@ def numbers(refresh: int = 0) -> dict:
 	than five minutes old. Only the very first time (or with `refresh`) does the caller wait."""
 	frappe.only_for(MANAGERS)
 	cached = None if cint(refresh) else frappe.cache.get_value(CACHE_KEY)
+	if not cached and not cint(refresh):
+		# nothing kept yet (after a restart, or a week): count in the background and answer at once, so
+		# the Desk opens and fills in when the count is ready
+		frappe.enqueue(
+			"sok_resdesk.dashboard.rebuild", queue="short", job_id=JOB_ID, deduplicate=True, timeout=600
+		)
+		return {"pending": 1, "groups": [], "as_of": ""}
 	if not cached:
-		return rebuild()
+		return rebuild()  # an explicit Refresh waits for the answer
 	if time.time() - cached.get("at", 0) > FRESH_SECONDS:
 		frappe.enqueue(
 			"sok_resdesk.dashboard.rebuild", queue="short", job_id=JOB_ID, deduplicate=True, timeout=600
