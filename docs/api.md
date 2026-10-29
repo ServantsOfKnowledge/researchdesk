@@ -171,7 +171,7 @@ only; 10 a minute.
 | `sok_resdesk.offline_export.estimate` (`values`: an Export's fields) | Staff: how many of the chosen books an offline copy would hold files or text of, how many only their details, about how many MB, and whether the server can make a ZIM |
 | `sok_resdesk.drafts.status` · `draft_transcript` (`item`) · `draft_leaves` (`item`, `leaves`) | Staff: which speech and handwriting engines this server has; draft a recording's transcript from its speech, or a book's leaves by handwriting recognition, in the background, as Machine versions for people to proofread |
 | `sok_resdesk.archival.ead` (`unit`) | Anyone, for a published unit they may see (staff: any): the fonds, sub-fonds or collection and everything under it as an EAD3 finding aid (XML) |
-| `sok_resdesk.help.get_page` (`slug`) | a help page (docs/*.md) as HTML with its table of contents, for the Desk |
+| `sok_resdesk.help.get_page` (`slug`, `all`) | a help page (docs/*.md) as HTML with its table of contents, or `start` (Start here), with the navigation for the person's roles (every page with `all`), for the Desk |
 | `sok_resdesk.guide.checklist` · `checklist_mark` (`key`, `what`=`done`/`skipped`/`hide`/`show`) · `restart_checklist` | the getting-started checklist on the workspace (`show` brings a hidden one back, keeping its ticks; `restart_checklist` starts it afresh) |
 | `sok_resdesk.priority.set_worker_priority` (`nice`=`19`/`10`/`5`/`0`/`-5`) | choose the background workers' priority live; each worker applies it between two books (Background Jobs → Machine → Worker priority) |
 | `sok_resdesk.search.enqueue_index_missing` (`with_pages`) | queue the books that never reached the search engine; returns how many |

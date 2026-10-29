@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.114.0 (2026-10-29): Help that follows your role
+
+- **Start here.** The Desk's Help opens on a page built from the roles you hold: the jobs they give you, a line about each and the page to
+  begin with. The navigation lists only those pages, so a cataloguer no longer scrolls past the server, API and architecture pages.
+  **Show all help** lists everything; a link into a page outside your roles still opens it. Nothing was removed or changed in the pages.
+
 ## 0.113.0 (2026-10-29): Install Notes screen for the registry
 
 - **Install Notes.** On the site that is the registry (Settings → Install Note → This Site Is the Registry), a new screen under Running

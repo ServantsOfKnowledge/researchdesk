@@ -223,17 +223,63 @@ def portal_page(slug: str | None) -> dict:
 	return {**_render(page, "portal"), "index": _index("reader"), "brand": brand()}
 
 
+START = "start"
+MORE_ON_START = 4  # pages named under each track on the Start here page; the rest are in the navigation
+
+
+def _my_tracks() -> list:
+	return helpdocs.tracks_for(frappe.get_roles())
+
+
+def _start_page(tracks) -> dict:
+	"""Start here: for each job the person's roles give them, one line about it and the pages to begin with."""
+	esc = frappe.utils.escape_html
+	intro = _(
+		"Help is shown for what your roles do here. Open a page to read it; every page is still there under Show all help."
+	)
+	parts = [f"<h1>{esc(_('Start here'))}</h1>", f"<p>{esc(intro)}</p>"]
+	for t in tracks:
+		pages = [helpdocs.BY_SLUG[s] for s in t.pages if s in helpdocs.BY_SLUG]
+		first, rest = pages[0], pages[1 : MORE_ON_START + 1]
+		parts.append(f"<h2>{esc(_(t.label))}</h2><p>{esc(_(t.about))}</p>")
+		parts.append(
+			f'<p><a class="btn btn-primary btn-sm" href="{DESK}/{first.slug}">{esc(_("Begin with"))}: {esc(_(first.title))}</a></p>'
+		)
+		if rest:
+			links = "".join(f'<li><a href="{DESK}/{p.slug}">{esc(_(p.title))}</a></li>' for p in rest)
+			more = len(pages) - 1 - len(rest)
+			tail = (
+				f'<li class="text-muted">{esc(_("and {0} more in the navigation").format(more))}</li>'
+				if more > 0
+				else ""
+			)
+			parts.append(f"<ul>{links}{tail}</ul>")
+	return {"slug": START, "title": _("Start here"), "html": "".join(parts), "toc": []}
+
+
 @frappe.whitelist()
-def get_page(slug: str = "staff-guide") -> dict:
-	"""For the Desk help page."""
+def get_page(slug: str = START, all: int = 0) -> dict:
+	"""For the Desk help page: a page of the documentation, or Start here, with the navigation for the person's
+	roles (every page with `all`)."""
 	frappe.only_for(STAFF)
 	from sok_resdesk.guide import mark_visited
 
 	mark_visited("guide")
-	page = helpdocs.BY_SLUG.get(slug)
-	if not page:
-		frappe.throw(_("No help page called {0}.").format(slug), frappe.DoesNotExistError)
-	return {**_render(page, "desk"), "index": _index(), "brand": brand()}
+	tracks = _my_tracks()
+	show_all = bool(frappe.utils.cint(all))
+	index = _index() if show_all else helpdocs.index_for(tracks, _)
+	home = [{"group": _("Help"), "pages": [{"slug": START, "title": _("Start here")}]}]
+	if slug == START:
+		page = _start_page(tracks)
+	else:
+		doc = helpdocs.BY_SLUG.get(slug)
+		if not doc:
+			frappe.throw(_("No help page called {0}.").format(slug), frappe.DoesNotExistError)
+		page = _render(doc, "desk")
+		if not show_all and not any(slug == p["slug"] for g in index for p in g["pages"]):
+			index = _index()  # a page outside the person's tracks (from a link): show everything
+			show_all = True
+	return {**page, "index": home + index, "brand": brand(), "show_all": show_all}
 
 
 def boot_session(bootinfo):

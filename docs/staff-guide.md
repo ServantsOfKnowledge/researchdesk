@@ -596,6 +596,16 @@ number**, and a personal account shows its owner's Telegram name. Chats that sta
 Telegram, not in the Desk's Messages, so someone must watch that account. The button never appears in
 Classified mode. It is separate from the alert: you can have either or both.
 
+## Help for your role
+
+The Desk's **Help** opens on **Start here**: the jobs your roles give you (for example *Cataloguing and collections*, *Lending and acquisitions*, *Running the library*), one line about each and the page to begin with. The navigation lists only those pages. **Show all help** (under the navigation) lists every page; a link into a page outside your roles opens it and shows the full list. Nothing is hidden for good, and the pages are the same for everyone.
+
+| If you hold | the help lists |
+|---|---|
+| ResDesk Cataloguer | using the library, cataloguing and collections, lending and acquisitions |
+| ResDesk Manager | the same, and running the library |
+| System Manager, SOK Super Admin | everything: also government and records, installing and keeping it running, and the technical reference |
+
 ## Usage statistics
 
 Settings → **Usage Statistics** counts how readers use the portal. The Desk is never counted,

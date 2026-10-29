@@ -196,6 +196,143 @@ PAGES = [
 BY_SLUG = {p.slug: p for p in PAGES}
 BY_FILE = {p.file: p for p in PAGES}
 
+
+# -- help follows the person's role -----------------------------------------------------------------------
+# A track is a job: the pages worth reading for it, the one to begin with first. A person sees the tracks of
+# the roles they hold; "show all help" lists every page as before. Nothing is hidden for good: a page outside
+# the tracks still opens from a link.
+
+
+@dataclass(frozen=True)
+class Track:
+	key: str
+	label: str
+	about: str
+	pages: tuple[str, ...]  # the first is where to begin
+
+
+TRACKS = (
+	Track(
+		"everyone",
+		"Using the library",
+		"What readers and members see on the portal: searching, reading, citing and your account.",
+		("reader-guide", "searching", "citations", "signing-in", "accessibility"),
+	),
+	Track(
+		"library",
+		"Running the library",
+		"The Desk, settings, people, features and keeping an eye on the library.",
+		(
+			"staff-guide",
+			"features",
+			"access",
+			"connections",
+			"preservation",
+			"usage-reports",
+			"sign-in-email",
+		),
+	),
+	Track(
+		"catalogue",
+		"Cataloguing and collections",
+		"Bringing books in, describing them and organising them into collections.",
+		(
+			"ingesting",
+			"collections-and-metadata",
+			"local-folders",
+			"photographs",
+			"audio-video",
+			"manuscripts",
+			"archival-description",
+			"deposit",
+			"calibre",
+			"repositories",
+			"wikisource",
+			"wikimedia",
+			"archive-upload",
+			"offline",
+			"opds",
+			"iiif",
+			"sru",
+			"koha",
+		),
+	),
+	Track(
+		"lending",
+		"Lending and acquisitions",
+		"Members, loans, holds, fines, orders, invoices, periodicals and the kiosk.",
+		("lending", "koha"),
+	),
+	Track(
+		"records",
+		"Government and records",
+		"Classification, clearances, the audit log, retention and disclosure.",
+		("governance", "access"),
+	),
+	Track(
+		"admin",
+		"Installing and keeping it running",
+		"Install, upgrade, back up, move and look after the server.",
+		(
+			"getting-started",
+			"installation",
+			"server",
+			"operations",
+			"moving",
+			"scaling",
+			"keycloak",
+			"legacy-kannada",
+			"test-accounts",
+			"install-count",
+		),
+	),
+	Track(
+		"tech",
+		"Technical reference",
+		"The HTTP API, the architecture, the technology map and the roadmap.",
+		("api", "architecture", "technology", "development", "roadmap"),
+	),
+)
+TRACK_BY_KEY = {t.key: t for t in TRACKS}
+EVERY_TRACK = tuple(t.key for t in TRACKS)
+
+ROLE_TRACKS = {
+	"ResDesk Reader": ("everyone",),
+	"ResDesk Depositor": ("everyone",),
+	"ResDesk Proofreader": ("everyone",),
+	"ResDesk Cataloguer": ("everyone", "catalogue", "lending"),
+	"ResDesk Manager": ("everyone", "library", "catalogue", "lending"),
+	"ResDesk Security Officer": ("everyone", "records"),
+	"ResDesk Records Officer": ("everyone", "records"),
+	"System Manager": EVERY_TRACK,
+	"SOK Super Admin": EVERY_TRACK,
+}
+
+
+def tracks_for(roles) -> list[Track]:
+	"""The tracks of the roles a person holds, in the order the help lists them. Someone with none of the roles
+	that have a track (a plain account) gets the reader help."""
+	keys = {k for r in roles or () for k in ROLE_TRACKS.get(r, ())} or {"everyone"}
+	return [t for t in TRACKS if t.key in keys]
+
+
+def index_for(tracks, title) -> list[dict]:
+	"""The navigation for these tracks: a group each, a page listed once (under the first track that has it).
+	`title` turns a page's title into the viewer's language."""
+	seen: set[str] = set()
+	out = []
+	for t in tracks:
+		pages = []
+		for slug in t.pages:
+			if slug in seen or slug not in BY_SLUG:
+				continue
+			seen.add(slug)
+			pages.append({"slug": slug, "title": title(BY_SLUG[slug].title)})
+		if pages:
+			out.append({"group": t.label, "pages": pages})
+	return out
+
+
 _FENCE = re.compile(r"^\s*(```|~~~)")
 _HEADING = re.compile(r"^(#{1,6})\s+(.+?)\s*#*\s*$")
 _LINK = re.compile(r"(!?)\[((?:[^\[\]]|\[[^\]]*\])*)\]\(([^)\s]+)(\s+\"[^\"]*\")?\)")

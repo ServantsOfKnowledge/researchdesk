@@ -43,14 +43,15 @@ class ResDeskHelp {
 
 	show() {
 		const route = frappe.get_route();
-		const slug = route[1] || "staff-guide";
+		const slug = route[1] || "start";
 		const anchor =
 			this.anchor || (frappe.route_options && frappe.route_options.section) || decodeURIComponent((window.location.hash || "").slice(1));
 		this.anchor = null;
 		frappe.route_options = null;
 		if (slug === this.slug && this.html_ready) return this.scroll_to(anchor);
 		this.slug = slug;
-		frappe.call({ method: "sok_resdesk.help.get_page", args: { slug } }).then((r) => {
+		frappe.call({ method: "sok_resdesk.help.get_page", args: { slug, all: this.all ? 1 : 0 } }).then((r) => {
+			this.all = !!r.message.show_all;
 			this.render(r.message);
 			this.scroll_to(anchor);
 		});
@@ -76,7 +77,7 @@ class ResDeskHelp {
 			)
 			.join("");
 		const brand = p.brand
-			? `<a class="rdh-brand" href="/app/resdesk-help/staff-guide"><img src="${esc(p.brand.logo)}" alt="${esc(p.brand.title)}"><span>${__("Help")}</span></a>`
+			? `<a class="rdh-brand" href="/app/resdesk-help/start"><img src="${esc(p.brand.logo)}" alt="${esc(p.brand.title)}"><span>${__("Help")}</span></a>`
 			: "";
 		const toc = p.toc.length
 			? `<h6>${__("On this page")}</h6><ul>${p.toc
@@ -108,8 +109,15 @@ class ResDeskHelp {
 				.rdh-body img { max-width: 100%; height: auto; border: 1px solid var(--border-color); border-radius: 8px; margin: 8px 0; }
 				@media (max-width: 900px) { .rdh { grid-template-columns: 1fr; padding: 12px 16px 48px; } .rdh-nav { position: static; max-height: none; border-right: 0; border-bottom: 1px solid var(--border-color); } }
 			</style>
-			<aside class="rdh-nav">${brand}${nav}${toc}</aside>
+			<aside class="rdh-nav">${brand}${nav}<p><a href="#" class="rdh-all">${p.show_all ? __("Show only the help for my role") : __("Show all help")}</a></p>${toc}</aside>
 			<article class="rdh-body">${p.html}</article>`);
+		this.$body.find(".rdh-all").on("click", (e) => {
+			e.preventDefault();
+			this.all = !p.show_all;
+			this.html_ready = false;
+			this.slug = null;
+			this.show();
+		});
 		this.html_ready = true;
 	}
 }
