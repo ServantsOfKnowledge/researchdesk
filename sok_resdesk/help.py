@@ -24,6 +24,7 @@ SCREEN_HELP = {
 	"RD Ingest Profile": ("ingesting", "ingest-profiles"),
 	"RD Ingest Run": ("ingesting", "watching-pausing-and-stopping-runs"),
 	"RD Settings": ("staff-guide", "settings"),
+	"RD Install Ping": ("install-count", "for-the-registry-servants-of-knowledge-only"),
 	"RD About Page": ("staff-guide", "the-about-page"),
 	"RD Site Page": ("staff-guide", "pages-of-your-own"),
 	"RD Patron": ("lending", "members"),

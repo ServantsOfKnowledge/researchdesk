@@ -305,6 +305,9 @@ def apply_default_settings():
 	from sok_resdesk import features
 
 	features.install_choices(s, conf.get("resdesk_profiles"), conf.get("resdesk_books"))
+	s.share_install_info = (
+		1 if str(conf.get("resdesk_share_install") or "") == "1" else 0
+	)  # the installer's answer
 	s.flags.ignore_mandatory = True
 	s.save(ignore_permissions=True)
 

@@ -33,6 +33,7 @@ else
   bench --site "${SITE_NAME}" set-config resdesk_contact "${CONTACT_EMAIL:-}"
   bench --site "${SITE_NAME}" set-config resdesk_profiles "${RESDESK_PROFILES:-}"
   bench --site "${SITE_NAME}" set-config resdesk_books "${RESDESK_BOOKS:-0}"
+  bench --site "${SITE_NAME}" set-config resdesk_share_install "${RESDESK_SHARE_INSTALL:-0}"
   bench --site "${SITE_NAME}" set-config resdesk_repository_id "${SITE_NAME}"
   echo ">> Installing Research Desk"
   bench --site "${SITE_NAME}" install-app sok_resdesk

@@ -177,6 +177,7 @@ bench --site "$SITE" set-config resdesk_portal_title "${PORTAL_TITLE:-SOK Resear
 bench --site "$SITE" set-config resdesk_contact "${CONTACT_EMAIL:-}" >/dev/null
 bench --site "$SITE" set-config resdesk_profiles "${RESDESK_PROFILES:-}" >/dev/null
 bench --site "$SITE" set-config resdesk_books "${RESDESK_BOOKS:-0}" >/dev/null
+bench --site "$SITE" set-config resdesk_share_install "${RESDESK_SHARE_INSTALL:-0}" >/dev/null
 bench --site "$SITE" set-config resdesk_repository_id "$SITE" >/dev/null
 mkdir -p "$LIBRARY_DIR"
 # Profiles keep using /library-source; natively it points at LIBRARY_DIR.

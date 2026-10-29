@@ -612,6 +612,16 @@ Every setting:
 | Governance Mode | Governance edition only. Records who viewed, downloaded, searched and changed what, in a log that cannot be edited or deleted from the Desk and shows any tampering (Audit Log). Meant for a government or institutional deployment; off, nothing is recorded. |
 | Days to Reply to a Disclosure Request | Governance edition only. How many days after a request for records arrives the reply is owed (Disclosure Requests). Set it to what the law or the office's rules say. |
 | Appeal Note for Disclosure Replies | Governance edition only. Printed at the end of every reply to a disclosure request: who the applicant may appeal to, and within how long. |
+
+**Install Note**
+
+| Setting | What it does |
+|---|---|
+| Tell Servants of Knowledge This Installation Exists | Sends a random ID, the version, the edition, how it was installed and the kinds of institution, about once a month. No name, address, domain, user or content. Never sent from a Classified site or the governance edition. |
+| Install ID | Made at random on this machine; not derived from anything. |
+| Last Note Sent | When the last note went. |
+| What Was Sent | Exactly what the last note said. |
+| This Site Is the Registry | Only on research.servantsofknowledge.in: takes the notes other installations send. Everywhere else leave it off. |
 <!-- /generated:settings -->
 
 ## Users and roles

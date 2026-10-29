@@ -241,6 +241,8 @@ only; 10 a minute.
 | `GET /ark:/<naan>/<name>[/n<leaf>]` | a permanent ARK: redirects to the book (with a leaf: that page in the page reader); `?info` returns its who/what/when/where record as text; a deleted book's ARK leads to its tombstone |
 | `sok_resdesk.capacity.get_status` | the book limit: books and pages in the catalogue, the limit, room left, and what the machine's CPUs, memory and disk can each hold |
 | `sok_resdesk.server.status` | everything on the Server page: versions, updates, health, backups, helper, recent tasks |
+| `sok_resdesk.registry.ping` | the registry (research.servantsofknowledge.in) takes one install note: guest, POST, JSON only, rate limited; answers 404 on any other site ([The install note](install-count.md)) |
+| `sok_resdesk.registry.preview` · `send_now` · `summary` | show what the install note would send; send it now (managers, the second POST); count the notes received (System Manager) |
 | `sok_resdesk.server.check_updates` | look for a newer release and Frappe patch now (also daily) |
 | `sok_resdesk.server.request_task` (`action`, `args` JSON) | ask the updater helper to `upgrade` (`target`=`latest`/`vX.Y.Z`, `backup`, `frappe`), `restart` (`service`=`web`/`workers`/`scheduler`/`search`/`all`), `apply_resources` (`preset`), `server_backup`, `help_pictures` (new screenshots of this library for its help), `check_updates` or `logs` (`service`, `lines`); returns the task name. Changes to the installation need the System Manager role |
 | `sok_resdesk.server.get_task` (`name`) · `cancel_task` (`name`) | a task's status and log; cancel one still waiting |

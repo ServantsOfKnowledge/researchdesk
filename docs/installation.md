@@ -53,6 +53,13 @@ attention, with the advice. On a Coolify server it asks before carrying on.
 Data lives in Docker volumes (`db-data`, `meili-data`, `sites`, …), so stopping or updating
 containers never deletes it. Only `./resdesk.sh uninstall` removes volumes.
 
+## The install note
+
+The installer asks whether this installation may tell Servants of Knowledge that it exists: a random ID, the version and
+the kinds of institution you chose, about once a month, and nothing about your library or readers. It is not asked
+for an offline install, a Classified installation or the governance edition, which never send it. See what is sent, and
+stop it, in Settings → Install Note: [The install note](install-count.md).
+
 ## Editions
 
 Research Desk comes in two editions. Pick one when you install. `--edition` is read only on a first install; to change an existing install, put `RESDESK_EDITION=governance` in `.env` and run `./upgrade.sh`.

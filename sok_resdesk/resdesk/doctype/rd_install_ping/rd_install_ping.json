@@ -1,0 +1,101 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-11-02 10:00:00.000000",
+ "modified": "2026-11-02 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Install Ping",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "autoname": "field:instance_id",
+ "editable_grid": 0,
+ "field_order": [
+  "instance_id",
+  "version",
+  "edition",
+  "kind",
+  "profiles",
+  "first_seen",
+  "last_seen",
+  "pings"
+ ],
+ "fields": [
+  {
+   "fieldname": "instance_id",
+   "fieldtype": "Data",
+   "label": "Install ID",
+   "reqd": 1,
+   "unique": 1,
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "version",
+   "fieldtype": "Data",
+   "label": "Version",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "edition",
+   "fieldtype": "Select",
+   "label": "Edition",
+   "options": "standard\ngovernance",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "kind",
+   "fieldtype": "Data",
+   "label": "Installed As",
+   "read_only": 1
+  },
+  {
+   "fieldname": "profiles",
+   "fieldtype": "Data",
+   "label": "Kinds of Institution",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "first_seen",
+   "fieldtype": "Datetime",
+   "label": "First Heard From",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_seen",
+   "fieldtype": "Datetime",
+   "label": "Last Heard From",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "pings",
+   "fieldtype": "Int",
+   "label": "Notes Received",
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "export": 1,
+   "report": 1,
+   "delete": 1
+  },
+  {
+   "role": "SOK Super Admin",
+   "read": 1,
+   "export": 1,
+   "report": 1,
+   "delete": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 0
+}

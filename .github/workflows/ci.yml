@@ -56,6 +56,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install the governance edition with the same script librarians use
+        env:
+          RESDESK_SHARE_INSTALL: "no"  # a test install must not send a note
         run: ./install.sh --yes --no-sample --edition governance
       - name: Both apps are installed on the site
         run: |
@@ -86,6 +88,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install with the same script librarians use
+        env:
+          RESDESK_SHARE_INSTALL: "no"  # a test install must not send a note
         run: ./install.sh --yes --no-sample
       - name: Frappe integration tests (catalogue, access, pushing, pause/resume, quiet hours, moving)
         run: |

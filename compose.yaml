@@ -153,6 +153,7 @@ services:
       # the installer's answers: kinds of institution and about how many books (Settings → Features)
       RESDESK_PROFILES: ${RESDESK_PROFILES:-}
       RESDESK_BOOKS: ${RESDESK_BOOKS:-}
+      RESDESK_SHARE_INSTALL: ${RESDESK_SHARE_INSTALL:-0}
       RESDESK_CLASSIFIED: ${RESDESK_CLASSIFIED:-}
       RESDESK_EDITION: ${RESDESK_EDITION:-standard}
       # a public mirror (docs/governance.md#the-public-mirror): the token the main system sends

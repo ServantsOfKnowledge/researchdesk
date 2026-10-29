@@ -204,6 +204,8 @@ scheduler_events = {
 		"sok_resdesk.serials.daily",
 		# orders past their date that nobody has claimed: managers are told once
 		"sok_resdesk.claims.daily",
+		# the install note, about once a month, only when the library has said yes (Settings → Install Note)
+		"sok_resdesk.registry.daily",
 		# deposits whose embargo has ended become readable (Settings → Features → Repository deposit)
 		"sok_resdesk.deposit.release_embargoes",
 		"sok_resdesk.ingest.run_scheduled_daily",

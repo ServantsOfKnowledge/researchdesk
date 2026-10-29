@@ -31,6 +31,23 @@ function rd_feature_suggestions(frm) {
 frappe.ui.form.on("RD Settings", {
 	refresh(frm) {
 		rd_feature_suggestions(frm);
+		frm.add_custom_button(__("Show the Install Note"), () =>
+			frappe.call("sok_resdesk.registry.preview").then((r) => {
+				const m = r.message;
+				frappe.msgprint({
+					title: __("The install note"),
+					message: `<p>${__("To")}: <code>${frappe.utils.escape_html(m.to)}</code></p><pre>${frappe.utils.escape_html(JSON.stringify(m.note, null, 1))}</pre>` +
+						(m.blocked ? `<p class="text-muted">${frappe.utils.escape_html(m.blocked)}</p>` : ""),
+				});
+			}),
+		__("Install Note"));
+		frm.add_custom_button(__("Send It Now"), () =>
+			frappe.call({ method: "sok_resdesk.registry.send_now", freeze: true }).then((r) => {
+				const m = r.message || {};
+				frappe.show_alert({ message: m.sent ? __("Sent.") : m.why, indicator: m.sent ? "green" : "orange" });
+				frm.reload_doc();
+			}),
+		__("Install Note"));
 		frm.add_custom_button(__("Get Keys from archive.org Login"), () =>
 			frappe.prompt(
 				[

@@ -186,6 +186,7 @@ PAGES = [
 	Page("legacy-kannada", "legacy-kannada.md", "Old Kannada font text", "staff", "For administrators"),
 	Page("moving", "moving.md", "Moving to another server", "staff", "For administrators"),
 	Page("scaling", "scaling.md", "Scaling to 50,000 books", "staff", "For administrators"),
+	Page("install-count", "install-count.md", "The install note", "staff", "For administrators"),
 	Page("api", "api.md", "HTTP API", "staff", "Technical"),
 	Page("architecture", "architecture.md", "Architecture", "staff", "Technical"),
 	Page("technology", "technology.md", "Technology map", "staff", "Technical"),

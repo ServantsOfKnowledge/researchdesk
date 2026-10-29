@@ -47,6 +47,7 @@ The same pages are inside the app: **Help** on the portal (for readers) and **He
    - [Single sign-on with Keycloak](keycloak.md): setting up Keycloak (also in front of LDAP, Active Directory or a SAML identity provider) as the library's sign-in
    - [Old Kannada font text](legacy-kannada.md): text in Nudi, Baraha, ShreeLipi and other old fonts converted to Unicode so it can be searched
    - [Moving to another server](moving.md): one-file export and import, `move-to` over SSH, Docker ↔ native
+13. [The install note](install-count.md): what a library may tell Servants of Knowledge (a random ID, the version, the kinds of institution), how to see it and stop it
 12. [Scaling to 50,000 books](scaling.md): measured numbers, server sizing, running a large ingest
 13. [Architecture](architecture.md): components, data model, scaling from a laptop to a national library
     - [Technology map](technology.md): every piece of software, what it is configured for and which features need it

@@ -218,7 +218,13 @@
   "governance_section",
   "governance",
   "disclosure_days",
-  "disclosure_appeal_note"
+  "disclosure_appeal_note",
+  "install_note_section",
+  "share_install_info",
+  "instance_id",
+  "registry_last_sent",
+  "registry_last_note",
+  "registry_receive"
  ],
  "fields": [
   {
@@ -1703,6 +1709,48 @@
    "label": "Appeal Note for Disclosure Replies",
    "permlevel": 1,
    "description": "Governance edition only. Printed at the end of every reply to a disclosure request: who the applicant may appeal to, and within how long."
+  },
+  {
+   "fieldname": "install_note_section",
+   "fieldtype": "Section Break",
+   "label": "Install Note",
+   "description": "Whether this library tells Servants of Knowledge that it exists. What is sent is shown below and in docs/install-count.md."
+  },
+  {
+   "fieldname": "share_install_info",
+   "fieldtype": "Check",
+   "label": "Tell Servants of Knowledge This Installation Exists",
+   "default": "0",
+   "description": "Sends a random ID, the version, the edition, how it was installed and the kinds of institution, about once a month. No name, address, domain, user or content. Never sent from a Classified site or the governance edition."
+  },
+  {
+   "fieldname": "instance_id",
+   "fieldtype": "Data",
+   "label": "Install ID",
+   "read_only": 1,
+   "description": "Made at random on this machine; not derived from anything."
+  },
+  {
+   "fieldname": "registry_last_sent",
+   "fieldtype": "Datetime",
+   "label": "Last Note Sent",
+   "read_only": 1,
+   "description": "When the last note went."
+  },
+  {
+   "fieldname": "registry_last_note",
+   "fieldtype": "Small Text",
+   "label": "What Was Sent",
+   "read_only": 1,
+   "description": "Exactly what the last note said."
+  },
+  {
+   "fieldname": "registry_receive",
+   "fieldtype": "Check",
+   "label": "This Site Is the Registry",
+   "default": "0",
+   "permlevel": 1,
+   "description": "Only on research.servantsofknowledge.in: takes the notes other installations send. Everywhere else leave it off."
   }
  ],
  "links": [],

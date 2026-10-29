@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.109.0 (2026-10-29): The install note
+
+- **The install note.** The installer asks whether this installation may tell Servants of Knowledge that it exists (offering yes;
+  an unattended `--yes` install asks nothing and sends nothing), and
+  if the answer is yes it sends a random ID, the version, the edition, how it was installed and the kinds of institution,
+  about once a month. Nothing else, nothing from a Classified or governance site or an offline install, and nothing from an
+  existing site until its Settings box is ticked. Settings → Install Note shows exactly what is sent and sends it now.
+  [The install note](docs/install-count.md).
+- **The registry.** research.servantsofknowledge.in can take the notes (Settings → This Site Is the Registry, off everywhere
+  else): one record per ID, no address kept, only an exact note accepted.
+
 ## 0.108.0 (2026-10-29): Claims to vendors, bundled periodicals, self-service kiosk
 
 - **Claims to vendors.** *Claim Letter* on a vendor lists the orders past their date and the periodical issues that are
