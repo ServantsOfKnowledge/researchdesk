@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.106.2 (2026-10-30): Koha import of patrons and loans noted as on hold
+
+- The roadmap now lists moving patrons, items, loans and fines from Koha as on hold, and why.
+
 ## 0.106.1 (2026-10-30): Install fix for 0.106.0; the overview picture and README show lending
 
 - **Fixes the 0.106.0 install.** The periodical subscription screen had no code file, so a new site could not be installed and 0.106.0 was never released. A test now checks every screen has one.
