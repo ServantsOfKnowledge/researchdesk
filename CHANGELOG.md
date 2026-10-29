@@ -1,7 +1,8 @@
 # Changelog
 
-## 0.106.1 (2026-10-30): The overview picture and README show lending
+## 0.106.1 (2026-10-30): Install fix for 0.106.0; the overview picture and README show lending
 
+- **Fixes the 0.106.0 install.** The periodical subscription screen had no code file, so a new site could not be installed and 0.106.0 was never released. A test now checks every screen has one.
 - The "how it fits together" picture has a Lending and buying box, and the README names the lending desk.
 
 ## 0.106.0 (2026-10-30): Budgets, serials, interlibrary loan, online payment of fines

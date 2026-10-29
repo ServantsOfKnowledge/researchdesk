@@ -107,3 +107,13 @@ def test_a_paid_event_is_read_and_anything_else_is_ignored():
 	assert payments.paid_event(event) is None  # only rupees
 	assert payments.paid_event({"event": "payment_link.paid", "payload": {}}) is None
 	assert payments.paid_event(json.loads("[]")) is None
+
+
+def test_every_doctype_has_its_python_module():
+	"""A doctype folder without its .py file fails the site install (0.106.0)."""
+	import pathlib
+
+	root = pathlib.Path(__file__).resolve().parents[1] / "resdesk" / "doctype"
+	for folder in root.iterdir():
+		if (folder / f"{folder.name}.json").exists():
+			assert (folder / f"{folder.name}.py").exists(), folder.name
