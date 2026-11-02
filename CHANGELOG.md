@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.116.0 (2026-11-02): Run History shows what each run did
+
+- **Run History.** The list of ingest runs now shows when each run started, whether it was manual, scheduled or a sync, and how many books it
+  added, updated and failed, so "how many new books came in, and when" is read straight off the list. It showed only the profile, the
+  status and the totals before.
+
 ## 0.115.0 (2026-10-29): Quick starts for each job
 
 - **Quick starts.** Five one-screen pages, each the first page of its track in the Desk's Help: running the library, cataloguing, the lending

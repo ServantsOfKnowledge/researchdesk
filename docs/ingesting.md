@@ -283,6 +283,9 @@ or no longer in the collection; for a *Search Query* profile, only dark books). 
 profile's books seem to vanish at once (more than 20, and more than a tenth), that looks like a
 problem on archive.org's side: nothing is unpublished and managers get an alert.
 
+To see what each run did, open the profile and press **Run History**: every run is listed with when it started, how it was
+started (by hand, on its schedule or as a sync), and how many books it added, updated and failed.
+
 **Portal collections.** Every archive.org collection your books belong to gets its own
 collection page on the portal, named after it and with its description from archive.org: for
 Servants of Knowledge books that is *Servants Of Knowledge* and its sub-collections such as
