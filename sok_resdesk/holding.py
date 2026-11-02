@@ -61,8 +61,13 @@ def hold(
 	kind: str = "",
 ) -> str:
 	"""Keep a job to run later. Returns its key in the held list."""
-	key = uuid.uuid4().hex[:10]
 	items = _locked_list()
+	# a job with an id is one job (the page-text sender is queued every ten minutes): hold it once
+	for held in items:
+		if job_id and held.get("method") == method and held.get("job_id") == job_id:
+			frappe.db.commit()  # release the row lock
+			return held["key"]
+	key = uuid.uuid4().hex[:10]
 	items.append(
 		{
 			"key": key,

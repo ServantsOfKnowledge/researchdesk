@@ -103,6 +103,17 @@ class TestNoDoubleWork(IntegrationTestCase):
 		enqueue_plan.assert_called_with(run.name)
 		self.assertEqual(frappe.db.get_value("RD Ingest Run", run.name, "status"), "Queued")
 
+	def test_a_job_with_an_id_is_held_once(self):
+		from sok_resdesk import holding
+
+		holding.release(discard=True)
+		first = holding.hold("sok_resdesk.x.y", {}, job_id="resdesk-send-pending-pages")
+		second = holding.hold("sok_resdesk.x.y", {}, job_id="resdesk-send-pending-pages")
+		holding.hold("sok_resdesk.x.y", {}, job_id="another")
+		self.assertEqual(first, second)
+		self.assertEqual(len(holding.held_jobs()), 2)
+		holding.release(discard=True)
+
 	@mock.patch("sok_resdesk.jobs.retry_run")
 	@mock.patch("sok_resdesk.holding.is_paused", return_value=False)
 	def test_runs_whose_batches_vanished_are_interrupted_and_carried_on(self, _paused, retry_run):

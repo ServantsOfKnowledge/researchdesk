@@ -25,7 +25,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint
 
-from sok_resdesk.holding import hold_when_paused
+from sok_resdesk.holding import hold_when_paused, is_paused
 from sok_resdesk.search import MAX_WAITING, MeiliClient, SearchError
 
 MANAGERS = ("System Manager", "ResDesk Manager")
@@ -397,8 +397,8 @@ AUTO_EVERY_MINUTES = 30  # and not more often than this
 def every_ten_minutes() -> None:
 	"""Scheduler: Books first by itself when book records are stuck behind page text, then keep
 	pending page text moving when the engine has room."""
-	if cint(frappe.db.get_single_value("RD Settings", "hold_page_text")):
-		return
+	if cint(frappe.db.get_single_value("RD Settings", "hold_page_text")) or is_paused():
+		return  # Pause All: a sender queued now would only be held, ten minutes after ten minutes
 	try:
 		client = MeiliClient.from_settings()
 		auto_books_first(client)

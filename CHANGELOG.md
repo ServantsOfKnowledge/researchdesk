@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.117.0 (2026-11-02): One page-text sender, however long Pause All lasts
+
+- **Page-text sender held once.** While Pause All was on, the page-text sender queued every ten minutes held itself each time, so the held
+  list grew by six copies an hour and Resume released them all. A job with an id is now held once, and the ten-minute turn queues nothing
+  while everything is paused.
+
 ## 0.116.0 (2026-11-02): Run History shows what each run did
 
 - **Run History.** The list of ingest runs now shows when each run started, whether it was manual, scheduled or a sync, and how many books it
