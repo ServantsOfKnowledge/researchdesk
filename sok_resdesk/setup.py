@@ -1,5 +1,7 @@
 """Install / migrate hooks: roles, default settings, a sample ingest profile, desk workspace."""
 
+import re
+
 import frappe
 from frappe import _
 
@@ -133,32 +135,74 @@ def validate_machine(doc) -> None:
 
 	if doc.get("queue_workers") and not 1 <= cint(doc.queue_workers) <= MAX_WORKERS:
 		frappe.throw(_("Parallel Workers: choose 1 to {0}.").format(MAX_WORKERS))
+	for field, label in (
+		("search_cpus", "Search Engine CPUs"),
+		("search_indexing_threads", "Search Indexing Threads"),
+	):
+		value = (doc.get(field) or "").strip()
+		if value and not re.fullmatch(r"\d+(\.\d+)?" if field == "search_cpus" else r"\d+", value):
+			frappe.throw(_("{0}: type a number, or leave it empty.").format(label))
+		doc.set(field, value)
 	if doc.get("max_upload_mb") and not 1 <= cint(doc.max_upload_mb) <= MAX_UPLOAD_MB:
 		frappe.throw(_("Largest Upload: choose 1 to {0} MB.").format(MAX_UPLOAD_MB))
 
 
 def apply_machine(doc) -> None:
-	"""RD Settings.on_update: the upload limit at once; a new number of workers through the
-	updater helper (or the command to run, when there is no helper)."""
+	"""RD Settings.on_update: the upload limit at once; a new number of workers, and the search
+	engine's limits, through the updater helper (or the command to run, when there is no helper)."""
 	from frappe.utils import cint
 
 	allow_large_uploads()
 	before = doc.get_doc_before_save()
 	workers = cint(doc.get("queue_workers"))
-	if not workers or (before and cint(before.get("queue_workers")) == workers):
-		return
+	if workers and not (before and cint(before.get("queue_workers")) == workers):
+		_apply_on_server(
+			{"workers": workers},
+			f"./resdesk.sh resources set QUEUE_WORKERS={workers}",
+			_("Setting {0} parallel workers on the server: Server → Tasks shows when it is done.").format(
+				workers
+			),
+			_("{0} parallel workers saved.").format(workers),
+		)
+	limits = _search_limits(doc, before)
+	if limits:
+		_apply_on_server(
+			{"set": limits},
+			"./resdesk.sh resources set " + " ".join(f"{k}={v}" for k, v in limits.items()),
+			_("Setting the search engine's limits on the server: Server → Tasks shows when it is done."),
+			_("The search engine's limits are saved."),
+		)
+
+
+# Settings field -> the .env key it sets (resdesk.sh resources set)
+SEARCH_LIMITS = {"search_cpus": "MEILI_CPUS", "search_indexing_threads": "MEILI_MAX_INDEXING_THREADS"}
+# Low: the web server and database go first (a CPU share of 256 against their 1024; nice 10 natively)
+SEARCH_PRIORITY = {
+	"Low": {"MEILI_CPU_SHARES": "256", "MEILI_NICE": "10"},
+	"Normal": {"MEILI_CPU_SHARES": "1024", "MEILI_NICE": "0"},
+}
+
+
+def _search_limits(doc, before) -> dict:
+	"""The search engine limits that were just changed in Settings, as .env keys and values."""
+	out: dict = {}
+	for field, key in SEARCH_LIMITS.items():
+		value = (doc.get(field) or "").strip()
+		if value and value != ((before.get(field) if before else "") or "").strip():
+			out[key] = value
+	priority = doc.get("search_priority")
+	if priority in SEARCH_PRIORITY and priority != (before.get("search_priority") if before else ""):
+		out.update(SEARCH_PRIORITY[priority])
+	return out
+
+
+def _apply_on_server(args: dict, command: str, done: str, saved: str) -> None:
 	from sok_resdesk import server
 
-	command = f"./resdesk.sh resources set QUEUE_WORKERS={workers}"
 	try:
 		if server.helper_configured() and server.helper_connected():
-			server.request_task("apply_resources", {"workers": workers})
-			frappe.msgprint(
-				_("Setting {0} parallel workers on the server: Server → Tasks shows when it is done.").format(
-					workers
-				),
-				indicator="green",
-			)
+			server.request_task("apply_resources", args)
+			frappe.msgprint(done, indicator="green")
 			return
 	except Exception as e:  # not allowed (only administrators restart parts), or Desk control off
 		frappe.clear_last_message()
@@ -166,8 +210,8 @@ def apply_machine(doc) -> None:
 	else:
 		reason = _("the updater helper isn't running")
 	frappe.msgprint(
-		_("{0} parallel workers saved. To put it into effect, run on the server: {1} ({2})").format(
-			workers, f"<code>{command}</code>", reason
+		_("{0} To put it into effect, run on the server: {1} ({2})").format(
+			saved, f"<code>{command}</code>", reason
 		),
 		indicator="orange",
 	)

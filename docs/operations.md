@@ -585,6 +585,9 @@ Every setting:
 | Parallel Workers | How many background jobs run at once: ingest batches and first-pass parts, so how many books come in together (1 to 16; 4 to 6 stay polite to archive.org when page text is fetched). Saving applies it through the updater helper; without the helper, the Desk shows the command to run. Empty: as set on the server. |
 | Largest Upload (MB) | The largest file people can upload in the Desk: metadata files for ingest, spreadsheets, attachments (1 to 1000). |
 | Worker Priority | How much CPU the background workers get compared with the portal, search and database: 19 is the lowest (they only use what the others leave), 0 the same as the others, -5 ahead of them. Empty: as the workers were started (WORKER_NICE). Changed live from Background Jobs → Machine too: each worker takes it on when it starts its next book. Choices: *19*, *10*, *5*, *0*, *-5*. |
+| Search Engine CPUs | The most CPU the search engine (Meilisearch) may use, in cores: 2 is two cores, 1.5 one and a half. 0: no limit. Empty: as set on the server. Saving applies it through the updater helper; the search engine restarts for about a minute and waiting work is kept. |
+| Search Indexing Threads | How many threads the search engine indexes with. Fewer threads index more slowly and leave searches and the portal more of the machine: 1 or 2 on a shared machine. Empty: as set on the server (automatic is up to half the cores). |
+| Search Engine Priority | Low (the default): the web server and database get the CPU first, and indexing takes what they leave. Normal: the search engine competes equally. Empty: as set on the server. Choices: *Low*, *Normal*. |
 | Books First Automatically | When a new book has waited more than 15 minutes in the search engine behind page text, do what Background Jobs → Search queue → Books first does: the waiting page text is cancelled and sent again later, so new books reach the portal first. At most every 30 minutes. |
 | Book Limit | How many books the catalogue may hold. Automatic: what this machine's CPUs, memory and disk can take (the Server page shows the numbers). At the limit, ingests keep updating books already here but add no new ones. Books with many pages count for more. Choices: *Automatic*, *A number I choose*, *No limit*. |
 | Books at Most | The limit in books of this library's average size (more than the machine can take is allowed, at your own risk). |
@@ -779,7 +782,10 @@ Research Desk sends it only real work (0.38.1):
 keep the rest. Since 0.118 the search engine also runs at a lower priority than the portal and the
 database (a CPU share of 256 against their 1024, or `nice -n 10` on a native install), so a busy
 indexing run no longer slows the portal down: it takes what the others leave. Change it with
-`MEILI_CPU_SHARES` (Docker) or `MEILI_NICE` (native) in `.env`. The *server* preset sets neither (indexing then takes up to half the machine's
+`MEILI_CPU_SHARES` (Docker) or `MEILI_NICE` (native) in `.env`, or from the Desk: Settings →
+Machine Resources has **Search Engine CPUs**, **Search Indexing Threads** and **Search Engine
+Priority**. Saving one asks the updater helper to set it and restart the search engine (about a
+minute; waiting work is kept). Without the helper, the Desk shows the command to run. The *server* preset sets neither (indexing then takes up to half the machine's
 cores, the engine's own default). Indexing more slowly than books come in is fine: workers wait
 when more than 300 tasks are waiting, and the portal lists books as the engine takes them in.
 **Hold page text** (Search queue) during busy hours lets the engine do the light work only.

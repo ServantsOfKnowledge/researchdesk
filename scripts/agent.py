@@ -253,6 +253,16 @@ def command_for(action: str, args: dict, env: dict) -> list[str] | None:
 			return None
 		return ["docker", "compose", "restart", *DOCKER_PARTS[part]]
 	if action == "apply_resources":
+		sets = args.get("set")
+		if isinstance(sets, dict):
+			ok = sets and all(
+				k in ("MEILI_CPUS", "MEILI_MAX_INDEXING_THREADS", "MEILI_CPU_SHARES", "MEILI_NICE")
+				and re.fullmatch(r"\d*(\.\d+)?", str(v))
+				for k, v in sets.items()
+			)
+			return (
+				["./resdesk.sh", "resources", "set", *[f"{k}={v}" for k, v in sets.items()]] if ok else None
+			)
 		workers = args.get("workers")
 		if workers is not None:
 			n = int(workers) if str(workers).isdigit() else 0

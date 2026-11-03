@@ -198,6 +198,9 @@
   "queue_workers",
   "max_upload_mb",
   "worker_nice",
+  "search_cpus",
+  "search_indexing_threads",
+  "search_priority",
   "auto_books_first",
   "book_limit",
   "book_limit_number",
@@ -1541,6 +1544,28 @@
    "label": "Worker Priority",
    "options": "\n19\n10\n5\n0\n-5",
    "description": "How much CPU the background workers get compared with the portal, search and database: 19 is the lowest (they only use what the others leave), 0 the same as the others, -5 ahead of them. Empty: as the workers were started (WORKER_NICE). Changed live from Background Jobs → Machine too: each worker takes it on when it starts its next book.",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "search_cpus",
+   "fieldtype": "Data",
+   "label": "Search Engine CPUs",
+   "description": "The most CPU the search engine (Meilisearch) may use, in cores: 2 is two cores, 1.5 one and a half. 0: no limit. Empty: as set on the server. Saving applies it through the updater helper; the search engine restarts for about a minute and waiting work is kept.",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "search_indexing_threads",
+   "fieldtype": "Data",
+   "label": "Search Indexing Threads",
+   "description": "How many threads the search engine indexes with. Fewer threads index more slowly and leave searches and the portal more of the machine: 1 or 2 on a shared machine. Empty: as set on the server (automatic is up to half the cores).",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "search_priority",
+   "fieldtype": "Select",
+   "label": "Search Engine Priority",
+   "options": "\nLow\nNormal",
+   "description": "Low (the default): the web server and database get the CPU first, and indexing takes what they leave. Normal: the search engine competes equally. Empty: as set on the server.",
    "permlevel": 1
   },
   {

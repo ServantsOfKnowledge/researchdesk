@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.119.0 (2026-11-03): Search engine limits in Settings
+
+- **Search engine limits from the Desk.** Settings → Machine Resources has three new boxes: Search Engine CPUs, Search Indexing Threads and
+  Search Engine Priority (Low or Normal). Saving one asks the updater helper to set it and restart the search engine; without the helper the
+  Desk shows the command to run. Until now these were set with `./resdesk.sh resources set` on the server.
+
 ## 0.118.0 (2026-11-03): The search engine yields to the portal
 
 - **Lower priority for indexing.** Meilisearch now runs with a smaller CPU share than the web server and database (Docker: `cpu_shares` 256

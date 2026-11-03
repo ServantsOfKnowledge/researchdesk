@@ -578,6 +578,17 @@ def test_updater_helper_commands():
 		"QUEUE_WORKERS=6",
 	]
 	assert agent.command_for("apply_resources", {"workers": 6}, native)[-1] == "QUEUE_WORKERS=6"
+	assert agent.command_for(
+		"apply_resources", {"set": {"MEILI_CPUS": "1.5", "MEILI_NICE": "10"}}, docker
+	) == [
+		"./resdesk.sh",
+		"resources",
+		"set",
+		"MEILI_CPUS=1.5",
+		"MEILI_NICE=10",
+	]
+	for bad in ({"QUEUE_WORKERS": "9"}, {"MEILI_CPUS": "1; reboot"}, {}):
+		assert agent.command_for("apply_resources", {"set": bad}, docker) is None
 	for bad in (0, 17, "4; rm -rf /", -1):
 		assert agent.command_for("apply_resources", {"workers": bad}, docker) is None
 	assert agent.command_for("server_backup", {}, native) == ["./resdesk.sh", "backup"]

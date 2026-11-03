@@ -14,6 +14,7 @@ import hmac
 import json
 import os
 import platform
+import re
 import shutil
 from pathlib import Path
 
@@ -35,6 +36,8 @@ SEEN_WITHIN = 90  # seconds: the helper counts as connected when it synced this 
 
 # what the helper may be asked to do: action -> (who may ask, one at a time with the others)
 MAX_WORKERS = 16  # parallel background workers that can be chosen in the Desk
+# the search engine's limits Settings can change through the helper (resdesk.sh resources set …)
+RESOURCE_KEYS = ("MEILI_CPUS", "MEILI_MAX_INDEXING_THREADS", "MEILI_CPU_SHARES", "MEILI_NICE")
 
 ACTIONS = {
 	"upgrade": (ADMINS, True),
@@ -208,6 +211,13 @@ def _check_args(action: str, args: dict) -> dict:
 			frappe.throw(_("Unknown part: {0}").format(service))
 		return {"service": service}
 	if action == "apply_resources":
+		if isinstance(args.get("set"), dict):
+			chosen = {k: str(v).strip() for k, v in args["set"].items()}
+			if not chosen or any(
+				k not in RESOURCE_KEYS or not re.fullmatch(r"\d*(\.\d+)?", v) for k, v in chosen.items()
+			):
+				frappe.throw(_("Choose numbers for the search engine's limits."))
+			return {"set": chosen}
 		if args.get("workers") not in (None, ""):
 			workers = cint(args.get("workers"))
 			if not 1 <= workers <= MAX_WORKERS:
@@ -351,6 +361,8 @@ def _describe(action: str, args: dict) -> str:
 	if action == "restart":
 		return _("Restart {0}").format(args["service"])
 	if action == "apply_resources":
+		if args.get("set"):
+			return _("Set the search engine's limits")
 		if args.get("workers"):
 			return _("Run {0} parallel workers").format(args["workers"])
 		return _("Apply the {0} preset").format(args["preset"])
