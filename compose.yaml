@@ -107,6 +107,9 @@ services:
         [ -n "$$MEILI_MAX_INDEXING_THREADS" ] || unset MEILI_MAX_INDEXING_THREADS;
         [ -n "$$MEILI_MAX_INDEXING_MEMORY" ] || unset MEILI_MAX_INDEXING_MEMORY;
         exec /bin/meilisearch
+    # a lower share of the CPU than the web server and database (1024): when they want it they get it
+    # first, and when nothing else does the search engine still uses all it needs
+    cpu_shares: ${MEILI_CPU_SHARES:-256}
     deploy:
       resources:
         limits:

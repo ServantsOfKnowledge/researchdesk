@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.118.0 (2026-11-03): The search engine yields to the portal
+
+- **Lower priority for indexing.** Meilisearch now runs with a smaller CPU share than the web server and database (Docker: `cpu_shares` 256
+  against 1024; native: `nice -n 10`). Indexing still uses every idle core, but when the portal or database needs the CPU it gets it first.
+  `MEILI_CPU_SHARES` and `MEILI_NICE` change it. It takes effect when the stack is recreated (`./resdesk.sh resources apply`) or restarted.
+
 ## 0.117.0 (2026-11-02): One page-text sender, however long Pause All lasts
 
 - **Page-text sender held once.** While Pause All was on, the page-text sender queued every ten minutes held itself each time, so the held

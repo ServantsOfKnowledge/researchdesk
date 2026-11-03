@@ -776,7 +776,10 @@ Research Desk sends it only real work (0.38.1):
 ```
 
 `MEILI_CPUS` caps everything it does; `MEILI_MAX_INDEXING_THREADS` only indexing, so searches
-keep the rest. The *server* preset sets neither (indexing then takes up to half the machine's
+keep the rest. Since 0.118 the search engine also runs at a lower priority than the portal and the
+database (a CPU share of 256 against their 1024, or `nice -n 10` on a native install), so a busy
+indexing run no longer slows the portal down: it takes what the others leave. Change it with
+`MEILI_CPU_SHARES` (Docker) or `MEILI_NICE` (native) in `.env`. The *server* preset sets neither (indexing then takes up to half the machine's
 cores, the engine's own default). Indexing more slowly than books come in is fine: workers wait
 when more than 300 tasks are waiting, and the portal lists books as the engine takes them in.
 **Hold page text** (Search queue) during busy hours lets the engine do the light work only.

@@ -32,7 +32,7 @@ NICE="nice -n ${WORKER_NICE:-19}"
 bench set-config -gp background_process_niceness 0 >/dev/null
 sed -i.bak -E "s#^(worker[^:]*): (nice -n [0-9]+ )?bench worker#\1: $NICE bench worker#" Procfile && rm -f Procfile.bak
 {
-  echo "meilisearch: meilisearch --db-path $BENCH_DIR/meili-data --http-addr 127.0.0.1:$MEILI_PORT --master-key $MEILI_KEY --no-analytics --env production$MEILI_EXTRA 1>> logs/meilisearch.log 2>&1"
+  echo "meilisearch: nice -n ${MEILI_NICE:-10} meilisearch --db-path $BENCH_DIR/meili-data --http-addr 127.0.0.1:$MEILI_PORT --master-key $MEILI_KEY --no-analytics --env production$MEILI_EXTRA 1>> logs/meilisearch.log 2>&1"
   for i in $(seq 2 "$WORKERS"); do
     echo "worker_rd$i: $NICE bench worker 1>> logs/worker.log 2>> logs/worker.error.log"
   done
