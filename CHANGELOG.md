@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.120.0 (2026-11-05): Exact or similar search, and a field to search in
+
+- **Match.** Under the search box, choose Similar words (as before), All the words, or Exact phrase. Exact phrase finds a sentence only
+  where its words stand together in that order. It works for books and for text inside books.
+- **Search in.** Look for the words only in a book's title, author, publisher, subject or description. Choosing Publisher lists a
+  publisher's books.
+- **Publisher filter.** Publisher joins Language, Decade and the others in the filters. The search engine builds the new filter when the
+  site is upgraded; page text is not touched.
+- The API's search takes `match` and `search_in`.
+
 ## 0.119.0 (2026-11-03): Search engine limits in Settings
 
 - **Search engine limits from the Desk.** Settings → Machine Resources has three new boxes: Search Engine CPUs, Search Indexing Threads and

@@ -46,10 +46,21 @@ def _text_response(body: str, content_type: str, filename: str | None = None) ->
 
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
 @rate_limit(limit=120, seconds=60)
-def search(q: str = "", mode: str = "books", filters=None, page: int = 1, per_page: int = 20, sort: str = ""):
+def search(
+	q: str = "",
+	mode: str = "books",
+	filters=None,
+	page: int = 1,
+	per_page: int = 20,
+	sort: str = "",
+	match: str = "",
+	search_in: str = "",
+):
 	"""Search books (metadata + excerpt) or pages (full text inside books).
 
 	filters: JSON object, e.g. {"language_label": ["Kannada"], "decade": ["1950s"], "year_from": 1900}
+	match: "" similar words, "all" every word, "exact" the words together as typed
+	search_in: title, creators, publisher, subjects or description (books only); "" everywhere
 	"""
 	sort = effective_sort(sort, q)
 	if q.strip():
@@ -63,6 +74,8 @@ def search(q: str = "", mode: str = "books", filters=None, page: int = 1, per_pa
 			per_page,
 			sort,
 			access={"books": access.search_filter("books"), "pages": access.search_filter("pages")},
+			match=match if match in ("all", "exact") else "",
+			search_in=search_in,
 		)
 	except SearchError as e:
 		frappe.log_error("Research Desk: search failed", str(e))

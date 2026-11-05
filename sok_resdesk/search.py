@@ -55,6 +55,7 @@ BOOK_SETTINGS = {
 		"decade",
 		"creators",
 		"subjects",
+		"publisher",
 		"collections",
 		"access_status",
 		"has_fulltext",
@@ -104,7 +105,24 @@ PAGE_SETTINGS = {
 	"displayedAttributes": ["*"],
 	"pagination": {"maxTotalHits": PAGES_MAX_HITS},
 }
-FACETS = ["curated", "item_type", "language_label", "decade", "subjects", "creators", "collections"]
+FACETS = [
+	"curated",
+	"item_type",
+	"language_label",
+	"decade",
+	"subjects",
+	"creators",
+	"publisher",
+	"collections",
+]
+# "Search in" on the portal: which of a book's fields the words are looked for in
+SEARCH_IN = {
+	"title": ["title", "alt_title"],
+	"creators": ["creators", "alt_creators"],
+	"publisher": ["publisher"],
+	"subjects": ["subjects"],
+	"description": ["description"],
+}
 
 
 class SearchError(Exception):
@@ -907,6 +925,12 @@ def _attach_book_fields(client: MeiliClient, hits: list[dict]) -> None:
 		h.setdefault("creators", b.get("creators") or [])
 
 
+def exact_phrase(q: str) -> str:
+	"""The whole query as one phrase: words together, in that order. Quotes already in it go."""
+	words = (q or "").replace('"', " ").split()
+	return '"' + " ".join(words) + '"' if len(words) > 1 else " ".join(words)
+
+
 def build_filter(filters: dict | None) -> list:
 	parts: list = []
 	for field, values in (filters or {}).items():
@@ -934,9 +958,16 @@ def search(
 	per_page: int = 20,
 	sort: str = "",
 	access: dict | None = None,
+	match: str = "",
+	search_in: str = "",
 ) -> dict:
-	"""access: {"books": filter, "pages": filter} from access.search_filter; None = no limit, "" = nothing."""
+	"""access: {"books": filter, "pages": filter} from access.search_filter; None = no limit, "" = nothing.
+	match: "" similar words (the engine drops the last words when nothing has them all), "all" every
+	word, "exact" the words together in that order. search_in: one of SEARCH_IN's keys, books only."""
 	access = access or {}
+	if mode == "pages":
+		filters = {k: v for k, v in (filters or {}).items() if k != "publisher"}  # pages carry no publisher
+	q = exact_phrase(q) if match == "exact" else q
 	if access.get(mode) == "":
 		return {
 			"hits": [],
@@ -949,6 +980,8 @@ def search(
 	client = MeiliClient.from_settings()
 	page, per_page = max(1, cint(page)), min(max(1, cint(per_page)), 100)
 	body: dict = {"q": q or "", "page": page, "hitsPerPage": per_page, "filter": build_filter(filters)}
+	if match == "all":
+		body["matchingStrategy"] = "all"
 	if access.get(mode):
 		body["filter"].append(access[mode])
 	if mode == "pages":
@@ -985,6 +1018,8 @@ def search(
 		)
 		if sort in ("year:asc", "year:desc", "title_sort:asc"):
 			body["sort"] = [sort]
+		if search_in in SEARCH_IN:
+			body["attributesToSearchOn"] = SEARCH_IN[search_in]
 		queries, also = expand_query(q, filters, client) if q else ([q or ""], [])
 		if len(queries) > 1:
 			result = federated(client, client.books, queries, body, page, per_page, facets=FACETS)

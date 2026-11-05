@@ -38,6 +38,13 @@
 .rd-modes { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-top: 10px; }
 .rd-modes label { display: flex; gap: 6px; align-items: center; margin: 0; cursor: pointer; }
 .rd-count { margin-left: auto; }
+.rd-searchopts { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-top: 10px; }
+.rd-searchopts label { display: flex; gap: 8px; align-items: center; margin: 0; }
+.rd-searchopts select {
+	min-height: 44px; padding: 6px 10px; border: 1px solid var(--rd-border); border-radius: 8px;
+	background: var(--rd-bg); color: inherit; font-size: 0.95rem;
+}
+.rd-hero--banner .rd-searchopts label { color: rgba(255,255,255,.88); }
 
 .rd-btn {
 	display: inline-flex; align-items: center; gap: 4px; padding: 8px 14px; border-radius: 8px;

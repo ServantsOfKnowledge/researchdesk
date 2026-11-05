@@ -19,7 +19,9 @@ Base: `<BASE_URL>/api/method/`
 |---|---|---|
 | `q` | `""` | query text (any script): `"a phrase"`, `a OR b`, `-word`; words in Latin letters also search their Indic spellings (the response's `also` lists them) |
 | `mode` | `books` | `books` or `pages` (full text inside books) |
-| `filters` | `{}` | JSON, e.g. `{"language_label":["Kannada"],"decade":["1950s"],"year_from":1900,"year_to":1950}`. Facet keys: `curated` (your collections, by web address), `item_type` (Book, Periodical, Thesis…), `language_label`, `decade`, `subjects`, `creators`, `collections` (source collections on archive.org) |
+| `filters` | `{}` | JSON, e.g. `{"language_label":["Kannada"],"decade":["1950s"],"year_from":1900,"year_to":1950}`. Facet keys: `curated` (your collections, by web address), `item_type` (Book, Periodical, Thesis…), `language_label`, `decade`, `subjects`, `creators`, `publisher` (books mode), `collections` (source collections on archive.org) |
+| `match` | `""` | `""` similar words, `all` every word, `exact` the words together as typed |
+| `search_in` | `""` | books mode: look only in `title`, `creators`, `publisher`, `subjects` or `description`; `""` everywhere |
 | `page`, `per_page` | 1, 20 | `per_page` ≤ 100 |
 | `sort` | relevance | `year:asc`, `year:desc`, `title_sort:asc` (books mode) |
 

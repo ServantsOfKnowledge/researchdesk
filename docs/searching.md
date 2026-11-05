@@ -9,14 +9,29 @@ publisher, description** and the first few pages of text. Results show cover, au
 language and page count, with matches highlighted.
 
 - **Filters (left):** Collection (the library's own collections), Type (book, periodical,
-  thesis…), Language, Decade, Subject, Author and Source collection (the archive.org
-  collection), plus a Year range.
+  thesis…), Language, Decade, Subject, Author, Publisher and Source collection (the archive.org
+  collection), plus a Year range. Publisher filters books only, not *Inside the text*.
   Filters combine: pick *Kannada* and *1950s* to get Kannada books from the 1950s.
 - **Sort:** relevance, oldest, newest, title A–Z. Until a reader chooses, books are listed in
   the library's **Default Order** (Settings → Portal; oldest first unless changed) and a search
   with words shows the best matches first (**Best Matches First When Searching**). Books without
   a year come last.
 - **Empty search** lists everything, which is useful for browsing by filter.
+
+## Exact or similar, and which field
+
+Under the search box, **Match** chooses how a sentence is looked for:
+
+| Match | Finds |
+|---|---|
+| **Similar words** (the default) | books or pages with all the words, else with most of them (the last words are dropped first) |
+| **All the words** | only those with every word, anywhere, in any order |
+| **Exact phrase** | only those with the words together, in that order (the same as putting the whole sentence in quotes) |
+
+**Search in** limits a books search to one field: Title, Author, Publisher, Subject or
+Description. Choose *Publisher* and type a publisher's name to list its books. In *Inside the
+text* there is only the page text, so Search in is switched off there. Both choices are kept in
+the address, so a search can be shared.
 
 ## Inside the text
 

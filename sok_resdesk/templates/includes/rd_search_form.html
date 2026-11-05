@@ -11,3 +11,22 @@
 			<label><input type="radio" name="rd-mode" value="pages"> {{ _("Inside the text") }}</label>
 			<span class="rd-muted rd-count">{{ frappe.format(item_count, {"fieldtype": "Int"}) }} {{ _("books in the catalogue") }}</span>
 		</div>
+		<div class="rd-searchopts">
+			<label>{{ _("Match") }}
+				<select id="rd-match">
+					<option value="">{{ _("Similar words") }}</option>
+					<option value="all">{{ _("All the words") }}</option>
+					<option value="exact">{{ _("Exact phrase") }}</option>
+				</select>
+			</label>
+			<label>{{ _("Search in") }}
+				<select id="rd-in">
+					<option value="">{{ _("Everywhere") }}</option>
+					<option value="title">{{ _("Title") }}</option>
+					<option value="creators">{{ _("Author") }}</option>
+					<option value="publisher">{{ _("Publisher") }}</option>
+					<option value="subjects">{{ _("Subject") }}</option>
+					<option value="description">{{ _("Description") }}</option>
+				</select>
+			</label>
+		</div>

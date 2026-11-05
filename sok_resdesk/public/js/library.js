@@ -10,6 +10,7 @@
 		decade: __("Decade"),
 		subjects: __("Subject"),
 		creators: __("Author"),
+		publisher: __("Publisher"),
 		collections: __("Source collection"),
 	};
 	// ids shown as names (curated collections); filters fixed by the page (a collection page)
@@ -23,7 +24,7 @@
 		FIXED = {};
 	}
 	const FACET_FIELDS = Object.keys(FACET_LABELS);
-	const state = { q: "", mode: "books", page: 1, sort: "", filters: {} };
+	const state = { q: "", mode: "books", page: 1, sort: "", match: "", in: "", filters: {} };
 
 	function esc(s) {
 		return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -40,6 +41,8 @@
 		state.mode = p.get("mode") === "pages" ? "pages" : "books";
 		state.page = parseInt(p.get("page") || "1", 10);
 		state.sort = p.get("sort") || "";
+		state.match = ["all", "exact"].includes(p.get("match")) ? p.get("match") : "";
+		state.in = p.get("in") || "";
 		state.filters = {};
 		FACET_FIELDS.forEach((f) => {
 			const v = p.getAll(f);
@@ -53,6 +56,8 @@
 		if (state.mode !== "books") p.set("mode", state.mode);
 		if (state.page > 1) p.set("page", state.page);
 		if (state.sort) p.set("sort", state.sort);
+		if (state.match) p.set("match", state.match);
+		if (state.in) p.set("in", state.in);
 		Object.entries(state.filters).forEach(([k, v]) => (Array.isArray(v) ? v.forEach((x) => p.append(k, x)) : p.set(k, v)));
 		history.replaceState(null, "", `${location.pathname}${p.toString() ? "?" + p : ""}`);
 	}
@@ -62,6 +67,9 @@
 		// the reader's choice, else the order the library uses (the answer says which: render)
 		$("#rd-sort").value = state.sort || $("#rd-sort").dataset.used || "relevance";
 		$("#rd-sort").disabled = state.mode === "pages";
+		$("#rd-match").value = state.match;
+		$("#rd-in").value = state.in;
+		$("#rd-in").disabled = state.mode === "pages"; // page text has no fields to choose from
 		$("#rd-year-from").value = state.filters.year_from || "";
 		$("#rd-year-to").value = state.filters.year_to || "";
 	}
@@ -83,6 +91,8 @@
 			page: state.page,
 			per_page: 20,
 			sort: state.sort,
+			match: state.match,
+			search_in: state.mode === "pages" ? "" : state.in,
 			filters: JSON.stringify(allFilters()),
 		});
 		try {
@@ -245,6 +255,7 @@
 
 	function renderFacets(facets) {
 		const html = FACET_FIELDS.map((field) => {
+			if (field === "publisher" && state.mode === "pages") return ""; // pages carry no publisher
 			const values = Object.entries(facets[field] || {}).filter(([v]) => !(FIXED[field] || []).includes(v));
 			if (!values.length) return "";
 			const selected = state.filters[field] || [];
@@ -297,6 +308,13 @@
 		document.querySelectorAll('input[name="rd-mode"]').forEach((r) =>
 			r.addEventListener("change", () => {
 				state.mode = r.value;
+				state.page = 1;
+				run();
+			})
+		);
+		[["match", "match"], ["in", "in"]].forEach(([id, key]) =>
+			$(`#rd-${id}`).addEventListener("change", (e) => {
+				state[key] = e.target.value;
 				state.page = 1;
 				run();
 			})

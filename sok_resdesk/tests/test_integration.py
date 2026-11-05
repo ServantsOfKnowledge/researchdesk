@@ -11,7 +11,7 @@ from frappe.tests import IntegrationTestCase
 
 from sok_resdesk.catalogue import get_record, upsert_item
 from sok_resdesk.core.normalize import normalize_ia_item
-from sok_resdesk.search import build_filter, doc_id
+from sok_resdesk.search import build_filter, doc_id, exact_phrase
 
 META = {
 	"identifier": "rdtest.sample0001",
@@ -82,6 +82,29 @@ class TestResearchDesk(IntegrationTestCase):
 		self.assertTrue(doc_id("a.b").startswith("a_b-"))
 		f = build_filter({"language_label": ["Kannada"], "year_from": 1900, "bogus": ["x"]})
 		self.assertEqual(f, [['language_label = "Kannada"'], "year >= 1900"])
+		self.assertEqual(build_filter({"publisher": ["Sapna"]}), [['publisher = "Sapna"']])
+
+	def test_exact_phrase_and_the_fields_searched(self):
+		from unittest import mock
+
+		from sok_resdesk import search as s
+
+		self.assertEqual(exact_phrase('the "old" king'), '"the old king"')
+		self.assertEqual(exact_phrase("kanakadasa"), "kanakadasa")  # one word is not a phrase
+		client = mock.Mock(books="rd_books", pages="rd_pages")
+		client.search.return_value = {"hits": [], "totalHits": 0}
+		with (
+			mock.patch.object(s.MeiliClient, "from_settings", return_value=client),
+			mock.patch.object(s, "expand_query", side_effect=lambda q, f, c: ([q], [])),
+		):
+			s.search("old king", "books", match="exact", search_in="publisher")
+			body = client.search.call_args[0][1]
+			self.assertEqual(body["q"], '"old king"')
+			self.assertEqual(body["attributesToSearchOn"], ["publisher"])
+			s.search("old king", "books", match="all")
+			body = client.search.call_args[0][1]
+			self.assertEqual(body["matchingStrategy"], "all")
+			self.assertNotIn("attributesToSearchOn", body)
 
 
 class TestLocalFolderSource(IntegrationTestCase):
