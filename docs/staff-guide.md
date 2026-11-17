@@ -138,7 +138,7 @@ Outgoing email**. Until it is set, they go nowhere. See
 ## The catalogue
 
 **Items** lists every book. Filter the list like any Desk list (by language, collection, type,
-who can see it…), tick books to act on many at once (**Actions → Add to / Remove from Collection** or **Set
+who can see it…), tick books to act on many at once (**Actions → Add to / Remove from Collection**, **Mark Public** or **Set
 Who Can See Them**), or open one to edit it. The menu (⋯) does the same for every book matching
 the filters, and exports their metadata.
 

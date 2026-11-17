@@ -61,10 +61,10 @@ without re-indexing.
 **Everything matching a filter in the Desk.** Filter the Items list (by collection, language,
 ingest profile, source, year…), then **⋯ menu → Set Who Can See All Matching Books**.
 
-**From a portal search.** Log in as staff and search on the portal (`/`) as usual (words, facets,
-years, or *Inside the text*). A staff bar above the results says *set who can see N matching
-books*: pick a visibility → **Apply**. In *Inside the text* mode it changes the books that have
-a matching page.
+**Books you tick.** In the Items list, tick as many books as you like (the box in the header
+ticks every book shown) → **Actions → Mark Public**, or **Actions → Set Who Can See Them** for
+the other levels. Before 0.121 the portal's search page had a staff bar for this; it is in the
+Desk now, where books can be ticked one by one.
 
 **A whole ingest profile.** Open the profile, set **Access for Its Books**, save, then
 **Apply Access to Its Books**. Books the profile ingests later get the same visibility

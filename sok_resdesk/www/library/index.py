@@ -38,7 +38,6 @@ def get_context(context):
 
 	context.ask_profile = bool(context.viewer.get("logged_in")) and not profile.has_profile()
 	context.login_url = access.login_url("/library")
-	context.visibilities = access.VISIBILITIES
 	from sok_resdesk.portal import collection_cards, facet_labels
 
 	cards = collection_cards()

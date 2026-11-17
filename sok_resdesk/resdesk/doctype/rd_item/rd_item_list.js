@@ -99,8 +99,15 @@ frappe.listview_settings["RD Item"] = {
 			});
 			d.show();
 		};
-		listview.page.add_actions_menu_item(__("Add to / Remove from Collection"), () => {
+		// the books ticked in the list (the checkboxes allow as many as the list shows)
+		const picked = () => {
 			const names = listview.get_checked_items(true);
+			if (!names.length) frappe.msgprint(__("Tick the books first."));
+			return names;
+		};
+		listview.page.add_actions_menu_item(__("Add to / Remove from Collection"), () => {
+			const names = picked();
+			if (!names.length) return;
 			collection_dialog(__("Selected books"), { names: JSON.stringify(names) }, names.length);
 		});
 		listview.page.add_menu_item(__("Add All Matching Books to a Collection"), () => {
@@ -136,8 +143,26 @@ frappe.listview_settings["RD Item"] = {
 			d.show();
 		});
 
+		listview.page.add_actions_menu_item(__("Mark Public"), () => {
+			const names = picked();
+			if (!names.length) return;
+			frappe.confirm(__("Make {0} books public?", [names.length]), () =>
+				frappe.call({
+					method: "sok_resdesk.access.bulk_set_visibility",
+					args: { visibility: "Public", names: JSON.stringify(names) },
+					freeze: true,
+					freeze_message: __("Updating…"),
+					callback: (r) => {
+						frappe.show_alert({ message: r.message.message, indicator: "green" }, 7);
+						listview.refresh();
+					},
+				})
+			);
+		});
+
 		listview.page.add_actions_menu_item(__("Set Who Can See Them"), () => {
-			const names = listview.get_checked_items(true);
+			const names = picked();
+			if (!names.length) return;
 			ask(__("Selected books"), { names: JSON.stringify(names) }, names.length);
 		});
 

@@ -44,7 +44,6 @@ def get_context(context):
 	context.title = f"{doc.title} · {context.portal_title}"
 	context.viewer = viewer
 	context.login_url = access.login_url(f"/library/collection/{doc.name}")
-	context.visibilities = access.VISIBILITIES
 	context.fixed_filters = json.dumps({"curated": [doc.name]})
 	context.facet_labels = facet_labels()
 	context.portal_url = f"{base_url()}/library/collection/{doc.name}"

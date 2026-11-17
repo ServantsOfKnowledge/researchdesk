@@ -31,8 +31,6 @@ Create one at **Research Desk → Collections → + Add**. Give it a title; the 
 - **From the Items list** (Desk): tick books → **Actions → Add to / Remove from Collection**, or
   filter the list and use **menu → Add All Matching Books to a Collection** (works for thousands
   of books; large changes run in the background).
-- **From the portal**: logged in as staff, search, then use the staff bar above the results to
-  add everything matching the search to a collection.
 - **On a book's form**: the *Collections* field.
 - **With a spreadsheet**: the `collections` column (see below). New collection names are created.
 - **With rules**: in the collection, add rows like *Subject contains Vachana* or *Source Collection

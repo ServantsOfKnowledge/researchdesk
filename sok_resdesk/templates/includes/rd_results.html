@@ -1,4 +1,4 @@
-{# facets, toolbar, staff bar, results and pager #}
+{# facets, toolbar, results and pager #}
 	<div class="rd-layout">
 		<aside class="rd-facets" id="rd-facets" aria-label="{{ _('Filters') }}">
 			<h2 class="rd-sr-only">{{ _("Filters") }}</h2>
@@ -42,27 +42,6 @@
 				</div>
 			</div>
 			<div id="rd-active-filters" class="rd-chips"></div>
-			{% if viewer.staff %}
-			<form class="rd-staffbar" id="rd-staffbar" hidden>
-				<span>{{ _("Staff:") }} {{ _("set who can see") }} <b id="rd-staff-count">0</b> {{ _("matching books") }}</span>
-				<select id="rd-staff-vis" aria-label="{{ _('Visibility') }}">
-					{% for v in visibilities %}<option value="{{ v }}">{{ _(v) }}</option>{% endfor %}
-				</select>
-				<button class="rd-btn" type="submit">{{ _("Apply") }}</button>
-				<span class="rd-muted" id="rd-staff-msg"></span>
-			</form>
-			<form class="rd-staffbar" id="rd-staffbar-coll" hidden>
-				<select id="rd-staff-coll-action" aria-label="{{ _('Add or remove') }}">
-					<option value="add">{{ _("Add them to") }}</option>
-					<option value="remove">{{ _("Remove them from") }}</option>
-				</select>
-				<select id="rd-staff-coll" aria-label="{{ _('Collection') }}">
-					{% for cname, ctitle in (facet_labels.curated or {}).items() %}<option value="{{ cname }}">{{ ctitle }}</option>{% endfor %}
-					<option value="__new__">{{ _("New collection…") }}</option>
-				</select>
-				<button class="rd-btn" type="submit">{{ _("Apply") }}</button>
-			</form>
-			{% endif %}
 			<ol id="rd-hits" class="rd-hits"></ol>
 			<nav id="rd-pager" class="rd-pager" aria-label="{{ _('Pages') }}"></nav>
 		</section>

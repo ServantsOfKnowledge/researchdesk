@@ -392,7 +392,7 @@ def _select_items(
 
 
 def _names_from_search(spec: dict) -> list[str]:
-	"""Every item matching a portal search (what the staff bar on /library sends)."""
+	"""Every item matching a portal search ({"q", "mode", "filters"}, as the search API takes them)."""
 	from sok_resdesk.search import MeiliClient, build_filter
 
 	client = MeiliClient.from_settings()

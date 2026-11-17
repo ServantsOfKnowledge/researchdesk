@@ -109,12 +109,10 @@
 
 	// ---- rendering ------------------------------------------------------------------
 	function render(data) {
-		lastTotal = data.total || 0;
 		if (data.sort && $("#rd-sort")) {
 			$("#rd-sort").dataset.used = data.sort;
 			if (!state.sort) $("#rd-sort").value = data.sort;
 		}
-		paintStaffBar();
 		if (data.login_needed) {
 			const root = $("#rd-library").dataset;
 			$("#rd-summary").textContent = "";
@@ -180,77 +178,6 @@
 		if (!h.visibility || h.visibility === "Public") return "";
 		const text = h.visibility === "Login to find" ? __("members only") : __("login to read");
 		return ` · <span class="rd-badge rd-badge--members" title="${esc(h.visibility)}">🔒 ${text}</span>`;
-	}
-
-	// ---- staff: change visibility of everything matching the current search --------------
-	let lastTotal = 0;
-	function paintStaffBar() {
-		const bar = $("#rd-staffbar");
-		if (!bar) return;
-		bar.hidden = !lastTotal;
-		if ($("#rd-staffbar-coll")) $("#rd-staffbar-coll").hidden = !lastTotal;
-		$("#rd-staff-count").textContent = lastTotal.toLocaleString();
-		$("#rd-staff-msg").textContent = state.mode === "pages" ? __("(books with a matching page)") : "";
-	}
-	async function applyStaffBar(e) {
-		e.preventDefault();
-		const vis = $("#rd-staff-vis").value;
-		const what = state.mode === "pages" ? __("{0} matching pages' books", [lastTotal.toLocaleString()]) : __("{0} books", [lastTotal.toLocaleString()]);
-		if (!confirm(__("Set {0} to “{1}”?", [what, vis]))) return;
-		$("#rd-staff-msg").textContent = __("Working…");
-		const body = new URLSearchParams({
-			visibility: vis,
-			search: JSON.stringify({ q: state.q, mode: state.mode, filters: allFilters() }),
-		});
-		try {
-			const res = await fetch("/api/method/sok_resdesk.access.bulk_set_visibility", {
-				method: "POST",
-				headers: { Accept: "application/json", "X-Frappe-CSRF-Token": (window.frappe && frappe.csrf_token) || "" },
-				body,
-			});
-			const out = await res.json();
-			if (!res.ok) throw new Error(out.exception || res.statusText);
-			$("#rd-staff-msg").textContent = out.message.message;
-			if (!out.message.queued) setTimeout(run, 800);
-		} catch (err) {
-			$("#rd-staff-msg").textContent = `${__("Could not change:")} ${String(err.message).slice(0, 160)}`;
-		}
-	}
-
-	async function addToCollection(e) {
-		e.preventDefault();
-		let coll = $("#rd-staff-coll").value;
-		const csrf = (window.frappe && frappe.csrf_token) || "";
-		const post = async (method, params) => {
-			const res = await fetch(`/api/method/${method}`, {
-				method: "POST",
-				headers: { Accept: "application/json", "X-Frappe-CSRF-Token": csrf },
-				body: new URLSearchParams(params),
-			});
-			const out = await res.json();
-			if (!res.ok) throw new Error(out.exception || res.statusText);
-			return out.message;
-		};
-		try {
-			if (coll === "__new__") {
-				const title = prompt(__("Name of the new collection:"));
-				if (!title) return;
-				coll = await post("sok_resdesk.curation.create", { title });
-			}
-			const action = $("#rd-staff-coll-action").value;
-			const what = state.mode === "pages" ? __("{0} matching pages' books", [lastTotal.toLocaleString()]) : __("{0} books", [lastTotal.toLocaleString()]);
-			const ask = action === "add" ? __("Add {0} to “{1}”?", [what, label("curated", coll)]) : __("Remove {0} from “{1}”?", [what, label("curated", coll)]);
-			if (!confirm(ask)) return;
-			$("#rd-staff-msg").textContent = __("Working…");
-			const out = await post("sok_resdesk.curation.bulk", {
-				action,
-				collection: coll,
-				search: JSON.stringify({ q: state.q, mode: state.mode, filters: allFilters() }),
-			});
-			$("#rd-staff-msg").textContent = out.message;
-		} catch (err) {
-			$("#rd-staff-msg").textContent = `${__("Could not change:")} ${String(err.message).slice(0, 160)}`;
-		}
 	}
 
 	function renderFacets(facets) {
@@ -366,8 +293,6 @@
 			RDBasket.toggle(b.dataset.id);
 		});
 		document.addEventListener("rd-basket-change", markBasket);
-		if ($("#rd-staffbar")) $("#rd-staffbar").addEventListener("submit", applyStaffBar);
-		if ($("#rd-staffbar-coll")) $("#rd-staffbar-coll").addEventListener("submit", addToCollection);
 
 		// basket menu
 		$("#rd-basket-btn").addEventListener("click", () => ($("#rd-basket-menu").hidden = !$("#rd-basket-menu").hidden));

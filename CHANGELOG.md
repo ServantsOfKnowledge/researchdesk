@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.121.0 (2026-11-17): Bulk changes to books live in the Desk
+
+- **Off the home page.** The staff bar on the portal's search page (set who can see N matching books, add them to a collection) is gone,
+  so the page is the same for everyone. It could only change everything a search matched, never chosen books.
+- **In the Desk.** Items has them, with a checkbox on every row: tick any books → **Actions → Add to / Remove from Collection**, **Mark
+  Public** (new, one step) or **Set Who Can See Them**. The menu (⋯) still does the same for every book matching the filters. With
+  nothing ticked, the actions say so instead of failing.
 ## 0.120.0 (2026-11-05): Exact or similar search, and a field to search in
 
 - **Match.** Under the search box, choose Similar words (as before), All the words, or Exact phrase. Exact phrase finds a sentence only
