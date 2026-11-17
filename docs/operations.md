@@ -625,6 +625,19 @@ Every setting:
 | Last Note Sent | When the last note went. |
 | What Was Sent | Exactly what the last note said. |
 | This Site Is the Registry | Only on research.servantsofknowledge.in: takes the notes other installations send. Everywhere else leave it off. |
+
+**Assistant (Small Language Model)**
+
+| Setting | What it does |
+|---|---|
+| Where It Runs | Local server: a model you run yourself (Ollama, llama.cpp, vLLM); nothing leaves your server. Hosted API: a service you pay for; the page text it is asked about is sent to it. Choices: *Off*, *Local server*, *Hosted API*. |
+| Address | An OpenAI-style address ending in /v1, for example http://localhost:11434/v1 for Ollama. |
+| Model Name | For example qwen2.5:3b-instruct or gemma2:2b for a local model. Small, quantised models run on a CPU, slowly. |
+| Key | Kept encrypted. Never shown again after saving. A local server usually needs none. |
+| Fix Title-Page Details | When the rules find no publisher, place, year or ISBN, ask the model to read them from the first pages. A value is kept only if it is printed there. |
+| Tidy Contents | Ask the model to find and mend a table of contents the rules read unclearly. |
+| Suggest Subjects and Summary | Ask the model for subjects, a short summary and the document type of a book with a thin record. |
+| Help Search | Ask the model to turn a sentence typed in search into filters (author, language, year). |
 <!-- /generated:settings -->
 
 ## Users and roles

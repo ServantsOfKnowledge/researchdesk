@@ -31,6 +31,13 @@ function rd_feature_suggestions(frm) {
 frappe.ui.form.on("RD Settings", {
 	refresh(frm) {
 		rd_feature_suggestions(frm);
+		if (frm.doc.assistant_provider && frm.doc.assistant_provider !== "Off") {
+			frm.add_custom_button(__("Test the Assistant"), () =>
+				frappe.call({ method: "sok_resdesk.assistant.test", freeze: true }).then((r) =>
+					frappe.show_alert({ message: r.message.message, indicator: r.message.ok ? "green" : "red" }, 9)
+				), __("Actions")
+			);
+		}
 		frm.add_custom_button(__("Show the Install Note"), () =>
 			frappe.call("sok_resdesk.registry.preview").then((r) => {
 				const m = r.message;

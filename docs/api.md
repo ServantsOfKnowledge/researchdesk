@@ -187,6 +187,7 @@ only; 10 a minute.
 | `sok_resdesk.search_queue.books_first` · `hold_page_text` (`hold`=1/0) · `clear_history` (`days`) | cancel the waiting page text so books are listed next (it is sent again later); hold or resume page text; forget finished tasks older than `days` (7) |
 | `sok_resdesk.contents.extract` (`item_id`, `reread`=0/1) | read one book's contents pages into a draft (staff; `reread` reads them again with OCR in the background) |
 | `sok_resdesk.contents.bulk` (`names`, `filters` or `everything=1`) | read the contents of many books in the background (managers and super admins only) |
+| `sok_resdesk.assistant.test` | ask the configured language model a trivial question, to check Settings → Assistant (managers and super admins only) |
 | `sok_resdesk.frontmatter.extract` (`item_id`) | read publisher, place, year and ISBN from one book's title and imprint pages into a draft (staff) |
 | `sok_resdesk.frontmatter.bulk` (`names`, `filters` or `everything=1`) | read those details for many books in the background (managers and super admins only) |
 | `sok_resdesk.frontmatter.decide` (`item_id`, `status`=`Applied`/`Rejected`) | apply the chosen details to the book, or reject the draft (staff) |

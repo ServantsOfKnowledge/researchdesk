@@ -11,7 +11,7 @@
  "modified_by": "Administrator",
  "istable": 1,
  "editable_grid": 1,
- "field_order": ["field", "current", "suggested", "decision", "image_no", "found_text", "confidence"],
+ "field_order": ["field", "current", "suggested", "decision", "image_no", "found_text", "how", "confidence"],
  "fields": [
   {"fieldname": "field", "fieldtype": "Select", "label": "Detail", "options": "publisher\nplace\nyear\nisbn", "reqd": 1, "in_list_view": 1, "columns": 1},
   {"fieldname": "current", "fieldtype": "Data", "label": "Now on the Book", "read_only": 1, "in_list_view": 1, "columns": 2},
@@ -19,6 +19,7 @@
   {"fieldname": "decision", "fieldtype": "Select", "label": "Decision", "options": "Use This\nKeep Current", "default": "Use This", "in_list_view": 1, "columns": 1},
   {"fieldname": "image_no", "fieldtype": "Int", "label": "Page Image", "read_only": 1, "in_list_view": 1, "columns": 1, "description": "Where it was found, counting the first page image as 1."},
   {"fieldname": "found_text", "fieldtype": "Data", "label": "The Line It Came From", "read_only": 1},
+  {"fieldname": "how", "fieldtype": "Data", "label": "Read By", "read_only": 1, "description": "Rules: found by fixed patterns. Assistant: suggested by the language model from the page text."},
   {"fieldname": "confidence", "fieldtype": "Percent", "label": "How Sure", "read_only": 1}
  ],
  "permissions": []

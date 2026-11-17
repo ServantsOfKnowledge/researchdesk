@@ -108,6 +108,16 @@
   "column_break_analytics",
   "analytics_key",
   "analytics_dashboard",
+  "assistant_section",
+  "assistant_provider",
+  "assistant_url",
+  "assistant_model",
+  "column_break_assistant",
+  "assistant_key",
+  "assistant_titles",
+  "assistant_contents",
+  "assistant_subjects",
+  "assistant_search",
   "tab_catalogue",
   "tab_catalogue_intro",
   "ia_section",
@@ -1776,6 +1786,85 @@
    "default": "0",
    "permlevel": 1,
    "description": "Only on research.servantsofknowledge.in: takes the notes other installations send. Everywhere else leave it off."
+  },
+  {
+   "fieldname": "assistant_section",
+   "fieldtype": "Section Break",
+   "label": "Assistant (Small Language Model)",
+   "description": "An optional small model that suggests details for the checking screens. It never changes a book by itself."
+  },
+  {
+   "fieldname": "assistant_provider",
+   "fieldtype": "Select",
+   "label": "Where It Runs",
+   "options": "Off\nLocal server\nHosted API",
+   "default": "Off",
+   "permlevel": 1,
+   "description": "Local server: a model you run yourself (Ollama, llama.cpp, vLLM); nothing leaves your server. Hosted API: a service you pay for; the page text it is asked about is sent to it."
+  },
+  {
+   "fieldname": "assistant_url",
+   "fieldtype": "Data",
+   "label": "Address",
+   "permlevel": 1,
+   "depends_on": "eval:doc.assistant_provider!='Off'",
+   "description": "An OpenAI-style address ending in /v1, for example http://localhost:11434/v1 for Ollama."
+  },
+  {
+   "fieldname": "assistant_model",
+   "fieldtype": "Data",
+   "label": "Model Name",
+   "permlevel": 1,
+   "depends_on": "eval:doc.assistant_provider!='Off'",
+   "description": "For example qwen2.5:3b-instruct or gemma2:2b for a local model. Small, quantised models run on a CPU, slowly."
+  },
+  {
+   "fieldname": "column_break_assistant",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "assistant_key",
+   "fieldtype": "Password",
+   "label": "Key",
+   "permlevel": 1,
+   "depends_on": "eval:doc.assistant_provider=='Hosted API'",
+   "description": "Kept encrypted. Never shown again after saving. A local server usually needs none."
+  },
+  {
+   "fieldname": "assistant_titles",
+   "fieldtype": "Check",
+   "label": "Fix Title-Page Details",
+   "default": "1",
+   "permlevel": 1,
+   "depends_on": "eval:doc.assistant_provider!='Off'",
+   "description": "When the rules find no publisher, place, year or ISBN, ask the model to read them from the first pages. A value is kept only if it is printed there."
+  },
+  {
+   "fieldname": "assistant_contents",
+   "fieldtype": "Check",
+   "label": "Tidy Contents",
+   "default": "1",
+   "permlevel": 1,
+   "depends_on": "eval:doc.assistant_provider!='Off'",
+   "description": "Ask the model to find and mend a table of contents the rules read unclearly."
+  },
+  {
+   "fieldname": "assistant_subjects",
+   "fieldtype": "Check",
+   "label": "Suggest Subjects and Summary",
+   "default": "1",
+   "permlevel": 1,
+   "depends_on": "eval:doc.assistant_provider!='Off'",
+   "description": "Ask the model for subjects, a short summary and the document type of a book with a thin record."
+  },
+  {
+   "fieldname": "assistant_search",
+   "fieldtype": "Check",
+   "label": "Help Search",
+   "default": "1",
+   "permlevel": 1,
+   "depends_on": "eval:doc.assistant_provider!='Off'",
+   "description": "Ask the model to turn a sentence typed in search into filters (author, language, year)."
   }
  ],
  "links": [],

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.127.0 (2026-11-17): An optional small language model
+
+- **Settings → Assistant.** An admin can connect a small language model, either a *Local server* (Ollama, llama.cpp, vLLM: nothing leaves
+  your server) or a *Hosted API* (OpenAI-style address and key), and tick the uses wanted. It is off by default; *Actions → Test the Assistant*
+  checks the connection. Hosted addresses must be public; a local server is the library's own machine.
+- **It only suggests.** Every answer is checked against the page text (an ISBN needs its check digit, a year must be real, a value must be
+  printed on the pages the model saw, so a guess is dropped) and lands in the usual draft for a person to use or keep.
+- **First use: title-page details.** Where the rules find no publisher, place, year or ISBN, the model reads the first pages for just those;
+  the draft marks each such detail *Assistant* in **Read By**. Contents, subjects and summary, and search help come next.
+
 ## 0.126.0 (2026-11-17): Details from the title pages
 
 - **Read the title and imprint pages.** On a book (Items → book → Actions → Read Details From the Title Pages) Research Desk reads publisher,

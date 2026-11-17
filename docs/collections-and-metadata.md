@@ -127,6 +127,19 @@ and a year only between 1450 and next year.
   *Apply to the Book*. The book is saved as a reviewed edit, so *Keep My Edits* switches on and a later ingest leaves the details alone, and
   they go out with the book's other metadata to Koha, Wikidata, the Internet Archive and other systems you push to (see below).
 
+### The assistant (an optional small language model)
+
+Where the fixed rules find nothing, a small language model can read the same pages. It is off until an admin sets it up under
+**Settings → Assistant**: choose *Local server* (a model you run yourself with Ollama, llama.cpp or vLLM: nothing leaves your server) or
+*Hosted API* (a paid service: the page text it is asked about is sent to it), give the address (OpenAI-style, ending in `/v1`), the model
+name and, for a hosted one, the key; *Actions → Test the Assistant* checks it. Then tick the uses you want. A small model on a CPU takes
+seconds to a minute for an answer, so use it for the background jobs rather than waiting at a form.
+
+The model only suggests. Every answer is checked before you see it (an ISBN needs its check digit, a year must be a real one, and a value
+must be printed on the pages the model was given, so a guess is dropped), and it lands in the same draft as everything else, marked
+*Assistant* in the **Read By** column, for a person to use or keep. The first use is **Fix Title-Page Details**: only the details the rules
+missed and the book does not already have are asked of it.
+
 ## Exporting metadata
 
 **Research Desk → Exports → + Add**, choose a **Format** and **Which Books**, and save. Small

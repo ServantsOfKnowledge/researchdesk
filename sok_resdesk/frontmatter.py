@@ -41,6 +41,7 @@ def extract_now(item_id: str, user: str | None = None) -> dict:
 		return {"status": "", "entries": 0, "message": _("This book has no page text to read details from.")}
 	current = frappe.db.get_value("RD Item", item_id, list(rules.FIELDS), as_dict=True)
 	found = [f for f in rules.read(pages) if rules.is_new(f["field"], f["value"], current[f["field"]])]
+	found += _from_assistant(pages, current, {f["field"] for f in found})
 	if not found:
 		return {"status": "", "entries": 0, "message": _("Nothing new was found on the first pages.")}
 	doc = frappe.get_doc(DOCTYPE, item_id) if existing else frappe.new_doc(DOCTYPE)
@@ -59,6 +60,7 @@ def extract_now(item_id: str, user: str | None = None) -> dict:
 				"decision": "Keep Current" if current[f["field"]] else "Use This",
 				"image_no": f["leaf"] + 1,
 				"found_text": f["snippet"],
+				"how": f.get("how", "Rules"),
 				"confidence": round(100 * f["confidence"]),
 			}
 			for f in found
@@ -70,6 +72,21 @@ def extract_now(item_id: str, user: str | None = None) -> dict:
 		"entries": len(found),
 		"message": _("{0} details found; they are a draft to check.").format(len(found)),
 	}
+
+
+def _from_assistant(pages: list[dict], current, have: set) -> list[dict]:
+	"""What the rules missed, asked of the language model when the admin switched that on. Only values
+	printed on the pages survive (core/llm.py)."""
+	from sok_resdesk import assistant
+	from sok_resdesk.core import llm
+
+	missing = [f for f in rules.FIELDS if f not in have and not current[f]]
+	if not missing or not assistant.enabled("titles"):
+		return []
+	front = pages[: rules.FRONT_PAGES][:4]  # the title page, its back and the next two
+	system, user = llm.front_prompt(front, missing)
+	found = llm.front_details(assistant.ask(system, user), front, current)
+	return [{**f, "how": "Assistant"} for f in found if f["field"] in missing]
 
 
 @frappe.whitelist(methods=["POST"])

@@ -70,3 +70,16 @@ class TestFrontmatter(IntegrationTestCase):
 		)
 		self.assertEqual(frontmatter.extract(ITEM)["status"], "")
 		self.assertFalse(frappe.db.exists("RD Metadata Suggestion", ITEM))
+
+	def test_the_assistant_fills_what_the_rules_missed(self):
+		pages = [{"leaf": 0, "label": "", "text": "Printed for\nSahitya Akademi"}]
+		reply = '{"publisher": "Sahitya Akademi", "year": "1999"}'  # the year is not on the page
+		with (
+			mock.patch("sok_resdesk.ingest.fetch_pages", return_value=pages),
+			mock.patch("sok_resdesk.assistant.enabled", return_value=True),
+			mock.patch("sok_resdesk.assistant.ask", return_value=reply),
+		):
+			self.assertEqual(frontmatter.extract(ITEM)["status"], "Draft")
+		rows = {r.field: r for r in frappe.get_doc("RD Metadata Suggestion", ITEM).details}
+		self.assertEqual(set(rows), {"publisher"})
+		self.assertEqual(rows["publisher"].how, "Assistant")
