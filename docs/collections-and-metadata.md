@@ -140,7 +140,10 @@ must be printed on the pages the model was given, so a guess is dropped), and it
 *Assistant* in the **Read By** column, for a person to use or keep. The first use is **Fix Title-Page Details**: only the details the rules
 missed and the book does not already have are asked of it. The second is **Tidy Contents**: when the rules read a contents list
 unclearly (or find none), the model reads the contents pages (or the likeliest front pages); its headings need a printed page and must start
-with words printed on those pages, and a draft it helped with says *Read by the Assistant*. It replaces the rules' list only when it found more.
+with words printed on those pages, and a draft it helped with says *Read by the Assistant*. It replaces the rules' list only when it found more. The third is **Suggest Subjects and Summary**: for a book with no subjects or no
+description the model suggests up to six subjects, a two-sentence summary and a document type. These are its own words, not lines from the
+page, so they carry a low *How Sure* and no page; a summary is offered only for a book with no description, a document type only when it
+differs, and subjects are added to the book's own, never replacing them.
 
 ## Exporting metadata
 

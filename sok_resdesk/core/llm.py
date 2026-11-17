@@ -130,3 +130,51 @@ def contents_entries(reply: str, text: str) -> list[dict]:
 			level = 1
 		out.append({"title": title, "page": page, "level": level})
 	return out
+
+
+DESCRIBE = ("subjects", "summary", "item_type")
+SAMPLE_PAGES = 12  # of the first pages, the text a book is described from
+MAX_SUBJECTS = 6
+
+
+def describe_prompt(book: dict, pages: list[dict], types: list[str]) -> tuple[str, str]:
+	"""(system, user) asking for subjects, a short summary and the document type of a book."""
+	system = (
+		"You help a librarian describe a book from its title and the first pages of its OCR text. Reply with "
+		'one JSON object only: {"subjects": ["..."], "summary": "...", "item_type": "..."}. subjects: at most '
+		f"{MAX_SUBJECTS} short subject headings (a topic, place, period or tradition), in the language of the "
+		"book's own catalogue where it is English, else in English. summary: two plain sentences saying what "
+		f"the book is about, no praise. item_type: one of {', '.join(types)}. Say only what the text supports; "
+		"use null or an empty list when unsure."
+	)
+	head = f"Title: {book.get('title') or ''}\nAuthor: {book.get('creators') or ''}\nLanguage: {book.get('language') or ''}"
+	text = "\n\n".join((p.get("text") or "") for p in pages[:SAMPLE_PAGES])
+	return system, f"{head}\n\n{text}"[:MAX_PAGE_CHARS]
+
+
+def describe_details(reply: str, current: dict, types: list[str]) -> list[dict]:
+	"""Details from a model's reply worth offering a person: subjects the book lacks (joined with "; "), a
+	summary only for a book with no description, and a document type that differs from the book's. They
+	are suggestions, not facts from the page, so they carry a low confidence and no page."""
+	data = parse_json(reply) or {}
+	out = []
+
+	def add(field: str, value: str) -> None:
+		out.append({"field": field, "value": value, "leaf": None, "snippet": "", "confidence": 0.4})
+
+	have = {_norm(s) for s in re.split(r";", str(current.get("subjects") or ""))}
+	raw = data.get("subjects") if isinstance(data.get("subjects"), list) else []
+	subjects = []
+	for s in raw:
+		s = re.sub(r"[;\s]+", " ", str(s or "")).strip(" .,")
+		if 2 <= len(s) <= 60 and _norm(s) not in have and _norm(s) not in {_norm(x) for x in subjects}:
+			subjects.append(s)
+	if subjects:
+		add("subjects", "; ".join(subjects[:MAX_SUBJECTS]))
+	summary = re.sub(r"\s+", " ", str(data.get("summary") or "")).strip()
+	if 20 <= len(summary) <= 600 and not str(current.get("summary") or "").strip():
+		add("summary", summary)
+	kind = str(data.get("item_type") or "").strip()
+	if kind in types and kind != current.get("item_type"):
+		add("item_type", kind)
+	return out

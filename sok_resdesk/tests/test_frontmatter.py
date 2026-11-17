@@ -86,3 +86,28 @@ class TestFrontmatter(IntegrationTestCase):
 		rows = {r.field: r for r in frappe.get_doc("RD Metadata Suggestion", ITEM).details}
 		self.assertEqual(set(rows), {"publisher"})
 		self.assertEqual(rows["publisher"].how, "Assistant")
+
+	def test_the_assistant_suggests_subjects_a_summary_and_a_type(self):
+		reply = (
+			'{"subjects": ["Deccan history", "Inscriptions"], '
+			'"summary": "A history of the Deccan plateau from its early dynasties to the medieval period.", '
+			'"item_type": "Book"}'
+		)
+		with (
+			mock.patch("sok_resdesk.assistant.enabled", side_effect=lambda use: use == "subjects"),
+			mock.patch("sok_resdesk.assistant.ask", return_value=reply),
+		):
+			self.assertEqual(frontmatter.extract(ITEM)["status"], "Draft")
+		rows = {r.field: r for r in frappe.get_doc("RD Metadata Suggestion", ITEM).details}
+		self.assertEqual(rows["subjects"].decision, "Use This")
+		self.assertNotIn("item_type", rows)  # it is already a Book
+		for field in ("publisher", "place", "year", "isbn"):  # the title page is read as before
+			self.assertIn(field, rows)
+		doc = frappe.get_doc("RD Metadata Suggestion", ITEM)
+		for r in doc.details:
+			r.decision = "Use This" if r.field in ("subjects", "summary") else "Keep Current"
+		doc.save(ignore_permissions=True)
+		frontmatter.decide(ITEM, "Applied")
+		book = frappe.get_doc("RD Item", ITEM)
+		self.assertEqual(sorted(r.subject for r in book.subjects), ["Deccan history", "Inscriptions"])
+		self.assertIn("Deccan plateau", book.description)

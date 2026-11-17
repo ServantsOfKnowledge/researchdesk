@@ -51,3 +51,29 @@ def test_contents_entries_the_pages_support_are_kept():
 	]
 	assert llm.contents_entries("not json", CONTENTS) == []
 	assert llm.contents_entries('{"entries": "x"}', CONTENTS) == []
+
+
+TYPES = ["Book", "Periodical", "Manuscript", "Other"]
+
+
+def test_description_offers_only_what_is_new_and_sensible():
+	reply = (
+		'{"subjects": ["Vachana literature", "Basavanna", "basavanna", "Karnataka; history", "x"], '
+		'"summary": "A study of the Vachana poets of twelfth-century Karnataka and their social message.", '
+		'"item_type": "Manuscript"}'
+	)
+	got = {
+		d["field"]: d
+		for d in llm.describe_details(reply, {"subjects": "Basavanna", "item_type": "Book"}, TYPES)
+	}
+	assert (
+		got["subjects"]["value"] == "Vachana literature; Karnataka history"
+	)  # not the one it has, no repeats
+	assert got["summary"]["value"].startswith("A study") and got["item_type"]["value"] == "Manuscript"
+	assert got["subjects"]["leaf"] is None and got["subjects"]["confidence"] < 0.5
+
+
+def test_description_keeps_what_the_book_has_and_refuses_odd_types():
+	reply = '{"subjects": [], "summary": "A study of the Vachana poets of twelfth-century Karnataka.", "item_type": "Pamphlet"}'
+	assert llm.describe_details(reply, {"summary": "Already described."}, TYPES) == []
+	assert llm.describe_details("nothing", {}, TYPES) == []

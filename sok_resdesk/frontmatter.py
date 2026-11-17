@@ -42,6 +42,7 @@ def extract_now(item_id: str, user: str | None = None) -> dict:
 	current = frappe.db.get_value("RD Item", item_id, list(rules.FIELDS), as_dict=True)
 	found = [f for f in rules.read(pages) if rules.is_new(f["field"], f["value"], current[f["field"]])]
 	found += _from_assistant(pages, current, {f["field"] for f in found})
+	found += _describe(item_id, pages, current)
 	if not found:
 		return {"status": "", "entries": 0, "message": _("Nothing new was found on the first pages.")}
 	doc = frappe.get_doc(DOCTYPE, item_id) if existing else frappe.new_doc(DOCTYPE)
@@ -54,11 +55,13 @@ def extract_now(item_id: str, user: str | None = None) -> dict:
 		[
 			{
 				"field": f["field"],
-				"current": str(current[f["field"]] or ""),
+				"current": str(current[f["field"]] or "")[:600],
 				"suggested": f["value"],
 				# a detail the book already has is kept unless the person chooses the new one
-				"decision": "Keep Current" if current[f["field"]] else "Use This",
-				"image_no": f["leaf"] + 1,
+				"decision": "Keep Current"
+				if current[f["field"]] and f["field"] != "subjects"
+				else "Use This",
+				"image_no": (f["leaf"] + 1) if f.get("leaf") is not None else None,
 				"found_text": f["snippet"],
 				"how": f.get("how", "Rules"),
 				"confidence": round(100 * f["confidence"]),
@@ -72,6 +75,33 @@ def extract_now(item_id: str, user: str | None = None) -> dict:
 		"entries": len(found),
 		"message": _("{0} details found; they are a draft to check.").format(len(found)),
 	}
+
+
+def _describe(item_id: str, pages: list[dict], current) -> list[dict]:
+	"""Subjects, a summary and the document type, suggested by the language model for a book with a thin
+	record (no subjects or no description). They are drafts like the rest; nothing is applied unasked."""
+	from sok_resdesk import assistant
+	from sok_resdesk.core import llm
+
+	if not assistant.enabled("subjects"):
+		return []
+	book = frappe.db.get_value(
+		"RD Item", item_id, ["title", "creator_display", "language", "description", "item_type"], as_dict=True
+	)
+	subjects = frappe.get_all(
+		"RD Item Subject", {"parent": item_id, "parenttype": "RD Item"}, pluck="subject"
+	)
+	current["subjects"], current["summary"], current["item_type"] = (
+		"; ".join(subjects),
+		book.description,
+		book.item_type,
+	)
+	if subjects and book.description:
+		return []
+	types = [t for t in frappe.get_meta("RD Item").get_field("item_type").options.split("\n") if t]
+	system, user = llm.describe_prompt({**book, "creators": book.creator_display}, pages, types)
+	found = llm.describe_details(assistant.ask(system, user, 500), current, types)
+	return [{**f, "how": "Assistant"} for f in found]
 
 
 def _from_assistant(pages: list[dict], current, have: set) -> list[dict]:
@@ -220,5 +250,20 @@ def _apply(doc) -> None:
 		frappe.throw(_("No detail is set to Use This."))
 	book = frappe.get_doc("RD Item", doc.item)
 	for field, value in chosen.items():
-		book.set(field, cint(value) if field == "year" else value)
+		if field == "subjects":
+			_add_subjects(book, value)
+		else:
+			book.set({"summary": "description"}.get(field, field), cint(value) if field == "year" else value)
 	book.save(ignore_permissions=True)
+
+
+def _add_subjects(book, value: str) -> None:
+	"""The chosen subjects are added to the book's own, never replacing them."""
+	from sok_resdesk.catalogue import _ensure_subject
+
+	have = {r.subject for r in book.subjects or []}
+	for subject in (s.strip() for s in value.split(";") if s.strip()):
+		name = _ensure_subject(subject)
+		if name not in have:
+			have.add(name)
+			book.append("subjects", {"subject": name})

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.129.0 (2026-11-17): The assistant suggests subjects and a summary
+
+- **Suggest Subjects and Summary.** With Settings → Assistant on, a book with no subjects or no description gets up to six suggested subjects,
+  a two-sentence summary and a document type in its **Metadata Suggestions** draft (marked *Assistant*, with no page since they are not
+  quotations). A person ticks Use This or Keep Current: subjects are added to the book's own, a summary fills only an empty description.
+
 ## 0.128.0 (2026-11-17): The assistant tidies contents
 
 - **Tidy Contents.** With Settings → Assistant on, a table of contents the rules read unclearly (or could not find) is read by the language
