@@ -36,7 +36,7 @@ class TestFrontmatter(IntegrationTestCase):
 		).insert(ignore_permissions=True)
 		frappe.db.commit()
 		self.pages = mock.patch("sok_resdesk.ingest.fetch_pages", return_value=PAGES)
-		self.pages.start()
+		self.fetch = self.pages.start()
 
 	def tearDown(self):
 		self.pages.stop()
@@ -66,7 +66,9 @@ class TestFrontmatter(IntegrationTestCase):
 
 	def test_nothing_new_makes_no_draft(self):
 		frappe.db.set_value(
-			"RD Item", ITEM, {"publisher": "Sahitya Akademi", "year": 1950, "isbn": "978-0-306-40615-7"}
+			"RD Item",
+			ITEM,
+			{"publisher": "Sahitya Akademi", "place": "New Delhi", "year": 1950, "isbn": "978-0-306-40615-7"},
 		)
 		self.assertEqual(frontmatter.extract(ITEM)["status"], "")
 		self.assertFalse(frappe.db.exists("RD Metadata Suggestion", ITEM))
@@ -74,8 +76,8 @@ class TestFrontmatter(IntegrationTestCase):
 	def test_the_assistant_fills_what_the_rules_missed(self):
 		pages = [{"leaf": 0, "label": "", "text": "Printed for\nSahitya Akademi"}]
 		reply = '{"publisher": "Sahitya Akademi", "year": "1999"}'  # the year is not on the page
+		self.fetch.return_value = pages
 		with (
-			mock.patch("sok_resdesk.ingest.fetch_pages", return_value=pages),
 			mock.patch("sok_resdesk.assistant.enabled", return_value=True),
 			mock.patch("sok_resdesk.assistant.ask", return_value=reply),
 		):
