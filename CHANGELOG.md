@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.122.0 (2026-11-17): Only managers decide who can see a book
+
+- **Visibility is a manager's decision.** The *Who can see it* field on a book, Mark Public, Set Who Can See Them and the bulk change by
+  filter now need the ResDesk Manager, System Manager or super admin role. Cataloguers can still read the field, and still add books to
+  collections. Readers could never change it. Books that come in through ingest profiles, access rules, deposits and the default keep
+  getting their visibility as before.
+
 ## 0.121.0 (2026-11-17): Bulk changes to books live in the Desk
 
 - **Off the home page.** The staff bar on the portal's search page (set who can see N matching books, add them to a collection) is gone,

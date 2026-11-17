@@ -22,6 +22,8 @@ MANAGER_ROLES = ("System Manager", "ResDesk Manager")
 # security and access setup, integrations and credentials. Librarians hold ResDesk Manager.
 SUPER_ROLE = "SOK Super Admin"
 SUPER_ROLES = ("System Manager", SUPER_ROLE)
+# who decides which books are public and which need a login: not cataloguers, and never readers
+VISIBILITY_ROLES = (*MANAGER_ROLES, SUPER_ROLE)
 BACKGROUND_OVER = 200  # bulk changes bigger than this run in a queue worker
 
 
@@ -448,13 +450,13 @@ def bulk_set_visibility(
 	search=None,
 	everything: int = 0,
 ) -> dict:
-	"""Set who can see a group of books. Staff only.
+	"""Set who can see a group of books. Managers and super admins only (VISIBILITY_ROLES).
 
 	Choose the books with exactly one of: names (list), filters (Desk list filters),
 	collection, profile, language, search ({"q", "mode", "filters"} from the portal),
 	or everything=1.
 	"""
-	frappe.only_for(STAFF_ROLES)
+	frappe.only_for(VISIBILITY_ROLES)
 	_check_visibility(visibility)
 	selected = select_items(names, filters, collection, profile, language, search, bool(cint(everything)))
 	if not selected:

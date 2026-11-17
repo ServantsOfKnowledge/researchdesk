@@ -84,6 +84,27 @@ class TestResearchDesk(IntegrationTestCase):
 		self.assertEqual(f, [['language_label = "Kannada"'], "year >= 1900"])
 		self.assertEqual(build_filter({"publisher": ["Sapna"]}), [['publisher = "Sapna"']])
 
+	def test_only_managers_decide_who_can_see_books(self):
+		from unittest import mock
+
+		from sok_resdesk import access
+
+		for roles, allowed in (
+			(["ResDesk Cataloguer"], False),
+			(["ResDesk Reader"], False),
+			(["ResDesk Manager"], True),
+		):
+			with (
+				mock.patch("frappe.get_roles", return_value=roles),
+				mock.patch.object(access, "select_items", return_value=[]),
+			):
+				if allowed:
+					self.assertEqual(access.bulk_set_visibility("Public", names="[]")["count"], 0)
+				else:
+					self.assertRaises(
+						frappe.PermissionError, access.bulk_set_visibility, "Public", names="[]"
+					)
+
 	def test_exact_phrase_and_the_fields_searched(self):
 		from unittest import mock
 

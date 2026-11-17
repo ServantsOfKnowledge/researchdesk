@@ -51,6 +51,12 @@ From the terminal:
 ./resdesk.sh access                    # show the current settings and how many books have each visibility
 ```
 
+## Who can change it
+
+Only **managers and super admins** decide who can see a book, one at a time (the *Who can see it*
+field) or many at once (below). A Cataloguer can read the field but not change it, and readers
+never can. Ingest profiles, access rules and *Default for New Books* set it for books that come in.
+
 ## Setting visibility for many books at once
 
 Pick whichever fits the job; all of them update the catalogue and the search index together,

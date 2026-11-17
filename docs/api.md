@@ -110,7 +110,7 @@ only; 10 a minute.
 | `sok_resdesk.search.reindex_item` (`item_id`) | re-index one item |
 | `sok_resdesk.search.enqueue_rebuild` | rebuild the whole index in the background |
 | `sok_resdesk.search.setup_indexes` | test the search engine and apply index settings |
-| `sok_resdesk.access.bulk_set_visibility` (`visibility` and one of `names`, `filters`, `collection`, `profile`, `language`, `search`, `everything=1`) | set who can see many books; over 200 run in the background |
+| `sok_resdesk.access.bulk_set_visibility` (`visibility` and one of `names`, `filters`, `collection`, `profile`, `language`, `search`, `everything=1`) | set who can see many books (managers and super admins only); over 200 run in the background |
 | `sok_resdesk.access.apply_rules` (`include_manual`) | re-apply profiles, access rules and the default |
 | `sok_resdesk.access.apply_profile` (`profile`) | give a profile's books its visibility |
 | `sok_resdesk.access.decide_requests` (`names`, `status`) | approve or reject reader requests |

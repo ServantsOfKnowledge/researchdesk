@@ -143,40 +143,43 @@ frappe.listview_settings["RD Item"] = {
 			d.show();
 		});
 
-		listview.page.add_actions_menu_item(__("Mark Public"), () => {
-			const names = picked();
-			if (!names.length) return;
-			frappe.confirm(__("Make {0} books public?", [names.length]), () =>
-				frappe.call({
-					method: "sok_resdesk.access.bulk_set_visibility",
-					args: { visibility: "Public", names: JSON.stringify(names) },
-					freeze: true,
-					freeze_message: __("Updating…"),
-					callback: (r) => {
-						frappe.show_alert({ message: r.message.message, indicator: "green" }, 7);
-						listview.refresh();
-					},
-				})
-			);
-		});
-
-		listview.page.add_actions_menu_item(__("Set Who Can See Them"), () => {
-			const names = picked();
-			if (!names.length) return;
-			ask(__("Selected books"), { names: JSON.stringify(names) }, names.length);
-		});
-
-		listview.page.add_menu_item(__("Set Who Can See All Matching Books"), () => {
-			const filters = listview.get_filters_for_args();
-			frappe.db.count("RD Item", { filters }).then((count) => {
-				if (!filters.length) {
-					frappe.confirm(__("No filter is set: this changes all {0} books. Continue?", [count]), () =>
-						ask(__("All books"), { everything: 1 }, count)
-					);
-				} else {
-					ask(__("Books matching the current filters"), { filters: JSON.stringify(filters) }, count);
-				}
+		// who sees a book is decided by managers: cataloguers get neither action
+		if (frappe.user.has_role(["System Manager", "SOK Super Admin", "ResDesk Manager"])) {
+			listview.page.add_actions_menu_item(__("Mark Public"), () => {
+				const names = picked();
+				if (!names.length) return;
+				frappe.confirm(__("Make {0} books public?", [names.length]), () =>
+					frappe.call({
+						method: "sok_resdesk.access.bulk_set_visibility",
+						args: { visibility: "Public", names: JSON.stringify(names) },
+						freeze: true,
+						freeze_message: __("Updating…"),
+						callback: (r) => {
+							frappe.show_alert({ message: r.message.message, indicator: "green" }, 7);
+							listview.refresh();
+						},
+					})
+				);
 			});
-		});
+
+			listview.page.add_actions_menu_item(__("Set Who Can See Them"), () => {
+				const names = picked();
+				if (!names.length) return;
+				ask(__("Selected books"), { names: JSON.stringify(names) }, names.length);
+			});
+
+			listview.page.add_menu_item(__("Set Who Can See All Matching Books"), () => {
+				const filters = listview.get_filters_for_args();
+				frappe.db.count("RD Item", { filters }).then((count) => {
+					if (!filters.length) {
+						frappe.confirm(__("No filter is set: this changes all {0} books. Continue?", [count]), () =>
+							ask(__("All books"), { everything: 1 }, count)
+						);
+					} else {
+						ask(__("Books matching the current filters"), { filters: JSON.stringify(filters) }, count);
+					}
+				});
+			});
+		}
 	},
 };

@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 0,
  "creation": "2026-09-29 12:00:00.000000",
- "modified": "2026-10-27 10:00:00.000000",
+ "modified": "2026-11-17 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "name": "RD Item",
@@ -210,6 +210,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "search_index": 1,
+   "permlevel": 1,
    "description": "Public: anyone can find and read it. Login to read: anyone can find and cite it; reading, search inside and the PDF need a login. Login to find: only logged-in readers can find it."
   },
   {
@@ -1119,6 +1120,23 @@
    "report": 1,
    "export": 1,
    "print": 1
+  },
+  {
+   "role": "System Manager",
+   "permlevel": 1,
+   "read": 1,
+   "write": 1
+  },
+  {
+   "role": "ResDesk Manager",
+   "permlevel": 1,
+   "read": 1,
+   "write": 1
+  },
+  {
+   "role": "ResDesk Cataloguer",
+   "permlevel": 1,
+   "read": 1
   }
  ],
  "track_changes": 1

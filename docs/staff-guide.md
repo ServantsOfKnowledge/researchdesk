@@ -439,7 +439,7 @@ to it follows; set *Home Page* back to `library` to return.
 | SOK Super Admin | Servants of Knowledge's role for the installation as a whole: features and profiles, the Server page (upgrades, restarts, resources), security and access setup, integrations and credentials. Holds ResDesk Manager too |
 | ResDesk Manager | everything in the library: the portal's name, logo and catalogue settings, ingests, background jobs, pushes, readers, backups; the locked areas below are read-only |
 | System Manager | the same as the super admin (Frappe's own administrator role). Give it only to Servants of Knowledge staff |
-| ResDesk Cataloguer | edit books, authors, subjects and collections; exports and spreadsheet imports; read ingest runs |
+| ResDesk Cataloguer | edit books, authors, subjects and collections (not who can see a book: that is for managers); exports and spreadsheet imports; read ingest runs |
 | ResDesk Reader | the portal only: read members-only books |
 | ResDesk Proofreader | the portal only: correct and validate page text, and read pages again with OCR |
 | ResDesk Kiosk | a self-service kiosk's own account: lets members borrow with card and PIN ([Lending](lending.md#self-service-kiosk)); never for a person |
