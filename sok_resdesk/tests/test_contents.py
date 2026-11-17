@@ -58,7 +58,7 @@ class TestContents(IntegrationTestCase):
 		# printed page 1 is image 4 (leaf 3): the offset carries to the others
 		pages = {r.page_label: r.image_no for r in doc.entries}
 		self.assertEqual((pages["1"], pages["14"], pages["310"]), (4, 17, 313))
-		self.assertIsNone(pages["v"])
+		self.assertFalse(pages["v"])  # a roman page has no image number (an empty Int is stored as 0)
 		# readers see nothing until it is published
 		self.assertEqual(contents.published(ITEM), [])
 		contents.set_status(ITEM, "Published")
