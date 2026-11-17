@@ -31,7 +31,7 @@ class TestFrontmatter(IntegrationTestCase):
 				"published": 1,
 				"visibility": "Public",
 				"has_page_text": 1,
-				"place": "Delhi",
+				"place": "Mumbai",
 			}
 		).insert(ignore_permissions=True)
 		frappe.db.commit()
@@ -55,11 +55,11 @@ class TestFrontmatter(IntegrationTestCase):
 		rows = {r.field: r for r in doc.details}
 		self.assertEqual(rows["publisher"].suggested, "Sahitya Akademi")
 		self.assertEqual(rows["publisher"].decision, "Use This")
-		self.assertEqual(rows["place"].decision, "Keep Current")  # the book already says Delhi
+		self.assertEqual(rows["place"].decision, "Keep Current")  # the book already says Mumbai
 		self.assertEqual(rows["year"].image_no, 2)
 		frontmatter.decide(ITEM, "Applied")
 		book = frappe.get_doc("RD Item", ITEM)
-		self.assertEqual((book.publisher, book.year, book.place), ("Sahitya Akademi", 1950, "Delhi"))
+		self.assertEqual((book.publisher, book.year, book.place), ("Sahitya Akademi", 1950, "Mumbai"))
 		self.assertTrue(book.lock_metadata)
 		self.assertEqual(frappe.db.get_value("RD Metadata Suggestion", ITEM, "status"), "Applied")
 		self.assertEqual(frontmatter.extract(ITEM)["status"], "Applied")  # not read over again
