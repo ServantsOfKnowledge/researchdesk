@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.128.0 (2026-11-17): The assistant tidies contents
+
+- **Tidy Contents.** With Settings → Assistant on, a table of contents the rules read unclearly (or could not find) is read by the language
+  model from the contents pages, or the likeliest front pages. Its headings need a printed page and must start with words printed on those
+  pages; it replaces the rules' list only when it found more, and the draft says *Read by the Assistant* for a person to check.
+
 ## 0.127.0 (2026-11-17): An optional small language model
 
 - **Settings → Assistant.** An admin can connect a small language model, either a *Local server* (Ollama, llama.cpp, vLLM: nothing leaves

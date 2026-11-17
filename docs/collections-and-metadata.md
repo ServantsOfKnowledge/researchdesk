@@ -138,7 +138,9 @@ seconds to a minute for an answer, so use it for the background jobs rather than
 The model only suggests. Every answer is checked before you see it (an ISBN needs its check digit, a year must be a real one, and a value
 must be printed on the pages the model was given, so a guess is dropped), and it lands in the same draft as everything else, marked
 *Assistant* in the **Read By** column, for a person to use or keep. The first use is **Fix Title-Page Details**: only the details the rules
-missed and the book does not already have are asked of it.
+missed and the book does not already have are asked of it. The second is **Tidy Contents**: when the rules read a contents list
+unclearly (or find none), the model reads the contents pages (or the likeliest front pages); its headings need a printed page and must start
+with words printed on those pages, and a draft it helped with says *Read by the Assistant*. It replaces the rules' list only when it found more.
 
 ## Exporting metadata
 

@@ -37,7 +37,7 @@ class TestContents(IntegrationTestCase):
 		).insert(ignore_permissions=True)
 		frappe.db.commit()
 		self.pages = mock.patch("sok_resdesk.ingest.fetch_pages", return_value=PAGES)
-		self.pages.start()
+		self.fetch = self.pages.start()
 
 	def tearDown(self):
 		self.pages.stop()
@@ -46,6 +46,7 @@ class TestContents(IntegrationTestCase):
 
 	def _clean(self):
 		frappe.db.delete("RD Book Contents", {"name": ITEM})
+		frappe.db.delete("RD Contents Entry", {"parent": ITEM})  # deleting the parent leaves its rows
 		frappe.db.delete("RD Item", {"name": ITEM})
 		frappe.db.commit()
 
@@ -89,3 +90,16 @@ class TestContents(IntegrationTestCase):
 						self.assertRaises(frappe.PermissionError, contents.bulk, names="[]")
 		finally:
 			frappe.set_user("Administrator")
+
+	def test_the_assistant_reads_contents_the_rules_could_not(self):
+		pages = [{"leaf": 0, "label": "", "text": "Preface v\n1. Introduction 1\n2. The Early Dynasties 14"}]
+		reply = '{"entries": [{"title": "Preface", "page": "v"}, {"title": "1. Introduction", "page": "1"}]}'
+		self.fetch.return_value = pages
+		with (
+			mock.patch("sok_resdesk.assistant.enabled", return_value=True),
+			mock.patch("sok_resdesk.assistant.ask", return_value=reply),
+		):
+			self.assertEqual(contents.extract(ITEM)["entries"], 2)
+		doc = frappe.get_doc("RD Book Contents", ITEM)
+		self.assertTrue(doc.by_assistant)
+		self.assertEqual([r.title for r in doc.entries], ["Preface", "1. Introduction"])

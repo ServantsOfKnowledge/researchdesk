@@ -24,6 +24,7 @@
   "column_break_0",
   "contents_pages",
   "reread",
+  "by_assistant",
   "extracted_on",
   "extracted_by",
   "section_entries",
@@ -94,6 +95,13 @@
    "label": "Read Again With OCR",
    "read_only": 1,
    "description": "The contents pages were read again with the OCR engine (the book's text is not changed)."
+  },
+  {
+   "fieldname": "by_assistant",
+   "fieldtype": "Check",
+   "label": "Read by the Assistant",
+   "read_only": 1,
+   "description": "The headings were suggested by the language model (Settings → Assistant) because the rules read the pages unclearly. Check them against the page."
   },
   {
    "fieldname": "extracted_on",

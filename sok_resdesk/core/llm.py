@@ -7,7 +7,7 @@ from __future__ import annotations
 import json
 import re
 
-from sok_resdesk.core import frontmatter
+from sok_resdesk.core import contents, frontmatter
 
 PROVIDERS = ("Off", "Local server", "Hosted API")
 USES = ("titles", "contents", "subjects", "search")
@@ -94,4 +94,39 @@ def front_details(reply: str, pages: list[dict], current: dict) -> list[dict]:
 			"",
 		)
 		out.append({"field": field, "value": value, "leaf": leaf, "snippet": line[:160], "confidence": 0.5})
+	return out
+
+
+def contents_prompt(texts: list[str]) -> tuple[str, str]:
+	"""(system, user) asking for the table of contents on these OCR pages."""
+	system = (
+		"You read the OCR text of the contents pages of a book. Reply with one JSON object only: "
+		'{"entries": [{"title": "...", "page": "12", "level": 1}]}. One entry per heading, in order, with its '
+		"printed page number as printed (digits or roman numerals) and level 1 for a chapter, 2 for a section "
+		"in it. Use the words printed on the page; mend only obvious OCR slips. If there is no table of "
+		'contents, reply {"entries": []}.'
+	)
+	return system, "\n\n".join(texts)[:MAX_PAGE_CHARS]
+
+
+def contents_entries(reply: str, text: str) -> list[dict]:
+	"""Entries from a model's reply, in core/contents.parse's form, that the pages support: each has a
+	printed page (digits or roman) and a title whose start is printed on the pages it was given."""
+	data = parse_json(reply) or {}
+	source = _norm(text)
+	out = []
+	for e in data.get("entries") if isinstance(data.get("entries"), list) else []:
+		if not isinstance(e, dict):
+			continue
+		title = re.sub(r"\s+", " ", str(e.get("title") or "")).strip()
+		page = contents.digits(str(e.get("page") or "").strip().lower())
+		if not title or not (page.isdigit() or contents.ROMAN.match(page)):
+			continue
+		if _norm(title)[:12] not in source:
+			continue
+		try:
+			level = min(max(int(e.get("level") or 1), 1), 4)
+		except (TypeError, ValueError):
+			level = 1
+		out.append({"title": title, "page": page, "level": level})
 	return out

@@ -12,8 +12,9 @@ import frappe
 from frappe import _
 from frappe.utils import cint, now_datetime
 
-from sok_resdesk import access
+from sok_resdesk import access, assistant
 from sok_resdesk.core import contents as rules
+from sok_resdesk.core import llm
 from sok_resdesk.holding import hold_when_paused
 
 DOCTYPE = "RD Book Contents"
@@ -53,10 +54,16 @@ def extract_now(item_id: str, reread: bool = False, user: str | None = None) -> 
 	if reread:
 		leaves = leaves or _likeliest(pages)
 		texts.update(_ocr(item_id, leaves))
-	if not leaves:
-		return {"status": "", "entries": 0, "message": _("No contents page was found among the first pages.")}
-	entries = rules.parse([texts[leaf] for leaf in leaves])
+	entries = rules.parse([texts[leaf] for leaf in leaves]) if leaves else []
 	judged = rules.quality(entries, sum(rules.density(texts[leaf])[1] for leaf in leaves))
+	helped = False
+	if (judged["unclear"] or not entries) and assistant.enabled("contents"):
+		better, tried = _from_assistant(pages, texts, leaves)
+		if len(better) > len(entries):
+			entries, leaves, helped = better, tried, True
+			judged = rules.quality(entries, len(entries))  # every line the model gave is an entry
+	if not leaves or not entries:
+		return {"status": "", "entries": 0, "message": _("No contents page was found among the first pages.")}
 	labels = {p["leaf"]: p.get("label") or "" for p in pages}
 	entries = rules.leaves_for(entries, labels, texts, after=max(leaves))
 	doc = frappe.get_doc(DOCTYPE, item_id) if existing else frappe.new_doc(DOCTYPE)
@@ -66,6 +73,7 @@ def extract_now(item_id: str, reread: bool = False, user: str | None = None) -> 
 	doc.why = judged["why"]
 	doc.contents_pages = ", ".join(str(leaf + 1) for leaf in leaves)
 	doc.reread = 1 if reread else 0
+	doc.by_assistant = 1 if helped else 0
 	doc.extracted_on = now_datetime()
 	doc.extracted_by = user or frappe.session.user
 	doc.set(
@@ -89,6 +97,17 @@ def extract_now(item_id: str, reread: bool = False, user: str | None = None) -> 
 			_("it needs a look") if doc.status == "Needs a Look" else _("it is a draft to check"),
 		),
 	}
+
+
+def _from_assistant(pages: list[dict], texts: dict, leaves: list[int]) -> tuple[list[dict], list[int]]:
+	"""The model's reading of the contents pages (those found, else the likeliest front pages). Only
+	entries the pages support survive (core/llm.py); a person still checks the draft."""
+	tried = leaves or _likeliest(pages)
+	if not tried:
+		return [], []
+	shown = [texts[leaf] for leaf in tried]
+	system, user = llm.contents_prompt(shown)
+	return llm.contents_entries(assistant.ask(system, user, 2000), "\n".join(shown)), tried
 
 
 def _likeliest(pages: list[dict]) -> list[int]:

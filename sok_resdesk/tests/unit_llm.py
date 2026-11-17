@@ -32,3 +32,22 @@ def test_prompt_asks_only_for_what_is_missing_and_is_capped():
 	system, user = llm.front_prompt([{"leaf": 0, "text": "x" * 20000}], ["year", "isbn"])
 	assert "keys: year, isbn." in system
 	assert len(user) == llm.MAX_PAGE_CHARS
+
+
+CONTENTS = "CONTENTS\nPreface v\n1. Introduction 1\n2. The Early Dynasties 14"
+
+
+def test_contents_entries_the_pages_support_are_kept():
+	reply = (
+		'{"entries": [{"title": "Preface", "page": "v"}, {"title": "1. Introduction", "page": "1", "level": 1},'
+		' {"title": "The Early Dynasties", "page": "೧೪", "level": 9}, {"title": "Invented Chapter", "page": "50"},'
+		' {"title": "Introduction", "page": "x?"}]}'
+	)
+	got = llm.contents_entries(reply, CONTENTS)
+	assert [(e["title"], e["page"], e["level"]) for e in got] == [
+		("Preface", "v", 1),
+		("1. Introduction", "1", 1),
+		("The Early Dynasties", "14", 4),
+	]
+	assert llm.contents_entries("not json", CONTENTS) == []
+	assert llm.contents_entries('{"entries": "x"}', CONTENTS) == []
