@@ -20,6 +20,7 @@ STRUCTURE: list = [
 		[
 			("Items", D, "RD Item"),
 			("Book Contents", D, "RD Book Contents"),
+			("Metadata Suggestions", D, "RD Metadata Suggestion"),
 			("Collections", D, "RD Collection"),
 			("Archival Description", D, "RD Archival Unit"),
 			("Deposits", D, "RD Deposit"),

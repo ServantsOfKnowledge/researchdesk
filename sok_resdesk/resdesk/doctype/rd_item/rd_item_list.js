@@ -145,6 +145,25 @@ frappe.listview_settings["RD Item"] = {
 
 		// reading the contents of many books at once is for managers; librarians check what it finds
 		if (frappe.user.has_role(["System Manager", "SOK Super Admin", "ResDesk Manager"])) {
+			const read_details = (args, count, label) =>
+				frappe.confirm(__("Read publisher, place, year and ISBN from the title pages of {0} ({1} books)? Drafts appear in Metadata Suggestions for staff to check and apply.", [label, count]), () =>
+					frappe.call({
+						method: "sok_resdesk.frontmatter.bulk",
+						args,
+						freeze: true,
+						callback: (r) => frappe.show_alert({ message: r.message.message, indicator: "green" }, 9),
+					})
+				);
+			listview.page.add_actions_menu_item(__("Read Details From the Title Pages"), () => {
+				const names = picked();
+				if (names.length) read_details({ names: JSON.stringify(names) }, names.length, __("the selected books"));
+			});
+			listview.page.add_menu_item(__("Read Title-Page Details of All Matching Books"), () => {
+				const filters = listview.get_filters_for_args();
+				frappe.db.count("RD Item", { filters }).then((count) =>
+					read_details(filters.length ? { filters: JSON.stringify(filters) } : { everything: 1 }, count, filters.length ? __("the books matching the filters") : __("all books"))
+				);
+			});
 			const read_contents = (args, count, label) =>
 				frappe.confirm(__("Read the contents of {0} ({1} books)? Drafts appear in Book Contents for staff to check and publish.", [label, count]), () =>
 					frappe.call({

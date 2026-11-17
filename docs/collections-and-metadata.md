@@ -4,6 +4,7 @@ This page is for library staff (the *ResDesk Manager* role or a System Manager).
 
 - [Curated collections](#curated-collections): your own groupings of books, with their own portal pages
 - [Editing catalogue details](#editing-catalogue-details): document types and **Keep My Edits**
+- [Details from the title pages](#details-from-the-title-pages): publisher, place, year and ISBN read from the book itself
 - [Exporting metadata](#exporting-metadata): spreadsheets, library and linked-data formats, IA-ready files
 - [Editing many books with a spreadsheet](#editing-many-books-with-a-spreadsheet)
 - [Pushing metadata to other systems](#pushing-metadata-to-other-systems): Internet Archive, Koha, Wikidata, any web service
@@ -110,6 +111,21 @@ background, skips books that have no page text or already have a list, and alert
 with how many drafts there are to check. Nothing is published by it.
 
 Books with no contents page in their first pages (many do not have one) get no draft.
+
+## Details from the title pages
+
+A book's own title page and the imprint ("technical") page behind it say who published it, where, when and under what ISBN. Research Desk
+reads these from the first twelve pages of the page text: lines such as *Published by*, *Printed at*, *First published*, *©*, *ISBN*, and
+their Kannada, Hindi, Tamil, Telugu and Malayalam forms (digits in any Indian script). An ISBN is accepted only with a correct check digit,
+and a year only between 1450 and next year.
+
+- **One book.** Items → book → Actions → *Read Details From the Title Pages*. Only details the book does not already say are offered.
+- **Many books.** Managers tick books in the Items list (or filter and use the ⋯ menu) → *Read Details From the Title Pages*. It runs in the
+  background, skips books with no page text or an existing draft, changes no book, and alerts the person who ran it.
+- **Check and apply.** Each draft is in **Metadata Suggestions**: every detail shows what the book has now, what was read, the page image it
+  came from and the line. Mend a value, choose *Use This* or *Keep Current* (a detail the book already has starts as Keep Current), then
+  *Apply to the Book*. The book is saved as a reviewed edit, so *Keep My Edits* switches on and a later ingest leaves the details alone, and
+  they go out with the book's other metadata to Koha, Wikidata, the Internet Archive and other systems you push to (see below).
 
 ## Exporting metadata
 

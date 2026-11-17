@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.126.0 (2026-11-17): Details from the title pages
+
+- **Read the title and imprint pages.** On a book (Items → book → Actions → Read Details From the Title Pages) Research Desk reads publisher,
+  place of publication, year and ISBN from the first pages (English and Indian-language labels and digits). An ISBN needs a correct check
+  digit; only details the book does not already have are offered. The result is a draft in the new **Metadata Suggestions** screen.
+- **Check and apply.** Librarians and metadata managers see what the book has now beside what was read, the page image and the line it came
+  from; they mend a value, choose Use This or Keep Current and Apply. The book keeps applied details through later ingests and they go out
+  with its other metadata to the systems it is pushed to.
+- **Many books at once.** Managers tick books in the Items list (or filter) → Read Details From the Title Pages. It runs in the background,
+  changes no book, and alerts the person who ran it.
+
 ## 0.125.0 (2026-11-17): The table of contents of a book
 
 - **Read the contents.** On a book (Items → book → Actions → Read the Contents) Research Desk finds the contents page among the first pages

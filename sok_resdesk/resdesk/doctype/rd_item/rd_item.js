@@ -42,6 +42,7 @@ frappe.ui.form.on("RD Item", {
 		}
 		if (frm.doc.has_page_text && frappe.user.has_role(["System Manager", "SOK Super Admin", "ResDesk Manager", "ResDesk Cataloguer"])) {
 			frm.add_custom_button(__("Read the Contents"), () => read_contents(frm), __("Actions"));
+			frm.add_custom_button(__("Read Details From the Title Pages"), () => read_front_details(frm), __("Actions"));
 		}
 		if (frm.doc.source === "Wikisource" && frm.doc.wiki_index) {
 			frm.add_custom_button(__("Send to Wikisource"), () => send_to_wikisource(frm), __("Actions"));
@@ -439,6 +440,21 @@ function label_leaves(frm) {
 	});
 	d.show();
 	show(d);
+}
+
+// publisher, place, year and ISBN, read from the title and imprint pages into a draft that staff check and apply
+function read_front_details(frm) {
+	frappe.call({
+		method: "sok_resdesk.frontmatter.extract",
+		args: { item_id: frm.doc.name },
+		freeze: true,
+		freeze_message: __("Reading the title and imprint pages…"),
+		callback: (r) => {
+			const out = r.message || {};
+			if (out.status) frappe.set_route("Form", "RD Metadata Suggestion", frm.doc.name);
+			else frappe.msgprint(out.message);
+		},
+	});
 }
 
 // the table of contents, read from the book's contents pages into a draft that staff check and publish
