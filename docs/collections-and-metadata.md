@@ -85,6 +85,32 @@ citation type: a Thesis becomes `@phdthesis` in BibTeX and `THES` in RIS, a Peri
 Edits* is ticked for you. Re-ingesting that book later still updates its OCR text, page count and
 files, but won't overwrite the details you corrected. Untick it to let the source win again.
 
+## Table of contents
+
+Research Desk can read a book's table of contents from the OCR text of its contents pages, so
+readers can jump to a chapter and the catalogue gets more to describe the book with.
+
+**Read one book (staff).** Open the book (**Research Desk → Items**) → **Actions → Read the
+Contents**. Research Desk looks through the first pages for one headed *Contents* (also *ವಿಷಯ ಸೂಚಿ*,
+*विषय सूची*, *பொருளடக்கம்* and the like), reads each line as *heading … page* (digits in any Indian
+script too), joins a heading wrapped over two lines, and works out which page image each printed page
+is. The result is a **draft** in **Book Contents**; readers see nothing yet.
+
+**Check and publish (librarians and metadata managers).** Open the draft (**Research Desk → Book
+Contents**): mend a heading, a page or a level in the table, then **Publish**. The contents then appear
+on the book's page, each heading linking to its page. **Withdraw** takes a published list back to a
+draft; **Reject** keeps it from readers. A draft marked **Needs a Look** read unclearly (fewer than
+three headings, page numbers out of order, or many lines it could not read). **Actions → Read the
+Contents Pages Again (OCR)** reads just those pages again with the OCR engine and its Indian-language
+models, then reads the list again: the book's own text is not changed.
+
+**Many books at once (managers).** In the Items list, tick books → **Actions → Read the Contents**, or
+filter the list and use **⋯ menu → Read the Contents of All Matching Books**. It runs in the
+background, skips books that have no page text or already have a list, and alerts you when it is done
+with how many drafts there are to check. Nothing is published by it.
+
+Books with no contents page in their first pages (many do not have one) get no draft.
+
 ## Exporting metadata
 
 **Research Desk → Exports → + Add**, choose a **Format** and **Which Books**, and save. Small

@@ -86,6 +86,15 @@ def get_context(context):
 		else ("pdf" if record.get("pdf_url") else "none")
 	)
 	context.pdf_url = record.get("pdf_url") or ""
+	# the book's table of contents, once a person has checked and published it (it is read from the text)
+	try:
+		from sok_resdesk import contents
+
+		context.contents = (
+			contents.published(item_id) if access.can_use_text(record.get("visibility")) else []
+		)
+	except Exception:
+		context.contents = []
 	context.q = frappe.form_dict.get("q") or ""
 	context.portal_url = f"{root}/library/item/{item_id}"
 	from sok_resdesk import features, iiif

@@ -22,8 +22,10 @@ MANAGER_ROLES = ("System Manager", "ResDesk Manager")
 # security and access setup, integrations and credentials. Librarians hold ResDesk Manager.
 SUPER_ROLE = "SOK Super Admin"
 SUPER_ROLES = ("System Manager", SUPER_ROLE)
-# who decides which books are public and which need a login: not cataloguers, and never readers
-VISIBILITY_ROLES = (*MANAGER_ROLES, SUPER_ROLE)
+# who runs the big jobs and decides which books are public and which need a login: not cataloguers,
+# and never readers
+ADMIN_ROLES = (*MANAGER_ROLES, SUPER_ROLE)
+VISIBILITY_ROLES = ADMIN_ROLES
 BACKGROUND_OVER = 200  # bulk changes bigger than this run in a queue worker
 
 
@@ -51,10 +53,15 @@ def is_staff(user: str | None = None) -> bool:
 	return user == "Administrator" or bool(_roles(user) & set(STAFF_ROLES))
 
 
-def can_decide_visibility(user: str | None = None) -> bool:
-	"""Managers and super admins decide which books are public and which need a login (VISIBILITY_ROLES)."""
+def is_admin(user: str | None = None) -> bool:
+	"""Managers and super admins (ADMIN_ROLES): bulk jobs, and who can see which book."""
 	user = user or frappe.session.user
-	return user == "Administrator" or bool(_roles(user) & set(VISIBILITY_ROLES))
+	return user == "Administrator" or bool(_roles(user) & set(ADMIN_ROLES))
+
+
+def can_decide_visibility(user: str | None = None) -> bool:
+	"""Managers and super admins decide which books are public and which need a login."""
+	return is_admin(user)
 
 
 def can_open_desk() -> bool:

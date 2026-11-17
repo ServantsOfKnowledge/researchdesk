@@ -1,0 +1,56 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-11-17 14:00:00.000000",
+ "modified": "2026-11-17 14:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Contents Entry",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "istable": 1,
+ "editable_grid": 1,
+ "field_order": [
+  "title",
+  "page_label",
+  "image_no",
+  "level"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Heading",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 5
+  },
+  {
+   "fieldname": "page_label",
+   "fieldtype": "Data",
+   "label": "Printed Page",
+   "in_list_view": 1,
+   "columns": 1,
+   "description": "As the contents page prints it: 12, v."
+  },
+  {
+   "fieldname": "image_no",
+   "fieldtype": "Int",
+   "label": "Page Image",
+   "in_list_view": 1,
+   "columns": 1,
+   "description": "Which page image of the book it is, counting the first as 1. Readers jump here."
+  },
+  {
+   "fieldname": "level",
+   "fieldtype": "Int",
+   "label": "Level",
+   "default": "1",
+   "in_list_view": 1,
+   "columns": 1,
+   "description": "1 for a chapter, 2 for a section in it."
+  }
+ ],
+ "permissions": []
+}

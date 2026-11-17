@@ -40,6 +40,9 @@ frappe.ui.form.on("RD Item", {
 				__("Actions")
 			);
 		}
+		if (frm.doc.has_page_text && frappe.user.has_role(["System Manager", "SOK Super Admin", "ResDesk Manager", "ResDesk Cataloguer"])) {
+			frm.add_custom_button(__("Read the Contents"), () => read_contents(frm), __("Actions"));
+		}
 		if (frm.doc.source === "Wikisource" && frm.doc.wiki_index) {
 			frm.add_custom_button(__("Send to Wikisource"), () => send_to_wikisource(frm), __("Actions"));
 		}
@@ -436,4 +439,22 @@ function label_leaves(frm) {
 	});
 	d.show();
 	show(d);
+}
+
+// the table of contents, read from the book's contents pages into a draft that staff check and publish
+function read_contents(frm) {
+	frappe.call({
+		method: "sok_resdesk.contents.extract",
+		args: { item_id: frm.doc.name },
+		freeze: true,
+		freeze_message: __("Reading the contents pages…"),
+		callback: (r) => {
+			const out = r.message || {};
+			if (out.status) {
+				frappe.set_route("Form", "RD Book Contents", frm.doc.name);
+			} else {
+				frappe.msgprint(out.message);
+			}
+		},
+	});
 }

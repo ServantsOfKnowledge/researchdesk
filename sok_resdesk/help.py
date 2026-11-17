@@ -23,6 +23,7 @@ SCREEN_HELP = {
 	"RD Collection": ("collections-and-metadata", "curated-collections"),
 	"RD Ingest Profile": ("ingesting", "ingest-profiles"),
 	"RD Ingest Run": ("ingesting", "watching-pausing-and-stopping-runs"),
+	"RD Book Contents": ("collections-and-metadata", "table-of-contents"),
 	"RD Settings": ("staff-guide", "settings"),
 	"RD Install Ping": ("install-count", "for-the-registry-servants-of-knowledge-only"),
 	"RD About Page": ("staff-guide", "the-about-page"),

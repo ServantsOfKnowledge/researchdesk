@@ -19,6 +19,7 @@ STRUCTURE: list = [
 		"library",
 		[
 			("Items", D, "RD Item"),
+			("Book Contents", D, "RD Book Contents"),
 			("Collections", D, "RD Collection"),
 			("Archival Description", D, "RD Archival Unit"),
 			("Deposits", D, "RD Deposit"),

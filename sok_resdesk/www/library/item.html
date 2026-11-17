@@ -255,6 +255,17 @@
 			</div>
 		</section>
 
+		{% if contents %}
+		<section class="rd-card rd-contents" id="rd-contents" aria-labelledby="rd-contents-h">
+			<h2 id="rd-contents-h">{{ _("Contents") }}</h2>
+			<ol class="rd-contents__list"{% if lang_tag(item.language) %} lang="{{ lang_tag(item.language) }}"{% endif %}>
+				{% for c in contents %}
+				<li class="rd-contents__item rd-contents__item--{{ c.level }}">{% if c.leaf is not none %}<a href="/library/item/{{ item.item_id | urlencode }}?page={{ c.leaf }}&amp;view=text#rd-reader">{{ c.title }}</a>{% else %}{{ c.title }}{% endif %}{% if c.page %} <span class="rd-muted">{{ _("p. {0}").format(c.page) }}</span>{% endif %}</li>
+				{% endfor %}
+			</ol>
+		</section>
+		{% endif %}
+
 		<section class="rd-card rd-related" id="rd-related" aria-labelledby="rd-related-h" hidden>
 			<h2 id="rd-related-h">{{ _("Similar books") }}</h2>
 			<div id="rd-related-groups"></div>

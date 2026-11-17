@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.125.0 (2026-11-17): The table of contents of a book
+
+- **Read the contents.** On a book (Items → book → Actions → Read the Contents) Research Desk finds the contents page among the first pages
+  (headed *Contents*, *ವಿಷಯ ಸೂಚಿ*, *विषय सूची* and so on), reads its lines as heading and page (digits in any Indian script), joins wrapped
+  headings and works out which page image each printed page is. The result is a draft in the new **Book Contents** screen.
+- **Check and publish.** Librarians and metadata managers mend the headings, pages and levels and press Publish; only then do readers see
+  **Contents** on the book's page, each heading linking to its page. Withdraw and Reject are there too. A list that reads unclearly is marked
+  Needs a Look, and *Read the Contents Pages Again (OCR)* reads only those pages again with the OCR engine's Indian-language models.
+- **Many books at once.** Managers tick books in the Items list (or filter and use the ⋯ menu) → Read the Contents. It runs in the background,
+  skips books that have no page text or already have a list, publishes nothing, and alerts the person who ran it with the numbers.
+
 ## 0.124.0 (2026-11-17): Similar books
 
 - **Similar books.** Every book page ends with books like it: more by the same author, the same series, similar subjects and similar titles,
