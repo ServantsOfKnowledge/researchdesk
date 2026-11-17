@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.130.0 (2026-11-17): The assistant reads a sentence as a search
+
+- **Help Search.** With Settings → Assistant on, a search of four or more words with no filters may offer *Search Kuvempu with Kannada,
+  1950–1959? Yes*: the sentence read as search words and filters. It keeps only words you typed, only languages and types the library has and
+  real years, and applies nothing until pressed. The endpoint is public, so it is limited to 20 a minute per address and answers are kept an
+  hour; with a hosted model the typed sentence is sent to it.
+
 ## 0.129.0 (2026-11-17): The assistant suggests subjects and a summary
 
 - **Suggest Subjects and Summary.** With Settings → Assistant on, a book with no subjects or no description gets up to six suggested subjects,

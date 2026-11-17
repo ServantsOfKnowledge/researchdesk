@@ -77,3 +77,34 @@ def test_description_keeps_what_the_book_has_and_refuses_odd_types():
 	reply = '{"subjects": [], "summary": "A study of the Vachana poets of twelfth-century Karnataka.", "item_type": "Pamphlet"}'
 	assert llm.describe_details(reply, {"summary": "Already described."}, TYPES) == []
 	assert llm.describe_details("nothing", {}, TYPES) == []
+
+
+def test_a_sentence_becomes_words_and_filters_the_library_has():
+	q = "Kannada books by Kuvempu from the 1950s"
+	reply = (
+		'{"query": "Kuvempu", "language": "kannada", "year_from": 1950, "year_to": 1959, "item_type": "Book"}'
+	)
+	got = llm.understand_result(reply, q, ["Kannada", "Hindi"], TYPES, 2026)
+	assert got == {
+		"q": "Kuvempu",
+		"filters": {"language_label": ["Kannada"], "item_type": ["Book"], "year_from": 1950, "year_to": 1959},
+	}
+
+
+def test_invented_words_unknown_languages_and_odd_years_are_refused():
+	q = "old Kannada poems before 1900"
+	assert (
+		llm.understand_result('{"query": "Vachana", "language": "Kannada"}', q, ["Kannada"], TYPES, 2026)
+		is None
+	)
+	got = llm.understand_result(
+		'{"query": "poems", "language": "Klingon", "year_from": 1900, "year_to": 1800}',
+		q,
+		["Kannada"],
+		TYPES,
+		2026,
+	)
+	assert got is None  # nothing usable was found besides the words
+	assert llm.understand_result("nothing", q, ["Kannada"], TYPES, 2026) is None
+	ok = llm.understand_result('{"query": "poems", "year_to": 1900}', q, ["Kannada"], TYPES, 2026)
+	assert ok == {"q": "poems", "filters": {"year_to": 1900}}

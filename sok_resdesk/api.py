@@ -44,6 +44,48 @@ def _text_response(body: str, content_type: str, filename: str | None = None) ->
 	return resp
 
 
+def _assistant_for_search(q: str) -> bool:
+	from sok_resdesk import assistant
+	from sok_resdesk.core.llm import MIN_WORDS
+
+	return len(q.split()) >= MIN_WORDS and assistant.enabled("search")
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=20, seconds=60)
+def understand(q: str = ""):
+	"""A search typed as a sentence ("Kannada books by Kuvempu from the 1950s") read as search words and
+	filters by the assistant: {"q", "filters"} or {}. It only suggests; the portal offers it as a button."""
+	q = (q or "").strip()[:300]
+	if not _assistant_for_search(q):
+		return {}
+	cache = frappe.cache()
+	key = cache.make_key(f"resdesk:understand:{frappe.generate_hash(q.casefold(), length=20)}")
+	hit = cache.get_value(key)
+	if hit is not None:
+		return hit
+	from sok_resdesk import assistant
+	from sok_resdesk.core import llm
+
+	languages = frappe.get_all(
+		"RD Item",
+		filters={"published": 1, "language_label": ("is", "set")},
+		pluck="language_label",
+		group_by="language_label",
+		limit=200,
+	)
+	types = [t for t in frappe.get_meta("RD Item").get_field("item_type").options.split("\n") if t]
+	system, user = llm.understand_prompt(q, languages, types)
+	out = (
+		llm.understand_result(
+			assistant.ask(system, user, 150), q, languages, types, frappe.utils.getdate().year
+		)
+		or {}
+	)
+	cache.set_value(key, out, expires_in_sec=3600)
+	return out
+
+
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
 @rate_limit(limit=120, seconds=60)
 def search(
@@ -97,6 +139,8 @@ def search(
 		"also": result.get("also") or [],
 		# the order used ("" = relevance), so the Sort menu shows it
 		"sort": sort or "relevance",
+		# the assistant can read a sentence typed here as words and filters (understand)
+		"understand": mode == "books" and not filters and _assistant_for_search(q),
 	}
 
 

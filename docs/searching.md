@@ -50,6 +50,13 @@ On a book's page, **Search inside this book** lists every matching page. Click o
 the reader there; in *Page & text* the words searched are marked in the page's text, including
 the Indic spellings found for a word typed in Latin letters.
 
+## A sentence as the search
+
+When the library has switched on the assistant's *Help Search* (Settings → Assistant), a search of four or more words with no filters yet may
+show a line under the results: *Search **Kuvempu** with Kannada, Book, 1950–1959? Yes*. It reads a sentence such as "Kannada books by
+Kuvempu from the 1950s" as search words plus a language, a type and years the library really has. **Yes** applies them; nothing changes until
+you press it. The words it keeps are always words you typed, so it cannot search for something else.
+
 ## Similar books
 
 Every book page ends with **Similar books**: more by the same author (a row for each of the first two

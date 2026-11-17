@@ -107,6 +107,33 @@
 		}
 	}
 
+	// ---- a sentence read as words and filters (the assistant, when the library has switched it on) ----
+	let asked = "";
+	async function suggest(on) {
+		const box = $("#rd-ask");
+		if (!box) return;
+		box.hidden = true;
+		if (!on || asked === state.q) return;
+		asked = state.q;
+		try {
+			const res = await fetch(`/api/method/sok_resdesk.api.understand?q=${encodeURIComponent(state.q)}`, { headers: { Accept: "application/json" } });
+			const m = (await res.json()).message || {};
+			if (!m.q || asked !== state.q) return;
+			const bits = [m.filters.language_label, m.filters.item_type, m.filters.year_from && m.filters.year_to ? `${m.filters.year_from}–${m.filters.year_to}` : m.filters.year_from ? `${__("from")} ${m.filters.year_from}` : m.filters.year_to ? `${__("to")} ${m.filters.year_to}` : ""].flat().filter(Boolean);
+			box.innerHTML = `${__("Search")} <b>${esc(m.q)}</b> ${bits.length ? `${__("with")} ${esc(bits.join(", "))}` : ""}? <button type="button" class="rd-btn rd-btn--plain" id="rd-ask-go">${__("Yes")}</button>`;
+			box.hidden = false;
+			$("#rd-ask-go").onclick = () => {
+				state.q = m.q;
+				state.page = 1;
+				state.filters = { ...state.filters, ...m.filters };
+				asked = state.q;
+				run();
+			};
+		} catch (e) {
+			/* the suggestion is only a help */
+		}
+	}
+
 	// ---- rendering ------------------------------------------------------------------
 	function render(data) {
 		if (data.sort && $("#rd-sort")) {
@@ -131,6 +158,7 @@
 		$("#rd-also").hidden = !also.length;
 		renderChips();
 		renderFacets(data.facets || {});
+		suggest(data.understand);
 		const hits = data.hits || [];
 		if (!hits.length) {
 			$("#rd-hits").innerHTML = `<li class="rd-empty">${__("No results. Try fewer words, another spelling, or remove a filter.")}</li>`;

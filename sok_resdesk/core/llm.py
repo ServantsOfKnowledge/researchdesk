@@ -178,3 +178,54 @@ def describe_details(reply: str, current: dict, types: list[str]) -> list[dict]:
 	if kind in types and kind != current.get("item_type"):
 		add("item_type", kind)
 	return out
+
+
+MIN_WORDS = 4  # a query shorter than this is a keyword search, not a sentence
+
+
+def understand_prompt(q: str, languages: list[str], types: list[str]) -> tuple[str, str]:
+	"""(system, user) asking a model to split a typed sentence into search words and filters."""
+	system = (
+		"You turn a library search typed as a sentence into search words and filters. Reply with one JSON "
+		'object only: {"query": "...", "language": null, "year_from": null, "year_to": null, "item_type": null}. '
+		"query: only the words to search for (a title, a name, a topic), copied from the sentence, without the "
+		"words that became filters. language: one of "
+		f"{', '.join(languages[:60])}, or null. item_type: one of {', '.join(types)}, or null. "
+		"year_from and year_to: four-digit years, for a decade or a range. Use null when the sentence does "
+		"not say."
+	)
+	return system, q[:300]
+
+
+def understand_result(
+	reply: str, q: str, languages: list[str], types: list[str], this_year: int
+) -> dict | None:
+	"""{"q", "filters"} for a model's reading of `q`, or None when it adds nothing or cannot be trusted.
+
+	The search words must come from the sentence (a model may drop words, never invent them); a language
+	and a type must be ones the library has; years must be real and in order."""
+	data = parse_json(reply) or {}
+	words = [w for w in re.split(r"\s+", str(data.get("query") or "").strip()) if w]
+	typed = {_norm(w) for w in q.split()}
+	if not words or any(_norm(w) not in typed for w in words):
+		return None
+	filters: dict = {}
+	by_name = {x.casefold(): x for x in languages}
+	language = by_name.get(str(data.get("language") or "").strip().casefold())
+	if language:
+		filters["language_label"] = [language]
+	kind = str(data.get("item_type") or "").strip()
+	if kind in types:
+		filters["item_type"] = [kind]
+	years = []
+	for key in ("year_from", "year_to"):
+		try:
+			year = int(data.get(key))
+		except (TypeError, ValueError):
+			continue
+		if 1000 <= year <= this_year + 1:
+			years.append((key, year))
+	if len(years) == 2 and years[0][1] > years[1][1]:
+		years = []
+	filters.update(years)
+	return {"q": " ".join(words), "filters": filters} if filters else None
