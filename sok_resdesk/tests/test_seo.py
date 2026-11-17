@@ -50,6 +50,9 @@ class TestFindable(OpsTestCase):
 		head = seo.website_context({"path": "library"})
 		self.assertIn('content="noindex,follow"', head["head_include"])
 		frappe.local.form_dict = frappe._dict()
+		# an earlier test that fetched a page leaves its path and request behind: the home page is "" here
+		frappe.local.path = ""
+		frappe.local.request = None
 		home = seo.website_context({"path": ""})
 		self.assertIn('"@type": "WebSite"', home["head_include"])
 		self.assertIsNone(seo.website_context({"path": "app/rd-item"}))
