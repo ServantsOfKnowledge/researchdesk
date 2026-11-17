@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.123.0 (2026-11-17): More ways to sort, one collection filter, marked words in the book
+
+- **Sort.** The Sort menu gains *Recently added* (when archive.org added the book) and *Author A–Z*, and the portal's Default Order can be
+  either. The search engine needs both for every book, so the upgrade sends the book records again in the background (page text is not
+  touched); until a book is sent, it comes last in these two orders.
+- **One collection filter.** *Source collection* is left out of the filters when the portal has a collection for each archive.org
+  collection (the default), because it listed the same names as *Collection*.
+- **Marked words.** After a search inside a book, *Page & text* marks the words in the page's text, including the Indic spellings found for
+  a word typed in Latin letters, and no longer marks OR or a word that was being left out.
+- *Date archived*, *Date reviewed* and view counts, which archive.org also sorts by, are not stored here yet.
+
 ## 0.122.0 (2026-11-17): Only managers decide who can see a book
 
 - **Visibility is a manager's decision.** The *Who can see it* field on a book, Mark Public, Set Who Can See Them and the bulk change by

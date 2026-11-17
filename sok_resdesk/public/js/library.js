@@ -183,6 +183,7 @@
 	function renderFacets(facets) {
 		const html = FACET_FIELDS.map((field) => {
 			if (field === "publisher" && state.mode === "pages") return ""; // pages carry no publisher
+			if (field === "collections" && rootData().mirrors === "1") return ""; // the Collection filter has them
 			const values = Object.entries(facets[field] || {}).filter(([v]) => !(FIXED[field] || []).includes(v));
 			if (!values.length) return "";
 			const selected = state.filters[field] || [];

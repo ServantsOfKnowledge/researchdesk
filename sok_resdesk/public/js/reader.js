@@ -40,21 +40,22 @@
 		history.replaceState(null, "", url);
 	}
 
-	function highlight(text, q) {
-		let html = esc(text);
-		const words = (q || "")
-			.split(/\s+/)
-			.map((w) => w.replace(/[^\p{L}\p{M}\p{N}]/gu, ""))
-			.filter((w) => w.length > 1);
-		for (const w of words) {
-			html = html.replace(new RegExp(`(${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "giu"), "<mark>$1</mark>");
+	// mark `terms` (the server's list: what was typed and its other spellings) in the page text
+	function highlight(text, terms) {
+		const found = [...new Set(terms || [])].filter((t) => t.length > 1).sort((x, y) => y.length - x.length);
+		if (!found.length) return esc(text);
+		const re = new RegExp(found.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+")).join("|"), "giu");
+		let out = "", last = 0;
+		for (const m of text.matchAll(re)) {
+			out += `${esc(text.slice(last, m.index))}<mark>${esc(m[0])}</mark>`;
+			last = m.index + m[0].length;
 		}
-		return html;
+		return out + esc(text.slice(last));
 	}
 
 	async function go(leaf, q, push) {
 		state.q = q ?? state.q;
-		const d = await api("page", { item_id: itemId, leaf: Math.max(0, Number(leaf) || 0) });
+		const d = await api("page", { item_id: itemId, leaf: Math.max(0, Number(leaf) || 0), q: state.q || "" });
 		if (!d) return;
 		if (d.login_needed) {
 			$("#rd-pages-text").innerHTML = `<p class="rd-muted">${esc(__("Log in to read this book."))}</p>`;
@@ -98,7 +99,7 @@
 			fig.innerHTML = "";
 		}
 		$("#rd-pages-text").innerHTML = d.text
-			? highlight(d.text, state.q)
+			? highlight(d.text, d.terms)
 			: `<p class="rd-muted">${esc(d.has_text ? __("No text on this page.") : __("No text for this book yet."))}</p>`;
 		const mark = $("#rd-pages-text mark");
 		if (mark) mark.scrollIntoView({ block: "center", behavior: "smooth" });

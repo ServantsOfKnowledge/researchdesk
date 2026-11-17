@@ -43,6 +43,8 @@ def get_context(context):
 	context.curator_name = frappe.db.get_value("User", doc.curator, "full_name") if doc.curator else ""
 	context.title = f"{doc.title} · {context.portal_title}"
 	context.viewer = viewer
+	# archive.org's collections already are portal collections (Collection filter): listing them twice is noise
+	context.mirrors = bool(frappe.db.exists("RD Collection", {"mirror_of": ("is", "set")}))
 	context.login_url = access.login_url(f"/library/collection/{doc.name}")
 	context.fixed_filters = json.dumps({"curated": [doc.name]})
 	context.facet_labels = facet_labels()

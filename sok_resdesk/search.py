@@ -68,7 +68,7 @@ BOOK_SETTINGS = {
 		"note_tags",
 		"note_entities",
 	],
-	"sortableAttributes": ["year", "title_sort", "indexed_at"],
+	"sortableAttributes": ["year", "title_sort", "indexed_at", "added_on", "creator_sort"],
 	"displayedAttributes": ["*"],
 	"faceting": {"maxValuesPerFacet": 200, "sortFacetValuesBy": {"*": "count"}},
 	"pagination": {"maxTotalHits": BOOKS_MAX_HITS},
@@ -297,7 +297,20 @@ def book_document(record: dict, excerpt: str = "") -> dict:
 		"note_entity_names": record.get("note_entity_names") or [],
 		"text_excerpt": excerpt[:5000],
 		"indexed_at": int(now_datetime().timestamp()),
+		# for the Sort menu: when archive.org added the book, and the first author
+		"added_on": _epoch(record.get("added_on_source")),
+		"creator_sort": ((record.get("creators") or [""])[0] or "").lower()[:100],
 	}
+
+
+def _epoch(value) -> int | None:
+	"""A date archive.org gave ('2026-11-16 03:22:11') as seconds since 1970; None when there is none."""
+	if not value:
+		return None
+	try:
+		return int(frappe.utils.get_datetime(str(value)[:19].replace("T", " ")).timestamp())
+	except Exception:
+		return None
 
 
 def page_documents(record: dict, pages: list[dict], max_chars: int = 6000) -> list[dict]:
@@ -1016,7 +1029,7 @@ def search(
 				"highlightPostTag": "</mark>",
 			}
 		)
-		if sort in ("year:asc", "year:desc", "title_sort:asc"):
+		if sort in ("year:asc", "year:desc", "title_sort:asc", "added_on:desc", "creator_sort:asc"):
 			body["sort"] = [sort]
 		if search_in in SEARCH_IN:
 			body["attributesToSearchOn"] = SEARCH_IN[search_in]

@@ -3,7 +3,7 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block page_content %}
-<div class="rd" id="rd-library" data-fixed='{{ fixed_filters }}' data-staff="{{ 1 if viewer.staff else 0 }}"
+<div class="rd" id="rd-library" data-fixed='{{ fixed_filters }}' data-staff="{{ 1 if viewer.staff else 0 }}" data-mirrors="{{ 1 if mirrors else 0 }}"
 	data-login="{{ login_url }}" data-signup="{{ 1 if viewer.signup else 0 }}">
 	<nav class="rd-crumbs"><a href="{{ library_url() }}">← {{ portal_title }}</a> · <a href="/library/collections">{{ _("Collections") }}</a>{% if parent %} · <a href="/library/collection/{{ parent.name }}">{{ parent.title }}</a>{% endif %}</nav>
 	<header class="rd-coll-head">

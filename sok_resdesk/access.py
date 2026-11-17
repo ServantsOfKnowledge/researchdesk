@@ -51,6 +51,12 @@ def is_staff(user: str | None = None) -> bool:
 	return user == "Administrator" or bool(_roles(user) & set(STAFF_ROLES))
 
 
+def can_decide_visibility(user: str | None = None) -> bool:
+	"""Managers and super admins decide which books are public and which need a login (VISIBILITY_ROLES)."""
+	user = user or frappe.session.user
+	return user == "Administrator" or bool(_roles(user) & set(VISIBILITY_ROLES))
+
+
 def can_open_desk() -> bool:
 	"""Whether the signed-in account works in the Desk (a System User). Frappe's apps screen and the page it
 	sends people to after login or setting a password use this: a reader is a Website User, so they go to
@@ -456,7 +462,8 @@ def bulk_set_visibility(
 	collection, profile, language, search ({"q", "mode", "filters"} from the portal),
 	or everything=1.
 	"""
-	frappe.only_for(VISIBILITY_ROLES)
+	if not can_decide_visibility():
+		frappe.throw(_("Only managers can change who can see a book."), frappe.PermissionError)
 	_check_visibility(visibility)
 	selected = select_items(names, filters, collection, profile, language, search, bool(cint(everything)))
 	if not selected:

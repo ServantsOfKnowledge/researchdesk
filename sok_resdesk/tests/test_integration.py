@@ -84,26 +84,56 @@ class TestResearchDesk(IntegrationTestCase):
 		self.assertEqual(f, [['language_label = "Kannada"'], "year >= 1900"])
 		self.assertEqual(build_filter({"publisher": ["Sapna"]}), [['publisher = "Sapna"']])
 
+	def test_sort_dates_and_the_terms_to_mark(self):
+		from unittest import mock
+
+		from sok_resdesk import api
+		from sok_resdesk import search as s
+
+		self.assertEqual(s._epoch(""), None)
+		self.assertEqual(s._epoch("not a date"), None)
+		self.assertGreater(s._epoch("2026-11-16 03:22:11"), s._epoch("2026-11-15T03:22:11Z"))
+		doc = s.book_document(
+			{"item_id": "x", "title": "T", "creators": ["Kuvempu"], "added_on_source": "2026-11-16"}
+		)
+		self.assertEqual((doc["creator_sort"], bool(doc["added_on"])), ("kuvempu", True))
+		with (
+			mock.patch.object(s, "expand_query", return_value=(['"ಕನಕ ದಾಸ" ಕನಕದಾಸ -x'], [])),
+			mock.patch.object(s.MeiliClient, "from_settings"),
+		):
+			terms = api.highlight_terms('"kanaka dasa" OR vachana -skip', "x", "Kannada")
+		self.assertIn("kanaka dasa", terms)
+		self.assertIn("ಕನಕದಾಸ", terms)
+		self.assertIn("vachana", terms)
+		self.assertNotIn("OR", terms)
+		self.assertNotIn("skip", terms)
+
 	def test_only_managers_decide_who_can_see_books(self):
 		from unittest import mock
 
 		from sok_resdesk import access
 
-		for roles, allowed in (
-			(["ResDesk Cataloguer"], False),
-			(["ResDesk Reader"], False),
-			(["ResDesk Manager"], True),
-		):
-			with (
-				mock.patch("frappe.get_roles", return_value=roles),
-				mock.patch.object(access, "select_items", return_value=[]),
+		frappe.set_user("Guest")  # not the Administrator, who may do everything
+		try:
+			for roles, allowed in (
+				({"ResDesk Cataloguer"}, False),
+				({"ResDesk Reader"}, False),
+				({"ResDesk Manager"}, True),
+				({"SOK Super Admin"}, True),
 			):
-				if allowed:
-					self.assertEqual(access.bulk_set_visibility("Public", names="[]")["count"], 0)
-				else:
-					self.assertRaises(
-						frappe.PermissionError, access.bulk_set_visibility, "Public", names="[]"
-					)
+				with (
+					mock.patch.object(access, "_roles", return_value=roles),
+					mock.patch.object(access, "select_items", return_value=[]),
+				):
+					self.assertEqual(access.can_decide_visibility(), allowed)
+					if allowed:
+						self.assertEqual(access.bulk_set_visibility("Public", names="[]")["count"], 0)
+					else:
+						self.assertRaises(
+							frappe.PermissionError, access.bulk_set_visibility, "Public", names="[]"
+						)
+		finally:
+			frappe.set_user("Administrator")
 
 	def test_exact_phrase_and_the_fields_searched(self):
 		from unittest import mock

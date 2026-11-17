@@ -67,6 +67,7 @@ def item_to_record(doc) -> dict:
 		"year": doc.year or None,
 		"decade": decade_of(doc.year),
 		"date_raw": doc.date_raw or "",
+		"added_on_source": doc.added_on_source or "",
 		"publisher": doc.publisher or "",
 		"place": doc.place or "",
 		"language": doc.language or "",

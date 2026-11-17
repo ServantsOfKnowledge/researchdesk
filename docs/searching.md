@@ -10,9 +10,12 @@ language and page count, with matches highlighted.
 
 - **Filters (left):** Collection (the library's own collections), Type (book, periodical,
   thesis…), Language, Decade, Subject, Author, Publisher and Source collection (the archive.org
-  collection), plus a Year range. Publisher filters books only, not *Inside the text*.
+  collection), plus a Year range. Publisher filters books only, not *Inside the text*. When the portal
+  has a collection for each archive.org collection (the default), *Source collection* is left out:
+  it would list the same names as *Collection*.
   Filters combine: pick *Kannada* and *1950s* to get Kannada books from the 1950s.
-- **Sort:** relevance, oldest, newest, title A–Z. Until a reader chooses, books are listed in
+- **Sort:** relevance, oldest, newest, title A–Z, recently added (when archive.org added the book) and
+  author A–Z. Until a reader chooses, books are listed in
   the library's **Default Order** (Settings → Portal; oldest first unless changed) and a search
   with words shows the best matches first (**Best Matches First When Searching**). Books without
   a year come last.
@@ -44,7 +47,8 @@ where the words are spoken. For a manuscript they are its leaves (1a, 1b…). Te
 drafted and nobody has checked is searched too, and marked as a draft.
 
 On a book's page, **Search inside this book** lists every matching page. Click one to jump
-the reader there.
+the reader there; in *Page & text* the words searched are marked in the page's text, including
+the Indic spellings found for a word typed in Latin letters.
 
 ## Kannada and other Indian scripts
 

@@ -37,6 +37,8 @@ def get_context(context):
 	from sok_resdesk import profile
 
 	context.ask_profile = bool(context.viewer.get("logged_in")) and not profile.has_profile()
+	# archive.org's collections already are portal collections (Collection filter): listing them twice is noise
+	context.mirrors = bool(frappe.db.exists("RD Collection", {"mirror_of": ("is", "set")}))
 	context.login_url = access.login_url("/library")
 	from sok_resdesk.portal import collection_cards, facet_labels
 

@@ -104,6 +104,8 @@ SORTS = {
 	"Oldest first": "year:asc",
 	"Newest first": "year:desc",
 	"Title A–Z": "title_sort:asc",
+	"Recently added": "added_on:desc",
+	"Author A–Z": "creator_sort:asc",
 	"Relevance": "",
 }
 
@@ -219,6 +221,31 @@ def search_inside(item_id: str, q: str, limit: int = 50):
 # -- the page reader (book page → "Page & text") ---------------------------------------------------
 
 
+def highlight_terms(q: str, item_id: str, language: str | None = None) -> list[str]:
+	"""The words and phrases to mark in a page's text for the search `q` typed inside a book: what was
+	typed (without OR, -words and quotes) and the Indic spellings found for a word typed in Latin letters."""
+	from sok_resdesk.search import TOKEN, expand_query
+
+	queries = [q]
+	try:
+		extra, _also = expand_query(
+			q, {"language_label": [language]} if language else None, MeiliClient.from_settings()
+		)
+		queries += extra
+	except Exception:
+		pass  # no search engine just now: the words as typed
+	terms: list[str] = []
+	for query in queries:
+		for token in TOKEN.findall(query):
+			if token.startswith("-") or token.upper() in ("OR", "|"):
+				continue
+			words = token.strip('"').split()
+			if token.startswith('"') and len(words) > 1:
+				terms.append(" ".join(words))
+			terms += [w for w in words if len(w) > 1]
+	return list(dict.fromkeys(terms))[:30]
+
+
 def page_image_url(record: dict, leaf: int) -> str:
 	"""The page image: archive.org serves every page of a book it holds as …/page/n<leaf>.jpg;
 	books from repositories and the library's folders have theirs drawn from their PDF here."""
@@ -325,7 +352,7 @@ def captions(item_id: str):
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=240, seconds=60)
-def page(item_id: str, leaf: int = 0):
+def page(item_id: str, leaf: int = 0, q: str = ""):
 	"""One page for the page reader: its image, its text and printed number, and its neighbours.
 	`leaf` counts the page images from 0 (as archive.org does)."""
 	from sok_resdesk.ingest import fetch_pages
@@ -362,6 +389,8 @@ def page(item_id: str, leaf: int = 0):
 		"label": here.get("label") or (record.get("leaf_labels") or {}).get(leaf) or "",
 		"text": here.get("text") or "",
 		"has_text": bool(pages),
+		# what to mark in the text when the reader came from a search inside the book
+		"terms": highlight_terms(q, item_id, record.get("language_label")) if q.strip() else [],
 		"image": page_image_url(record, leaf),
 		"pdf": record.get("pdf_url") if record.get("access_status") == "Open" else "",
 	}

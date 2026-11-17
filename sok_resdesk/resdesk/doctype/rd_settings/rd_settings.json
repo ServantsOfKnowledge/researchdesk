@@ -294,7 +294,7 @@
    "fieldname": "default_sort",
    "fieldtype": "Select",
    "label": "Default Order",
-   "options": "Oldest first\nNewest first\nTitle A–Z\nRelevance",
+   "options": "Oldest first\nNewest first\nTitle A–Z\nRecently added\nAuthor A–Z\nRelevance",
    "default": "Oldest first",
    "description": "How books are listed on the portal (the library, collections, search) until a reader chooses another order in the Sort menu. Books without a year come last."
   },
