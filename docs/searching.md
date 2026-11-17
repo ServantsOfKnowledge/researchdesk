@@ -50,6 +50,14 @@ On a book's page, **Search inside this book** lists every matching page. Click o
 the reader there; in *Page & text* the words searched are marked in the page's text, including
 the Indic spellings found for a word typed in Latin letters.
 
+## Similar books
+
+Every book page ends with **Similar books**: more by the same author (a row for each of the first two
+authors), books in the same series, books on similar subjects and books with similar titles, in the
+book's language. Each book appears once, in the first row that has it, and a reader sees only books they
+could find by searching. A *Similar books* link on each search result goes straight there. Nothing is
+shown when the book has nothing to compare (no author, subjects or series).
+
 ## Kannada and other Indian scripts
 
 - Type in the script (ಕನ್ನಡ, हिन्दी, …), or in **Latin letters, as you would write it**:

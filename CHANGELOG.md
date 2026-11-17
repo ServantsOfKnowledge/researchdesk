@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.124.0 (2026-11-17): Similar books
+
+- **Similar books.** Every book page ends with books like it: more by the same author, the same series, similar subjects and similar titles,
+  each book once and only those the reader could find by searching. Search results carry a *Similar books* link to it. The answer is kept an
+  hour and nothing is shown when the book has nothing to compare.
+
 ## 0.123.0 (2026-11-17): More ways to sort, one collection filter, marked words in the book
 
 - **Sort.** The Sort menu gains *Recently added* (when archive.org added the book) and *Author A–Z*, and the portal's Default Order can be

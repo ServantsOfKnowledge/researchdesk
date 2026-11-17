@@ -84,6 +84,31 @@ class TestResearchDesk(IntegrationTestCase):
 		self.assertEqual(f, [['language_label = "Kannada"'], "year >= 1900"])
 		self.assertEqual(build_filter({"publisher": ["Sapna"]}), [['publisher = "Sapna"']])
 
+	def test_similar_books_are_asked_for_and_shown_once(self):
+		from sok_resdesk import related
+
+		me = {
+			"title": "Vachanas",
+			"creators": ["Basavanna", "Akka"],
+			"subjects": ["Poetry"],
+			"series": "",
+			"language_label": "Kannada",
+		}
+		asks = related.queries_for(me, "me-1", 'NOT visibility = "Cleared only"')
+		self.assertEqual(len(asks), 4)  # two authors, subjects, titles (no series)
+		for _heading, body in asks:
+			self.assertIn('item_id != "me-1"', body["filter"])
+			self.assertIn('NOT visibility = "Cleared only"', body["filter"])
+		self.assertEqual(asks[2][1]["attributesToSearchOn"], ["subjects"])
+		hit = lambda i: {"item_id": i, "title": i, "creators": ["x"], "year": 1950}  # noqa: E731
+		groups = related.merge(
+			["a", "b", "c"], [[hit("1"), hit("me-1"), hit("2")], [hit("2"), hit("3")], [hit("1")]], "me-1", 5
+		)
+		self.assertEqual(
+			[(g["title"], [b["item_id"] for b in g["books"]]) for g in groups],
+			[("a", ["1", "2"]), ("b", ["3"])],
+		)
+
 	def test_sort_dates_and_the_terms_to_mark(self):
 		from unittest import mock
 

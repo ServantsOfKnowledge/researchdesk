@@ -185,6 +185,7 @@ only; 10 a minute.
 | `sok_resdesk.search_queue.get_overview` | the search engine's queue: book records and page text waiting, tasks a minute, time to go, failures, page text held or pending, task history |
 | `sok_resdesk.search_queue.send_now` | start sending waiting page text now (managers; not while held) |
 | `sok_resdesk.search_queue.books_first` · `hold_page_text` (`hold`=1/0) · `clear_history` (`days`) | cancel the waiting page text so books are listed next (it is sent again later); hold or resume page text; forget finished tasks older than `days` (7) |
+| `sok_resdesk.api.related` (`item_id`) | books like this one in groups (same author, series, subjects, titles): `{"groups": [{"title", "books": [{item_id, title, creators, year, language, thumbnail, url}]}]}`; only books the caller can find |
 | `sok_resdesk.api.page` (`item_id`, `leaf`, `q`) | one page for the page reader: image address, text, printed number, last leaf (text needs read access); with `q` (a search inside the book) `terms` lists the words to mark in the text, with the Indic spellings found for a Latin-letter word |
 | `sok_resdesk.api.page_image` (`item_id`, `leaf`, `width`) | a page of a book not on archive.org, drawn from its PDF or taken from its photograph (JPEG; `width` scales it, at most 4000; read access, open books) |
 | `sok_resdesk.pdfs.ocr_now` (`item_id`) | staff: read a book's PDF with OCR, every page, in the background |

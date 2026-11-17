@@ -38,6 +38,12 @@
 .rd-modes { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-top: 10px; }
 .rd-modes label { display: flex; gap: 6px; align-items: center; margin: 0; cursor: pointer; }
 .rd-count { margin-left: auto; }
+.rd-related h3 { font-size: 1rem; margin: 18px 0 8px; }
+.rd-related__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.rd-related__book { display: grid; grid-template-columns: 56px 1fr; gap: 12px; align-items: start; }
+.rd-related__thumb { display: block; background: var(--rd-soft); border-radius: 4px; min-height: 72px; }
+.rd-related__thumb img { display: block; width: 56px; height: auto; border-radius: 4px; }
+.rd-related__book a { overflow-wrap: anywhere; }
 .rd-searchopts { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-top: 10px; }
 .rd-searchopts label { display: flex; gap: 8px; align-items: center; margin: 0; }
 .rd-searchopts select {

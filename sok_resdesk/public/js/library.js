@@ -152,7 +152,7 @@
 				<h3${lang(h.title, h.language)}><a href="${h.url}">${safeMarked(h.title_html)}</a></h3>
 				${h.alt_title && h.alt_title !== h.title ? `<div class="rd-muted">${esc(h.alt_title)}</div>` : ""}
 				<div class="rd-hit__creators">${(h.creators || []).map(esc).join("; ")}</div>
-				<div class="rd-muted">${esc(meta)}${h.has_fulltext ? ` · <span class="rd-badge">${__("full text")}</span>` : ""}${lockBadge(h)}</div>
+				<div class="rd-muted">${esc(meta)}${h.has_fulltext ? ` · <span class="rd-badge">${__("full text")}</span>` : ""}${lockBadge(h)} · <a href="${h.url}#rd-related">${__("Similar books")}</a></div>
 				${h.snippet ? `<p class="rd-snippet"${lang(h.snippet, h.language)}>${safeMarked(h.snippet)}</p>` : ""}
 			</div>
 			<button class="rd-save" data-id="${esc(h.item_id)}" type="button" title="${__("Add to my list")}" aria-label="${__("Add to my list")}">＋</button>

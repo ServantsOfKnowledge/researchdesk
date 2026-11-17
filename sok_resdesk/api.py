@@ -167,6 +167,19 @@ def _hit(hit: dict, mode: str) -> dict:
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=120, seconds=60)
+def related(item_id: str):
+	"""Books like this one (same author, series, subjects, similar titles), among those the viewer can find."""
+	row = frappe.db.get_value("RD Item", item_id, ["published", "visibility"], as_dict=True)
+	shown = row and access.effective(row.visibility, item_id)
+	if not row or not row.published or not access.can_find(shown):
+		frappe.throw(_("Item not found"), frappe.DoesNotExistError)
+	from sok_resdesk.related import related as related_books
+
+	return {"groups": related_books(item_id)}
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=120, seconds=60)
 def search_inside(item_id: str, q: str, limit: int = 50):
 	"""Pages of one book that match `q`, with highlighted snippets."""
 	if not q.strip():

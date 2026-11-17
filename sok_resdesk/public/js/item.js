@@ -11,6 +11,34 @@
 		return esc(s).replace(/&lt;mark&gt;/g, "<mark>").replace(/&lt;\/mark&gt;/g, "</mark>");
 	}
 
+	// Books like this one (api.related): drawn under the details, hidden when there are none
+	async function initRelated() {
+		const box = $("#rd-related");
+		if (!box || !root()) return;
+		try {
+			const res = await fetch(`/api/method/sok_resdesk.api.related?item_id=${encodeURIComponent(root().dataset.item)}`, { headers: { Accept: "application/json" } });
+			if (!res.ok) return;
+			const groups = ((await res.json()).message || {}).groups || [];
+			if (!groups.length) return;
+			$("#rd-related-groups").innerHTML = groups
+				.map(
+					(g) => `<h3>${esc(g.title)}</h3><ul class="rd-related__list">${g.books
+						.map(
+							(b) => `<li class="rd-related__book">
+								<a href="${esc(b.url)}" class="rd-related__thumb" tabindex="-1" aria-hidden="true">${b.thumbnail ? `<img src="${esc(b.thumbnail)}" alt="" loading="lazy">` : ""}</a>
+								<div><a href="${esc(b.url)}">${esc(b.title)}</a>
+								<div class="rd-muted">${esc([(b.creators || []).join("; "), b.year].filter(Boolean).join(" · "))}</div></div>
+							</li>`
+						)
+						.join("")}</ul>`
+				)
+				.join("");
+			box.hidden = false;
+		} catch (e) {
+			/* nothing to suggest: the page is complete without it */
+		}
+	}
+
 	// One Cite window for the book and for the page showing in Page & text (reader.js)
 	function initCite() {
 		const dlg = $("#rd-cite");
@@ -156,5 +184,6 @@
 		initCite();
 		initList();
 		initInside();
+		initRelated();
 	});
 })();
