@@ -45,6 +45,7 @@ class TestFrontmatter(IntegrationTestCase):
 
 	def _clean(self):
 		frappe.db.delete("RD Metadata Suggestion", {"name": ITEM})
+		frappe.db.delete("RD Suggested Detail", {"parent": ITEM})  # deleting the parent leaves its rows
 		frappe.db.delete("RD Item", {"name": ITEM})
 		frappe.db.commit()
 
