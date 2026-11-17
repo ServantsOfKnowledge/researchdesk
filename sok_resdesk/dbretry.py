@@ -19,7 +19,9 @@ TRANSIENT_CODES = ("1020", "1205", "1213")
 def transient(e: Exception) -> bool:
 	text = str(e)
 	return (
-		isinstance(e, frappe.QueryDeadlockError)
+		# a document a queued action holds (Module Profile while it updates every user): free in seconds
+		isinstance(e, frappe.DocumentLockedError)
+		or isinstance(e, frappe.QueryDeadlockError)
 		or frappe.db.is_deadlocked(e)
 		or frappe.db.is_timedout(e)
 		or any(f"({code}," in text for code in TRANSIENT_CODES)

@@ -4,7 +4,7 @@ the installation's own settings, the Server page or who holds the installation's
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from sok_resdesk import access, people, server
+from sok_resdesk import access, dbretry, people, server
 
 LIBRARIAN = "rdtest-librarian@example.org"
 SUPER = "rdtest-super@example.org"
@@ -28,6 +28,12 @@ def _user(email, roles):
 class TestSuperAdmin(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
+		# a worker updating every user after the Module Profile changed (Frappe queues that and locks the
+		# profile meanwhile) can make MariaDB pick this as the deadlock victim (1213/1020), or find the
+		# profile locked: start again from a fresh snapshot
+		dbretry.run(self._prepare, attempts=8)
+
+	def _prepare(self):
 		_user(LIBRARIAN, ["ResDesk Manager"])
 		_user(SUPER, ["SOK Super Admin"])
 		_user(OTHER, ["ResDesk Cataloguer"])
@@ -38,7 +44,6 @@ class TestSuperAdmin(IntegrationTestCase):
 		s.guest_access = "Records only"
 		s.portal_title = "Rdtest Library"
 		s.save()
-		frappe.db.commit()
 
 	def tearDown(self):
 		frappe.set_user("Administrator")

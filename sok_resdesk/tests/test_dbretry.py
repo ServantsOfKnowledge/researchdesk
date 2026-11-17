@@ -21,6 +21,20 @@ class TestDbRetry(IntegrationTestCase):
 		self.assertEqual(dbretry.run(work, pause=0), "done")
 		self.assertEqual(len(calls), 2)
 
+	def test_a_document_held_by_a_queued_action_is_tried_again(self):
+		calls = []
+
+		def work():
+			calls.append(1)
+			if len(calls) == 1:
+				raise frappe.DocumentLockedError(
+					"This document is currently locked and queued for execution."
+				)
+			return "done"
+
+		self.assertEqual(dbretry.run(work, pause=0), "done")
+		self.assertEqual(len(calls), 2)
+
 	def test_it_gives_up_after_the_attempts(self):
 		calls = []
 
