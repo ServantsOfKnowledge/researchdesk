@@ -103,6 +103,8 @@ def _can_annotate(book: dict) -> bool:
 def _page_text(item_id: str, leaf: int) -> str | None:
 	from sok_resdesk.ingest import fetch_pages
 
+	if access.use_level(item_id) == "Research only":
+		return None  # a note anchored in the text would hand the text back (or say whether words are in it)
 	try:
 		for p in fetch_pages(item_id):
 			if p["leaf"] == leaf:
@@ -121,7 +123,9 @@ def _present(row: dict, text: str | None, user: str) -> dict:
 	out["creation"] = str(row.creation)[:19]
 	out["modified"] = str(row.modified)[:19]
 	out["detached"] = False
-	if row.exact and text is not None:
+	if access.use_level(row.item) == "Research only":
+		out["exact"] = out["prefix"] = out["suffix"] = ""
+	elif row.exact and text is not None:
 		where = core.anchor(text, row.pos_start, row.pos_end, row.exact, row.prefix or "", row.suffix or "")
 		if where:
 			out["pos_start"], out["pos_end"] = where

@@ -77,3 +77,11 @@ class TestUseLevel(IntegrationTestCase):
 		self.assertEqual(out["count"], 1)
 		self.assertEqual(frappe.db.get_value("RD Item", ITEM, "use_level"), "Research only")
 		self.assertRaises(frappe.ValidationError, access.bulk_set_use_level, "Nonsense", names=[ITEM])
+
+	def test_research_only_closes_the_text_paths_round_the_reader(self):
+		from sok_resdesk import annotations, pagetext
+
+		self.level("Research only")
+		frappe.set_user(READER)
+		self.assertIsNone(annotations._page_text(ITEM, 0))  # a note could hand the text back
+		self.assertRaises(frappe.DoesNotExistError, pagetext._check, ITEM)  # proofreading / re-OCR

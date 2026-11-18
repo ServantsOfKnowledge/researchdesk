@@ -60,7 +60,8 @@ def _pages_query(doc, count_only: bool = False, released: bool | None = None):
 	"""Matching pages. With release required (and a licence chosen) only pages every one of whose
 	proofreaders and validators released under a licence the set can carry; released=False asks
 	for the pages left out for want of that instead."""
-	where = ["t.is_current = 1", "i.published = 1"]
+	# a book that is read only or research only never leaves in a shared set of pages
+	where = ["t.is_current = 1", "i.published = 1", "ifnull(i.use_level, 'Full') = 'Full'"]
 	params: dict = {}
 	lic = chosen_licence()
 	if released is not None or (lic and require_release()):

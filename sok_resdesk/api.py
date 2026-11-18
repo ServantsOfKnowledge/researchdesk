@@ -344,11 +344,16 @@ def page_image(item_id: str, leaf: int = 0, width: int = 0):
 	):
 		raise frappe.PermissionError
 	try:
-		data = page_jpeg(record["item_id"], max(0, cint(leaf)), min(max(0, cint(width)), 4000))
+		full = access.can_download(record.get("visibility"), item=item_id)
+		# a book that is not downloadable is shown at screen size only
+		cap = 4000 if full else 1600
+		data = page_jpeg(
+			record["item_id"], max(0, cint(leaf)), min(max(0, cint(width)) or (0 if full else cap), cap)
+		)
 	except RenderError as e:
 		raise frappe.PageDoesNotExistError from e
 	resp = Response(data, mimetype="image/jpeg")
-	public = record.get("visibility") == "Public"
+	public = record.get("visibility") == "Public" and full
 	resp.headers["Cache-Control"] = "public, max-age=604800" if public else "private, max-age=3600"
 	return resp
 
@@ -390,6 +395,8 @@ def transcript(item_id: str):
 		frappe.throw(_("Item not found"), frappe.DoesNotExistError)
 	if not access.can_read(record.get("visibility"), item=item_id):
 		return {"login_needed": True}
+	if access.use_level(item_id) == "Research only":
+		return {"segments": [], "can_proofread": False, "text_hidden": True}
 	return {"segments": _segments(record), "can_proofread": pagetext.can_proofread()}
 
 
@@ -402,7 +409,10 @@ def captions(item_id: str):
 	record = get_record(item_id)
 	if not record or not record.get("media"):
 		raise frappe.PageDoesNotExistError
-	if not access.can_read(record.get("visibility"), item=item_id):
+	if (
+		not access.can_read(record.get("visibility"), item=item_id)
+		or access.use_level(item_id) == "Research only"
+	):
 		raise frappe.PermissionError
 	vtt = media.to_vtt(_segments(record), record.get("language") or "")
 	resp = Response(vtt, mimetype="text/vtt")
@@ -488,6 +498,7 @@ def item(item_id: str):
 	record["can_read"] = access.can_read(record.get("visibility"), item=item_id)
 	if not access.can_download(record.get("visibility"), item=item_id):
 		record["pdf_url"] = ""
+		record["downloads"] = []
 	record["portal_url"] = f"{base_url()}/library/item/{item_id}"
 	record["citation_formats"] = {k: v[0] for k, v in citations.FORMATS.items()}
 	return record

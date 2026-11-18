@@ -220,7 +220,8 @@
    "label": "How It Can Be Used",
    "options": "Full\nRead only\nResearch only",
    "default": "Full",
-   "description": "Full: read, download the PDF, text and images. Read only: page images in the portal's reader, no PDF, text or image download. Research only: read only plus no extractable text: search shows hit pages and short snippets, with no page text, text download or read aloud. Staff are not limited. A screenshot cannot be prevented, and a book that is also open on archive.org stays open there."
+   "description": "Full: read, download the PDF, text and images. Read only: page images in the portal's reader, no PDF, text or image download. Research only: read only plus no extractable text: search shows hit pages and short snippets, with no page text, text download or read aloud. Staff are not limited. A screenshot cannot be prevented, and a book that is also open on archive.org stays open there.",
+   "permlevel": 1
   },
   {
    "fieldname": "visibility_set_by",
