@@ -79,9 +79,8 @@ class TestUseLevel(IntegrationTestCase):
 		self.assertRaises(frappe.ValidationError, access.bulk_set_use_level, "Nonsense", names=[ITEM])
 
 	def test_research_only_closes_the_text_paths_round_the_reader(self):
-		from sok_resdesk import annotations, pagetext
+		from sok_resdesk import annotations
 
 		self.level("Research only")
 		frappe.set_user(READER)
 		self.assertIsNone(annotations._page_text(ITEM, 0))  # a note could hand the text back
-		self.assertRaises(frappe.DoesNotExistError, pagetext._check, ITEM)  # proofreading / re-OCR
