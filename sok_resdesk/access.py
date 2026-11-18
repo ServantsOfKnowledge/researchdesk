@@ -116,7 +116,9 @@ def use_level(item: str | None, user: str | None = None) -> str:
 	downloads and no extractable text). Staff are never limited."""
 	if not item or is_staff(user):
 		return core.FULL
-	cache = frappe.local.__dict__.setdefault("rd_use_levels", {})
+	cache = getattr(frappe.local, "rd_use_levels", None)
+	if cache is None:
+		cache = frappe.local.rd_use_levels = {}
 	if item not in cache:
 		cache[item] = frappe.db.get_value("RD Item", item, "use_level") or core.FULL
 	return cache[item]

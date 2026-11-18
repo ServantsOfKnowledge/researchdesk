@@ -38,7 +38,7 @@ class TestUseLevel(IntegrationTestCase):
 
 	def level(self, level):
 		frappe.db.set_value("RD Item", ITEM, "use_level", level)
-		frappe.local.__dict__.pop("rd_use_levels", None)  # the per-request cache
+		frappe.local.rd_use_levels = {}  # the per-request cache
 
 	def can(self):
 		v = "Public"
@@ -58,7 +58,7 @@ class TestUseLevel(IntegrationTestCase):
 		self.level("Research only")  # pages as images, no text, no downloads
 		self.assertEqual(self.can(), (True, True, False, False))
 		frappe.set_user("Administrator")
-		frappe.local.__dict__.pop("rd_use_levels", None)
+		frappe.local.rd_use_levels = {}
 		self.assertEqual(self.can(), (True, True, True, True))  # staff are not limited
 
 	def test_a_restricted_book_cannot_be_downloaded_or_served_as_images(self):
