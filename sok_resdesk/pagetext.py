@@ -163,7 +163,7 @@ def _check(item_id: str) -> None:
 	if not can_proofread():
 		frappe.throw(_("Proofreading is for the library's proofreaders."), frappe.PermissionError)
 	vis = frappe.db.get_value("RD Item", item_id, "visibility")
-	if vis is None or not access.can_use_text(vis, item=item_id):
+	if vis is None or not access.can_read(vis, item=item_id) or access.use_level(item_id) == "Research only":
 		frappe.throw(_("Item not found"), frappe.DoesNotExistError)  # not for a Research only book
 
 
