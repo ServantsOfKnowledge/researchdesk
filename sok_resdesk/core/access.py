@@ -4,6 +4,8 @@ Each book has a visibility:
   Public         anyone can find it, read it and search inside it
   Login to read  anyone can find it and cite it; reading, search inside and the PDF need a login
   Login to find  only logged-in readers know it exists
+  Approval to read  anyone can find it and cite it; reading needs a login and a librarian's approval for
+                 that reader and that book (an RD Access Request); staff always read it
 
 The site decides how guests (visitors who are not logged in) are treated:
   Each item's setting   guests follow each book's visibility (the default)
@@ -18,7 +20,8 @@ from __future__ import annotations
 PUBLIC = "Public"
 LOGIN_TO_READ = "Login to read"
 LOGIN_TO_FIND = "Login to find"
-VISIBILITIES = (PUBLIC, LOGIN_TO_READ, LOGIN_TO_FIND)
+APPROVAL = "Approval to read"
+VISIBILITIES = (PUBLIC, LOGIN_TO_READ, LOGIN_TO_FIND, APPROVAL)
 # Governance Mode: a classified or department-scoped record. Not a choice anyone makes by hand (it is
 # set with the classification) and not in VISIBILITIES: the plain rules never show it, see
 # access.effective for the people who are cleared for it.
@@ -58,8 +61,8 @@ def can_find(visibility: str | None, guest_mode: str | None, member: bool) -> bo
 
 
 def can_read(visibility: str | None, guest_mode: str | None, member: bool) -> bool:
-	if visibility == CLEARED_ONLY:
-		return False
+	if visibility in (CLEARED_ONLY, APPROVAL):
+		return False  # an approved reader reads it as members-only (access.effective says so)
 	if member:
 		return True
 	if guest_mode in (GUEST_NONE, GUEST_RECORDS):
@@ -67,22 +70,34 @@ def can_read(visibility: str | None, guest_mode: str | None, member: bool) -> bo
 	return normalise(visibility) == PUBLIC
 
 
-def search_filter(kind: str, guest_mode: str | None, member: bool) -> str | None:
+def search_filter(
+	kind: str, guest_mode: str | None, member: bool, staff: bool = False, granted: tuple = ()
+) -> str | None:
 	"""Meilisearch filter limiting a guest's results.
 
 	Returns None for "no restriction" and "" for "nothing at all". Uses NOT so that documents
 	indexed before the visibility field existed still count as Public (Meilisearch's != and
 	NOT IN skip documents that lack the field; NOT includes them).
 	"""
-	if member:
+	if member and (staff or kind != "pages"):
 		return None
+	if member:  # page text of a book needing approval: only for the books this reader was approved for
+		return approved_pages(granted)
 	if guest_mode == GUEST_NONE:
 		return ""
 	if kind == "pages":
 		if guest_mode == GUEST_RECORDS:
 			return ""
-		return f'NOT visibility IN ["{LOGIN_TO_READ}", "{LOGIN_TO_FIND}"]'
+		return f'NOT visibility IN ["{LOGIN_TO_READ}", "{LOGIN_TO_FIND}", "{APPROVAL}"]'
 	return f'NOT visibility = "{LOGIN_TO_FIND}"'
+
+
+def approved_pages(granted: tuple = ()) -> str:
+	"""Filter for a reader's page search: books needing approval count only when they were approved."""
+	import json
+
+	hidden = f'NOT visibility = "{APPROVAL}"'
+	return f"({hidden} OR item_id IN {json.dumps(list(granted))})" if granted else hidden
 
 
 def sql_condition(guest_mode: str | None, member: bool, column: str = "visibility") -> str:

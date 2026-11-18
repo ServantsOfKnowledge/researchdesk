@@ -1,0 +1,39 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-11-18 09:00:00.000000",
+ "modified": "2026-11-18 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "name": "RD Access Request",
+ "module": "ResDesk",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "title_field": "book_title",
+ "search_fields": "book_title,full_name",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1,
+ "field_order": ["item", "book_title", "user", "full_name", "status", "column_break_0", "requested_on", "reason", "section_decision", "valid_until", "note", "column_break_1", "decided_by", "decided_on"],
+ "fields": [
+  {"fieldname": "item", "fieldtype": "Link", "label": "Book", "options": "RD Item", "reqd": 1, "set_only_once": 1, "in_list_view": 1, "in_standard_filter": 1},
+  {"fieldname": "book_title", "fieldtype": "Data", "label": "Title", "fetch_from": "item.title", "read_only": 1, "in_list_view": 1},
+  {"fieldname": "user", "fieldtype": "Link", "label": "Reader", "options": "User", "reqd": 1, "set_only_once": 1, "in_standard_filter": 1},
+  {"fieldname": "full_name", "fieldtype": "Data", "label": "Reader's Name", "fetch_from": "user.full_name", "read_only": 1, "in_list_view": 1},
+  {"fieldname": "status", "fieldtype": "Select", "label": "Status", "options": "Pending\nApproved\nDeclined\nWithdrawn", "default": "Pending", "in_list_view": 1, "in_standard_filter": 1, "description": "Pending: waiting for a librarian. Approved: the reader may read the book (until the end date, if any). Declined: not allowed. Withdrawn: the reader took the request back."},
+  {"fieldname": "column_break_0", "fieldtype": "Column Break"},
+  {"fieldname": "requested_on", "fieldtype": "Datetime", "label": "Asked On", "read_only": 1},
+  {"fieldname": "reason", "fieldtype": "Small Text", "label": "Why the Reader Needs It", "read_only": 1},
+  {"fieldname": "section_decision", "fieldtype": "Section Break", "label": "Decision"},
+  {"fieldname": "valid_until", "fieldtype": "Date", "label": "Approved Until", "description": "Leave empty for no end. When you approve with this empty, Settings → Access & Sign-up → Days an Approval Lasts fills it in."},
+  {"fieldname": "note", "fieldtype": "Small Text", "label": "Note to the Reader", "description": "Shown to the reader on the book's page, for example why a request was declined."},
+  {"fieldname": "column_break_1", "fieldtype": "Column Break"},
+  {"fieldname": "decided_by", "fieldtype": "Link", "label": "Decided By", "options": "User", "read_only": 1},
+  {"fieldname": "decided_on", "fieldtype": "Datetime", "label": "Decided On", "read_only": 1}
+ ],
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1, "export": 1},
+  {"role": "ResDesk Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1, "export": 1},
+  {"role": "ResDesk Cataloguer", "read": 1, "write": 1, "report": 1, "export": 1}
+ ]
+}

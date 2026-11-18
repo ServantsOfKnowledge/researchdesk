@@ -12,6 +12,7 @@ frappe.listview_settings["RD Item"] = {
 			Public: [__("Public"), "green", "visibility,=,Public"],
 			"Login to read": [__("Login to read"), "orange", "visibility,=,Login to read"],
 			"Login to find": [__("Login to find"), "red", "visibility,=,Login to find"],
+			"Approval to read": [__("Approval to read"), "purple", "visibility,=,Approval to read"],
 		}[doc.visibility || "Public"];
 	},
 	onload(listview) {
@@ -46,11 +47,11 @@ frappe.listview_settings["RD Item"] = {
 						fieldname: "visibility",
 						fieldtype: "Select",
 						label: __("Who can see them"),
-						options: ["Public", "Login to read", "Login to find"],
+						options: ["Public", "Login to read", "Login to find", "Approval to read"],
 						default: "Login to read",
 						reqd: 1,
 						description: __(
-							"Public: anyone can find and read. Login to read: anyone can find and cite; reading needs a login. Login to find: only logged-in readers can find them."
+							"Public: anyone can find and read. Login to read: anyone can find and cite; reading needs a login. Approval to read: anyone can find and cite; reading needs a login and a librarian's approval of each reader. Login to find: only logged-in readers can find them."
 						),
 					},
 				],

@@ -67,7 +67,7 @@ def _book(item_id: str) -> tuple[dict | None, Response | None]:
 	record = get_record(item_id)
 	if not record:
 		return None, _error(404, "No such book")
-	if not access.can_read(record.get("visibility")):
+	if not access.can_read(record.get("visibility"), item=item_id):
 		return None, _error(401, "Log in to see this book")
 	return record, None
 

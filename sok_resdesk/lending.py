@@ -499,7 +499,7 @@ def overview() -> dict:
 
 def _hold_for(member: frappe._dict, item: str, by_member: bool = False) -> dict:
 	book = frappe.db.get_value("RD Item", item, ["published", "visibility"], as_dict=True)
-	if not book or (by_member and not (book.published and access.can_read(book.visibility))):
+	if not book or (by_member and not (book.published and access.can_read(book.visibility, item=item))):
 		frappe.throw(_("No such book."))  # a book the member may not see is not there for them
 	frappe.db.get_value("RD Patron", member.name, "name", for_update=True)
 	cat = _category(member.category)

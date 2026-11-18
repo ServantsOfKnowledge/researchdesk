@@ -46,7 +46,7 @@ COLUMNS = (
 )
 LIST_KEYS = {"creators", "alt_creators", "subjects", "curated_collections", "collections"}
 EDITABLE = {col: key for col, key, editable in COLUMNS if editable}
-VISIBILITIES = ("Public", "Login to read", "Login to find")
+VISIBILITIES = ("Public", "Login to read", "Login to find", "Approval to read")
 
 
 def _cell(value) -> str:

@@ -204,7 +204,7 @@
 
 	function lockBadge(h) {
 		if (!h.visibility || h.visibility === "Public") return "";
-		const text = h.visibility === "Login to find" ? __("members only") : __("login to read");
+		const text = { "Login to find": __("members only"), "Approval to read": __("approval to read") }[h.visibility] || __("login to read");
 		return ` · <span class="rd-badge rd-badge--members" title="${esc(h.visibility)}">🔒 ${text}</span>`;
 	}
 

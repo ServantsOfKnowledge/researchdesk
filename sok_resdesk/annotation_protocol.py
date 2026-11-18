@@ -108,7 +108,7 @@ def annotations(**kwargs):
 
 
 def _visible_rows(book, start: int = 0, limit: int = PER_PAGE, name: str | None = None):
-	if not access.can_read(book.visibility):
+	if not access.can_read(book.visibility, item=book.name):
 		return [], 0
 	cond, params = notes._visible_condition(frappe.session.user)
 	where = f"a.item = %(item)s and {cond}" + (" and a.name = %(name)s" if name else "")

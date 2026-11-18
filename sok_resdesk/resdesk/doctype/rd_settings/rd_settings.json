@@ -70,6 +70,7 @@
   "access_section",
   "guest_access",
   "default_visibility",
+  "access_valid_days",
   "column_break_access",
   "reader_signup",
   "oai_scope",
@@ -663,10 +664,18 @@
    "fieldname": "default_visibility",
    "fieldtype": "Select",
    "label": "Default for New Books",
-   "options": "Public\nLogin to read\nLogin to find",
+   "options": "Public\nLogin to read\nLogin to find\nApproval to read",
    "default": "Public",
    "description": "Used when neither the ingest profile nor a rule below decides.",
    "permlevel": 1
+  },
+  {
+   "fieldname": "access_valid_days",
+   "fieldtype": "Int",
+   "label": "Days an Approval Lasts",
+   "default": "0",
+   "permlevel": 1,
+   "description": "How long a librarian's approval to read a book lasts, counted from the day it is given. 0 means no end; a single approval can still be given an end date."
   },
   {
    "fieldname": "column_break_access",

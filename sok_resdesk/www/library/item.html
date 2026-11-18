@@ -66,7 +66,7 @@
 			</div>
 			{% if item.visibility != "Public" and viewer.member %}
 			<p class="rd-access-note"><span class="rd-badge rd-badge--members">{{ _("Members") }}</span>
-				{% if item.visibility == "Login to find" %}{{ _("Only logged-in readers can find this book.") }}{% else %}{{ _("Anyone can find and cite this book; reading it needs a login.") }}{% endif %}</p>
+				{% if item.visibility == "Login to find" %}{{ _("Only logged-in readers can find this book.") }}{% elif item.visibility == "Approval to read" %}{{ _("Anyone can find and cite this book; reading it needs the library's approval.") }}{% else %}{{ _("Anyone can find and cite this book; reading it needs a login.") }}{% endif %}</p>
 			{% endif %}
 		</div>
 	</header>
@@ -75,7 +75,23 @@
 		<section class="rd-reader" id="rd-reader">
 			{% if not can_read %}
 			<div class="rd-card rd-locked">
-				{% if viewer.pending %}
+				{% if approval is not none %}
+				<h2>{{ _("This book needs the library's approval to read") }}</h2>
+				<div id="rd-approval" data-item="{{ item.item_id }}">
+				{% if approval.status == "Pending" %}
+				<p>{{ _("Your request is with the library. You can still find and cite this book while you wait.") }}</p>
+				<button class="rd-btn" type="button" id="rd-approval-withdraw">{{ _("Withdraw my request") }}</button>
+				{% else %}
+				{% if approval.status == "Declined" %}<p><b>{{ _("Your last request was not approved.") }}</b> {{ approval.note }}</p>
+				{% elif approval.status == "Expired" %}<p>{{ _("Your approval ended on {0}. You can ask again.").format(approval.valid_until) }}</p>
+				{% else %}<p>{{ _("Anyone can find and cite this book. To read it, tell the library why you need it; a librarian decides.") }}</p>{% endif %}
+				<label for="rd-approval-reason">{{ _("Why do you need it? (optional)") }}</label>
+				<textarea id="rd-approval-reason" rows="3" maxlength="1000" style="width:100%"></textarea>
+				<div class="rd-actions"><button class="rd-btn rd-btn--primary" type="button" id="rd-approval-ask">{{ _("Ask to read this book") }}</button></div>
+				{% endif %}
+				<p class="rd-muted" id="rd-approval-msg" role="status"></p>
+				</div>
+				{% elif viewer.pending %}
 				<h2>{{ _("Your account is waiting for approval") }}</h2>
 				<p>{{ _("The library will let you know when you can read members-only books. You can already find and cite this one.") }}</p>
 				{% else %}
@@ -231,7 +247,7 @@
 					{% for m in item.photograph %}<dt>{{ _(m.label) }}</dt><dd>{% if m.label == "SHA-256 of the original" %}<code>{{ m.value }}</code>{% else %}{{ m.value }}{% endif %}</dd>{% endfor %}
 					{% if item.item_type and item.item_type != "Book" %}<dt>{{ _("Type") }}</dt><dd>{{ _(item.item_type) }}</dd>{% endif %}
 					{% if item.collections %}<dt>{{ _("Source collections") }}</dt><dd>{{ item.collections | join(", ") }}</dd>{% endif %}
-					<dt>{{ _("Access") }}</dt><dd>{{ item.access_status }}{% if item.visibility != "Public" %} · {{ _("members only") if item.visibility == "Login to find" else _("login to read") }}{% endif %}</dd>
+					<dt>{{ _("Access") }}</dt><dd>{{ item.access_status }}{% if item.visibility != "Public" %} · {{ _("members only") if item.visibility == "Login to find" else _("approval to read") if item.visibility == "Approval to read" else _("login to read") }}{% endif %}</dd>
 					{% if item.licence_url %}<dt>{{ _("Licence") }}</dt><dd>{% if licence %}<a class="rd-licence" href="{{ licence.url }}" target="_blank" rel="license noopener" title="{{ licence.name }}"><img src="{{ licence.badge }}" width="88" height="31" alt="{{ licence.label }}" loading="lazy"></a> <span class="rd-muted">{{ licence.name }}</span>{% else %}<a href="{{ item.licence_url }}" rel="license">{{ item.licence_url }}</a>{% endif %}</dd>{% endif %}
 					{% if item.rights %}<dt>{{ _("Rights") }}</dt><dd>{{ item.rights }}</dd>{% endif %}
 				</dl>

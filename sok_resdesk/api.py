@@ -201,8 +201,10 @@ def _hit(hit: dict, mode: str) -> dict:
 				"subjects": (hit.get("subjects") or [])[:5],
 				"access": hit.get("access_status"),
 				"has_fulltext": hit.get("has_fulltext"),
+				# a book that needs approval shows no words of its text to a reader not approved for it
 				"snippet": f.get("text_excerpt")
 				if "<mark>" in (f.get("text_excerpt") or "")
+				and access.can_read(out["visibility"], item=hit["item_id"])
 				else f.get("description", ""),
 			}
 		)
@@ -337,7 +339,9 @@ def page_image(item_id: str, leaf: int = 0, width: int = 0):
 	record = get_record(item_id)
 	if not record or not can_draw(record):
 		raise frappe.PageDoesNotExistError
-	if record.get("access_status") != "Open" or not access.can_use_text(record.get("visibility")):
+	if record.get("access_status") != "Open" or not access.can_use_text(
+		record.get("visibility"), item=item_id
+	):
 		raise frappe.PermissionError
 	try:
 		data = page_jpeg(record["item_id"], max(0, cint(leaf)), min(max(0, cint(width)), 4000))
@@ -384,7 +388,7 @@ def transcript(item_id: str):
 	record = get_record(item_id)
 	if not record or not record.get("media"):
 		frappe.throw(_("Item not found"), frappe.DoesNotExistError)
-	if not access.can_read(record.get("visibility")):
+	if not access.can_read(record.get("visibility"), item=item_id):
 		return {"login_needed": True}
 	return {"segments": _segments(record), "can_proofread": pagetext.can_proofread()}
 
@@ -398,7 +402,7 @@ def captions(item_id: str):
 	record = get_record(item_id)
 	if not record or not record.get("media"):
 		raise frappe.PageDoesNotExistError
-	if not access.can_read(record.get("visibility")):
+	if not access.can_read(record.get("visibility"), item=item_id):
 		raise frappe.PermissionError
 	vtt = media.to_vtt(_segments(record), record.get("language") or "")
 	resp = Response(vtt, mimetype="text/vtt")
@@ -417,7 +421,7 @@ def page(item_id: str, leaf: int = 0, q: str = ""):
 	record = get_record(item_id)
 	if not record:
 		frappe.throw(_("Item not found"), frappe.DoesNotExistError)
-	if not access.can_use_text(record.get("visibility")):
+	if not access.can_use_text(record.get("visibility"), item=item_id):
 		return {"login_needed": True, "members_only": True}
 	try:
 		pages = fetch_pages(item_id) if record.get("has_page_text") else []
@@ -476,7 +480,7 @@ def item(item_id: str):
 		frappe.throw(_("Item not found"), frappe.DoesNotExistError)
 	record.pop("modified", None)
 	record.pop("set_specs", None)
-	record["can_read"] = access.can_read(record.get("visibility"))
+	record["can_read"] = access.can_read(record.get("visibility"), item=item_id)
 	if not record["can_read"]:
 		record["pdf_url"] = ""
 	record["portal_url"] = f"{base_url()}/library/item/{item_id}"
@@ -513,7 +517,7 @@ def book_text(item_id: str, format: str = "epub"):
 	record = get_record(item_id)
 	if not record:
 		frappe.throw(_("Item not found"), frappe.DoesNotExistError)
-	if not access.can_use_text(record.get("visibility")):
+	if not access.can_use_text(record.get("visibility"), item=item_id):
 		frappe.throw(_("Log in as a member to download this book's text."), frappe.PermissionError)
 	fmt = (format or "epub").lower()
 	if fmt not in ("epub", "txt"):
@@ -620,7 +624,7 @@ def file(item_id: str, name: str):
 		found = copy_pdf(item_id)
 		if not found or name != found[0] or not access.can_find(doc.visibility):
 			raise frappe.PageDoesNotExistError
-		if doc.access_status != "Open" or not access.can_read(doc.visibility):
+		if doc.access_status != "Open" or not access.can_read(doc.visibility, item=doc.name):
 			raise frappe.PermissionError
 		seams.emit("download", item_id, name)
 		return _private(
@@ -638,7 +642,9 @@ def file(item_id: str, name: str):
 		raise frappe.PageDoesNotExistError
 	if not access.can_find(doc.visibility):
 		raise frappe.PageDoesNotExistError
-	if name != doc.local_thumb and (doc.access_status != "Open" or not access.can_read(doc.visibility)):
+	if name != doc.local_thumb and (
+		doc.access_status != "Open" or not access.can_read(doc.visibility, item=doc.name)
+	):
 		raise frappe.PermissionError
 	if name != doc.local_thumb:
 		seams.emit("download", item_id, name)

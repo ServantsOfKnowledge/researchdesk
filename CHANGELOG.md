@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.131.0 (2026-11-18): Approval to read
+
+- **A fourth visibility, Approval to read.** For restricted, lending-only, university or research books: anyone can find and cite the book,
+  but only staff and readers a librarian has approved for *that book* can read it. It is set like the other levels (on a book, in bulk, by
+  collection, ingest profile or access rule).
+- **Ask, approve, decline.** A logged-in reader sees **Ask to read this book** with a box for why; staff get an alert and decide in the new
+  **Access Requests** screen (tick several → Approve / Decline, an end date and a note to the reader). The reader is emailed and sees the
+  decision on the book's page. *Days an Approval Lasts* in Settings sets a default end; an expired approval stops by itself.
+- **Fails closed.** Reading, page images, text, downloads, IIIF, OPDS, notes and search of the page text all check the approval; a book
+  needing approval shows no words of its text in search results to a reader who is not approved. Read only and research only
+  controls for these books follow in the next release.
+
 ## 0.130.0 (2026-11-17): The assistant reads a sentence as a search
 
 - **Help Search.** With Settings → Assistant on, a search of four or more words with no filters may offer *Search Kuvempu with Kannada,

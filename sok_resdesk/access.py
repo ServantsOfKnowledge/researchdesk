@@ -96,14 +96,38 @@ def can_find(visibility: str | None, user: str | None = None) -> bool:
 	return core.can_find(visibility, guest_mode(), is_member(user))
 
 
-def can_read(visibility: str | None, user: str | None = None) -> bool:
-	return core.can_read(visibility, guest_mode(), is_member(user))
+def can_read(visibility: str | None, user: str | None = None, item: str | None = None) -> bool:
+	"""`item` is the book's name: a book that needs approval reads as members-only for staff and for a
+	reader approved for it, and not at all for anyone else (so a call that forgets `item` fails closed)."""
+	return core.can_read(effective(visibility, item, user), guest_mode(), is_member(user))
 
 
-def can_use_text(visibility: str | None, user: str | None = None) -> bool:
+def can_use_text(visibility: str | None, user: str | None = None, item: str | None = None) -> bool:
 	"""Page & text, the page images behind it and the text downloads are for members: a logged-in
 	reader (or staff) who may read the book. They are what a scraper wants, and what costs bandwidth."""
-	return can_read(visibility, user) and is_member(user)
+	return can_read(visibility, user, item) and is_member(user)
+
+
+# -- approval to read ----------------------------------------------------------------------
+
+
+def _live_grants_sql() -> str:
+	return (
+		"select item from `tabRD Access Request` where user = %(user)s and status = 'Approved' "
+		"and (valid_until is null or valid_until >= %(today)s)"
+	)
+
+
+def granted_items(user: str | None = None) -> list[str]:
+	"""The books a reader was approved to read (approved, and not past the end date)."""
+	user = user or frappe.session.user
+	if user == "Guest":
+		return []
+	return frappe.db.sql_list(_live_grants_sql(), {"user": user, "today": frappe.utils.nowdate()})
+
+
+def has_grant(item: str | None, user: str | None = None) -> bool:
+	return bool(item) and item in granted_items(user)
 
 
 # -- Governance Mode: classification and need-to-know ------------------------------------
@@ -113,10 +137,16 @@ def governed() -> bool:
 	return seams.governed()  # Governance Mode is one switch: the audit log and the classification
 
 
-def effective(visibility: str | None, item: str | None = None) -> str | None:
+def effective(visibility: str | None, item: str | None = None, user: str | None = None) -> str | None:
 	"""A record's visibility for the person looking: a classified record they are cleared for reads like
 	a members-only one (Login to find); one they are not cleared for stays Cleared only, which the
 	plain rules never show."""
+	if visibility == core.APPROVAL:
+		# staff, and a reader approved for this book, read it as a members-only book
+		user = user or frappe.session.user
+		if user != "Guest" and (is_staff(user) or has_grant(item, user)):
+			return core.LOGIN_TO_READ
+		return visibility
 	if visibility != core.CLEARED_ONLY:
 		return visibility
 	if frappe.session.user != "Guest" and is_member() and seams.cleared(item):
@@ -127,7 +157,10 @@ def effective(visibility: str | None, item: str | None = None) -> str | None:
 def search_filter(kind: str) -> str | None:
 	"""The plain rules, and a classified record is never in them. Governance Mode only adds the
 	people who are cleared for it: with it off (or unreadable) a classified record stays hidden."""
-	base = core.search_filter(kind, guest_mode(), is_member())
+	member = is_member()
+	base = core.search_filter(
+		kind, guest_mode(), member, is_staff(), tuple(granted_items()) if member and kind == "pages" else ()
+	)
 	if base == "":
 		return base
 	hidden = f'NOT visibility = "{core.CLEARED_ONLY}"'
@@ -620,12 +653,12 @@ def on_user_insert(doc, method=None):
 		).insert(ignore_permissions=True)
 
 
-def notify_managers(request, subject: str | None = None) -> None:
-	"""A Desk alert for every manager about a new request, message or the like."""
+def notify_managers(request, subject: str | None = None, roles: tuple = MANAGER_ROLES) -> None:
+	"""A Desk alert for every manager (or the given roles) about a new request, message or the like."""
 	managers = {
 		u
 		for u in frappe.get_all(
-			"Has Role", filters={"role": ("in", MANAGER_ROLES), "parenttype": "User"}, pluck="parent"
+			"Has Role", filters={"role": ("in", roles), "parenttype": "User"}, pluck="parent"
 		)
 		if u not in ("Guest",) and frappe.db.get_value("User", u, "enabled")
 	}

@@ -296,7 +296,7 @@
    "fieldname": "visibility",
    "fieldtype": "Select",
    "label": "Access for Its Books",
-   "options": "\nPublic\nLogin to read\nLogin to find",
+   "options": "\nPublic\nLogin to read\nLogin to find\nApproval to read",
    "description": "Who can see books ingested by this profile. Leave empty to use the rules and default in Settings. Use “Apply Access to Its Books” to change books already ingested."
   },
   {

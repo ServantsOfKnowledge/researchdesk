@@ -35,13 +35,18 @@ def get_context(context):
 	context.full_width = 1
 	context.show_sidebar = 0
 	context.portal_title = s.portal_title or "SOK Research Desk"
-	context.can_read = access.can_read(record.get("visibility"))
+	context.can_read = access.can_read(record.get("visibility"), item=item_id)
 	if not context.can_read:
 		record["pdf_url"] = ""  # keep it out of the page and its citation meta tags
 		record["downloads"] = []
 	context.item = record
 	context.licence = licence.parse(record.get("licence_url"))
 	context.viewer = access.viewer()
+	context.approval = None
+	if record.get("visibility") == "Approval to read" and context.viewer["member"] and not context.can_read:
+		from sok_resdesk import approval
+
+		context.approval = approval.state(item_id)
 	names = record.get("curated_collections") or []
 	context.curated = (
 		frappe.get_all(
@@ -71,7 +76,7 @@ def get_context(context):
 	own_images = bool(record.get("local_images"))
 	wanted = frappe.form_dict.get("view") or ("text" if own_images and not record.get("pdf_url") else "")
 	# Page & text and the text downloads are for members (bandwidth, scraping); guests see why
-	context.text_reader = context.page_reader and access.can_use_text(record.get("visibility"))
+	context.text_reader = context.page_reader and access.can_use_text(record.get("visibility"), item=item_id)
 	context.members_note = context.page_reader and context.can_read and not context.text_reader
 	context.start_view = "text" if context.text_reader and wanted == "text" else "book"
 	# Reader: the Internet Archive's BookReader when the book is there, the PDF from our own files,
@@ -91,7 +96,7 @@ def get_context(context):
 		from sok_resdesk import contents
 
 		context.contents = (
-			contents.published(item_id) if access.can_use_text(record.get("visibility")) else []
+			contents.published(item_id) if access.can_use_text(record.get("visibility"), item=item_id) else []
 		)
 	except Exception:
 		context.contents = []

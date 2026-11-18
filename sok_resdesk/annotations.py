@@ -93,7 +93,11 @@ def _book(item_id: str) -> dict:
 
 
 def _can_annotate(book: dict) -> bool:
-	return frappe.session.user != "Guest" and access.can_read(book.visibility) and features.on("notes")
+	return (
+		frappe.session.user != "Guest"
+		and access.can_read(book.visibility, item=book.name)
+		and features.on("notes")
+	)
 
 
 def _page_text(item_id: str, leaf: int) -> str | None:
@@ -133,7 +137,7 @@ def page_notes(item_id: str, leaf: int = 0) -> dict:
 	book = _book(item_id)
 	user = frappe.session.user
 	leaf = cint(leaf)
-	readable = access.can_read(book.visibility)
+	readable = access.can_read(book.visibility, item=book.name)
 	me = {
 		"logged_in": user != "Guest",
 		"can_annotate": _can_annotate(book),
@@ -464,7 +468,7 @@ def _public_notes(where: str, params: dict, limit: int = 500) -> list[dict]:
 		{**params, "limit": limit},
 		as_dict=True,
 	)
-	rows = [r for r in rows if access.can_read(r.book_visibility)]
+	rows = [r for r in rows if access.can_read(r.book_visibility, item=r.item)]
 	return _with_citation(rows)
 
 
@@ -630,7 +634,7 @@ def collection(item_id: str, leaf: int | None = None):
 
 	book = _book(item_id)
 	rows = []
-	if access.can_read(book.visibility):
+	if access.can_read(book.visibility, item=book.name):
 		rows = frappe.db.sql(
 			f"""select {", ".join("a." + f for f in FIELDS)}, i.title as book_title, i.persistent_id
 			from `tab{DT}` a join `tabRD Item` i on i.name = a.item
@@ -660,6 +664,6 @@ def get(name: str):
 		{**params, "name": name},
 		as_dict=True,
 	)
-	if not rows or not access.can_read(frappe.db.get_value("RD Item", row.item, "visibility")):
+	if not rows or not access.can_read(frappe.db.get_value("RD Item", row.item, "visibility"), item=row.item):
 		raise frappe.DoesNotExistError
 	return _text_response(frappe.as_json(_w3c(_with_citation(rows)[0])), "application/ld+json")

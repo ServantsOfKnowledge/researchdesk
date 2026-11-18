@@ -38,7 +38,7 @@
    "fieldname": "visibility",
    "fieldtype": "Select",
    "label": "Who Can See It",
-   "options": "Public\nLogin to read\nLogin to find",
+   "options": "Public\nLogin to read\nLogin to find\nApproval to read",
    "default": "Login to read",
    "in_list_view": 1,
    "reqd": 1,

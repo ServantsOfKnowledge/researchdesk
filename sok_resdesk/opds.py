@@ -52,7 +52,11 @@ def _iso(value) -> str:
 
 def _book(row, base: str) -> dict:
 	files = []
-	if row.source == "Local" and row.access_status == "Open" and access.can_read(row.visibility):
+	if (
+		row.source == "Local"
+		and row.access_status == "Open"
+		and access.can_read(row.visibility, item=row.name)
+	):
 		names = list(dict.fromkeys([row.local_pdf, *(row.local_files or "").splitlines()]))
 		files = [
 			(

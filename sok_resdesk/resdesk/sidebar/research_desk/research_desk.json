@@ -423,6 +423,22 @@
    "indent": 0,
    "is_default_module": 0,
    "keep_closed": 0,
+   "label": "Access Requests",
+   "link_to": "RD Access Request",
+   "link_type": "DocType",
+   "open_in_new_tab": 0,
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "added": 0,
+   "child": 1,
+   "collapsible": 1,
+   "hidden": 0,
+   "icon": "",
+   "indent": 0,
+   "is_default_module": 0,
+   "keep_closed": 0,
    "label": "Messages",
    "link_to": "RD Message",
    "link_type": "DocType",
@@ -1347,7 +1363,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-11-15 06:00:00.000000",
+ "modified": "2026-11-15 12:40:00.000000",
  "module": "ResDesk",
  "name": "Research Desk",
  "standard": 1,

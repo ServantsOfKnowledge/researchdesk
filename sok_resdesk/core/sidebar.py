@@ -60,6 +60,7 @@ STRUCTURE: list = [
 		"users",
 		[
 			("Reader Requests", D, "RD Reader Request"),
+			("Access Requests", D, "RD Access Request"),
 			("Messages", D, "RD Message"),
 			("Research Groups", D, "RD Research Group"),
 			("Notes", D, "RD Annotation"),

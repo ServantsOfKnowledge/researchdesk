@@ -119,7 +119,8 @@ TOURS: dict[str, list[tuple[str, str, str]]] = {
 		(
 			"visibility",
 			"Who can see it",
-			"Public, <i>Login to read</i> (anyone finds it, members read it) or "
+			"Public, <i>Login to read</i> (anyone finds it, members read it), "
+			"<i>Approval to read</i> (members read it once a librarian approves them) or "
 			"<i>Login to find</i> (members only).",
 		),
 		("subjects", "Subjects", "Used by the Subject filter on the portal and in exports."),

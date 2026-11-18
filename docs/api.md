@@ -187,6 +187,9 @@ only; 10 a minute.
 | `sok_resdesk.search_queue.books_first` · `hold_page_text` (`hold`=1/0) · `clear_history` (`days`) | cancel the waiting page text so books are listed next (it is sent again later); hold or resume page text; forget finished tasks older than `days` (7) |
 | `sok_resdesk.contents.extract` (`item_id`, `reread`=0/1) | read one book's contents pages into a draft (staff; `reread` reads them again with OCR in the background) |
 | `sok_resdesk.contents.bulk` (`names`, `filters` or `everything=1`) | read the contents of many books in the background (managers and super admins only) |
+| `sok_resdesk.approval.request` (`item_id`, `reason`) | a logged-in reader asks to read a book set to *Approval to read* (30 an hour) |
+| `sok_resdesk.approval.withdraw` (`item_id`) | the reader takes a pending request back |
+| `sok_resdesk.approval.decide` (`names`, `status`=`Approved`/`Declined`, `valid_until`, `note`) | approve or decline requests (managers and cataloguers) |
 | `sok_resdesk.api.understand` (`q`) | a search typed as a sentence read as search words and filters by the assistant: `{q, filters}` or `{}` (public, needs Settings → Assistant → Help Search, 20 a minute per address, answers cached an hour) |
 | `sok_resdesk.assistant.test` | ask the configured language model a trivial question, to check Settings → Assistant (managers and super admins only) |
 | `sok_resdesk.frontmatter.extract` (`item_id`) | read publisher, place, year and ISBN from one book's title and imprint pages into a draft (staff) |

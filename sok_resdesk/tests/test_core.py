@@ -261,10 +261,11 @@ def test_access_matrix():
 	from sok_resdesk.core import access as a
 
 	P, R, F = a.PUBLIC, a.LOGIN_TO_READ, a.LOGIN_TO_FIND
-	# members see and read everything, whatever the guest mode
+	# members see and read everything, whatever the guest mode (a book needing approval is read only once
+	# access.effective says the member is approved or staff)
 	for mode in a.GUEST_MODES:
 		for vis in a.VISIBILITIES:
-			assert a.can_find(vis, mode, True) and a.can_read(vis, mode, True)
+			assert a.can_find(vis, mode, True) and a.can_read(vis, mode, True) == (vis != a.APPROVAL)
 	# guests, item mode
 	assert a.can_find(P, a.GUEST_ITEM, False) and a.can_read(P, a.GUEST_ITEM, False)
 	assert a.can_find(R, a.GUEST_ITEM, False) and not a.can_read(R, a.GUEST_ITEM, False)
@@ -285,11 +286,22 @@ def test_access_search_filters():
 	assert a.search_filter("books", a.GUEST_ITEM, False) == 'NOT visibility = "Login to find"'
 	assert (
 		a.search_filter("pages", a.GUEST_ITEM, False)
-		== 'NOT visibility IN ["Login to read", "Login to find"]'
+		== 'NOT visibility IN ["Login to read", "Login to find", "Approval to read"]'
 	)
 	assert a.search_filter("pages", a.GUEST_RECORDS, False) == ""
 	assert a.search_filter("books", a.GUEST_RECORDS, False) == 'NOT visibility = "Login to find"'
 	assert a.search_filter("books", a.GUEST_NONE, False) == ""
+	# a book needing approval: found by everyone, read by nobody until approved; its page text only for the approved
+	assert not a.can_read(a.APPROVAL, a.GUEST_ITEM, True) and not a.can_read(a.APPROVAL, a.GUEST_ITEM, False)
+	assert a.can_find(a.APPROVAL, a.GUEST_ITEM, False) and a.can_find(a.APPROVAL, a.GUEST_ITEM, True)
+	assert a.search_filter("books", a.GUEST_ITEM, True) is None and a.search_filter(
+		"books", a.GUEST_ITEM, False
+	) == ('NOT visibility = "Login to find"')
+	assert a.search_filter("pages", a.GUEST_ITEM, True) == 'NOT visibility = "Approval to read"'
+	assert a.search_filter("pages", a.GUEST_ITEM, True, granted=("b1", "b2")) == (
+		'(NOT visibility = "Approval to read" OR item_id IN ["b1", "b2"])'
+	)
+	assert a.search_filter("pages", a.GUEST_ITEM, True, staff=True) is None
 	assert a.sql_condition(a.GUEST_NONE, False) == "1=0"
 	assert a.sql_condition(a.GUEST_ITEM, True) == "1=1"
 

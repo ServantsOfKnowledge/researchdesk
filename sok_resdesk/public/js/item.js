@@ -179,8 +179,40 @@
 		if (q && !$("#rd-inside-q").disabled) searchInside(q);
 	}
 
+	// a book that needs the library's approval: ask to read it, or take the request back
+	function initApproval() {
+		const box = $("#rd-approval");
+		if (!box) return;
+		const csrf = () => (window.frappe && frappe.csrf_token) || (document.cookie.match(/csrf_token=([^;]+)/) || [])[1] || "";
+		const send = async (method, args) => {
+			const r = await fetch(`/api/method/sok_resdesk.approval.${method}`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json", Accept: "application/json", "X-Frappe-CSRF-Token": csrf() },
+				body: JSON.stringify({ item_id: box.dataset.item, ...args }),
+			});
+			if (!r.ok) throw new Error(__("Something went wrong. Please try again."));
+			return (await r.json()).message || {};
+		};
+		const act = (id, method, args) => {
+			const b = $(id);
+			if (b) b.addEventListener("click", async () => {
+				b.disabled = true;
+				try {
+					await send(method, args ? args() : {});
+					location.reload();
+				} catch (e) {
+					$("#rd-approval-msg").textContent = e.message;
+					b.disabled = false;
+				}
+			});
+		};
+		act("#rd-approval-ask", "request", () => ({ reason: $("#rd-approval-reason").value }));
+		act("#rd-approval-withdraw", "withdraw");
+	}
+
 	document.addEventListener("DOMContentLoaded", () => {
 		if (!root()) return;
+		initApproval();
 		initCite();
 		initList();
 		initInside();

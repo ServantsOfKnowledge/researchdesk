@@ -205,13 +205,13 @@
    "fieldname": "visibility",
    "fieldtype": "Select",
    "label": "Who can see it",
-   "options": "Public\nLogin to read\nLogin to find\nCleared only",
+   "options": "Public\nLogin to read\nLogin to find\nApproval to read\nCleared only",
    "default": "Public",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "search_index": 1,
    "permlevel": 1,
-   "description": "Public: anyone can find and read it. Login to read: anyone can find and cite it; reading, search inside and the PDF need a login. Login to find: only logged-in readers can find it."
+   "description": "Public: anyone can find and read it. Login to read: anyone can find and cite it; reading, search inside and the PDF need a login. Approval to read: anyone can find and cite it; reading needs a login and a librarian's approval of that reader for that book. Login to find: only logged-in readers can find it."
   },
   {
    "fieldname": "visibility_set_by",

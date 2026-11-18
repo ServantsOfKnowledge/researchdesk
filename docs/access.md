@@ -5,12 +5,13 @@ internal library for one organisation, or anything in between. You decide per bo
 collection or for the whole site. Logged-in **readers** and staff always see every published
 book (except records the governance edition has classified: see [Government and institutional use](governance.md)).
 
-## The three choices for a book
+## The four choices for a book
 
 | Visibility | Visitors who are not logged in | Logged-in readers |
 |---|---|---|
 | **Public** (default) | find it, read it, search inside it, download the PDF | everything |
 | **Login to read** | find it, see its details, **cite it** (BibTeX, RIS, …); reading, search inside and the PDF need a login | everything |
+| **Approval to read** | find it, see its details, **cite it**; reading needs a login *and* a librarian's approval | find it and see its details; **read it once a librarian approves them for that book** (staff always can) |
 | **Login to find** | nothing: it doesn't appear in search, and its page asks them to log in | everything |
 
 **Page & text, and the text downloads, are for members on every book**, even a Public one: the
@@ -22,6 +23,22 @@ why. With open sign-up every logged-in account is a member.
 
 On the portal, members-only books carry a small 🔒 badge, and the book page shows a
 **Log in to read** button instead of the reader.
+
+## Approval to read
+
+For theses, research data, a university's own papers, lending-only or other restricted books: set **Who can see it** to *Approval to read*
+(on a book, in bulk, per collection or ingest profile, or by an access rule, like any other level).
+
+- Everyone can **find** the book, see its details and cite it; the search shows no words of its text to a reader who is not approved.
+- A logged-in reader opens the book and sees **Ask to read this book**, with a box for why they need it. A guest is asked to log in first.
+- Staff (managers and cataloguers, the library's librarians) get an alert and decide in the Desk: **Research Desk → Access Requests**. Tick
+  requests → **Actions → Approve / Decline**, or open one to set an **Approved Until** date and a **Note to the Reader**. The reader is
+  emailed, if email is set up, and sees the decision on the book's page.
+- An approval is for one reader and one book. **Settings → Access & Sign-up → Days an Approval Lasts** sets how long approvals last
+  (0 = no end); an approval past its end date stops working by itself and the reader can ask again. A declined or withdrawn request can be
+  asked again too.
+- An approved reader reads the book like a member reads a members-only book, and searching all the text includes its pages for them. Staff
+  read it without a request. For everyone else it behaves as unreadable everywhere: the reader, page images, downloads, IIIF, OPDS, notes.
 
 *Unpublished* books (untick **Published on Portal** on the item) are hidden from everyone
 except staff, whatever their visibility.
