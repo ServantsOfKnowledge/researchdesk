@@ -211,6 +211,50 @@ frappe.listview_settings["RD Item"] = {
 				ask(__("Selected books"), { names: JSON.stringify(names) }, names.length);
 			});
 
+			// how a book can be used (Full, Read only, Research only): also decided by managers
+			const set_use = (args, count, label) => {
+				const d = new frappe.ui.Dialog({
+					title: __("How {0} can be used", [label]),
+					fields: [
+						{
+							fieldname: "use_level",
+							fieldtype: "Select",
+							label: __("How they can be used"),
+							options: ["Full", "Read only", "Research only"],
+							default: "Read only",
+							reqd: 1,
+							description: __(
+								"Full: read and download. Read only: read page by page, no PDF, text or image download. Research only: read only, and the text can be searched but not copied or downloaded. Staff are not limited."
+							),
+						},
+					],
+					primary_action_label: __("Apply to {0} books", [count]),
+					primary_action(values) {
+						d.hide();
+						frappe.call({
+							method: "sok_resdesk.access.bulk_set_use_level",
+							args: { ...args, use_level: values.use_level },
+							freeze: true,
+							callback: (r) => {
+								frappe.show_alert({ message: r.message.message, indicator: "green" }, 7);
+								listview.refresh();
+							},
+						});
+					},
+				});
+				d.show();
+			};
+			listview.page.add_actions_menu_item(__("Set How They Can Be Used"), () => {
+				const names = picked();
+				if (names.length) set_use({ names: JSON.stringify(names) }, names.length, __("the selected books"));
+			});
+			listview.page.add_menu_item(__("Set How All Matching Books Can Be Used"), () => {
+				const filters = listview.get_filters_for_args();
+				frappe.db.count("RD Item", { filters }).then((count) =>
+					set_use(filters.length ? { filters: JSON.stringify(filters) } : { everything: 1 }, count, filters.length ? __("the books matching the filters") : __("all books"))
+				);
+			});
+
 			listview.page.add_menu_item(__("Set Who Can See All Matching Books"), () => {
 				const filters = listview.get_filters_for_args();
 				frappe.db.count("RD Item", { filters }).then((count) => {

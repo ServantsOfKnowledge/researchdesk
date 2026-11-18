@@ -36,7 +36,10 @@ def get_context(context):
 	context.show_sidebar = 0
 	context.portal_title = s.portal_title or "SOK Research Desk"
 	context.can_read = access.can_read(record.get("visibility"), item=item_id)
-	if not context.can_read:
+	context.can_download = access.can_download(record.get("visibility"), item=item_id)
+	context.use_level = access.use_level(item_id)
+	pdf_before = bool(record.get("pdf_url"))
+	if not context.can_download:
 		record["pdf_url"] = ""  # keep it out of the page and its citation meta tags
 		record["downloads"] = []
 	context.item = record
@@ -66,19 +69,25 @@ def get_context(context):
 	# (page image and its text, page links and page citations); ?view=text opens the second
 	# a manuscript has its leaves beside a place to transcribe them, even before any text exists
 	media = record.get("media")
+	restricted = context.can_read and not context.can_download
 	context.page_reader = not media and bool(
 		record.get("has_page_text")
 		or record.get("on_archive_org")
 		or record.get("item_type") == "Manuscript"
 		or record.get("local_images")
+		or (restricted and pdf_before)  # a restricted book is read page by page, never as a PDF
 	)
 	# a book of photographs (a manuscript, a photograph) is read in Page & text: it has no PDF to show
 	own_images = bool(record.get("local_images"))
 	wanted = frappe.form_dict.get("view") or ("text" if own_images and not record.get("pdf_url") else "")
 	# Page & text and the text downloads are for members (bandwidth, scraping); guests see why
-	context.text_reader = context.page_reader and access.can_use_text(record.get("visibility"), item=item_id)
+	context.text_reader = context.page_reader and access.can_view_pages(
+		record.get("visibility"), item=item_id
+	)
+	context.restricted = restricted
 	context.members_note = context.page_reader and context.can_read and not context.text_reader
-	context.start_view = "text" if context.text_reader and wanted == "text" else "book"
+	# a book that can only be read (not downloaded) has no book reader: archive.org's and the PDF allow downloads
+	context.start_view = "text" if context.text_reader and (wanted == "text" or restricted) else "book"
 	# Reader: the Internet Archive's BookReader when the book is there, the PDF from our own files,
 	# or for a repository's book its record and PDF there (other sites' PDFs often refuse a frame)
 	context.reader = (
@@ -90,6 +99,8 @@ def get_context(context):
 		if record.get("from_repository") or record.get("from_wikisource")
 		else ("pdf" if record.get("pdf_url") else "none")
 	)
+	if restricted:
+		context.reader = "none"  # archive.org's reader and a PDF in a frame both allow downloads
 	context.pdf_url = record.get("pdf_url") or ""
 	# the book's table of contents, once a person has checked and published it (it is read from the text)
 	try:

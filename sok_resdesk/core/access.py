@@ -27,6 +27,12 @@ VISIBILITIES = (PUBLIC, LOGIN_TO_READ, LOGIN_TO_FIND, APPROVAL)
 # access.effective for the people who are cleared for it.
 CLEARED_ONLY = "Cleared only"
 
+# How a book can be used (RD Item.use_level)
+FULL = "Full"
+READ_ONLY = "Read only"
+RESEARCH_ONLY = "Research only"
+USE_LEVELS = (FULL, READ_ONLY, RESEARCH_ONLY)
+
 GUEST_ITEM = "Each item's setting"
 GUEST_RECORDS = "Records only"
 GUEST_NONE = "Login required"

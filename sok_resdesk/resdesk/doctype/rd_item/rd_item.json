@@ -18,6 +18,7 @@
   "item_type",
   "published",
   "visibility",
+  "use_level",
   "visibility_set_by",
   "access_status",
   "thumbnail_url",
@@ -212,6 +213,14 @@
    "search_index": 1,
    "permlevel": 1,
    "description": "Public: anyone can find and read it. Login to read: anyone can find and cite it; reading, search inside and the PDF need a login. Approval to read: anyone can find and cite it; reading needs a login and a librarian's approval of that reader for that book. Login to find: only logged-in readers can find it."
+  },
+  {
+   "fieldname": "use_level",
+   "fieldtype": "Select",
+   "label": "How It Can Be Used",
+   "options": "Full\nRead only\nResearch only",
+   "default": "Full",
+   "description": "Full: read, download the PDF, text and images. Read only: page images in the portal's reader, no PDF, text or image download. Research only: read only plus no extractable text: search shows hit pages and short snippets, with no page text, text download or read aloud. Staff are not limited. A screenshot cannot be prevented, and a book that is also open on archive.org stays open there."
   },
   {
    "fieldname": "visibility_set_by",

@@ -26,7 +26,11 @@ def _book(doc, stores: dict, with_files: bool) -> dict:
 	from sok_resdesk.ingest import read_cached_pages
 
 	record = item_to_record(doc)
-	public = doc.access_status == "Open" and (doc.visibility or "Public") == "Public"
+	public = (
+		doc.access_status == "Open"
+		and (doc.visibility or "Public") == "Public"
+		and (doc.use_level or "Full") == "Full"
+	)
 	files, cover = _files(doc, stores) if public and with_files else ([], "")
 	pages = (read_cached_pages(doc.item_id) or []) if public and doc.has_page_text else []
 	return {

@@ -40,6 +40,22 @@ For theses, research data, a university's own papers, lending-only or other rest
 - An approved reader reads the book like a member reads a members-only book, and searching all the text includes its pages for them. Staff
   read it without a request. For everyone else it behaves as unreadable everywhere: the reader, page images, downloads, IIIF, OPDS, notes.
 
+## How a book can be used: read only and research only
+
+*Who can see it* decides who may open a book. **How it can be used** decides what they can do with it once they have. Set it on a book
+(*How It Can Be Used*), or for many books: Items list → tick books → **Actions → Set How They Can Be Used** (or **⋯ → Set How All
+Matching Books Can Be Used** for a filter). Like *who can see it*, only managers and super admins change it.
+
+| Level | The reader can | The reader cannot |
+|---|---|---|
+| **Full** (default) | read, download the PDF and other files, the text as EPUB or plain text | |
+| **Read only** | read the book page by page in **Page & text** (page image and its text) | download the PDF or any file, download the text, use IIIF, OPDS file links, or open archive.org's own reader or a PDF in a frame (the Book reader tab is not offered) |
+| **Research only** | read the page images and **search** the text: hit pages with short snippets | see the page text, read aloud, download anything |
+
+It combines with *Approval to read*: a thesis can need approval, then be read only. Staff are not limited, so they can work on the
+book. Limits to know: nothing can stop a screenshot or someone copying by hand; a book that is also open on archive.org stays open
+there; page images still reach the reader's browser to be shown. Research only is for material where the text must not leave the library.
+
 *Unpublished* books (untick **Published on Portal** on the item) are hidden from everyone
 except staff, whatever their visibility.
 

@@ -45,16 +45,16 @@
 				{% elif not viewer.logged_in %}
 				<a class="rd-btn rd-btn--primary" href="{{ login_url }}">{{ _("Log in to read") }}</a>
 				{% endif %}
-				{% if can_read and item.access_status == "Open" and pdf_url %}
+				{% if can_download and item.access_status == "Open" and pdf_url %}
 				<a class="rd-btn" href="{{ pdf_url }}">{{ _("Download PDF") }}</a>
 				{% endif %}
-				{% if can_read and item.access_status == "Open" %}{% for d in item.downloads %}
+				{% if can_download and item.access_status == "Open" %}{% for d in item.downloads %}
 				<a class="rd-btn" href="{{ d.url }}" download>{{ _("Download {0}").format(d.label) }}</a>
 				{% endfor %}{% endif %}
 				<button class="rd-btn" type="button" id="rd-cite-open" data-scope="book">{{ _("Cite") }}</button>
 				<button class="rd-btn" type="button" id="rd-add-list">{{ _("Add to my list") }}</button>
 				<a class="rd-btn rd-btn--plain" href="#rd-about">{{ _("Details") }} ↓</a>
-				{% if item.on_archive_org and can_read %}
+				{% if item.on_archive_org and can_download %}
 				<a class="rd-btn" href="https://archive.org/details/{{ item.item_id }}" target="_blank" rel="noopener">{{ _("Internet Archive") }} ↗</a>
 				{% endif %}
 				{% for c in catalogue_links %}
@@ -143,13 +143,17 @@
 				</div>
 			</div>
 			{% endif %}
-			{% if text_reader %}
+			{% if text_reader and not restricted %}
 			<div class="rd-views" role="tablist" aria-label="{{ _('Reader') }}">
 				<button type="button" role="tab" class="rd-view{% if start_view == 'book' %} is-active{% endif %}" data-view="book" aria-selected="{{ 'true' if start_view == 'book' else 'false' }}">{{ _("Book reader") }}</button>
 				<button type="button" role="tab" class="rd-view{% if start_view == 'text' %} is-active{% endif %}" data-view="text" aria-selected="{{ 'true' if start_view == 'text' else 'false' }}">{{ _("Page & text") }}</button>
 			</div>
 			{% endif %}
-			<div class="rd-view-pane{% if start_view != 'book' %} is-hidden{% endif %}" data-pane="book">
+			{% if restricted %}
+			<p class="rd-access-note"><span class="rd-badge rd-badge--members">{{ _("Read only") if use_level == "Read only" else _("Research only") }}</span>
+				{{ _("This book can be read here, page by page, but not downloaded.") if use_level == "Read only" else _("This book can be read here, page by page. Its text can be searched, but not copied or downloaded.") }}</p>
+			{% endif %}
+			<div class="rd-view-pane{% if start_view != 'book' or restricted %} is-hidden{% endif %}" data-pane="book">
 				{% if reader == "ia" %}
 				<iframe id="rd-reader-frame" title="{{ _('Book reader') }}"
 					src="https://archive.org/embed/{{ item.item_id }}{% if start_leaf %}#page/n{{ start_leaf }}/mode/1up{% endif %}"
@@ -161,7 +165,7 @@
 				<div class="rd-card">
 					<p>{{ _("This book is kept by the site it comes from (a repository or Wikisource). Read it there:") }}</p>
 					<p>
-						{% if can_read and pdf_url %}<a class="rd-btn" href="{{ pdf_url }}" rel="noopener">{{ _("Open the PDF") }}</a>{% endif %}
+						{% if can_download and pdf_url %}<a class="rd-btn" href="{{ pdf_url }}" rel="noopener">{{ _("Open the PDF") }}</a>{% endif %}
 						{% if item.source_url %}<a class="rd-btn" href="{{ item.source_url }}" rel="noopener">{{ _("Its page at the source") }}</a>{% endif %}
 					</p>
 					{% if text_reader %}<p class="rd-muted">{{ _("Its text, page by page, is under Page & text.") }}</p>{% endif %}
@@ -181,7 +185,7 @@
 					<span class="rd-pages__spacer"></span>
 					<button class="rd-btn" type="button" id="rd-pages-link">{{ _("Copy page link") }}</button>
 					<button class="rd-btn" type="button" id="rd-pages-cite" data-scope="page">{{ _("Cite this page") }}</button>
-					<button class="rd-btn" type="button" id="rd-pages-book">{{ _("Open in book reader") }}</button>
+					{% if not restricted %}<button class="rd-btn" type="button" id="rd-pages-book">{{ _("Open in book reader") }}</button>{% endif %}
 					<button class="rd-btn" type="button" id="rd-read-aloud" aria-pressed="false" hidden>{{ _("Read aloud") }}</button>
 				</div>
 				<p class="rd-muted rd-read-status" id="rd-read-status" role="status"></p>
@@ -196,7 +200,7 @@
 				</div>
 				<div class="rd-pages__body">
 					<figure class="rd-pages__image" id="rd-pages-image" tabindex="0" aria-label="{{ _('Page image') }}"></figure>
-					<div class="rd-pages__text" id="rd-pages-text"{% if lang_tag(item.language) %} lang="{{ lang_tag(item.language) }}"{% endif %} tabindex="0" aria-label="{{ _('Page text') }}"></div>
+					<div class="rd-pages__text" id="rd-pages-text"{% if use_level == "Research only" %} hidden{% endif %}{% if lang_tag(item.language) %} lang="{{ lang_tag(item.language) }}"{% endif %} tabindex="0" aria-label="{{ _('Page text') }}"></div>
 				</div>
 				<section class="rd-notes" id="rd-notes" aria-live="polite"></section>
 			</div>

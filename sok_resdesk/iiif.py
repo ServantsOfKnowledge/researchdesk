@@ -69,6 +69,8 @@ def _book(item_id: str) -> tuple[dict | None, Response | None]:
 		return None, _error(404, "No such book")
 	if not access.can_read(record.get("visibility"), item=item_id):
 		return None, _error(401, "Log in to see this book")
+	if access.use_level(item_id) != "Full":
+		return None, _error(403, "This book can only be read on the portal")  # IIIF hands out whole images
 	return record, None
 
 

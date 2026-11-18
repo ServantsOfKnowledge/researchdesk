@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.132.0 (2026-11-18): Read only and research only
+
+- **How It Can Be Used.** A new setting on every book: *Full* (as before), *Read only* or *Research only*. Read only books are read page by
+  page in the portal with no PDF, file, text or image download (no IIIF or OPDS file links either, and no archive.org reader or PDF frame).
+  Research only is read only without the text: readers see page images and can search the text for hit pages and short snippets, but cannot
+  see, copy, read aloud or download the page text.
+- **Set in bulk.** Managers tick books (or filter) in the Items list → *Set How They Can Be Used*. Staff are not limited.
+- **Works with approval.** A book can need approval to read *and* be read only. A screenshot cannot be prevented, and a book also open on
+  archive.org stays open there; the docs say so.
+
 ## 0.131.0 (2026-11-18): Approval to read
 
 - **A fourth visibility, Approval to read.** For restricted, lending-only, university or research books: anyone can find and cite the book,

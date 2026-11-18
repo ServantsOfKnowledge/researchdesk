@@ -339,7 +339,7 @@ def page_image(item_id: str, leaf: int = 0, width: int = 0):
 	record = get_record(item_id)
 	if not record or not can_draw(record):
 		raise frappe.PageDoesNotExistError
-	if record.get("access_status") != "Open" or not access.can_use_text(
+	if record.get("access_status") != "Open" or not access.can_view_pages(
 		record.get("visibility"), item=item_id
 	):
 		raise frappe.PermissionError
@@ -421,10 +421,11 @@ def page(item_id: str, leaf: int = 0, q: str = ""):
 	record = get_record(item_id)
 	if not record:
 		frappe.throw(_("Item not found"), frappe.DoesNotExistError)
-	if not access.can_use_text(record.get("visibility"), item=item_id):
+	if not access.can_view_pages(record.get("visibility"), item=item_id):
 		return {"login_needed": True, "members_only": True}
+	text_ok = access.can_use_text(record.get("visibility"), item=item_id)  # not for a Research only book
 	try:
-		pages = fetch_pages(item_id) if record.get("has_page_text") else []
+		pages = fetch_pages(item_id) if record.get("has_page_text") and text_ok else []
 	except Exception:
 		pages = []  # the image can still be shown
 	by_leaf = {p["leaf"]: p for p in pages}
@@ -453,7 +454,11 @@ def page(item_id: str, leaf: int = 0, q: str = ""):
 		# what to mark in the text when the reader came from a search inside the book
 		"terms": highlight_terms(q, item_id, record.get("language_label")) if q.strip() else [],
 		"image": page_image_url(record, leaf),
-		"pdf": record.get("pdf_url") if record.get("access_status") == "Open" else "",
+		"pdf": record.get("pdf_url")
+		if record.get("access_status") == "Open"
+		and access.can_download(record.get("visibility"), item=item_id)
+		else "",
+		"text_hidden": not text_ok,
 	}
 
 
@@ -481,7 +486,7 @@ def item(item_id: str):
 	record.pop("modified", None)
 	record.pop("set_specs", None)
 	record["can_read"] = access.can_read(record.get("visibility"), item=item_id)
-	if not record["can_read"]:
+	if not access.can_download(record.get("visibility"), item=item_id):
 		record["pdf_url"] = ""
 	record["portal_url"] = f"{base_url()}/library/item/{item_id}"
 	record["citation_formats"] = {k: v[0] for k, v in citations.FORMATS.items()}
@@ -517,8 +522,11 @@ def book_text(item_id: str, format: str = "epub"):
 	record = get_record(item_id)
 	if not record:
 		frappe.throw(_("Item not found"), frappe.DoesNotExistError)
-	if not access.can_use_text(record.get("visibility"), item=item_id):
-		frappe.throw(_("Log in as a member to download this book's text."), frappe.PermissionError)
+	if not (
+		access.can_use_text(record.get("visibility"), item=item_id)
+		and access.can_download(record.get("visibility"), item=item_id)
+	):
+		frappe.throw(_("This book's text is not available to download."), frappe.PermissionError)
 	fmt = (format or "epub").lower()
 	if fmt not in ("epub", "txt"):
 		frappe.throw(_("Unknown format. Use epub or txt."))
@@ -625,7 +633,7 @@ def file(item_id: str, name: str):
 		found = copy_pdf(item_id)
 		if not found or name != found[0] or not access.can_find(doc.visibility):
 			raise frappe.PageDoesNotExistError
-		if doc.access_status != "Open" or not access.can_read(doc.visibility, item=doc.name):
+		if doc.access_status != "Open" or not access.can_download(doc.visibility, item=doc.name):
 			raise frappe.PermissionError
 		seams.emit("download", item_id, name)
 		return _private(
@@ -644,7 +652,7 @@ def file(item_id: str, name: str):
 	if not access.can_find(doc.visibility):
 		raise frappe.PageDoesNotExistError
 	if name != doc.local_thumb and (
-		doc.access_status != "Open" or not access.can_read(doc.visibility, item=doc.name)
+		doc.access_status != "Open" or not access.can_download(doc.visibility, item=doc.name)
 	):
 		raise frappe.PermissionError
 	if name != doc.local_thumb:

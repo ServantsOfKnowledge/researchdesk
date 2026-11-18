@@ -102,10 +102,35 @@ def can_read(visibility: str | None, user: str | None = None, item: str | None =
 	return core.can_read(effective(visibility, item, user), guest_mode(), is_member(user))
 
 
-def can_use_text(visibility: str | None, user: str | None = None, item: str | None = None) -> bool:
-	"""Page & text, the page images behind it and the text downloads are for members: a logged-in
-	reader (or staff) who may read the book. They are what a scraper wants, and what costs bandwidth."""
+def can_view_pages(visibility: str | None, user: str | None = None, item: str | None = None) -> bool:
+	"""Page & text and the page images behind it are for members: a logged-in reader (or staff) who may
+	read the book. They are what a scraper wants, and what costs bandwidth."""
 	return can_read(visibility, user, item) and is_member(user)
+
+
+# -- how a book can be used: Full, Read only, Research only --------------------------------
+
+
+def use_level(item: str | None, user: str | None = None) -> str:
+	"""A book's use level for this person: Full (as always), Read only (no downloads) or Research only (no
+	downloads and no extractable text). Staff are never limited."""
+	if not item or is_staff(user):
+		return core.FULL
+	cache = frappe.local.__dict__.setdefault("rd_use_levels", {})
+	if item not in cache:
+		cache[item] = frappe.db.get_value("RD Item", item, "use_level") or core.FULL
+	return cache[item]
+
+
+def can_download(visibility: str | None, user: str | None = None, item: str | None = None) -> bool:
+	"""The PDF, other files, the text as EPUB or plain text and the page images at full size."""
+	return can_read(visibility, user, item) and use_level(item, user) == core.FULL
+
+
+def can_use_text(visibility: str | None, user: str | None = None, item: str | None = None) -> bool:
+	"""The text itself: Page & text beside the page image, read aloud, the text downloads. For members
+	who may read the book, and not for a book that is Research only."""
+	return can_view_pages(visibility, user, item) and use_level(item, user) != core.RESEARCH_ONLY
 
 
 # -- approval to read ----------------------------------------------------------------------
@@ -483,6 +508,38 @@ def _names_from_search(spec: dict) -> list[str]:
 		if page >= res.get("totalPages", 0):
 			break
 	return names
+
+
+@frappe.whitelist(methods=["POST"])
+def bulk_set_use_level(
+	use_level: str,
+	names=None,
+	filters=None,
+	collection=None,
+	profile=None,
+	language=None,
+	search=None,
+	everything: int = 0,
+) -> dict:
+	"""Set how a group of books can be used (Full, Read only, Research only). Managers and super admins
+	only, like who can see a book; the books are chosen as for bulk_set_visibility."""
+	if not can_decide_visibility():
+		frappe.throw(_("Only managers can change how a book can be used."), frappe.PermissionError)
+	if use_level not in core.USE_LEVELS:
+		frappe.throw(_("Use level must be one of: {0}").format(", ".join(core.USE_LEVELS)))
+	selected = select_items(names, filters, collection, profile, language, search, bool(cint(everything)))
+	for i in range(0, len(selected), 1000):
+		frappe.db.set_value(
+			"RD Item",
+			{"name": ("in", selected[i : i + 1000])},
+			"use_level",
+			use_level,
+			update_modified=False,
+		)
+	return {
+		"count": len(selected),
+		"message": _("{0} books are now {1}.").format(len(selected), _(use_level)),
+	}
 
 
 @frappe.whitelist()
