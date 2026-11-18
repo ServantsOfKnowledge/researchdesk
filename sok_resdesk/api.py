@@ -614,7 +614,8 @@ def file(item_id: str, name: str):
 		],
 		as_dict=True,
 	)
-	classified = bool(doc) and doc.visibility == "Cleared only"
+	# a classified book, or one needing approval, is never kept by a browser cache or a proxy
+	classified = bool(doc) and doc.visibility in ("Cleared only", access.core.APPROVAL)
 	if doc:  # a classified record reads like a members-only one to the people cleared for it
 		doc.visibility = access.effective(doc.visibility, item_id)
 	if doc and doc.published and doc.served_from_copy:
@@ -680,7 +681,7 @@ def file(item_id: str, name: str):
 
 
 def _private(response, classified: bool):
-	"""A classified file is never kept by a browser cache or a proxy."""
+	"""A classified file (or one needing approval) is never kept by a browser cache or a proxy."""
 	if classified:
 		response.headers["Cache-Control"] = "private, no-store"
 	return response

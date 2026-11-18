@@ -21,9 +21,3 @@ class RDAccessRequest(Document):
 				self.valid_until = add_days(nowdate(), days) if days else None
 		if self.status != "Approved":
 			self.valid_until = None
-
-	def on_update(self):
-		if self.has_value_changed("status") and self.status in ("Approved", "Declined"):
-			from sok_resdesk.approval import tell_reader
-
-			tell_reader(self)

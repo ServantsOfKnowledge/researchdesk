@@ -32,8 +32,8 @@ For theses, research data, a university's own papers, lending-only or other rest
 - Everyone can **find** the book, see its details and cite it; the search shows no words of its text to a reader who is not approved.
 - A logged-in reader opens the book and sees **Ask to read this book**, with a box for why they need it. A guest is asked to log in first.
 - Staff (managers and cataloguers, the library's librarians) get an alert and decide in the Desk: **Research Desk → Access Requests**. Tick
-  requests → **Actions → Approve / Decline**, or open one to set an **Approved Until** date and a **Note to the Reader**. The reader is
-  emailed, if email is set up, and sees the decision on the book's page.
+  requests → **Actions → Approve / Decline**, or open one to set an **Approved Until** date and a **Note to the Reader**. The reader sees the decision on the book's page
+  (Research Desk sends email only for account messages).
 - An approval is for one reader and one book. **Settings → Access & Sign-up → Days an Approval Lasts** sets how long approvals last
   (0 = no end); an approval past its end date stops working by itself and the reader can ask again. A declined or withdrawn request can be
   asked again too.

@@ -97,7 +97,7 @@ def approved_pages(granted: tuple = ()) -> str:
 	import json
 
 	hidden = f'NOT visibility = "{APPROVAL}"'
-	return f"({hidden} OR item_id IN {json.dumps(list(granted))})" if granted else hidden
+	return f"({hidden} OR item_id IN {json.dumps(list(granted), ensure_ascii=False)})" if granted else hidden
 
 
 def sql_condition(guest_mode: str | None, member: bool, column: str = "visibility") -> str:

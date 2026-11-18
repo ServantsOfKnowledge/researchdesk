@@ -109,27 +109,3 @@ def decide(names, status: str, valid_until: str | None = None, note: str = "") -
 		doc.save(ignore_permissions=True)
 		done += 1
 	return {"count": done, "message": _("{0} requests marked {1}.").format(done, _(status))}
-
-
-def tell_reader(doc) -> None:
-	"""An email to the reader about the decision (the book's page shows it too, if email is not set up)."""
-	from sok_resdesk.catalogue import base_url, portal_title
-
-	email = frappe.db.get_value("User", doc.user, "email")
-	title = frappe.db.get_value("RD Item", doc.item, "title") or doc.item
-	link = f"{base_url()}/library/item/{doc.item}"
-	if doc.status == "Approved":
-		until = _(" until {0}").format(doc.valid_until) if doc.valid_until else ""
-		subject = _("You can read {0}").format(title)
-		body = _("The library approved your request to read {0}{1}. Open it at {2}").format(
-			title, until, link
-		)
-	else:
-		subject = _("Your request to read {0}").format(title)
-		body = _("The library could not approve your request to read {0}. {1}").format(title, doc.note or "")
-	try:
-		frappe.sendmail(
-			recipients=[email], subject=f"{portal_title()}: {subject}", message=body, delayed=True
-		)
-	except Exception:
-		pass  # email may not be set up; the book's page shows the decision
