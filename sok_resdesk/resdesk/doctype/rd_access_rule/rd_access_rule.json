@@ -12,7 +12,8 @@
  "field_order": [
   "match_on",
   "value",
-  "visibility"
+  "visibility",
+  "use_level"
  ],
  "fields": [
   {
@@ -31,7 +32,7 @@
    "label": "Is",
    "in_list_view": 1,
    "reqd": 1,
-   "columns": 4,
+   "columns": 3,
    "description": "e.g. ServantsOfKnowledge, Kannada, Local. Not case-sensitive."
   },
   {
@@ -43,6 +44,15 @@
    "in_list_view": 1,
    "reqd": 1,
    "columns": 3
+  },
+  {
+   "fieldname": "use_level",
+   "fieldtype": "Select",
+   "label": "How It Can Be Used",
+   "options": "\nFull\nRead only\nResearch only",
+   "in_list_view": 1,
+   "columns": 2,
+   "description": "Optional. Read only: no downloads. Research only: no downloads and no text. Empty: Full."
   }
  ],
  "links": [],

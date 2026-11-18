@@ -54,7 +54,9 @@ Matching Books Can Be Used** for a filter). Like *who can see it*, only managers
 
 It combines with *Approval to read*: a thesis can need approval, then be read only. Staff are not limited, so they can work on the
 book. Limits to know: nothing can stop a screenshot or someone copying by hand; a book that is also open on archive.org stays open
-there; page images still reach the reader's browser to be shown. Research only is for material where the text must not leave the library: it also closes the text paths that go round the reader (notes
+there; page images still reach the reader's browser to be shown. A rule or ingest profile can set the level for new books (*Access Rules* and *Ingest Profiles* have **How It Can Be Used**); with
+**Settings → Readers & Access → Name on Pages of Restricted Books** each page image the portal serves carries the reader's name and date.
+Research only is for material where the text must not leave the library: it also closes the text paths that go round the reader (notes
 anchored in the text, proofreading and re-OCR, recording transcripts, shared ground-truth sets). The accessible EPUB and plain-text downloads
 are for the *Full* level, so a library that restricts a book should offer assistive readers another way. Page images of a book that cannot
 be downloaded are shown at screen size and are never cached by a shared proxy.

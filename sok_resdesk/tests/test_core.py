@@ -689,3 +689,22 @@ def test_migrate_fingerprint(tmp_path):
 		import importlib
 
 		importlib.reload(schema)
+
+
+def test_a_new_books_use_level_comes_from_its_profile_then_the_first_matching_rule():
+	from sok_resdesk.core import access as a
+
+	rules = [
+		{
+			"match_on": "Collection",
+			"value": "Theses",
+			"visibility": "Approval to read",
+			"use_level": "Read only",
+		},
+		{"match_on": "Language", "value": "Kannada", "visibility": "Public", "use_level": ""},
+	]
+	thesis = {"collections": ["Theses"], "language_label": "Kannada"}
+	assert a.initial_use_level(thesis, None, rules) == "Read only"
+	assert a.initial_use_level(thesis, "Research only", rules) == "Research only"  # the profile wins
+	assert a.initial_use_level({"language_label": "Kannada"}, None, rules) == "Full"  # a rule with none set
+	assert a.initial_use_level({"language_label": "Hindi"}, "", rules) == "Full"

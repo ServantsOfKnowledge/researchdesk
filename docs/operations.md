@@ -400,6 +400,7 @@ Every setting:
 | Visitors Who Are Not Logged In | Each item's setting: follow each book's “Who can see it”. Records only: visitors can search the catalogue and cite, but reading and search inside the text need a login. Login required: the whole portal is for logged-in readers (an internal library). Choices: *Each item's setting*, *Records only*, *Login required*. |
 | Default for New Books | Used when neither the ingest profile nor a rule below decides. Choices: *Public*, *Login to read*, *Login to find*, *Approval to read*. |
 | Days an Approval Lasts | How long a librarian's approval to read a book lasts, counted from the day it is given. 0 means no end; a single approval can still be given an end date. |
+| Name on Pages of Restricted Books | Stamp each page image of a Read only or Research only book that this portal serves with the reader's name and the date, faintly across the page, so a shared screenshot or saved image can be traced. Pages kept on archive.org are not stamped. |
 | Reader Accounts | Admins add readers: no sign-up page; add people in User with the ResDesk Reader role, or ./resdesk.sh add-reader. Anyone can sign up: every account can read. Sign up, admin approves: new accounts wait in Reader Requests. Choices: *Admins add readers*, *Anyone can sign up*, *Sign up, admin approves*. |
 | OAI-PMH Shares | What harvesters such as Koha receive. “All published records” suits a library system on an internal network. Choices: *Records guests can find*, *All published records*, *Off*. |
 

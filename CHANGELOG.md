@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.133.0 (2026-11-18): Use level for rules and profiles, and a name on restricted pages
+
+- **Use level by rule and by profile.** *Settings → Access Rules* rows and *Ingest Profiles* now have **How It Can Be Used** (Full, Read only,
+  Research only). New books take their profile's setting, else the first matching rule's (the rule that decides who can see a book decides
+  this too), else Full. *Apply Access to Its Books* on a profile also sets the books it already has. For books already in the catalogue,
+  filter the Items list (a collection, a language…) and use *Set How All Matching Books Can Be Used*.
+- **A name on the pages (optional).** *Settings → Readers & Access → Name on Pages of Restricted Books* stamps the reader's name and the
+  date faintly across every page image of a Read only or Research only book that this portal serves, so a screenshot can be traced.
+  Pages kept on archive.org are not stamped.
+- **Time-limited reading.** An approval to read already has an end date (and a default length in Settings), so a thesis can be read for a
+  term and then lapse; nothing separate was added.
+
 ## 0.132.0 (2026-11-18): Read only and research only
 
 - **How It Can Be Used.** A new setting on every book: *Full* (as before), *Read only* or *Research only*. Read only books are read page by

@@ -429,10 +429,11 @@ def _save_ingested(doc, exists, raw, profile, record, quick: bool = False) -> tu
 	if profile:
 		doc.ingest_profile = profile
 	if not exists:
-		from sok_resdesk.access import initial_visibility
+		from sok_resdesk.access import initial_use_level, initial_visibility
 		from sok_resdesk.curation import collections_for_new_item
 
 		doc.visibility, doc.visibility_set_by = initial_visibility(record, profile)
+		doc.use_level = initial_use_level(record, profile)
 		for c in collections_for_new_item({**record, "item_type": doc.item_type}, profile):
 			doc.append("curated_collections", {"collection": c})
 	if quick:

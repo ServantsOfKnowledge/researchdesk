@@ -130,7 +130,7 @@ and a year only between 1450 and next year.
 ### The assistant (an optional small language model)
 
 Where the fixed rules find nothing, a small language model can read the same pages. It is off until an admin sets it up under
-**Settings → Assistant**: choose *Local server* (a model you run yourself with Ollama, llama.cpp or vLLM: nothing leaves your server) or
+**Settings → Readers & Access → Assistant**: choose *Local server* (a model you run yourself with Ollama, llama.cpp or vLLM: nothing leaves your server) or
 *Hosted API* (a paid service: the page text it is asked about is sent to it), give the address (OpenAI-style, ending in `/v1`), the model
 name and, for a hosted one, the key; *Actions → Test the Assistant* checks it. Then tick the uses you want. A small model on a CPU takes
 seconds to a minute for an answer, so use it for the background jobs rather than waiting at a form.

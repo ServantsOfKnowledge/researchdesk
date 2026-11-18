@@ -44,6 +44,7 @@
   "catalogue_first",
   "update_existing",
   "visibility",
+  "use_level",
   "sync_section",
   "keep_in_sync",
   "sync_changes",
@@ -298,6 +299,13 @@
    "label": "Access for Its Books",
    "options": "\nPublic\nLogin to read\nLogin to find\nApproval to read",
    "description": "Who can see books ingested by this profile. Leave empty to use the rules and default in Settings. Use “Apply Access to Its Books” to change books already ingested."
+  },
+  {
+   "fieldname": "use_level",
+   "fieldtype": "Select",
+   "label": "How Its Books Can Be Used",
+   "options": "\nFull\nRead only\nResearch only",
+   "description": "Full, Read only (no downloads) or Research only (no downloads and no text) for books ingested by this profile. Empty: the rules in Settings decide, else Full. “Apply Access to Its Books” changes books already ingested."
   },
   {
    "fieldname": "sync_section",

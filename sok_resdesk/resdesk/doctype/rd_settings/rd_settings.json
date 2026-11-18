@@ -71,6 +71,7 @@
   "guest_access",
   "default_visibility",
   "access_valid_days",
+  "watermark_pages",
   "column_break_access",
   "reader_signup",
   "oai_scope",
@@ -676,6 +677,14 @@
    "default": "0",
    "permlevel": 1,
    "description": "How long a librarian's approval to read a book lasts, counted from the day it is given. 0 means no end; a single approval can still be given an end date."
+  },
+  {
+   "fieldname": "watermark_pages",
+   "fieldtype": "Check",
+   "label": "Name on Pages of Restricted Books",
+   "default": "0",
+   "permlevel": 1,
+   "description": "Stamp each page image of a Read only or Research only book that this portal serves with the reader's name and the date, faintly across the page, so a shared screenshot or saved image can be traced. Pages kept on archive.org are not stamped."
   },
   {
    "fieldname": "column_break_access",

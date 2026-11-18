@@ -142,6 +142,15 @@ def match_rule(record: dict, rules: list[dict]) -> dict | None:
 	return None
 
 
+def initial_use_level(record: dict, profile_use_level: str | None, rules: list[dict]) -> str:
+	"""How a newly ingested book can be used: the ingest profile's setting wins, then the first matching
+	rule's (the rule that decides who can see it decides this too), else Full."""
+	if profile_use_level in USE_LEVELS:
+		return profile_use_level
+	rule = match_rule(record, rules)
+	return rule["use_level"] if rule and rule.get("use_level") in USE_LEVELS else FULL
+
+
 def initial_visibility(
 	record: dict, profile_visibility: str | None, rules: list[dict], default: str | None
 ) -> tuple[str, str]:

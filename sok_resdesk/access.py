@@ -305,7 +305,7 @@ def require_login_for_portal() -> None:
 
 def rules() -> list[dict]:
 	return [
-		{"match_on": r.match_on, "value": r.value, "visibility": r.visibility}
+		{"match_on": r.match_on, "value": r.value, "visibility": r.visibility, "use_level": r.use_level}
 		for r in settings().get("access_rules") or []
 	]
 
@@ -314,6 +314,11 @@ def initial_visibility(record: dict, profile: str | None) -> tuple[str, str]:
 	profile_vis = frappe.db.get_value("RD Ingest Profile", profile, "visibility") if profile else None
 	record = {**record, "ingest_profile": profile or ""}
 	return core.initial_visibility(record, profile_vis, rules(), settings().default_visibility)
+
+
+def initial_use_level(record: dict, profile: str | None) -> str:
+	profile_use = frappe.db.get_value("RD Ingest Profile", profile, "use_level") if profile else None
+	return core.initial_use_level({**record, "ingest_profile": profile or ""}, profile_use, rules())
 
 
 # -- bulk changes ------------------------------------------------------------------------
@@ -671,10 +676,17 @@ def apply_rules(include_manual: int = 0) -> dict:
 def apply_profile(profile: str) -> dict:
 	"""Ingest Profile button: give every book from this profile the profile's visibility."""
 	frappe.only_for(MANAGER_ROLES)
-	vis = frappe.db.get_value("RD Ingest Profile", profile, "visibility")
-	if vis not in VISIBILITIES:
-		frappe.throw(_("Set “Access for its books” on this profile first."))
+	vis, use = frappe.db.get_value("RD Ingest Profile", profile, ["visibility", "use_level"])
+	if vis not in VISIBILITIES and use not in core.USE_LEVELS:
+		frappe.throw(_("Set “Access for its books” or “How its books can be used” on this profile first."))
 	names = frappe.get_all("RD Item", filters={"ingest_profile": profile}, pluck="name")
+	if use in core.USE_LEVELS:
+		for i in range(0, len(names), 1000):
+			frappe.db.set_value(
+				"RD Item", {"name": ("in", names[i : i + 1000])}, "use_level", use, update_modified=False
+			)
+	if vis not in VISIBILITIES:
+		return {"count": len(names), "message": _("{0} books are now {1}.").format(len(names), _(use))}
 	if len(names) > BACKGROUND_OVER:
 		frappe.enqueue(
 			"sok_resdesk.access.apply_visibility",

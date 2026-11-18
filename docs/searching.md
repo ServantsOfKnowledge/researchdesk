@@ -52,7 +52,7 @@ the Indic spellings found for a word typed in Latin letters.
 
 ## A sentence as the search
 
-When the library has switched on the assistant's *Help Search* (Settings → Assistant), a search of four or more words with no filters yet may
+When the library has switched on the assistant's *Help Search* (Settings → Readers & Access → Assistant), a search of four or more words with no filters yet may
 show a line under the results: *Search **Kuvempu** with Kannada, Book, 1950–1959? Yes*. It reads a sentence such as "Kannada books by
 Kuvempu from the 1950s" as search words plus a language, a type and years the library really has. **Yes** applies them; nothing changes until
 you press it. The words it keeps are always words you typed, so it cannot search for something else.

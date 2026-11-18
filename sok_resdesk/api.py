@@ -352,6 +352,16 @@ def page_image(item_id: str, leaf: int = 0, width: int = 0):
 		)
 	except RenderError as e:
 		raise frappe.PageDoesNotExistError from e
+	if (
+		not full
+		and frappe.session.user != "Guest"
+		and frappe.db.get_single_value("RD Settings", "watermark_pages")
+	):
+		from sok_resdesk.core import watermark
+
+		data = watermark.stamp(
+			data, watermark.text_for(frappe.utils.get_fullname(frappe.session.user), frappe.utils.nowdate())
+		)
 	resp = Response(data, mimetype="image/jpeg")
 	public = record.get("visibility") == "Public" and full
 	resp.headers["Cache-Control"] = "public, max-age=604800" if public else "private, max-age=3600"
