@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 722" width="1200" height="722" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" role="img" aria-label="Where SOK Research Desk fits: for each layer of a digital library, the usual tools and whether Research Desk replaces, includes, complements or feeds them">
+<rect width="1200" height="722" fill="#ffffff"/>
+<text x="32" y="46" font-size="24" font-weight="700" fill="#1f272e">Where SOK Research Desk fits</text>
+<text x="32" y="72" font-size="14" fill="#5b6670">One install in place of the four or five systems a digital library needs, beside the library system you already run</text>
+<text x="32" y="104" font-size="12" font-weight="700" letter-spacing="1.4" fill="#5b6670">LAYER</text>
+<text x="235" y="104" font-size="12" font-weight="700" letter-spacing="1.4" fill="#5b6670">TYPICAL TOOLS</text>
+<text x="540" y="104" font-size="12" font-weight="700" letter-spacing="1.4" fill="#5b6670">RESEARCH DESK</text>
+<text x="830" y="104" font-size="12" font-weight="700" letter-spacing="1.4" fill="#5b6670">WHAT IT DOES</text>
+<line x1="24" y1="114" x2="1176" y2="114" stroke="#1f272e" stroke-width="1.5"/>
+<text x="32" y="150.0" font-size="14.5" font-weight="700" fill="#1f272e">Digital library / repository</text>
+<text x="235" y="142.0" font-size="12.5" fill="#5b6670">Greenstone, Omeka, CONTENTdm, DSpace,</text>
+<text x="235" y="158.0" font-size="12.5" fill="#5b6670">EPrints</text>
+<rect x="540" y="132.0" width="88" height="26" rx="13" fill="#2f6f5e"/>
+<text x="553" y="150.0" font-size="13" font-weight="700" fill="#ffffff">Replaces</text>
+<text x="830" y="142.0" font-size="12.5" fill="#1f272e">Catalogue, portal, collections and OAI-PMH in one</text>
+<text x="830" y="158.0" font-size="12.5" fill="#1f272e">install</text>
+<line x1="24" y1="172" x2="1176" y2="172" stroke="#d5dce2"/>
+<rect x="24" y="172" width="1152" height="54" fill="#f6f8fa"/>
+<text x="32" y="204.0" font-size="14.5" font-weight="700" fill="#1f272e">Search and discovery</text>
+<text x="235" y="204.0" font-size="12.5" fill="#5b6670">VuFind, Blacklight</text>
+<rect x="540" y="186.0" width="88" height="26" rx="13" fill="#2f6f5e"/>
+<text x="553" y="204.0" font-size="13" font-weight="700" fill="#ffffff">Replaces</text>
+<text x="830" y="196.0" font-size="12.5" fill="#1f272e">Full-text search in Indic scripts and in Latin letters,</text>
+<text x="830" y="212.0" font-size="12.5" fill="#1f272e">facets</text>
+<line x1="24" y1="226" x2="1176" y2="226" stroke="#d5dce2"/>
+<text x="32" y="258.0" font-size="14.5" font-weight="700" fill="#1f272e">Reader</text>
+<text x="235" y="250.0" font-size="12.5" fill="#5b6670">Internet Archive BookReader, Mirador,</text>
+<text x="235" y="266.0" font-size="12.5" fill="#5b6670">Universal Viewer</text>
+<rect x="540" y="240.0" width="88" height="26" rx="13" fill="#2b5f9e"/>
+<text x="553" y="258.0" font-size="13" font-weight="700" fill="#ffffff">Includes</text>
+<text x="830" y="250.0" font-size="12.5" fill="#1f272e">Page image beside its text, citations, notes; every book</text>
+<text x="830" y="266.0" font-size="12.5" fill="#1f272e">is a IIIF manifest</text>
+<line x1="24" y1="280" x2="1176" y2="280" stroke="#d5dce2"/>
+<rect x="24" y="280" width="1152" height="54" fill="#f6f8fa"/>
+<text x="32" y="312.0" font-size="14.5" font-weight="700" fill="#1f272e">OCR and proofreading</text>
+<text x="235" y="304.0" font-size="12.5" fill="#5b6670">Tesseract scripts, FromThePage,</text>
+<text x="235" y="320.0" font-size="12.5" fill="#5b6670">Wikisource-style projects</text>
+<rect x="540" y="294.0" width="88" height="26" rx="13" fill="#2f6f5e"/>
+<text x="553" y="312.0" font-size="13" font-weight="700" fill="#ffffff">Replaces</text>
+<text x="830" y="304.0" font-size="12.5" fill="#1f272e">OCR on ingest, re-OCR by zones, proofreading, ground</text>
+<text x="830" y="320.0" font-size="12.5" fill="#1f272e">truth</text>
+<line x1="24" y1="334" x2="1176" y2="334" stroke="#d5dce2"/>
+<text x="32" y="366.0" font-size="14.5" font-weight="700" fill="#1f272e">Preservation</text>
+<text x="235" y="366.0" font-size="12.5" fill="#5b6670">Archivematica, Preservica, LOCKSS</text>
+<rect x="540" y="348.0" width="265" height="26" rx="13" fill="#2f6f5e"/>
+<text x="553" y="366.0" font-size="13" font-weight="700" fill="#ffffff">Replaces for small institutions</text>
+<text x="830" y="358.0" font-size="12.5" fill="#1f272e">Fixity, OCFL, BagIt, a second copy, ARKs. Not a full</text>
+<text x="830" y="374.0" font-size="12.5" fill="#1f272e">OAIS</text>
+<line x1="24" y1="388" x2="1176" y2="388" stroke="#d5dce2"/>
+<rect x="24" y="388" width="1152" height="54" fill="#f6f8fa"/>
+<text x="32" y="420.0" font-size="14.5" font-weight="700" fill="#1f272e">Library system (ILS)</text>
+<text x="235" y="420.0" font-size="12.5" fill="#5b6670">Koha, Evergreen, SOUL, e-Granthalaya</text>
+<rect x="540" y="402.0" width="111" height="26" rx="13" fill="#a8650c"/>
+<text x="553" y="420.0" font-size="13" font-weight="700" fill="#ffffff">Complements</text>
+<text x="830" y="412.0" font-size="12.5" fill="#1f272e">Links the catalogue to the digital copies and sends the</text>
+<text x="830" y="428.0" font-size="12.5" fill="#1f272e">links back</text>
+<line x1="24" y1="442" x2="1176" y2="442" stroke="#d5dce2"/>
+<text x="32" y="474.0" font-size="14.5" font-weight="700" fill="#1f272e">Aggregators</text>
+<text x="235" y="458.0" font-size="12.5" fill="#5b6670">NDLI, Europeana, DPLA, Wikidata,</text>
+<text x="235" y="474.0" font-size="12.5" fill="#5b6670">Wikimedia Commons, Wikisource, Internet</text>
+<text x="235" y="490.0" font-size="12.5" fill="#5b6670">Archive</text>
+<rect x="540" y="456.0" width="64" height="26" rx="13" fill="#7a3e8f"/>
+<text x="553" y="474.0" font-size="13" font-weight="700" fill="#ffffff">Feeds</text>
+<text x="830" y="474.0" font-size="12.5" fill="#1f272e">OAI-PMH, OPDS, IIIF, Wikidata links, archive.org</text>
+<line x1="24" y1="496" x2="1176" y2="496" stroke="#d5dce2"/>
+<rect x="24" y="496" width="1152" height="54" fill="#f6f8fa"/>
+<text x="32" y="528.0" font-size="14.5" font-weight="700" fill="#1f272e">Digitisation workflow</text>
+<text x="235" y="528.0" font-size="12.5" fill="#5b6670">Goobi, Kitodo, Scribe</text>
+<rect x="540" y="510.0" width="203" height="26" rx="13" fill="#2b5f9e"/>
+<text x="553" y="528.0" font-size="13" font-weight="700" fill="#ffffff">Includes the essentials</text>
+<text x="830" y="520.0" font-size="12.5" fill="#1f272e">TTScribe scanning hardware and Repub processing</text>
+<text x="830" y="536.0" font-size="12.5" fill="#1f272e">(Servants of Knowledge)</text>
+<line x1="24" y1="550" x2="1176" y2="550" stroke="#d5dce2"/>
+<text x="32" y="582.0" font-size="14.5" font-weight="700" fill="#1f272e">Archival description</text>
+<text x="235" y="582.0" font-size="12.5" fill="#5b6670">AtoM, ArchivesSpace</text>
+<rect x="540" y="564.0" width="203" height="26" rx="13" fill="#2b5f9e"/>
+<text x="553" y="582.0" font-size="13" font-weight="700" fill="#ffffff">Includes the essentials</text>
+<text x="830" y="574.0" font-size="12.5" fill="#1f272e">Fonds to item (ISAD(G)), EAD3 export. Not authority</text>
+<text x="830" y="590.0" font-size="12.5" fill="#1f272e">records</text>
+<line x1="24" y1="604" x2="1176" y2="604" stroke="#d5dce2"/>
+<rect x="24" y="604" width="1152" height="54" fill="#f6f8fa"/>
+<text x="32" y="636.0" font-size="14.5" font-weight="700" fill="#1f272e">Institutional repository</text>
+<text x="235" y="636.0" font-size="12.5" fill="#5b6670">DSpace or EPrints for theses and papers</text>
+<rect x="540" y="618.0" width="203" height="26" rx="13" fill="#2b5f9e"/>
+<text x="553" y="636.0" font-size="13" font-weight="700" fill="#ffffff">Includes the essentials</text>
+<text x="830" y="628.0" font-size="12.5" fill="#1f272e">Deposit with review, licences, embargoes. Not multi-step</text>
+<text x="830" y="644.0" font-size="12.5" fill="#1f272e">workflows</text>
+<line x1="24" y1="658" x2="1176" y2="658" stroke="#d5dce2"/>
+<rect x="32" y="678" width="14" height="14" rx="7" fill="#2f6f5e"/>
+<text x="54" y="690" font-size="13" fill="#1f272e"><tspan font-weight="700">Replaces</tspan> does the job itself</text>
+<rect x="302" y="678" width="14" height="14" rx="7" fill="#2b5f9e"/>
+<text x="324" y="690" font-size="13" fill="#1f272e"><tspan font-weight="700">Includes</tspan> built in</text>
+<rect x="572" y="678" width="14" height="14" rx="7" fill="#a8650c"/>
+<text x="594" y="690" font-size="13" fill="#1f272e"><tspan font-weight="700">Complements</tspan> works beside it</text>
+<rect x="842" y="678" width="14" height="14" rx="7" fill="#7a3e8f"/>
+<text x="864" y="690" font-size="13" fill="#1f272e"><tspan font-weight="700">Feeds</tspan> sends its records out</text>
+</svg>
