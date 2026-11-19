@@ -33,6 +33,7 @@ SCRIPTS = (
 	"ime.js",
 	"item.js",
 	"library.js",
+	"login.js",
 	"proofread.js",
 	"readaloud.js",
 	"media.js",
