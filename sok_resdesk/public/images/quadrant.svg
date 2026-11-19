@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 860" width="1200" height="860" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" role="img" aria-label="Quadrant of digital library platforms by breadth of capability and fit for Indic-language collections and small institutions">
+<rect width="1200" height="860" fill="#ffffff"/>
+<text x="32" y="46" font-size="24" font-weight="700" fill="#1f272e">Digital library platforms: where each one sits</text>
+<text x="32" y="72" font-size="14" fill="#5b6670">SOK's own illustrative assessment, not an independent analyst report</text>
+<rect x="130" y="440.0" width="320.0" height="320.0" fill="#f6f8fa" stroke="#c9d2da"/>
+<rect x="450.0" y="440.0" width="320.0" height="320.0" fill="#eef5f2" stroke="#c9d2da"/>
+<rect x="130" y="120" width="320.0" height="320.0" fill="#f6f8fa" stroke="#c9d2da"/>
+<rect x="450.0" y="120" width="320.0" height="320.0" fill="#eef5f2" stroke="#c9d2da"/>
+<text x="144" y="146" text-anchor="start" font-size="13" font-weight="700" letter-spacing="1.4" fill="#5b6670">CHALLENGERS</text>
+<text x="756" y="146" text-anchor="end" font-size="13" font-weight="700" letter-spacing="1.4" fill="#5b6670">LEADERS</text>
+<text x="144" y="746" text-anchor="start" font-size="13" font-weight="700" letter-spacing="1.4" fill="#5b6670">NICHE PLAYERS</text>
+<text x="756" y="746" text-anchor="end" font-size="13" font-weight="700" letter-spacing="1.4" fill="#5b6670">VISIONARIES</text>
+<text x="450.0" y="806" text-anchor="middle" font-size="14" font-weight="700" fill="#1f272e">BREADTH OF WHAT IT DOES  →</text>
+<text x="450.0" y="826" text-anchor="middle" font-size="12" fill="#5b6670">repository, discovery, reader, OCR and proofreading, preservation, archival description, deposit, sharing</text>
+<text transform="translate(52 440.0) rotate(-90)" text-anchor="middle" font-size="14" font-weight="700" fill="#1f272e">FIT FOR INDIC COLLECTIONS AND SMALL INSTITUTIONS  →</text>
+<text transform="translate(72 440.0) rotate(-90)" text-anchor="middle" font-size="12" fill="#5b6670">self-hosted, light to run, Indic search and OCR</text>
+<circle cx="655" cy="197" r="13" fill="#2f6f5e" stroke="#ffffff" stroke-width="2"/>
+<text x="631" y="202" text-anchor="end" font-size="15" font-weight="700" fill="#1f272e">SOK Research Desk</text>
+<circle cx="514" cy="363" r="9" fill="#6b7782" stroke="#ffffff" stroke-width="2"/>
+<text x="526" y="353" text-anchor="start" font-size="13.5" font-weight="500" fill="#1f272e">Greenstone</text>
+<circle cx="610" cy="376" r="9" fill="#6b7782" stroke="#ffffff" stroke-width="2"/>
+<text x="624" y="381" text-anchor="start" font-size="13.5" font-weight="500" fill="#1f272e">Internet Archive</text>
+<circle cx="418" cy="408" r="9" fill="#6b7782" stroke="#ffffff" stroke-width="2"/>
+<text x="406" y="430" text-anchor="end" font-size="13.5" font-weight="500" fill="#1f272e">Omeka</text>
+<circle cx="482" cy="472" r="9" fill="#6b7782" stroke="#ffffff" stroke-width="2"/>
+<text x="494" y="462" text-anchor="start" font-size="13.5" font-weight="500" fill="#1f272e">DSpace</text>
+<circle cx="450" cy="491" r="9" fill="#6b7782" stroke="#ffffff" stroke-width="2"/>
+<text x="462" y="513" text-anchor="start" font-size="13.5" font-weight="500" fill="#1f272e">EPrints</text>
+<circle cx="501" cy="568" r="9" fill="#6b7782" stroke="#ffffff" stroke-width="2"/>
+<text x="515" y="573" text-anchor="start" font-size="13.5" font-weight="500" fill="#1f272e">CONTENTdm</text>
+<text x="810" y="150" font-size="13" font-weight="700" fill="#1f272e">How to read it</text>
+<text x="810" y="174" font-size="12.5" fill="#5b6670">Right: does more of the digital</text>
+<text x="810" y="193" font-size="12.5" fill="#5b6670">library job in one system.</text>
+<text x="810" y="212" font-size="12.5" fill="#5b6670">Up: easier to run for a small</text>
+<text x="810" y="231" font-size="12.5" fill="#5b6670">library, and works well with</text>
+<text x="810" y="250" font-size="12.5" fill="#5b6670">Indian languages.</text>
+<text x="810" y="269" font-size="12.5" fill="#5b6670"></text>
+<text x="810" y="288" font-size="12.5" fill="#5b6670">Placements are a first pass</text>
+<text x="810" y="307" font-size="12.5" fill="#5b6670">for review: change SCORES in</text>
+<text x="810" y="326" font-size="12.5" fill="#5b6670">scripts/gen_quadrant.py.</text>
+<text x="810" y="345" font-size="12.5" fill="#5b6670">Systems are digital library</text>
+<text x="810" y="364" font-size="12.5" fill="#5b6670">platforms; library systems</text>
+<text x="810" y="383" font-size="12.5" fill="#5b6670">(Koha) and viewers (Mirador)</text>
+<text x="810" y="402" font-size="12.5" fill="#5b6670">are not plotted.</text>
+</svg>
