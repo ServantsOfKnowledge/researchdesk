@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.134.0 (2026-11-19): Sign up from the login page needs no email
+
+- **Sign up goes to the password form.** Adding a social login put Frappe's own *Sign up* tab in front of readers; it emails a link to set a
+  password, so with no mailbox working registration looked broken. On the login page, *Sign up* now goes to the library's one-page form
+  (name, email and a password, signed in at once) whenever Reader Accounts lets people join, and keeps the page the reader came from.
+  Social login buttons are unchanged.
+- **Where email still matters.** Forgot password and links staff send still use email; the sign-in page of the docs now says how to test
+  outgoing email and read the Email Queue when nothing arrives.
+
 ## 0.133.0 (2026-11-18): Use level for rules and profiles, and a name on restricted pages
 
 - **Use level by rule and by profile.** *Settings → Access Rules* rows and *Ingest Profiles* now have **How It Can Be Used** (Full, Read only,

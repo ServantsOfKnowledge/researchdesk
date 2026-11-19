@@ -106,3 +106,13 @@ class TestCanOpenDesk(IntegrationTestCase):
 		self.assertFalse(access.can_open_desk())
 		frappe.set_user("Administrator")
 		self.assertTrue(access.can_open_desk())
+
+
+class TestCanJoin(IntegrationTestCase):
+	def test_the_login_page_learns_whether_people_may_join(self):
+		from unittest import mock
+
+		with mock.patch("sok_resdesk.access.signup_mode", return_value="Anyone can sign up"):
+			self.assertEqual(signup.can_join(), {"open": True})
+		with mock.patch("sok_resdesk.access.signup_mode", return_value="Admins add readers"):
+			self.assertEqual(signup.can_join(), {"open": False})

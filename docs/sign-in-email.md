@@ -75,6 +75,17 @@ Links sent before stop working. To try all of this with accounts of every kind, 
 | **Anyone can sign up** | the person chooses a password on a one-page form and can read at once; no email is needed |
 | **Sign up, admin approves** | a **Reader Request** is created for you to approve. The email address is not verified, so check it before you approve: the library's *account is ready* message goes there |
 
+## Social sign-in and the login page's Sign up
+
+Adding a **Social Login Key** (Google, Keycloak, GitHub…) puts its buttons on Frappe's login page, which also has a **Sign up** tab of its
+own. That tab asks for a name and an email and *emails a link* to set a password, so with no outgoing mailbox the person is left waiting.
+When **Reader Accounts** lets people join, Research Desk sends every **Sign up** click on the login page to its one-page form instead
+(name, email, a password you choose, signed in at once, no email), keeping the page they came from. The social buttons are not changed. A
+person who signs in with a social account for the first time is made a reader (or waits for approval) exactly as the setting says.
+
+Email is still needed for **Forgot password** and for the links staff send. If nothing arrives, open **Connections → People and sign-in →
+Outgoing email**, press **Save and send test**, then look in **Email Queue** for the error on the messages that failed.
+
 ## Finding people who tried to sign up
 
 - **Users** (Desk → Users) lists every account, including ones that never set a password.

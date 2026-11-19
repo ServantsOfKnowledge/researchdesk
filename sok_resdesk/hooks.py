@@ -68,6 +68,7 @@ web_include_js = [
 	f"/assets/sok_resdesk/js/analytics.js?v={__version__}",
 	f"/assets/sok_resdesk/js/a11y.js?v={__version__}",
 	f"/assets/sok_resdesk/js/ime.js?v={__version__}",
+	f"/assets/sok_resdesk/js/login.js?v={__version__}",
 ]
 # {{ library_url() }} in portal templates: / (the site's home page), or /library
 jinja = {

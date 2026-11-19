@@ -32,6 +32,14 @@ def open_to_join() -> bool:
 	return access.signup_mode() != core.SIGNUP_CLOSED
 
 
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=120, seconds=60)
+def can_join() -> dict:
+	"""Whether the library lets people join from its sign-up page. The login page asks, to send "Sign up"
+	there (public/js/login.js) instead of to Frappe's email-link sign-up."""
+	return {"open": open_to_join()}
+
+
 def require_json() -> None:
 	"""A form on another site can post forms and plain text but not JSON, so a sign-up cannot be done to a
 	visitor from elsewhere (it would sign them in to the attacker's account)."""
