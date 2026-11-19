@@ -59,7 +59,7 @@ def main() -> None:
 	]
 	# the four boxes
 	half = S / 2
-	for name, x, y, tint in (
+	for _name, x, y, tint in (
 		("NICHE PLAYERS", L, T + half, "#f6f8fa"),
 		("VISIONARIES", L + half, T + half, "#eef5f2"),
 		("CHALLENGERS", L, T, "#f6f8fa"),
