@@ -4,9 +4,17 @@ those who may use them."""
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from sok_resdesk import features, sidebar
+from sok_resdesk import dbretry, features, sidebar
 
 EMAIL = "rdtest-sidebar@example.org"
+
+
+def boot_info():
+	"""The Desk's boot data. Reading it touches Module Profile and Workspace, which a queued job or another
+	test may be changing: MySQL then answers 1020 (record changed since last read), and a read again works."""
+	from frappe.boot import get_bootinfo
+
+	return dbretry.run(get_bootinfo, attempts=5)
 
 
 def sidebar_of(boot) -> dict:
@@ -66,11 +74,9 @@ class TestSidebar(IntegrationTestCase):
 		self.assertIn("Items", labels)
 
 	def test_it_follows_the_features(self):
-		from frappe.boot import get_bootinfo
-
 		def targets():
 			frappe.clear_cache()
-			return [i.get("link_to") for i in sidebar_of(get_bootinfo())["items"]]
+			return [i.get("link_to") for i in sidebar_of(boot_info())["items"]]
 
 		sidebar.refresh()
 		self.assertIn("RD Deposit", targets())
@@ -82,8 +88,6 @@ class TestSidebar(IntegrationTestCase):
 		self.assertNotIn("RD Deposit", targets())
 
 	def test_only_a_system_manager_is_shown_administration(self):
-		from frappe.boot import get_bootinfo
-
 		sidebar.refresh()
 		if frappe.db.exists("User", EMAIL):
 			frappe.delete_doc("User", EMAIL, force=True, ignore_permissions=True)
@@ -100,24 +104,22 @@ class TestSidebar(IntegrationTestCase):
 		frappe.set_user(EMAIL)
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.clear_cache(user=EMAIL)
-		labels = self.labels(get_bootinfo())
+		labels = self.labels(boot_info())
 		self.assertIn("Items", labels)
 		self.assertNotIn("Administration", labels)
 		self.assertNotIn("Error Log", labels)
 		frappe.set_user("Administrator")
 		frappe.clear_cache(user="Administrator")
-		self.assertIn("Administration", self.labels(get_bootinfo()))
+		self.assertIn("Administration", self.labels(boot_info()))
 
 
 class TestBrandLogo(IntegrationTestCase):
 	def test_the_libraries_logo_is_on_the_desks_app_icon(self):
-		from frappe.boot import get_bootinfo
-
 		before = frappe.db.get_single_value("RD Settings", "portal_logo")
 		frappe.db.set_single_value("RD Settings", "portal_logo", "/files/rdtest-logo.png")
 		self.addCleanup(frappe.db.set_single_value, "RD Settings", "portal_logo", before)
 		frappe.clear_cache()
-		boot = get_bootinfo()
+		boot = boot_info()
 		apps = [a for a in boot.get("app_data") or [] if a.get("app_name") == "sok_resdesk"]
 		if not apps:  # a Frappe before 16.50 keeps the logo on the Desktop Icon instead
 			self.skipTest("this Frappe has no apps list")
