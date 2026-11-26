@@ -219,8 +219,8 @@
    "fieldname": "show_sok",
    "fieldtype": "Check",
    "label": "Show a Note About Servants of Knowledge",
-   "default": "0",
-   "description": "A short section at the foot of the page about Servants of Knowledge, the non-profit that builds Research Desk: what it is and does today. For SOK's own libraries and anyone who wants to credit it; off by default."
+   "default": "1",
+   "description": "A short section at the foot of the page about Servants of Knowledge, the non-profit that builds Research Desk: what it is and does today. Untick it if this library prefers not to carry it."
   }
  ],
  "links": [],

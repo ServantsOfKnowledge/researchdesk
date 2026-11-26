@@ -1,11 +1,17 @@
 # Changelog
 
+## 0.136.0 (2026-11-26): The Servants of Knowledge note shows on the About page by default
+
+- **On by default.** The About page's note about Servants of Knowledge (what the organisation does today) now shows unless a library unticks
+  **Show a Note About Servants of Knowledge** on its About Page. An About page saved before the box existed gets it switched on once on
+  upgrade; a library that has already ticked or unticked the box keeps its choice.
+
 ## 0.135.0 (2026-11-26): A note about Servants of Knowledge on the About page
 
 - **About Servants of Knowledge.** The About page can end with a short section on who builds Research Desk and what the organisation does
   today: scanning with its own open-design scanners, the Repub and Research Desk tools from scanner to reader, its partner libraries, its
   approach to copyright and Creative Commons, and where the name and motto come from. Tick **Show a Note About Servants of Knowledge** on
-  the About Page (Desk → Research Desk → About Page → More). It is off by default, so other libraries' pages are unchanged.
+  the About Page (Desk → Research Desk → About Page → More).
 
 ## 0.134.0 (2026-11-19): Sign up from the login page needs no email
 

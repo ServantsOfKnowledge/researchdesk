@@ -154,7 +154,7 @@ class TestPortalAtRoot(IntegrationTestCase):
 		self.assertEqual(response.status_code, 302)
 		self.assertTrue(response.headers["Location"].endswith("/?q=hampi"))
 
-	def test_the_note_about_servants_of_knowledge_is_off_until_ticked(self):
+	def test_the_note_about_servants_of_knowledge_follows_its_box(self):
 		doc = frappe.get_single("RD About Page")
 		doc.show_sok = 0
 		doc.save(ignore_permissions=True)

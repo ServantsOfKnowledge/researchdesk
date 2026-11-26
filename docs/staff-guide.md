@@ -387,7 +387,7 @@ are left out:
 | Buttons | the main button (*Open the library* → `/`) and an optional second one (*How to search* → `/library/help`). Links are a page of this site (`/library/collections`, `/?q=hampi`) or a web address (`https://…`) |
 | How to Use It | numbered steps: title, a sentence or two (`**bold**` works), and an optional link |
 | Highlights | cards for what makes the library useful, and **Show Featured Collections** (the collections marked *Featured*) |
-| More | anything else, written freely in the rich-text editor: the story of the collection, partners and funders, contact, credits. **Show a Note About Servants of Knowledge** adds a short, ready-written section at the foot of the page about the non-profit that builds Research Desk (off by default; SOK's own libraries tick it) |
+| More | anything else, written freely in the rich-text editor: the story of the collection, partners and funders, contact, credits. **Show a Note About Servants of Knowledge** adds a short, ready-written section at the foot of the page about the non-profit that builds Research Desk (on unless you untick it) |
 
 **Save**, then **View Page**. Changes show straight away.
 
