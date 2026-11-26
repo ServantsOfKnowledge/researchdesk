@@ -153,3 +153,12 @@ class TestPortalAtRoot(IntegrationTestCase):
 			frappe.local.resdesk_library_url = None
 		self.assertEqual(response.status_code, 302)
 		self.assertTrue(response.headers["Location"].endswith("/?q=hampi"))
+
+	def test_the_note_about_servants_of_knowledge_is_off_until_ticked(self):
+		doc = frappe.get_single("RD About Page")
+		doc.show_sok = 0
+		doc.save(ignore_permissions=True)
+		self.assertFalse(about.context().show_sok)
+		doc.show_sok = 1
+		doc.save(ignore_permissions=True)
+		self.assertTrue(about.context().show_sok)

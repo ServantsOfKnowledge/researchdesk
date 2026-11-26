@@ -79,6 +79,8 @@
 	</section>
 	{% endif %}
 
+	{% if show_sok %}{% include "templates/includes/rd_about_sok.html" %}{% endif %}
+
 	{% if buttons %}
 	<p class="rd-about__end"><a class="rd-btn rd-btn--primary rd-btn--large" href="{{ buttons[0].link | e }}">{{ buttons[0].label | e }}</a></p>
 	{% endif %}

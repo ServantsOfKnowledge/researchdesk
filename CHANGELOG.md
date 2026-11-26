@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.135.0 (2026-11-26): A note about Servants of Knowledge on the About page
+
+- **About Servants of Knowledge.** The About page can end with a short section on who builds Research Desk and what the organisation does
+  today: scanning with its own open-design scanners, the Repub and Research Desk tools from scanner to reader, its partner libraries, its
+  approach to copyright and Creative Commons, and where the name and motto come from. Tick **Show a Note About Servants of Knowledge** on
+  the About Page (Desk → Research Desk → About Page → More). It is off by default, so other libraries' pages are unchanged.
+
 ## 0.134.0 (2026-11-19): Sign up from the login page needs no email
 
 - **Sign up goes to the password form.** Adding a social login put Frappe's own *Sign up* tab in front of readers; it emails a link to set a

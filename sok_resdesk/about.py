@@ -214,6 +214,7 @@ def context() -> frappe._dict:
 			)
 			if label and link and safe_link(link)
 		],
+		show_sok=bool(doc.show_sok),
 		numbers=numbers() if doc.show_stats else [],
 		steps_title=tr(doc.steps_title) or "",
 		steps=_items(doc.steps),

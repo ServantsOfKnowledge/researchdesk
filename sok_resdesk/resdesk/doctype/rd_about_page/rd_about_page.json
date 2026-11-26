@@ -38,7 +38,8 @@
   "show_collections",
   "section_more",
   "body_title",
-  "body"
+  "body",
+  "show_sok"
  ],
  "fields": [
   {
@@ -213,6 +214,13 @@
    "fieldtype": "Text Editor",
    "label": "Content",
    "description": "Text, headings, lists, images and links, shown after the steps and cards."
+  },
+  {
+   "fieldname": "show_sok",
+   "fieldtype": "Check",
+   "label": "Show a Note About Servants of Knowledge",
+   "default": "0",
+   "description": "A short section at the foot of the page about Servants of Knowledge, the non-profit that builds Research Desk: what it is and does today. For SOK's own libraries and anyone who wants to credit it; off by default."
   }
  ],
  "links": [],

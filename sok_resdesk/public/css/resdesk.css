@@ -364,6 +364,8 @@
 .rd-about__card { padding: 18px; border: 1px solid var(--rd-border); border-top: 3px solid var(--rd-accent); border-radius: 10px; background: var(--rd-bg); }
 .rd-prose img { max-width: 100%; height: auto; border-radius: 8px; }
 .rd-prose p { margin: 0 0 .8em; }
+.rd-about__sok { border-top: 1px solid var(--rd-line, #d5dce2); padding-top: 24px; }
+.rd-about__sok p { max-width: 70ch; }
 .rd-about__end { text-align: center; margin: 40px 0 24px; }
 @media (max-width: 720px) {
 	.rd-about__hero--image { grid-template-columns: 1fr; }
